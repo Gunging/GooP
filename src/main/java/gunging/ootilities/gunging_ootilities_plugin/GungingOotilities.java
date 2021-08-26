@@ -1,0 +1,14572 @@
+package gunging.ootilities.gunging_ootilities_plugin;
+
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.*;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
+import gunging.ootilities.gunging_ootilities_plugin.containers.*;
+import gunging.ootilities.gunging_ootilities_plugin.containers.restriction.*;
+import gunging.ootilities.gunging_ootilities_plugin.customstructures.*;
+import gunging.ootilities.gunging_ootilities_plugin.events.GooPGriefEvent;
+import gunging.ootilities.gunging_ootilities_plugin.events.GooP_FontUtils;
+import gunging.ootilities.gunging_ootilities_plugin.events.ScoreboardLinks;
+import gunging.ootilities.gunging_ootilities_plugin.misc.*;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.AppliccableMask;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
+import org.bukkit.command.BlockCommandSender;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+
+public class GungingOotilities implements CommandExecutor {
+    OotilityCeption oots = new OotilityCeption();
+
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args) {
+
+        // Strip location data
+        Location senderLocation = null;
+        String failMessage = null;
+        if (args.length >= 1) {
+            RefSimulator<String> fmFind = new RefSimulator<>(null);
+            args[0] = OotilityCeption.ProcessFailMessageOfCommand(args[0], fmFind);
+            String locData = args[0];
+            failMessage = fmFind.getValue();
+            if (locData.startsWith("<")) {
+
+                // Does it end in >
+                int senderRelativeLocationIDX = locData.indexOf(">");
+                if (senderRelativeLocationIDX > 4) {
+
+                    // Then krop
+                    String rLoverride = locData.substring(1, senderRelativeLocationIDX);
+
+                    // Valid location?
+                    senderLocation = OotilityCeption.ValidLocation(rLoverride, null);
+
+                    // Strip
+                    args[0] = locData.substring(senderRelativeLocationIDX + 1);
+                }
+            }
+        }
+
+        // Defaults to sender
+        if ((senderLocation == null)) {
+
+            if (sender instanceof Entity) {
+
+                // Thay loc
+                senderLocation = ((Entity) sender).getLocation();
+
+            } else if (sender instanceof BlockCommandSender) {
+
+                // Thay loc
+                senderLocation = ((BlockCommandSender) sender).getBlock().getLocation();
+            }
+        }
+
+        // What will be said to the caster (caster = sender of command)
+        List<String> logReturn = new ArrayList<>();
+
+        // Will it be a supported plugin command?
+        boolean supp = false;
+
+        // If there are any arguments
+        GooP_Commands cmd = null;
+        if (args.length > 0) {
+
+            // Is it a supported plugin command?
+            try {
+                // Yes, it seems to be
+                cmd = GooP_Commands.valueOf(args[0].toLowerCase());
+
+                // Well it is supported then
+                supp = true;
+
+            // Not recognized
+            } catch (IllegalArgumentException ex) {
+
+                // Yes it is! Lets go
+                if (args[0].toLowerCase().equals("sudop")) {
+                    cmd = GooP_Commands.sudo;
+                    supp = true;
+                } else
+
+                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Command '\u00a73" + args[0] + "\u00a77' not recognized. For available commands: \u00a7e/goop \u00a77OR \u00a7e/gungingootilities")); }
+
+                /* Daybroken Trigger
+                if (args.length == 8) {
+
+                    //   0     1    2    3    4   5   6     7    8   args.Length
+                    // /goop hack for yunque fall in your head mbn9
+                    //   -     0    1    2    3   4   5     6    7   args[n]
+                    //logReturn.add(((args[2] + args[5]).length()) + " | " + args[4].equals("in") + " | " + args[1].startsWith("fo") + " | " + (args[7] + args[5] + args[3]).length() + ", " + (args[0] + args[2] + args[4]).length() + ", " + args[4].length() + " : " + (args[6] + args[6] + args[4]).length() + " - " + ((Player)sender).getClientViewDistance());
+
+                    if ((args[2] + args[5]).length() == 10) {
+                        if (args[4].equals("in")) {
+                            if (args[1].startsWith("fo")) {
+                                if (Math.pow((args[7] + args[5] + args[3]).length() - (args[0] + args[2] + args[4]).length() + (args[4].length() - 1), (args[6] + args[6] + args[4]).length()) == 1) {
+                                    if (sender instanceof Player) {
+                                        if (((Player)sender).getClientViewDistance() == 2) {
+                                            // Imbending Boom Abbroaches
+                                            Gunging_Ootilities_Plugin.daybroken = true;
+                                            logReturn.add("\u00a7cImbending Boom Abbroaches");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } */
+            }
+
+        // Otherwise, its the analogous of /help
+        } else {
+            logReturn.add("\u00a7e______________________________________________");
+            logReturn.add("\u00a73Help, \u00a77Available Commands:");
+            for (GooP_Commands o : GooP_Commands.values()) { logReturn.add("\u00a73 - \u00a7e" + o.toString()); }
+        }
+
+        // Slots of success
+        StringBuilder successSlots = new StringBuilder();
+
+        if (supp) {
+
+            // Check for permission
+            boolean permission = true;
+
+            // Cook universal parsers
+            for (int c = 0; c < args.length; c++) {
+
+                args[c] = args[c].replace("<$nd>", "&");
+            }
+
+            // Split the heck off the chain of commands
+            ArrayList<String> trueArgs = new ArrayList<>(); boolean chained = false; StringBuilder chanedArgs = new StringBuilder();
+            for (String obs : args) {
+
+                // Does it equal the OS sequence?
+                if (!chained && obs.equalsIgnoreCase("oS:")) {
+
+                    // It is now chained
+                    chained = true;
+                    //CHN//OotilityCeption. Log("\u00a7eChained Command Arg");
+
+                } else {
+
+                    // Chaining or true?
+                    if (!chained) {
+
+                        // Add obs to the truth
+                        trueArgs.add(obs);
+                        //CHN//OotilityCeption. Log("Examined arg: \u00a7b" + obs);
+
+                    // Its chained, shall now build
+                    } else {
+
+                        // Append after a space
+                        chanedArgs.append(" ").append(obs);
+                        //CHN//OotilityCeption. Log("Chained arg: \u00a7f" + obs);
+                    }
+                }
+            }
+
+            // Chain command execc
+            String chainedCommand = null;
+            String chainedNoLocation = null;
+            RefSimulator<List<String>> logReturnUrn = new RefSimulator<>(null);
+            if (chained) {
+                // Replace args
+                args = new String[trueArgs.size()];
+                for (int s = 0; s < args.length; s++) {
+                    args[s] = trueArgs.get(s);
+                    //CHN//OotilityCeption. Log("&cBaking true arg: \u00a7b" + args[s]);
+                }
+
+                // Build chain command (Cut the first space)
+                chainedNoLocation = chanedArgs.toString().substring(1);
+                chainedCommand = OotilityCeption.ProcessGooPRelativityOfCommand(chainedNoLocation, senderLocation);
+                //CHN//OotilityCeption. Log("\u00a7eDetermined chained command: \u00a7f" + chainedCommand);
+            }
+
+            // Which command thoi?
+            switch (cmd) {
+                //region stasis
+                case stasis:
+                    //   0      1       2         3     args.Length
+                    // /goop stasis <entity> <duration>
+                    //   -      0       1         2     args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.stasis");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length == 3) {
+
+                            // CHeck for failure
+                            boolean failure = false;
+
+                            // Duration is an integer
+                            if (!OotilityCeption.IntTryParse(args[2])) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Stasis", "Duration (in ticks) must be an integer number."));
+                            }
+
+                            if (!failure) {
+
+                                // Gets that player boi
+                                ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[1], null);
+                                Entity targetNonPlayer = OotilityCeption.getEntityByUniqueId(args[1]);
+                                if (targetNonPlayer instanceof Player) { targetNonPlayer = null; }
+
+                                // Treat as player
+                                for (Player target : targets) {
+                                    // Slowness
+                                    target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, OotilityCeption.ParseInt(args[2]), 254, true));
+                                    // Jump Prevention
+                                    target.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, OotilityCeption.ParseInt(args[2]), 129, true));
+                                    // Confusion
+                                    target.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, OotilityCeption.ParseInt(args[2]), 4, true));
+
+                                    // Mention
+                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Stasis", "Successfully suspended \u00a73" + target.getName() + "\u00a77's flow of time."));
+
+                                    // Run Chain
+                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                }
+
+                                // Entity found
+                                if (targetNonPlayer != null) {
+
+                                    // Well NoAI set to true bruh
+                                    LivingEntity slTarget = (LivingEntity) targetNonPlayer;
+                                    slTarget.setAI(false);
+
+                                    // Soon enough, cancel
+                                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(Gunging_Ootilities_Plugin.getPlugin(Gunging_Ootilities_Plugin.class) , () -> slTarget.setAI(true), (OotilityCeption.ParseInt(args[2])));
+
+                                    // Mention
+                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Stasis", "Successfully suspended \u00a73" + slTarget.getName() + "\u00a77's flow of time."));
+
+                                    // Run Chain
+                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(targetNonPlayer.getUniqueId(), chainedCommand, sender, null, null, null);}
+                                }
+
+                                // Entity not found
+                                if (targets.size() == 0 && targetNonPlayer == null) {
+
+                                    // Not found
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Stasis", "Entity not found."));
+                                }
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Stasis, \u00a77Kinda like freezes that entity in time.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop stasis <entity> <duration>");
+                            logReturn.add("\u00a73 - \u00a7e<entity> \u00a77Entity that will be affected.");
+                            logReturn.add("\u00a73 --> \u00a73Players \u00a77are slowed, blocked from jumping, and confused.");
+                            logReturn.add("\u00a73 --> \u00a73Mobs \u00a77are cleared from their artificial intelligence.");
+                            logReturn.add("\u00a73 - \u00a7e<duration> \u00a77Duration of stasis in ticks.");
+                            logReturn.add("\u00a73Equivalent of vanilla \u00a7e/data set entity @s NoAi value set true\u00a73 but logless.");
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Stasis", "Incorrect usage. For info: \u00a7e/goop stasis"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop consumeitem <entity> <duration>");
+                            }
+                        }
+
+                    // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to suspend creatures!"));
+                    }
+                    break;
+                //endregion
+                //region help
+                case help:
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.help");
+                    }
+
+                    if (permission) {
+
+                        logReturn.add("\u00a7e______________________________________________");
+                        logReturn.add("\u00a73Help, \u00a77Available Commands:");
+                        for (GooP_Commands o : GooP_Commands.values()) { logReturn.add("\u00a73 - \u00a7e" + o.toString()); }
+                    } else {
+
+
+                        // Tell him lmao
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou are helpless..."));
+                    }
+                    break;
+                //endregion
+                //region consumeitem
+                case consumeitem:
+                    //   0      1            2     3 4 5      6     args.Length
+                    // /goop consumeitem <player> {n b t} <amount> [I,E,C,P,S,Z,H,L] [Name Filter]
+                    //   -      0            1     2 3 4      5     args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.consumeitem");
+                    }
+
+                    // Got permission, then?
+                    if (permission) {
+
+                        // How many args this man got?
+                        if (args.length >= 6) {
+
+                            // Gets that player boi
+                            ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[1], null);
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+                            boolean failure = false;
+
+                            // Does the player exist?
+                            if (targets.size() == 0) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Consume Item", "Target must be an online player!"));
+                            }
+
+                            // Can it parse tha mount?
+                            if (!(OotilityCeption.IntTryParse(args[5]) || args[5].equalsIgnoreCase("All"))) {
+
+                                // Failure
+                                failure = true;
+
+                                // The thing is not an integer nor an accepted keyword
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Consume Item", "Expected an integer number or the keyword '\u00a7eall\u00a77' instead of '\u00a73" + args[5] + "\u00a77.'"));
+                            }
+
+                            //Switch for sintax
+                            if (OotilityCeption.IsInvalidItemNBTtestString(args[2], args[3], args[4], logAddition)) {
+                                // Ew
+                                failure = true;
+
+                                // Log it
+                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Consume Item", logAddition.GetValue()));}
+                            }
+
+                            if (!failure) {
+
+                                // Alr lets keep a count of the items found
+                                Integer tRAmount = null; boolean iAll = args[5].equalsIgnoreCase("All");
+                                if (!iAll) { tRAmount = OotilityCeption.ParseInt(args[5]); }
+
+                                // Build [I,E,C,P,S,Z,H,L]
+                                ArrayList<SearchLocation> sweep = new ArrayList<>();
+                                if (args.length >= 7) {
+                                    String arg = args[6].toUpperCase();
+                                    if (arg.contains("I")) { sweep.add(SearchLocation.INVENTORY); }
+                                    if (arg.contains("E")) { sweep.add(SearchLocation.ENDERCHEST); }
+                                    if (arg.contains("C")) { sweep.add(SearchLocation.OBSERVED_CONTAINER); }
+                                    if (arg.contains("P")) { sweep.add(SearchLocation.PERSONAL_CONTAINER); }
+                                    if (arg.contains("S")) { sweep.add(SearchLocation.SHULKER_INVENTORY); }
+                                    if (arg.contains("Z")) { sweep.add(SearchLocation.SHULKER_ENDERCHEST); }
+                                    if (arg.contains("H")) { sweep.add(SearchLocation.SHULKER_OBSERVED_CONTAINER); }
+                                    if (arg.contains("L")) { sweep.add(SearchLocation.SHULKER_PERSONAL_CONTAINER); }
+
+                                    if (sweep.size() == 0) { sweep.add(SearchLocation.INVENTORY); }
+
+                                } else { sweep.add(SearchLocation.INVENTORY); }
+
+                                // Make Array
+                                SearchLocation[] sweeptot = new SearchLocation[sweep.size()];
+                                for (int s = 0; s < sweeptot.length; s++) { sweeptot[s] = sweep.get(s); }
+
+                                // Name
+                                String fltr = null;
+                                if (args.length >= 8) {
+
+                                    // Stringbuild the remaining args
+                                    StringBuilder tot = new StringBuilder();
+                                    for (int ar = 7; ar < args.length; ar++) { tot.append(args[ar]); }
+
+                                    // Build
+                                    fltr = tot.toString();
+                                }
+
+                                // For every target
+                                for (Player target : targets) {
+
+                                    // New Ref Simulator
+                                    RefSimulator<Integer> totalFound = new RefSimulator<>(0);
+                                    Integer tAmount = tRAmount;
+                                    int oAmount = 0;
+
+                                    // Get Inven Items until enough have been found
+                                    ArrayList<ItemStackLocation> items = OotilityCeption.InventoryMatching(target, args[2], args[3], args[4], totalFound, fltr, logAddition, sweeptot);
+
+                                    // If tAmount null, it serendipitously equals the found value
+                                    if (iAll) { tAmount = totalFound.getValue(); }
+
+                                    // Did it find enough?
+                                    if (totalFound.getValue() >= tAmount) {
+
+                                        // Examine all of them
+                                        for (ItemStackLocation item : items) {
+
+                                            boolean fatalFailureBruh = item.IsItemNull();
+
+                                            if (!fatalFailureBruh) {
+
+                                                int currentAmount = item.getAmount();
+
+                                                // Totally clearing?
+                                                if (iAll) {
+                                                    oAmount += currentAmount;
+
+                                                    item.SetItemAmount(0);
+
+                                                // Otherwise (Not totally clearing)
+                                                } else {
+
+                                                    // If the Amount can absorve the whole cleareance
+                                                    if (currentAmount >= tAmount) {
+
+                                                        // Absorb
+                                                        item.SetItemAmount(currentAmount - tAmount);
+
+                                                        // Finish
+                                                        oAmount = tRAmount;
+                                                        break;
+
+                                                    // If theres more amount still, set to zero and decrease tAmout
+                                                    } else {
+
+                                                        // Decrease
+                                                        tAmount -= currentAmount;
+
+                                                        // Consume
+                                                        item.SetItemAmount(0);
+                                                    }
+                                                }
+
+                                            // There seems to be a fatal failure
+                                            } else {
+
+                                                // HUH
+                                                logReturn.add(OotilityCeption.LogFormat("Consume Item", "\u00a7cThis shouldnt be happening: Item Not Found - Contact Dev"));
+                                            }
+                                        }
+
+                                        // Success
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Consume Item", "Successfully removed \u00a73" + oAmount + "\u00a77 items from " + target.getName() + "'s inventory."));
+
+                                        // Run Chain
+                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+
+                                    // If there weren't enough
+                                    } else {
+
+                                        // I guess not
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Consume Item", "Player '\u00a73" + target.getName() + "\u00a77' didn't have enough of that in their inventory."));
+
+                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage.replace("%amount%", String.valueOf(tAmount)), target.getPlayer(), target.getPlayer(), null, null))); }
+                                    }
+                                }
+                            }
+
+                            // If they were calling the help form of the command
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Consume Item, \u00a77Removes an amount of a specific item from the player.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop consumeitem <player> {nbt} <amount> [I,E,C,P,S,Z,H,L] [Shulker Box Name Filter]");
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player whose inventory will be affected.");
+                            logReturn.add("\u00a73 - \u00a7e{nbt} \u00a77These are the formats that match your plugins:");
+                            logReturn.add("\u00a73 --> \u00a7ee <enchantment name> <level> \u00a77Tests for an enchantment.");
+                            if (Gunging_Ootilities_Plugin.foundMMOItems) { logReturn.add("\u00a73 --> \u00a7em <mmoitem type> <mmoitem id> \u00a77Tests for it being a precise mmoitem."); }
+                            logReturn.add("\u00a73 - \u00a7e<amount> \u00a77Number of items that will be removed.");
+                            logReturn.add("\u00a73 --> \u00a7eall \u00a77will remove all items that match from the player's inven.");
+                            logReturn.add("\u00a73 - \u00a7e[I,E,C,P,S,Z,H,L] \u00a77Inventories from which to consume items");
+                            logReturn.add("\u00a73 - \u00a7e[Shulker Box Name Filter] \u00a77Name of shulker boxes to open and check");
+                            logReturn.add("\u00a7cWill fail if the player doesnt have enough items to remove.");
+
+                            // Incorrect number of arguments. These people
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Consume Item", "Incorrect usage. For info: \u00a7e/goop consumeitem"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop consumeitem <player> {nbt} <amount>");
+                            }
+                        }
+
+                    // No permission
+                    } else {
+
+                        // Tell him lmao
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to consume items!"));
+                    }
+                    break;
+                //endregion
+                //region testinventory
+                case testinventory:
+                    //   0      1              2       3    4 5 6       7         8     args.Length
+                    // /goop testinventory <player> <slot> {n b t} [objective] [score] [Shulker Box Name Filter]
+                    //   -      0              1       2    3 4 5       6         7     args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.testinventory");
+                    }
+
+                    // Got perms?
+                    if (permission) {
+
+                        // How many args this man got?
+                        if (args.length >= 6) {
+
+                            // Gets that player boi
+                            ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[1], null);
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            Objective targetObjective = null;
+                            PlusMinusPercent amountPMP = null;
+                            PlusMinusPercent score = null;
+                            String amountPmPText = "";
+                            String completiontext = "";
+                            if (args.length >= 7) { completiontext = args[6]; }
+                            boolean toCompletion = completiontext.equals("comp");
+                            if (args.length >= 8) {
+                                amountPmPText = args[7];
+                                targetObjective = OotilityCeption.GetObjective(args[6]); }
+
+                            // Some bool to know if failure
+                            boolean failure = false;
+
+                            // Does the player exist?
+                            if (targets.size() == 0) {
+                                // Failure
+                                failure = true;
+
+                                // Add a trash null entry
+                                targets.add(null);
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Target must be an online player!"));
+                            }
+
+                            //Switch for sintax
+                            boolean allowNull = false;
+                            if (OotilityCeption.IsInvalidItemNBTtestString(args[3], args[4], args[5], logAddition)) {
+                                // Ew
+                                failure = true;
+
+                                // Log it
+                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Test Inventory", logAddition.GetValue()));}
+                            } else { allowNull = (args[3].equals("v") && (args[4].toLowerCase()).equals("air"));  }
+
+                            // Can it parse the score?
+                            boolean expectedAsScore = false;
+                            boolean uiAmount = amountPmPText.toLowerCase().contains("amount");
+                            if (args.length >= 8) {
+                                if (uiAmount) {
+
+                                    // Build Amount PMP base
+                                    amountPMP = PlusMinusPercent.GetPMP(args[7].toLowerCase().replace("amount", "1"), null);
+
+                                    // If it didnt parse, default to just set
+                                    if (amountPMP == null) { amountPMP = new PlusMinusPercent(1337.0D, false, false); }
+
+                                    expectedAsScore = true;
+                                }
+                                score = PlusMinusPercent.GetPMP(amountPmPText, logAddition);
+                                if (score != null) { expectedAsScore = true; }
+                            }
+
+                            // Does the scoreboard objective exist?
+                            if (targetObjective == null && args.length >= 8) {
+                                // Failure
+                                failure = failure || expectedAsScore;
+
+                                // Mention
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback && failure) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Scoreboard Objective '\u00a73" + args[6] + "\u00a77' does not exist."));
+                            }
+
+                            // Name
+                            String fltr = null;
+                            if (args.length >= 7) {
+
+                                int start = 6;
+                                if (toCompletion) { start = 7; }
+                                if (expectedAsScore) { start = 8; } else { uiAmount = false; }
+
+                                if (args.length > start) {
+
+                                    // Stringbuild the remaining args
+                                    StringBuilder tot = new StringBuilder();
+                                    for (int ar = start; ar < args.length; ar++) {
+                                        if (!(tot.length() == 0)) { tot.append(" "); }
+                                        tot.append(args[ar]); }
+
+                                    // Build
+                                    fltr = tot.toString();
+                                    //DBG//OotilityCeption.Log("Searching in boxes of name \u00a73" + fltr);
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every target
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[2], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+
+                                        // If no slots were wrong
+                                        if (slotFailure.getValue() == null && Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Test Inventory", "The slots specified didn't make sense in this context. As if trying to access shulker boxes where there are none, or using container placeholder names in non-goop inventories.")); }
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("Test Inventory", slotFailure.getValue())); }
+
+                                    // Nice sintax!
+                                    if (!failure) {
+
+                                        // Count matches
+                                        int kount = 0;
+
+                                        // For every slot
+                                        for (ItemStackSlot tSlot : slott) {
+                                            //SLT//OotilityCeption.Log("\u00a77Looking at \u00a7a " + tSlot.toString());
+
+                                            // Time to get that item stack
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, tSlot, fltr);
+                                            //SLOT//OotilityCeption. Log(("Looking at \u00a7e" + tSlot.getSlot() + "\u00a77: \u00a78(\u00a76" + tSlot.getLocation().toString() + "\u00a78)");
+
+                                            // If slot made sense
+                                            if (tISource != null) {
+                                                //SLT//OotilityCeption.Log("\u00a77Found " + OotilityCeption.GetItemName(tISource.getItem()));
+
+                                                // Get Item
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // If it is not null
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+                                                    //SLOT//OotilityCeption. Log(("Found \u00a73" + OotilityCeption.GetItemName(targetItem));
+
+                                                    // Found something, does it match thoi?
+                                                    if (OotilityCeption.MatchesItemNBTtestString(targetItem, args[3], args[4], args[5], logAddition)) {
+                                                        //SLOT//OotilityCeption. Log(("\u00a7a\u00a7oMatched");
+
+                                                        // COunt
+                                                        kount += targetItem.getAmount();
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, tSlot, OotilityCeption.comma); }
+
+                                                        // Is this the whole damn thing? No? Then break it
+                                                        if (!uiAmount && !toCompletion) { break; }
+
+                                                    }
+
+                                                // Item Stack is null or air, are we searching for that?
+                                                } else if (allowNull) {
+                                                    //SLOT//OotilityCeption. Log(("\u00a7a\u00a7oMatched");
+
+                                                    // Count
+                                                    kount++;
+                                                    if (chained) { OotilityCeption.Slot4Success(successSlots, tSlot, OotilityCeption.comma); }
+
+                                                    // Is this the whole damn thing? No? Then break it
+                                                    if (!uiAmount && !toCompletion) { break; }
+
+                                                }
+
+                                            // Null Item Stack Location? I guess thats air?
+                                            } else if (allowNull) {
+
+                                                //SLOT//OotilityCeption. Log(("\u00a7a\u00a7oMatched");
+
+                                                // Count
+                                                kount++;
+                                                if (chained) { OotilityCeption.Slot4Success(successSlots, tSlot, OotilityCeption.comma); }
+
+                                                // Is this the whole damn thing? No? Then break it
+                                                if (!uiAmount && !toCompletion) { break; }
+
+
+                                            }
+                                        }
+
+                                        // If found
+                                        if (kount > 0) {
+
+                                            // Is it an amount counter?
+                                            if (uiAmount) {
+
+                                                if (targetObjective != null){
+
+                                                    // Iamount pmp
+                                                    double negativity = amountPMP.getValue();
+                                                    amountPMP.OverrideValue(kount * negativity);
+
+                                                    // Done
+                                                    OotilityCeption.SetPlayerScore(targetObjective, target, amountPMP);
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Item successfully detected. Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target)));
+
+                                                } else {
+
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Item successfully detected, a total of \u00a7e" + kount +"\u00a77."));
+                                                }
+
+                                                // The player provided a specific score
+                                            } else {
+
+                                                if (targetObjective != null) {
+
+
+                                                    //Behold
+                                                    OotilityCeption.SetPlayerScore(targetObjective, target, score);
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Item successfully detected. Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target)));
+
+                                                } else {
+
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Item successfully detected, at least \u00a7e" + kount +"\u00a77."));
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+
+                                            // Nothing was found
+                                        } else {
+
+                                            // Difference between amount and no amount
+                                            if (uiAmount) {
+                                                if (targetObjective != null) {
+
+                                                    // Iamount pmp
+                                                    amountPMP.OverrideValue(0.0D);
+
+                                                    // Well nothing means 0 this time
+                                                    OotilityCeption.SetPlayerScore(targetObjective, target, amountPMP);
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Nothing matched the filter. Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a730"));
+
+                                                } else {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Nothing matched the filter. Succeeding anyway due to use of the \u00a7bamount\u00a77 keyword."));
+
+                                                }
+
+                                                // Run Chain
+                                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+
+                                                // General number, nothing happens
+                                            } else {
+
+                                                if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+
+                                                // Mention
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Nothing matched the filter."));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        // If they were calling the help form of the command
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Test Inventory, \u00a77Makes sure the player has an item in his inven.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop testinventory <player> <slot> {nbt} [scoreboard] [value] [Shulker Box Name to Match]");
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player whose inventory will be tested, and score will be changed.");
+                            logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot to test for.");
+                            logReturn.add("\u00a73 --> \u00a77Possible slots: \u00a7bhead\u00a73, \u00a7bchest\u00a73, \u00a7blegs\u00a73, \u00a7bfeet\u00a73, \u00a7bmainhand\u00a73, \u00a7boffhand\u00a73, \u00a7b\u00a7lany\u00a73, and any number \u00a7b0\u00a73-\u00a7b35\u00a73.");
+                            logReturn.add("\u00a73 - \u00a7e{nbt} \u00a77These are the formats that match your plugins:");
+                            logReturn.add("\u00a73 --> \u00a7ee <enchantment name> <level> \u00a77Tests for an enchantment.");
+                            if (Gunging_Ootilities_Plugin.foundMMOItems) { logReturn.add("\u00a73 --> \u00a7em <mmoitem type> <mmoitem id> \u00a77Tests for it being a precise mmoitem."); }
+                            logReturn.add("\u00a73 - \u00a7e<scoreboard> \u00a77Scoreboard objective name that will be modified IF the item matches perfectly.");
+                            logReturn.add("\u00a73 - \u00a7e<value> \u00a77Score value that will be given to the player.");
+                            logReturn.add("\u00a73 --> \u00a7eamount \u00a77keyword will set the score to the amount of that item the player has.");
+                            logReturn.add("\u00a73 - \u00a7e[Shulker Box Name to Match] \u00a77Name of shulker boxes to inspect (All if missing).");
+                            logReturn.add("\u00a73 --> \u00a77Will only affect Shulker Box Slots.");
+                            logReturn.add("\u00a73You can then test for the player having that score value with mythic artifacts or idk what.");
+
+                        // Incorrect number of argumenst. These beople
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Incorrect usage. For info: \u00a7e/goop testinventory"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop testinventory <player> <slot> {nbt} <scoreboard> <value>");
+                            }
+                        }
+
+                    // No permission
+                    } else {
+
+                        // Tell him lmao
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to check inventories!"));
+                    }
+                    break;
+                //endregion
+                //region gamerule
+                case gamerule:
+                    //   0      1       2      3    args.Length
+                    // /goop gamerule <rule> value
+                    //   -      0       1      2    args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.gamerule");
+                    }
+
+                    // Got permission?
+                    if (permission) {
+
+                        if (args.length == 3) {
+                            Boolean val;
+
+                            // Get that user intended value
+                            if (OotilityCeption.BoolTryParse(args[2])){
+
+                                val = OotilityCeption.BoolParse(args[2]);
+
+                                // Split Logga
+                                Player chosenDev = null;
+                                Integer intarg = 0;
+
+                                // If has hyphen
+                                if (args[1].contains("-")) {
+
+                                    // Split by hyphen
+                                    String[] devSplit = args[1].split("-");
+
+                                    // Repalce
+                                    args[1] = devSplit[0];
+
+                                    // If exists
+                                    if (devSplit.length > 1) {
+
+                                        // Get Dev Name
+                                        if (args[1].startsWith("dev")) {
+
+                                            // Get Player. Must be online
+                                            chosenDev = (Player) OotilityCeption.GetPlayer(devSplit[1], false);
+                                        }
+                                    }
+                                }
+
+                                switch (args[1].toLowerCase()){
+                                    case "sendsuccessfeedback":
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "Gamerule \u00a73sendSuccessFeedback\u00a77 updated to \u00a7b" + val));
+                                        if (!Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "Gamerule \u00a73sendSuccessFeedback\u00a77 updated to \u00a7b" + val));
+                                        Gunging_Ootilities_Plugin.sendGooPSuccessFeedback = val;
+                                        if (Gunging_Ootilities_Plugin.saveGamerulesConfig) Gunging_Ootilities_Plugin.theMain.UpdateConfigBool("SendSuccessFeedback", val);
+                                        break;
+                                    case "sendfailfeedback":
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "Gamerule \u00a73sendFailFeedback\u00a77 updated to \u00a7b" + val));
+                                        Gunging_Ootilities_Plugin.sendGooPFailFeedback = val;
+                                        if (Gunging_Ootilities_Plugin.saveGamerulesConfig) Gunging_Ootilities_Plugin.theMain.UpdateConfigBool("SendFailFeedback", val);
+                                        break;
+                                    case "blockerrorfeedback":
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "Gamerule \u00a73blockErrorFeedback\u00a77 updated to \u00a7b" + val));
+                                        Gunging_Ootilities_Plugin.blockImportantErrorFeedback = val;
+                                        if (Gunging_Ootilities_Plugin.saveGamerulesConfig) Gunging_Ootilities_Plugin.theMain.UpdateConfigBool("BlockErrorFeedback", val);
+                                        break;
+                                    case "griefbreaksbedrock":
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "Gamerule \u00a7bgriefBreaksBedrock\u00a77 updated to \u00a7b" + val));
+                                        Gunging_Ootilities_Plugin.griefBreaksBedrock = val;
+                                        if (Gunging_Ootilities_Plugin.saveGamerulesConfig) Gunging_Ootilities_Plugin.theMain.UpdateConfigBool("GriefBedrockCommand", val);
+                                        break;
+                                    case "anvilrename":
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "Gamerule \u00a7banvilRename\u00a77 updated to \u00a7b" + val));
+                                        Gunging_Ootilities_Plugin.anvilRenameEnabled = val;
+                                        if (Gunging_Ootilities_Plugin.saveGamerulesConfig) Gunging_Ootilities_Plugin.theMain.UpdateConfigBool("AnvilRename", val);
+                                        break;
+                                    case "savegamerulechanges":
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "Gamerule \u00a73saveGameruleChanges\u00a77 updated to \u00a7b" + val));
+                                        Gunging_Ootilities_Plugin.saveGamerulesConfig = val;
+
+                                        // Always updated, regardless of itself
+                                        Gunging_Ootilities_Plugin.theMain.UpdateConfigBool("SaveGameruleChanges", val);
+                                        break;
+                                    case "dev":
+                                        // No rememberance, thus no save regard
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "\u00a7eToggled Developer Logging to: \u00a7b" + val));
+                                        Gunging_Ootilities_Plugin.devLogging = val;
+
+                                        // Update Player
+                                        if (chosenDev != null) { Gunging_Ootilities_Plugin.devLogga = chosenDev; }
+                                        break;
+                                    default:
+                                        // I have no memory of that shit
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "'\u00a73" + args[1] + "\u00a77' is not a valid gamerule! do \u00a7e/goop gamerule\u00a77 for the list of gamerules."));
+                                        break;
+                                }
+
+                            } else {
+
+                                // Vro thats not a bool
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "The accepted values are \u00a7btrue \u00a77and \u00a7bfalse\u00a77. '\u00a73" + args[2] + "\u00a77' is neither of them"));
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73GooP Gamerule, \u00a77Some 'Gamerules' that affect this plugin.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop gamerule <rule> <value>");
+                            logReturn.add("\u00a73 - \u00a7e<rule> \u00a77Rule name. These are them:");
+                            logReturn.add("\u00a73" + Gunging_Ootilities_Plugin.sendGooPSuccessFeedback + "\u00a7e: \u00a7bsendSuccessFeedback \u00a77Messages when a command succeeds.");
+                            logReturn.add("\u00a73" + Gunging_Ootilities_Plugin.sendGooPFailFeedback + "\u00a7e: \u00a7bsendFailFeedback \u00a77Messages when a command fails.");
+                            logReturn.add("\u00a73" + Gunging_Ootilities_Plugin.blockImportantErrorFeedback + "\u00a7e: \u00a7bblockErrorFeedback \u00a77Toggles error messages.");
+                            logReturn.add("\u00a73" + Gunging_Ootilities_Plugin.saveGamerulesConfig + "\u00a7e: \u00a7bsaveGameruleChanges \u00a77Update the \u00a7econfig.yml\u00a77 whenever a gamerule changes?");
+                            logReturn.add("\u00a73" + Gunging_Ootilities_Plugin.griefBreaksBedrock + "\u00a7e: \u00a7bgriefBreaksBedrock \u00a77Should \u00a7e/goop grief\u00a77 break unbreakable blocks? (Bedrock, End Portal Frames...) \u00a78They wont drop as items as there is no pickaxe power that makes them do so in vanilla.");
+                            logReturn.add("\u00a73" + Gunging_Ootilities_Plugin.anvilRenameEnabled + "\u00a7e: \u00a7banvilRename \u00a77Should GooP take over anvil renaming (may be incompatible with anvil renaming plguins)");
+                            logReturn.add("\u00a73 - \u00a7e<value> \u00a77Value of the rule.");
+                            logReturn.add("\u00a73You would usually use these for debugging mostly.");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Gamerule", "Incorrect usage. For info: \u00a7e/goop gamerule"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop gamerule <rule> <value>");
+                            }
+                        }
+
+                    // No perms
+                    } else {
+                        // Tell him lmao
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to change gamerules!"));
+                    }
+                    break;
+                //endregion
+                //region mmoitems
+                case mmoitems:
+                    //   0      1        2      args.Length
+                    // /goop mmoitems {action}
+                    //   -      0        1      args[n]
+
+                    // FFS Check for MMOItems
+                    if (Gunging_Ootilities_Plugin.foundMMOItems) {
+
+                        // Check 5 Permission
+                        if (sender instanceof Player) {
+                            // Solid check for permission
+                            permission = sender.hasPermission("gunging_ootilities_plugin.mmoitems");
+                        }
+
+                        // Got permission?
+                        if (permission) {
+                            if (args.length >= 2) {
+                                // Some bool to know if failure
+                                boolean failure = false;
+                                ArrayList<Player> targets = null;
+
+                                switch (args[1].toLowerCase()) {
+                                    //region addGemSlot
+                                    case "addgemslot":
+                                        //   0      1        2          3       4       5     args.Length
+                                        // /goop mmoitems addGemSlot <color> <player> <slot>
+                                        //   -      0        1          2       3       4     args[n]
+
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "addgemslot")) {
+
+                                            // Correct MMOItems version?
+                                                if (args.length == 5) {
+
+                                                // Gets that player boi
+                                                targets = OotilityCeption.GetPlayers(senderLocation, args[3], null);
+
+                                                // Does the player exist?
+                                                if (targets.size() < 1) {
+                                                    // Failure
+                                                    failure = true;
+
+                                                    // Notify the error
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Add Gem Slot", "Target must be an online player!"));
+                                                }
+
+                                                if (!failure) {
+                                                    for (Player target : targets) {
+                                                        failure = false;
+
+                                                        //Lets get that inven slot
+                                                        RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                        ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], target, slotFailure);
+
+                                                        // So, does the slot make no sense?
+                                                        if (slott.size() == 0) {
+                                                            // Failure
+                                                            failure = true;
+                                                        }
+
+                                                        // Log
+                                                        if (slotFailure.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - Add Gem Slot", slotFailure.getValue())); }
+
+                                                        // Bice Sintax
+                                                        if (!failure) {
+                                                            int kount = 0;
+
+                                                            // For every slot
+                                                            for (ItemStackSlot oSlot : slott) {
+
+                                                                //Time to get that item stack
+                                                                ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                                // If found
+                                                                if (tISource != null) {
+
+                                                                    // Get target item
+                                                                    ItemStack targetItem = tISource.getItem();
+
+                                                                    // Any item found?
+                                                                    if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                                        // Search and update
+                                                                        RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                        // Bake Colour
+                                                                        String colour = args[2];
+                                                                        if (colour.contains("_")) {
+
+                                                                            // Split
+                                                                            String[] cSplit = colour.split("_");
+
+                                                                            // Build
+                                                                            StringBuilder str = new StringBuilder(cSplit[0]);
+                                                                            for (int i = 1; i < cSplit.length; i++) { str.append(" ").append(cSplit[i]); }
+
+                                                                            // Build
+                                                                            colour = str.toString();
+                                                                        }
+
+                                                                        ItemStack resul = GooPMMOItems.MMOItemAddGemSlot(targetItem, colour, logAddition);
+
+                                                                        // If there was success
+                                                                        if (resul != null && resul.getType() != Material.STRUCTURE_VOID) {
+
+                                                                            // Replace
+                                                                            tISource.ReplaceItem(resul);
+
+                                                                            // Success
+                                                                            kount++;
+                                                                            if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                                        }
+
+                                                                        // Log any results
+                                                                        if (logAddition.GetValue() != null) {
+
+                                                                            // Say that
+                                                                            logReturn.add(OotilityCeption.LogFormat("MMOItems - Add Gem Slot", logAddition.GetValue()));
+                                                                        }
+
+                                                                    } else {
+
+                                                                        // Say that
+                                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Add Gem Slot", "Theres nothing in there! Can't add gems."));
+                                                                    }
+
+                                                                } else {
+
+                                                                    // Say that
+                                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Add Gem Slot", "Theres nothing there! Can't add gems."));
+                                                                }
+                                                            }
+
+                                                            // Success?
+                                                            if (kount > 0) {
+
+                                                                // Run Chain
+                                                                if (chained) {
+                                                                    chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                                    OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                                                }
+                                                            } else {
+
+                                                                if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Incorrect number of args
+                                            } else {
+
+                                                // Notify
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - Add Gem Slot", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                    logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems addGemSlot <gem slot color> <player> <slot>");
+                                                }
+                                            }
+                                        }
+
+                                        break;
+                                        //endregion
+                                    //region Count Gems
+                                    case "countgems":
+                                        //   0      1        2            3           4       5         6        args.Length
+                                        // /goop mmoitems countGems <includeSlots> <player> <slot> <scoreboard>
+                                        //   -      0        1            2           3       4         5       args[n]
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "countgems"))
+
+                                            if (args.length == 6) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[3], null);
+
+                                            // Some scoreboards to test
+                                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                                            Objective targetObjective = targetScoreboard.getObjective(args[5]);
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Count Gems", "Target must be an online player!"));
+                                            }
+
+                                            // Boolean parses?
+                                            Boolean includeEmpty = null;
+                                            if (!OotilityCeption.BoolTryParse(args[2])) {
+
+                                                // Fail
+                                                failure = true;
+
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Count Gems", "Expected \u00a7atrue\u00a77 or \u00a7cfalse\u00a77 instead of '\u00a73" + args[2] + "\u00a77'"));
+
+                                            } else {
+                                                includeEmpty = OotilityCeption.BoolParse(args[2]);
+                                            }
+
+                                            // Does the scoreboard objective exist?
+                                            if (targetObjective == null) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Mention
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Count Gems", "Scoreboard Objective '\u00a73" + args[5] + "\u00a77' does not exist."));
+                                            }
+
+                                            if (!failure) {
+
+                                                // FOr every player
+                                                for (Player target : targets) {
+                                                    failure = false;
+
+                                                    //Lets get that inven slot
+                                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], target, slotFailure);
+
+                                                    // So, does the slot make no sense?
+                                                    if (slott.size() == 0) {
+                                                        // Failure
+                                                        failure = true;
+                                                    }
+
+                                                    // Log
+                                                    if (slotFailure.getValue() != null) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Count Gems", slotFailure.getValue()));
+                                                    }
+
+
+                                                    // Bice Sintax
+                                                    if (!failure) {
+                                                        // Find Item
+                                                        Integer kount = null;
+
+                                                        // For every slot
+                                                        for (ItemStackSlot oSlot : slott) {
+
+                                                            // Get Target Item
+                                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                            // If non-null
+                                                            if (tISource != null) {
+
+                                                                // Get Item
+                                                                ItemStack targetItem = tISource.getItem();
+
+                                                                // Any item found?
+                                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+                                                                    // Search and update
+                                                                    RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                    Integer gemsInThat = GooPMMOItems.MMOItemCountGems(targetItem, includeEmpty, logAddition);
+
+                                                                    // If found gems data
+                                                                    if (gemsInThat != null) {
+
+                                                                        // If there no ongoing count
+                                                                        if (kount == null) {
+
+                                                                            // This becomes it
+                                                                            kount = gemsInThat;
+
+                                                                            // If there was a count
+                                                                        } else {
+
+                                                                            // Increase it
+                                                                            kount += gemsInThat;
+                                                                        }
+                                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); } }
+
+                                                                    // Log any results
+                                                                    if (logAddition.GetValue() != null) {
+
+                                                                        if (logAddition.GetValue().length() > 1) {
+
+                                                                            // Say that
+                                                                            logReturn.add(OotilityCeption.LogFormat("MMOItems - Count Gems", logAddition.GetValue()));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Was there any kount?
+                                                        if (kount != null) {
+                                                            // Done
+                                                            OotilityCeption.SetPlayerScore(targetObjective, target, kount);
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
+                                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Count Gems", "Counted gems of items! Set score '\u00a73" + args[5] + "\u00a77' of \u00a73" + target.getName() + "\u00a77 to \u00a73" + kount));
+
+                                                            // Run Chain
+                                                            if (chained) {
+                                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                                            }
+                                                        } else {
+
+                                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Count Gems", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems countGems <includeEmptySlots> <player> <slot> <objective>");
+                                            }
+                                        }
+
+                                        break;
+                                        //endregion
+                                    //region Upgrade
+                                    case "upgrade":
+                                        //   0       1     2         3       4          5             6           7              8            args.Length
+                                        // /goop mmoitems upgrade <player> <slot> [±]<levels>[%] [break max] [objective] [±][objective][%]
+                                        //   -       0     1         2       3          4             5           6              7            args[n]
+
+                                        // Correct number of args?
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "upgrade")) if (args.length >= 5 && args.length <= 8) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Upgrade", "Target must be an online player!"));
+                                            }
+
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+                                            PlusMinusPercent pmpLevel = PlusMinusPercent.GetPMP(args[4], logAddition);
+                                            if (pmpLevel == null) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Mention it
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Upgrade", "Expected a number or operation for level (like \u00a7b1\u00a77, \u00a7b5,\u00a77 \u00a7bn2\u00a77, or \u00a7b+2\u00a77) instead of \u00a7e" + args[4]));
+                                            }
+
+                                            boolean breakLimit = false;
+                                            if (args.length >= 6) {
+
+                                                if (OotilityCeption.BoolTryParse(args[5])) {
+
+                                                    breakLimit = Boolean.parseBoolean(args[5]);
+
+                                                } else {
+                                                    // Failure
+                                                    failure = true;
+
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Upgrade", "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[5]));
+                                                }
+                                            }
+
+                                            Objective targetObjective = null;
+                                            PlusMinusPercent score = null;
+                                            if (args.length >= 7) {
+                                                ScoreboardManager manager = Bukkit.getScoreboardManager();
+                                                Scoreboard targetScoreboard = manager.getMainScoreboard();
+                                                targetObjective = targetScoreboard.getObjective(args[6]);
+
+                                                if (targetObjective == null) {
+                                                    // Failure
+                                                    failure = true;
+
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Upgrade", "Scoreboard objective \u00a73" + args[6] + "\u00a77 does not exist."));
+                                                }
+
+                                                if (args.length >= 8) {
+                                                    score = PlusMinusPercent.GetPMP(args[7], logAddition);
+
+                                                    if (score == null && !(args[7].toLowerCase().equals("level"))) {
+                                                        // Failure
+                                                        failure = true;
+
+                                                        // Mention it
+                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Upgrade", "The final score '\u00a73" + args[7] + "\u00a77' should be an integer number (maybe with an operation)."));
+                                                    }
+                                                }
+                                            }
+
+                                            if (!failure) {
+                                                // For cummulative score
+                                                double tScore = 0.0;
+
+                                                // For every player
+                                                for (Player target : targets) {
+                                                    failure = false;
+
+                                                    // Starts at score of 0
+                                                    tScore = 0.0;
+                                                    int succ = 0;
+
+                                                    //Lets get that inven slot
+                                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                                    // So, does the slot make no sense?
+                                                    if (slott.size() == 0) {
+                                                        // Failure
+                                                        failure = true;
+                                                    }
+
+                                                    // Log
+                                                    if (slotFailure.getValue() != null) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Upgrade", slotFailure.getValue()));
+                                                    }
+
+                                                    // Bice sintax
+                                                    if (!failure) {
+
+                                                        // For every slot
+                                                        for (ItemStackSlot oSlot : slott) {
+
+                                                            // Get Item
+                                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                            // If non-null
+                                                            if (tISource != null) {
+
+                                                                //Time to get that item stack
+                                                                ItemStack targetItem = tISource.getItem();
+
+                                                                // Any item found?
+                                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                                    // Get and Update
+                                                                    RefSimulator<Integer> levelF = new RefSimulator<>(0);
+                                                                    ItemStack resul = GooPMMOItems.UpgradeMMOItem(targetItem, pmpLevel, breakLimit, levelF, logAddition);
+
+                                                                    // If there was success
+                                                                    if (resul != null) {
+
+                                                                        // Apply Changes
+                                                                        tISource.ReplaceItem(resul);
+                                                                        succ++;
+                                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                                        // Set Score
+                                                                        if (targetObjective != null) {
+
+                                                                            // Increase
+                                                                            tScore += levelF.getValue();
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // On Success
+                                                        if (succ > 0) {
+
+                                                            // If scoreboard was provided
+                                                            if (targetObjective != null) {
+
+                                                                if (score == null) {
+
+                                                                    // Run score
+                                                                    OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore));
+
+                                                                } else {
+
+                                                                    // Run score
+                                                                    OotilityCeption.SetPlayerScore(targetObjective, target, score);
+                                                                }
+
+                                                                // Modify the log addition
+                                                                if (logAddition != null && logAddition.getValue() != null) {
+                                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            // Run Chain
+                                                            if (chained) {
+                                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                                            }
+                                                        } else {
+
+                                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                                        }
+
+                                                        // Log if exists
+                                                        if (logAddition != null) {
+
+                                                            if (logAddition.GetValue() != null) {
+
+                                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Upgrade", logAddition.GetValue()));
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Upgrade", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems upgrade <player> <slot> [±]<levels>[%]");
+                                            }
+                                        }
+                                        break;
+                                    //endregion
+                                    //region Set Tier
+                                    case "settier":
+                                        //   0       1     2      3       4       5         6       args.Length
+                                        // /goop mmoitems tier <player> <slot> <value>
+                                        //   -       0     1      2       3       4         5       args[n]
+
+                                        // Correct number of args?
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "settier")) if (args.length == 5) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Set Tier", "Target must be an online player!"));
+                                            }
+
+                                            String tier = args[4].toUpperCase();  // No way to get it wrong lol
+                                            if (!GooPMMOItems.TierExists(tier)) {
+                                                // Failure
+                                                failure = true;
+
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Set Tier", "Specified Tier \u00a73" + args[4] + "\u00a77 is not loaded."));
+                                            }
+
+                                            if (!failure) {
+
+                                                // Every player
+                                                for (Player target : targets) {
+                                                    failure = false;
+
+                                                    //Lets get that inven slot
+                                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                                    // So, does the slot make no sense?
+                                                    if (slott.size() == 0) {
+                                                        // Failure
+                                                        failure = true;
+                                                    }
+
+                                                    // Log
+                                                    if (slotFailure.getValue() != null) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Set Tier", slotFailure.getValue()));
+                                                    }
+
+                                                    // Bice sintax
+                                                    if (!failure) {
+
+                                                        boolean successs = false;
+
+                                                        // For every slot
+                                                        for (ItemStackSlot oSlot : slott) {
+
+                                                            // Get Item
+                                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                            // If non-null
+                                                            if (tISource != null) {
+
+                                                                //Time to get that item stack
+                                                                ItemStack targetItem = tISource.getItem();
+
+                                                                // Any item found?
+                                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                                    // Get and Update
+                                                                    ItemStack resul = GooPMMOItems.SetTier(targetItem, tier, null, logAddition);
+
+                                                                    // If there was success
+                                                                    if (resul != null) {
+
+                                                                        // Apply Changes
+                                                                        tISource.ReplaceItem(resul);
+                                                                        successs = true;
+                                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                                    }
+
+                                                                    // Log if exists
+                                                                    if (logAddition != null) {
+
+                                                                        if (logAddition.GetValue() != null) {
+
+                                                                            logReturn.add(OotilityCeption.LogFormat("MMOItems - Set Tier", logAddition.GetValue()));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Run Chain
+                                                        if (chained && successs) {
+                                                            chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Set Tier", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems setTier <player> <slot> <value>");
+                                            }
+                                        }
+                                        break;
+                                    //endregion
+                                    //region Set Tier
+                                    case "modifier":
+                                        //   0       1      2          3       4      5         args.Length
+                                        // /goop mmoitems modifier <player> <slot> <name>
+                                        //   -       0      1          2       3      4         args[n]
+
+                                        // Correct number of args?
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "modifier")) if (args.length == 5) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Modifiers", "Target must be an online player!"));
+                                            }
+
+                                            if (!failure) {
+
+                                                // Every player
+                                                for (Player target : targets) {
+                                                    failure = false;
+
+                                                    //Lets get that inven slot
+                                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                                    // So, does the slot make no sense?
+                                                    if (slott.size() == 0) {
+                                                        // Failure
+                                                        failure = true;
+                                                    }
+
+                                                    String modifierName = args[4];
+
+                                                    // Log
+                                                    if (slotFailure.getValue() != null) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Set Tier", slotFailure.getValue()));
+                                                    }
+
+                                                    // Bice sintax
+                                                    if (!failure) {
+
+                                                        boolean successs = false;
+
+                                                        // For every slot
+                                                        for (ItemStackSlot oSlot : slott) {
+
+                                                            // Get Item
+                                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                            // If non-null
+                                                            if (tISource != null) {
+
+                                                                //Time to get that item stack
+                                                                ItemStack targetItem = tISource.getItem();
+
+                                                                // Any item found?
+                                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                                    // Snooze
+                                                                    ItemStack resul = GooPMMOItems.ModifierOperation(modifierName, targetItem, logAddition);
+
+                                                                    // Check modifier
+                                                                    if (resul == null) {
+
+                                                                        // Yes
+                                                                        String logga = (logAddition != null && logAddition.getValue() != null) ? "\u00a77: "+ logAddition.getValue() : "";
+
+                                                                        // Report
+                                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Modifiers", "Could not apply \u00a73" + modifierName + "\u00a77 to " + OotilityCeption.GetItemName(targetItem) + logga));
+
+                                                                        // Fail
+                                                                        break;
+                                                                    }
+
+                                                                    // If there was success
+                                                                    else {
+
+                                                                        // Apply Changes
+                                                                        tISource.ReplaceItem(resul);
+                                                                        successs = true;
+                                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                                    }
+
+                                                                    // Log if exists
+                                                                    if (logAddition != null) {
+
+                                                                        if (logAddition.GetValue() != null) {
+
+                                                                            logReturn.add(OotilityCeption.LogFormat("MMOItems - Modifiers", logAddition.GetValue()));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Run Chain
+                                                        if (chained && successs) {
+                                                            chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Modifier", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems modifier <player> <slot> <modifier>");
+                                            }
+                                        }
+                                        break;
+                                    //endregion
+                                    //region Regenerate
+                                    case "regenerate":
+                                        //   0       1     2      3       4         args.Length
+                                        // /goop mmoitems regen <player> <slot> [reroll] [name|lore|ench|upgr|gems|soul|exsh]
+                                        //   -       0     1      2       3       args[n]
+
+                                        // Correct number of args?
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "regenerate")) if (args.length >= 4) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Regenerate", "Target must be an online player!")); }
+
+                                            boolean reroll = true;
+                                            if (args.length >= 5) {
+                                                if (OotilityCeption.BoolTryParse(args[4])) {
+                                                    reroll = Boolean.parseBoolean(args[4]);
+                                                } else {
+
+                                                    // Failure
+                                                    failure = true;
+
+                                                    // Notify the error
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Regenerate", "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[4] + "\u00a77 regarding whether RNG stats should be rerolled."));
+                                                } }
+
+                                            boolean name = false,
+                                                    lore = false,
+                                                    ench = false,
+                                                    upgr = false,
+                                                    gems = false,
+                                                    soul = false,
+                                                    exsh = false,
+                                                    mods = false,
+                                                    ae = false,
+                                                    skin = false;
+                                            if (args.length >= 6) {
+
+                                                for (int i = 5; i < args.length; i++) {
+                                                    String str = args[i].toLowerCase();
+                                                    if (str.contains("name")) { name = true; }
+                                                    if (str.contains("lore")) { lore = true; }
+                                                    if (str.contains("ench")) { ench = true; }
+                                                    if (str.contains("upgr")) { upgr = true; }
+                                                    if (str.contains("gems")) { gems = true; }
+                                                    if (str.contains("soul")) { soul = true; }
+                                                    if (str.contains("skin")) { skin = true; }
+                                                    if (str.contains("ex") && str.contains("sh")) { exsh = true; }
+                                                    if (str.contains("mod")) { mods = true; }
+                                                    if (str.contains("ae") && str.contains("nc")) { ae = true; } }
+                                            }
+
+                                            if (!failure) {
+
+                                                // Every player
+                                                for (Player target : targets) {
+                                                    failure = false;
+
+                                                    //Lets get that inven slot
+                                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                                    // So, does the slot make no sense?
+                                                    if (slott.size() == 0) {
+                                                        // Failure
+                                                        failure = true;
+                                                    }
+
+                                                    // Log
+                                                    if (slotFailure.getValue() != null) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Regenerate", slotFailure.getValue()));
+                                                    }
+
+                                                    // Bice sintax
+                                                    if (!failure) {
+
+                                                        boolean successs = false;
+
+                                                        // For every slot
+                                                        for (ItemStackSlot oSlot : slott) {
+
+                                                            // Get Item
+                                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                            // If non-null
+                                                            if (tISource != null) {
+
+                                                                //Time to get that item stack
+                                                                ItemStack targetItem = tISource.getItem();
+
+                                                                // Any item found?
+                                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                                    // Is it a MMOItem?
+                                                                    if (GooPMMOItems.IsMMOItem(targetItem)) {
+
+                                                                        // Get Kount
+                                                                        int kount = targetItem.getAmount();
+
+                                                                        // Regens MMOItem
+                                                                        ItemStack result;
+                                                                        result = GooPMMOItems.ReforgeMMOItem(targetItem, name, lore, ench, upgr, gems, soul, exsh, reroll, mods, ae, skin);
+
+                                                                        // Success?
+                                                                        if (result != null) {
+                                                                            result.setAmount(kount);
+
+                                                                            // If there was success
+                                                                            // Apply Changes
+                                                                            tISource.ReplaceItem(result);
+                                                                            successs = true;
+                                                                            if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                                            // Log if exists
+                                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Regenerate", "Successfuly regenerated \u00a73" + target.getName() + "\u00a77's item \u00a7e" + OotilityCeption.GetItemName(result)));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Run Chain
+                                                        if (chained && successs) {
+                                                            chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+
+                                                            // No success
+                                                        } else if (!successs) {
+
+                                                            // Log if exists
+                                                            if (logAddition != null) {
+
+                                                                if (logAddition.GetValue() != null) {
+
+                                                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - Regenerate", "No MMOItems were found to regenerate."));
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Regenerate", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems regenerate <player> <slot> [reroll] [name lore ench upgr gems soul exsh]");
+                                            }
+                                        }
+                                        break;
+                                    //endregion
+                                    //region GEt Tier
+                                    case "gettier":
+                                        //   0       1     2      3       4       5             6       7  args.Length
+                                        // /goop mmoitems istier <player> <slot> <value> <objective> <score>
+                                        //   -       0     1      2       3       4             5       6    args[n]
+
+                                        // Correct number of args?
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "gettier")) if (args.length == 5 || args.length == 7) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier", "Target must be an online player!"));
+                                            }
+
+                                            String tier = args[4].toUpperCase();  // No way to get it wrong lol
+                                            if (args[4].equals("none")) {
+                                                tier = args[4];
+
+                                            } else if (!GooPMMOItems.TierExists(tier)) {
+                                                // Failure
+                                                failure = true;
+
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier", "Specified Tier \u00a73" + args[4] + "\u00a77 is not loaded. If trying to detect the item not having any tier, use the \u00a7bnone\u00a77 keyword."));
+                                            }
+
+                                            // Some scoreboards to test
+                                            Objective targetObjective = null;
+                                            PlusMinusPercent score = null;
+                                            if (args.length >= 7) {
+                                                ScoreboardManager manager = Bukkit.getScoreboardManager();
+                                                Scoreboard targetScoreboard = manager.getMainScoreboard();
+                                                targetObjective = targetScoreboard.getObjective(args[5]);
+
+                                                if (targetObjective == null) {
+                                                    // Failure
+                                                    failure = true;
+
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                                                }
+
+                                                score = PlusMinusPercent.GetPMP(args[6], logAddition);
+                                                if (score == null) {
+                                                    // Failure
+                                                    failure = true;
+
+                                                    // Mention it
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier", "The final score '\u00a73" + args[6] + "\u00a77' should be an integer number (maybe with an operation)."));
+                                                }
+                                            }
+
+                                            if (!failure) {
+                                                // For every player
+                                                for (Player target : targets) {
+                                                    failure = false;
+
+                                                    //Lets get that inven slot
+                                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                                    // So, does the slot make no sense?
+                                                    if (slott.size() == 0) {
+                                                        // Failure
+                                                        failure = true;
+                                                    }
+
+                                                    // Log
+                                                    if (slotFailure.getValue() != null) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier", slotFailure.getValue()));
+                                                    }
+
+                                                    // Bice sintax
+                                                    if (!failure) {
+                                                        boolean success = false;
+
+                                                        // For every slot
+                                                        for (ItemStackSlot oSlot : slott) {
+
+                                                            // Get Item
+                                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                            // If non-null
+                                                            if (tISource != null) {
+
+                                                                //Time to get that item stack
+                                                                ItemStack targetItem = tISource.getItem();
+
+                                                                // Any item found?
+                                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                                    // Gonna compare, alas
+                                                                    RefSimulator<String> itemTier = new RefSimulator<>("");
+
+                                                                    // Get and Update
+                                                                    ItemStack resul = GooPMMOItems.SetTier(targetItem, null, itemTier, logAddition);
+
+                                                                    // If there was success
+                                                                    if (resul != null) {
+
+                                                                        // COmpare
+                                                                        if (itemTier.getValue().equals(tier)) {
+
+                                                                            if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                                            success = true;
+
+                                                                        } else {
+
+                                                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier", "Target item tier was \u00a7e" + itemTier.getValue() + "\u00a77 while expected was \u00a73" + tier + "\u00a77; No match."));
+                                                                        }
+
+                                                                        // Failed, I wonder why
+                                                                    } else if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
+
+                                                                        // Log if exists
+                                                                        if (logAddition != null) {
+
+                                                                            if (logAddition.GetValue() != null) {
+
+                                                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier", logAddition.GetValue()));
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        if (success) {
+
+                                                            // Notify
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+
+                                                                String sc = "";
+                                                                if (targetObjective != null) {
+                                                                    sc =  "Set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7b" + OotilityCeption.GetPlayerScore(targetObjective, target);
+                                                                }
+
+                                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier",
+                                                                        "Successfuly matched target item's tier \u00a7e" + tier + "\u00a77. " + sc));
+                                                            }
+
+                                                            // Run Chain
+                                                            if (chained) {
+                                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                                            }
+
+                                                            if (targetObjective != null) {
+                                                                // Set Score
+                                                                OotilityCeption.SetPlayerScore(targetObjective, target, score);
+                                                            }
+                                                        } else {
+
+                                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage.replace("%tier%", tier), target.getPlayer(), target.getPlayer(), null, null))); }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                       // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Get Tier", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems getTier <player> <slot> <value> <objective> <score>");
+                                            }
+                                        }
+                                        break;
+                                    //endregion
+                                    //region New Shrub
+                                    case "newshrub":
+                                        //   0      1        2       3     4   5   6   7     args.Length
+                                        // /goop mmoitems newShrub <type> [w] [x] [y] [z]
+                                        //   -      0        1       2     3   4   5   6     args[n]
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "newshrub")) if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
+
+                                            // Notify fuCk
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - New Shrub", "\u00a7cYou dont have MMOItem Shrubs Module Installed!"));
+                                            }
+
+                                        // Correct number of args?
+                                        } else if (args.length == 3 || args.length == 7) {
+
+                                            // Gets that location boi
+                                            Location targetLocation = null;
+                                            if (args.length == 3) {
+                                                if (sender instanceof Player) {
+
+                                                    // Just target location I guess?
+                                                    Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
+
+                                                    // If exists
+                                                    if (bLock == null) {
+
+                                                        // Invalid location
+                                                        failure = true;
+
+                                                        // Mention
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - New Shrub","You are not looking at any block!"));
+
+                                                        // I suppose its not air, right?
+                                                    } else if (!OotilityCeption.IsAir(bLock.getType())) {
+
+                                                        // Git Target Location
+                                                        targetLocation = bLock.getLocation();
+
+                                                        // Nvm it is air.
+                                                    } else {
+
+                                                        // Invalid location
+                                                        failure = true;
+
+                                                        // Mention
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - New Shrub","You are not looking at any block!"));
+
+                                                    }
+
+                                                } else {
+                                                    // Vro need coords
+                                                    failure = true;
+
+                                                    // Say
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - New Shrub", "When making shrubs from the console, you must specify co-ordinates and a world!"));
+                                                }
+
+                                            // Build Location from args, later, if they parse.
+                                            }
+
+                                            // Is type loaded?
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+                                            if (!GooPE_Shrubs.IsShrubTypeLoaded(args[2], logAddition)) {
+
+                                                // Not loaded - fail
+                                                failure = true;
+
+                                                // Comment
+                                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - New Shrub", logAddition.GetValue())); }
+                                            }
+
+                                            // Parse location?
+                                            if (args.length == 7) {
+
+                                                // Relativity
+                                                Player rel = null;
+                                                if (sender instanceof Player) { rel = (Player)sender;}
+
+                                                // Get
+                                                targetLocation = OotilityCeption.ValidLocation(rel, args[3], args[4], args[5], args[6], logAddition);
+
+                                                // Ret
+                                                if (targetLocation == null) { failure = true; }
+
+                                                // Add Log
+                                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - New Shrub", logAddition.GetValue())); }
+                                            }
+
+                                            // Byce syntax
+                                            if (!failure) {
+
+                                                // Exec
+                                                GooPE_Shrubs.CreateShrubInstanceAt(args[2], targetLocation, logAddition);
+
+                                                // Notify
+                                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - New Shrub", logAddition.GetValue())); }
+                                            }
+
+                                        // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - New Shrub", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems newShrub <type> [w] [x] [y] [z]");
+                                            }
+                                        }
+
+                                        break;
+                                        //endregion
+                                    //region Stat
+                                    case "stat":
+                                        //   0      1       2    3       4       5       6        7         args.Length
+                                        // /goop mmoitems stat <stat> <player> <slot> <value> [objective]
+                                        //   -      0       1    2       3       4       5        6         args[n]
+
+                                        // Correct number of args?
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "stat")) if (args.length == 6 || args.length == 7) {
+
+                                            // Gets the players
+                                            Entity asDroppedItem = null;
+                                            // Get the players
+                                            if (args.length > 4) {
+
+                                                // Actually Get
+                                                targets = OotilityCeption.GetPlayers(senderLocation, args[3], null);
+                                                asDroppedItem = OotilityCeption.getEntityByUniqueId(args[3]);
+                                            }
+                                            if (!(asDroppedItem instanceof Item)) { asDroppedItem = null; }
+
+                                            // Amount of successes
+                                            int succ = 0;
+
+                                            // Gets that player boi
+                                            RefSimulator<String> logAddition = new RefSimulator<>(null);
+
+                                            // Some scoreboards to test
+                                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                                            Objective targetObjective = null;
+                                            double fScore = 0.0;
+                                            if (args.length == 7) {
+                                                targetObjective = targetScoreboard.getObjective(args[6]);
+                                            }
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1 && asDroppedItem == null) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - Stat", "Target must be an online player!"));
+                                            }
+
+                                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[5], null);
+                                            String sValue = null; boolean asString = false;
+                                            if (pValue == null) {
+
+                                                // Try as sValue
+                                                sValue = args[5].replace("__", " ");
+                                                asString = true;
+                                            }
+
+                                            if (args.length == 7 && targetObjective == null) {
+                                                // Failure
+                                                failure = true;
+
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback)
+                                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - Stat", "Scoreboard objective \u00a73" + args[6] + "\u00a77 does not exist."));
+                                            }
+
+                                            // For cummulative score
+                                            double tScore = 0.0;
+
+                                            // Dropped Item
+                                            if (asDroppedItem != null && !failure) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                                // If existed, Convert for now
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // COnvert if not MMOItem
+                                                    if (!GooPMMOItems.IsMMOItem(targetItem)) { targetItem = GooPMMOItems.ConvertVanillaToMMOItem(targetItem); }
+                                                }
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = null;
+
+                                                    if (asString) {
+
+                                                        // Perform ops
+                                                        resul = GooPMMOItems.SetStringStatData(targetItem, args[2], sValue);
+
+                                                    } else {
+
+                                                        // Get Stat Data
+                                                        Double statValue = GooPMMOItems.GetDoubleStatValue(targetItem, GooPMMOItems.Stat(args[2]));
+                                                        if (statValue == null) { statValue = 0.0; }
+                                                        fScore = pValue.apply(statValue);
+
+                                                        // Perform ops
+                                                        resul = GooPMMOItems.SetDoubleStatData(targetItem, args[2], fScore);
+                                                    }
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                                        succ++;
+
+                                                        // Set Score
+                                                        if (targetObjective != null) {
+
+                                                            // Increase
+                                                            tScore += fScore;
+                                                        }
+                                                    }
+                                                }
+
+                                                // On Success
+                                                if (succ > 0) {
+
+                                                    // If scoreboard was provided
+                                                    if (targetObjective != null) {
+
+                                                        // Run score
+                                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                        // Modify the log addition
+                                                        if (logAddition != null) {
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // Run Chain
+                                                    if (chained) {
+                                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                                    }
+                                                }
+                                            }
+
+                                            // For every player
+                                            if (!failure) {
+                                                for (Player target : targets) {
+                                                    //STAT//OotilityCeption. Log("Player \u00a73" + target.getName());
+                                                    failure = false;
+
+                                                    // Starts at score of 0
+                                                    tScore = 0.0;
+
+                                                    //Lets get that inven slot
+                                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], target, slotFailure);
+
+                                                    // So, does the slot make no sense?
+                                                    if (slott.size() == 0) {
+                                                        // Failure
+                                                        failure = true;
+                                                    }
+
+                                                    // Log
+                                                    if (slotFailure.getValue() != null) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Stat", slotFailure.getValue()));
+                                                    }
+
+                                                    // Bice sintax
+                                                    if (!failure) {
+
+                                                        // For every slot
+                                                        for (ItemStackSlot oSlot : slott) {
+
+                                                            // Get Item
+                                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                            // If non-null
+                                                            if (tISource != null) {
+
+                                                                //Time to get that item stack
+                                                                ItemStack targetItem = tISource.getItem();
+
+                                                                // If existed, Convert for now
+                                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                                    // COnvert if not MMOItem
+                                                                    if (!GooPMMOItems.IsMMOItem(targetItem)) {
+                                                                        //STAT//OotilityCeption. Log(" \u00a7b+ \u00a77Converting to MMOItem");
+                                                                        targetItem = GooPMMOItems.ConvertVanillaToMMOItem(targetItem);
+                                                                    }
+                                                                }
+
+                                                                // Any item found?
+                                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+                                                                    //STAT//OotilityCeption. Log(" \u00a7b+\u00a77 Found " + OotilityCeption.GetItemName(targetItem));
+
+                                                                    // Get and Update
+                                                                    ItemStack resul = null;
+
+                                                                    if (asString) {
+                                                                        //STAT//OotilityCeption. Log(" \u00a7b+\u00a73 As String ");
+
+                                                                        // Perform ops
+                                                                        resul = GooPMMOItems.SetStringStatData(targetItem, args[2], sValue);
+
+                                                                    } else {
+                                                                        //STAT//OotilityCeption. Log(" \u00a7b+\u00a73 As Numeric ");
+
+                                                                        // Get Stat Data
+                                                                        Double statValue = GooPMMOItems.GetDoubleStatValue(targetItem, GooPMMOItems.Stat(args[2]));
+                                                                        if (statValue == null) { statValue = 0.0; }
+                                                                        fScore = pValue.apply(statValue);
+
+                                                                        // Perform ops
+                                                                        resul = GooPMMOItems.SetDoubleStatData(targetItem, args[2], fScore  - statValue);
+                                                                    }
+
+                                                                    // If there was success
+                                                                    if (resul != null) {
+                                                                        //STAT//OotilityCeption. Log(" \u00a7a+++\u00a77 Success ");
+
+                                                                        // Apply Changes
+                                                                        tISource.ReplaceItem(resul);
+                                                                        succ++;
+                                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                                        // Set Score
+                                                                        if (targetObjective != null) {
+
+                                                                            // Increase
+                                                                            tScore += fScore;
+                                                                        }
+
+                                                                    } else {
+
+                                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
+
+                                                                            if (asString && sValue.startsWith("-")) {
+                                                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Stat", "\u00a77This stat, if it was a \u00a73text list\u00a77, did not have entry \u00a7e" + sValue.substring(1)));
+
+                                                                            } else {
+                                                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Stat", "\u00a77Could not set stat, you sure it accepts \u00a7enumbers\u00a77 or \u00a73text\u00a77?"));
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // On Success
+                                                        if (succ > 0) {
+                                                            OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Sucessfully changed Item Stat value");
+
+                                                            // If scoreboard was provided
+                                                            if (targetObjective != null) {
+
+                                                                // Run score
+                                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                                // Modify the log addition
+                                                                if (logAddition != null) {
+                                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            // Run Chain
+                                                            if (chained) {
+                                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                                            }
+                                                        } else {
+
+                                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                                        }
+
+                                                        // Log if exists
+                                                        if (logAddition != null) {
+
+                                                            if (logAddition.GetValue() != null) {
+
+                                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Stat", logAddition.GetValue()));
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Stat", "Incorrect usage. For info: \u00a7e/goop mmoitems stat"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems stat <stat> <player> <slot> [±]<value>[%] [objective]");
+                                            }
+                                        }
+                                        break;
+                                    //endregion
+                                    //region List Shrub Types
+                                    case "listshrubtypes":
+                                        //   0      1           2       args.Length
+                                        // /goop mmoitems listShrubTypes
+                                        //   -      0           1       args[n]
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "listshrubtypes")) if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
+
+                                            // Notify fuCk
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - List Shrub Types", "\u00a7cYou dont have MMOItem Shrubs Module Installed!"));
+                                            }
+
+                                            // Correct number of args?
+                                        } else if (args.length == 2) {
+
+                                            // Exec
+                                            ArrayList<String> lShrubs = GooPE_Shrubs.getLoadedShrubTypes();
+
+                                            if (lShrubs.size() < 1) {
+                                                GooPE_Shrubs.ReloadShrubNames();
+                                                lShrubs = GooPE_Shrubs.getLoadedShrubTypes();
+                                            }
+
+                                            logReturn.add("\u00a7e______________________________________________");
+                                            if (lShrubs.size() == 0) {
+                                                logReturn.add("\u00a73MMOItems - \u00a7bList Shrub Types, \u00a77Would list all loaded shrub types if there were any.");
+                                            } else {
+                                                logReturn.add("\u00a73MMOItems - \u00a7bList Shrub Types, \u00a77All loaded shrub types:");
+                                                for (String struct : lShrubs) { logReturn.add("\u00a73 - \u00a77" + struct); }
+                                            }
+
+                                        // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - List Shrub Types", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems listShrubTypes");
+                                            }
+                                        }
+
+                                        break;
+                                        //endregion
+                                    //region Fix Stacks
+                                    case "fixstacks":
+                                        //   0      1        2          3       args.Length
+                                        // /goop mmoitems fixstacks [player]
+                                        //   -      0        1          2       args[n]
+
+                                        // Fixing from a player
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "fixstacking")) {
+
+                                            // Fix Stacks
+                                            if (args.length == 2 || args.length == 3) {
+
+                                                // Get Target (if included)
+                                                if (args.length == 3 && OotilityCeption.hasPermission(sender, "mmoitems", "fixstacking.others")) {
+
+                                                    // Git if online
+                                                    targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                                                } else if (sender instanceof Player) {
+
+                                                    // Git if exist
+                                                    targets = new ArrayList<>();
+                                                    targets.add((Player) sender);
+
+                                                } else {
+
+                                                    // Not contained, and from console
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Fix Stacks", "\u00a77This cannot be called from the console without specifying a player."));
+                                                    }
+                                                }
+
+                                                if (targets.size() < 1) {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Not contained, and from console
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
+                                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - Fix Stacks", "\u00a77Must specify an online player."));
+                                                    }
+                                                }
+
+                                                // For every player
+                                                for (Player target : targets) {
+
+                                                    // If found
+                                                    if (!failure) {
+
+                                                        // Get Slots
+                                                        ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots("*", target, null);
+
+                                                        // For each
+                                                        for (ItemStackSlot slot : slott) {
+
+                                                            // IF exists
+                                                            if (slot != null) {
+
+                                                                // Get Inven Item
+                                                                ItemStackLocation iLoc = OotilityCeption.GetInvenItem(target, slot);
+
+                                                                // If found
+                                                                if (iLoc != null) {
+
+                                                                    // Get Item Itself
+                                                                    ItemStack iSource = new ItemStack(iLoc.getItem());
+
+                                                                    // If not air
+                                                                    if (!OotilityCeption.IsAirNullAllowed(iSource)) {
+
+                                                                        // Bake
+                                                                        RefSimulator<String> logAddition = new RefSimulator<>("");
+                                                                        ItemStack iRet = GooPMMOItems.FixStackableness(iSource, logAddition);
+
+                                                                        // Log what must
+                                                                        if (logAddition.getValue() != null) {
+
+                                                                            // Log
+                                                                            logReturn.add(OotilityCeption.LogFormat("MMOItems - Fix Stacks", logAddition.getValue()));
+                                                                        }
+
+                                                                        // If valid
+                                                                        if (!OotilityCeption.IsAirNullAllowed(iRet)) {
+
+                                                                            // Prep
+                                                                            iLoc.ReplaceItem(iRet);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                            } else {
+
+                                                // Notify
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - Fix Stacks", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                    logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems fixStacks");
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    //endregion
+                                    //region Reload Shrub Types
+                                    case "reloadshrubtypes":
+                                        //   0      1           2       args.Length
+                                        // /goop mmoitems reloadShrubTypes
+                                        //   -      0           1       args[n]
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "reloadshrubtypes")) if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
+
+                                            // Notify fuCk
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - List Shrub Types", "\u00a7cYou dont have MMOItem Shrubs Module Installed!"));
+                                            }
+
+                                        // Correct number of args?
+                                        } else if (args.length == 2) {
+
+                                            // Exec
+                                            GooPE_Shrubs.ReloadShrubTypes();
+                                            logReturn.add(OotilityCeption.LogFormat("MMOItems - List Shrub Types", "Reloaded MMOItem Shrub Types."));
+
+                                        // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MMOItems - Reload Shrub Types", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems reloadShrubTypes");
+                                            }
+                                        }
+
+                                        break;
+                                    //endregion
+                                    default:
+                                        // I have no memory of that shit
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems", "'\u00a73" + args[1] + "\u00a77' is not a valid MMOItems action! do \u00a7e/goop mmoitems\u00a77 for the list of actions."));
+                                        break;
+                                }
+
+                            } else if (args.length == 1) {
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73GooP-MMOItems, \u00a77Related to the third party plugin.");
+                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems {action}");
+                                logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                                logReturn.add("\u00a73 --> \u00a7eaddGemSlot <gem slot color> <player> <slot>");
+                                logReturn.add("\u00a73      * \u00a77Adds an empty gem slot to the item the");
+                                logReturn.add("\u00a73        \u00a77target player has in the specified slot.");
+                                logReturn.add("\u00a73 --> \u00a7ecountGems <includeSlots> <player> <slot> <objective>");
+                                logReturn.add("\u00a73      * \u00a77Counts the gem stones in the item of the");
+                                logReturn.add("\u00a73        \u00a77target player, stores the value in their score.");
+                                logReturn.add("\u00a73 --> \u00a7egetTier <player> <slot> <value> <objective> <score>");
+                                logReturn.add("\u00a73      * \u00a77Changes target players' score if any of the items");
+                                logReturn.add("\u00a73        \u00a77matches the specified tier <value>. Supports \u00a7bnone\u00a77 keyword.");
+                                logReturn.add("\u00a73 --> \u00a7esetTier <player> <slot> <value>");
+                                logReturn.add("\u00a73      * \u00a77Changes the tier of target item.");
+                                logReturn.add("\u00a73 --> \u00a7estat <stat name> <player> <slot> [±]<value>[%] [objective]");
+                                logReturn.add("\u00a73      * \u00a77Performs math on a numeric MI ItemStat and sets score.");
+                                logReturn.add("\u00a73      * \u00a78Score is set to 10 times the final value, for decimals.");
+                                logReturn.add("\u00a73 --> \u00a7efixStacks [player]");
+                                logReturn.add("\u00a73      * \u00a77Updates MMOItems to the newest format, so that they stack.");
+                                logReturn.add("\u00a73 --> \u00a7eregenerate <player> <slot> [reroll] [name lore ench upgr gems soul exsh]");
+                                logReturn.add("\u00a73      * \u00a77Regenerates the MMOItem you are holding, you may specify if you want to keep some stuff though!");
+                                logReturn.add("\u00a73 --> \u00a7eupgrade <player> <slot> [±]<levels>[%] [objective] [±][score][%]");
+                                logReturn.add("\u00a73      * \u00a77Changes the MMOItems upgrade level of an item.");
+                                logReturn.add("\u00a73 --> \u00a7emodifier <player> <slot> <modifier>");
+                                logReturn.add("\u00a73      * \u00a77Add modifiers to items.");
+                                logReturn.add("\u00a73        \u00a77Use \u00a7brandom\u00a77 keyword to add random,");
+                                logReturn.add("\u00a73        \u00a77or use \u00a7bnone\u00a77 keyword to remove all.");
+                                if (Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
+                                    logReturn.add("\u00a73 --> \u00a7enewShrub <type> [w] [x] [y] [z]");
+                                    logReturn.add("\u00a73      * \u00a77Creates a new shrub of type <type>");
+                                    logReturn.add("\u00a73 --> \u00a7elistShrubTypes");
+                                    logReturn.add("\u00a73      * \u00a77Lists the loaded shrub types");
+                                    logReturn.add("\u00a73 --> \u00a7ereloadShrubTypes");
+                                    logReturn.add("\u00a73      * \u00a77Reloads shrub types config");
+                                }
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Target slot in player's inventory.");
+                                logReturn.add("\u00a73 --> \u00a77Possible slots: \u00a7bhead\u00a73, \u00a7bchest\u00a73, \u00a7blegs\u00a73, \u00a7bfeet\u00a73, \u00a7bmainhand\u00a73, \u00a7boffhand\u00a73, and any number \u00a7b0\u00a73-\u00a7b35\u00a73.");
+
+                            } else {
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                                    logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems {action}");
+                                }
+                            }
+
+                        // No perms
+                        } else {
+                            // Tell him lmao
+                            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to use mmoitems-related commands!"));
+                        }
+
+                    // MMOItems not installed. Returning
+                    } else {
+
+                        // Tell him lmao
+                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("\u00a77These commands are to be used with the third party plugin \u00a7e\u00a7lMMOItems \u00a77which you dont have installed."));
+                    }
+                    break;
+                //endregion
+                //region optifine
+                case optifine:
+                    //   0      1         2    args.Length
+                    // /goop optifine {action}
+                    //   -      0         1     args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.optifine");
+                    }
+
+                    // Got permission?
+                    if (permission) {
+                        if (args.length >= 2) {
+                            // Some bool to know if failure
+                            boolean failure = false;
+                            ArrayList<Player> targets;
+
+                            switch (args[1].toLowerCase()) {
+                                //region glintEnchant
+                                case "glintenchant":
+                                    //   0      1        2            3             4       5     args.Length
+                                    // /goop optifine glintEnchant <glint name> <player> <slot>
+                                    //   -      0        1            2             3       4     args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 5) {
+
+                                        // Gets that player boi
+                                        targets = OotilityCeption.GetPlayers(senderLocation, args[3], null);
+                                        RefSimulator<String> logAddition = new RefSimulator<>("");
+                                        OptiFineGlint tGlint = OptiFineGlint.IsGlintLoaded(args[2], logAddition);
+
+                                        // Does the player exist?
+                                        if (targets.size() < 1) {
+                                            // Failure
+                                            failure = true;
+
+                                            // Notify the error
+                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Enchant", "Target must be an online player!"));
+                                        }
+
+                                        // Is such glint not loaded
+                                        if (tGlint == null) {
+                                            // Failure
+                                            failure = true;
+
+                                            // Notify the error
+                                            logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Enchant", logAddition.GetValue()));
+                                        }
+
+                                        if (!failure) {
+
+                                            // Each layer
+                                            for (Player target : targets) {
+                                                failure = false;
+
+                                                //Lets get that inven slot
+                                                RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                                ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], target, slotFailure);
+
+                                                // So, does the slot make no sense?
+                                                if (slott.size() == 0) {
+                                                    // Failure
+                                                    failure = true;
+                                                }
+
+                                                // Log
+                                                if (slotFailure.getValue() != null) {
+                                                    logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Enchant", slotFailure.getValue()));
+                                                }
+
+                                                // Bice Sintax
+                                                if (!failure) {
+
+                                                    // Success count
+                                                    int succ = 0;
+
+                                                    // For every slot
+                                                    for (ItemStackSlot oSlot : slott) {
+
+                                                        // Get Item
+                                                        ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                                        // If non-null
+                                                        if (tISource != null) {
+
+                                                            //Time to get that item stack
+                                                            ItemStack targetItem = tISource.getItem();
+
+                                                            // Any item found?
+                                                            if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                                // Get and Update
+                                                                ItemStack resul = OptiFineGlint.ApplyGlint(targetItem, tGlint, logAddition);
+
+                                                                // If there was success
+                                                                if (resul != null) {
+
+                                                                    // Replace
+                                                                    tISource.ReplaceItem(resul);
+                                                                    if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                                    succ++;
+                                                                }
+
+                                                                // Log any results
+                                                                if (logAddition.GetValue() != null) {
+
+                                                                    // Say that
+                                                                    logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Enchant", logAddition.GetValue()));
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (succ > 0) {
+
+                                                        // Run Chain
+                                                        if (chained) {
+                                                            chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                                        }
+                                                    } else {
+
+                                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                    // Incorrect number of args
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Enchant", "Incorrect usage. For info: \u00a7e/goop optifine"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop optifine glintEnchant <glint name> <player> <slot>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region glintDefine
+                                case "glintdefine":
+                                    //   0      1        2            3             4                 5               6         args.Length
+                                    // /goop optifine glintDefine <glint name> <enchantment> <enchantment level> [lore line]
+                                    //   -      0        1            2             3                 4               5         args[n]
+
+                                    // Correct number of args?
+                                    if (args.length >= 5) {
+
+                                        // Enchantment exsts?
+                                        Enchantment tEnch = OotilityCeption.GetEnchantmentByName(args[3]);
+                                        if (tEnch == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // log
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Define", "Enchantment '\u00a73" + args[3] + "\u00a77' doesnt exist. Remember to use vanilla names.")); }
+                                        }
+
+                                        // Enchantment Level Parses?
+                                        Integer eLevel = 0;
+                                        if (args[4].equalsIgnoreCase("none")) {
+
+                                            // No Level
+                                            eLevel = null;
+
+                                        // Does it parse?
+                                        } else if (OotilityCeption.IntTryParse(args[4])) {
+
+                                            // Get that number, straight up
+                                            eLevel = OotilityCeption.ParseInt(args[4]);
+
+                                        // Doesnt work rip
+                                        } else {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Log
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Define", "Expected integer number or \u00a7enone\u00a77 keyword instead of '\u00a73" + args[4] + "\u00a77'.")); }
+                                        }
+
+                                        // Bice sintax
+                                        if (!failure) {
+
+                                            // Build lore Line out of the remainder args
+                                            StringBuilder lLine = null;
+                                            if (args.length >= 6) {
+
+                                                // Gather initial value
+                                                lLine = new StringBuilder(args[5]);
+                                                for (int i = 6; i < args.length; i++) {
+
+                                                    // Add, separating with spaces
+                                                    lLine.append(" ").append(args[i]);
+                                                }
+                                            }
+
+                                            // Define Enchantment
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+                                            OptiFineGlint.DefineGlint(args[2], tEnch, eLevel, lLine.toString(), logAddition);
+
+                                            // Log whatever
+                                            if (logAddition.GetValue() != null) {
+                                                logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Define", logAddition.GetValue()));
+                                            }
+                                        }
+
+                                    // Incorrect number of args
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("OptiFine - Glint Define", "Incorrect usage. For info: \u00a7e/goop optifine"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop optifine glintDefine <glint name> <enchantment> <enchantment level> [lore line]");
+                                        }
+                                    }
+                                    break;
+                                    //endregion
+                                //region jsonNBT
+                                case "togglejson":
+                                    //   0      1        2        args.Length
+                                    // /goop optifine toggleJSON
+                                    //   -      0        1        args[n]
+
+                                    // If mc version matches
+                                    if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) {
+
+                                        // Get player
+                                        if (sender instanceof Player) {
+
+                                            // Get Target
+                                            Player target = (Player) sender;
+
+                                            // Get Item in Mainahnd
+                                            ItemStack iSource = target.getInventory().getItemInMainHand();
+
+                                            // Is it air?
+                                            if (OotilityCeption.IsAirNullAllowed(iSource)) {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("OptiFine - Toggle JSON", "You must be holding something")); }
+
+                                            } else if (!iSource.hasItemMeta()) {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("OptiFine - Toggle JSON", "Your item must have a Custom Model Data value for this!")); }
+
+                                            } else if (!iSource.getItemMeta().hasCustomModelData()) {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("OptiFine - Toggle JSON", "Your held item must have a value of Custom Model Data for this.")); }
+                                            }
+
+                                            // Bryce Syntax
+                                            if (!failure) {
+
+                                                // Is it already loaded lma0?
+                                                CustomModelDataLink alterior = CustomModelDataLink.getFrom(iSource);
+
+                                                // Create if missing
+                                                if (alterior == null) { alterior = new CustomModelDataLink(iSource.getType(), iSource.getItemMeta().getCustomModelData(), new ArrayList<>()); CustomModelDataLink.LoadNew(alterior); }
+
+                                                // Does it have it already?
+                                                if (alterior.HasReason(CMD_Link_Reasons.AsJSON_Furniture)) {
+
+                                                    // Remove
+                                                    alterior.RemoveReason(CMD_Link_Reasons.AsJSON_Furniture);
+                                                    alterior.RemoveReason(CMD_Link_Reasons.AsMMOItem);
+
+                                                    // Save
+                                                    alterior.Save();
+
+                                                    // Notify
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("OptiFine - Toggle JSON", "Successfuly \u00a7cunregistered \u00a73" + iSource.getType() + "\u00a77-\u00a73" + iSource.getItemMeta().getCustomModelData() + "\u00a77 from being a JSON Furniture.")); }
+
+                                                } else {
+
+                                                    // Add
+                                                    alterior.AddReason(CMD_Link_Reasons.AsJSON_Furniture);
+
+                                                    // Is it a MMOItem?
+                                                    if (Gunging_Ootilities_Plugin.foundMMOItems) {
+
+                                                        // Is it?
+                                                        if (GooPMMOItems.IsMMOItem(iSource)) {
+
+                                                            // Get Data
+                                                            RefSimulator<String> mType = new RefSimulator<>(""), mID = new RefSimulator<>("");
+                                                            GooPMMOItems.GetMMOItemInternals(iSource, mType, mID);
+
+                                                            // Build and append meta
+                                                            alterior.AddReason(CMD_Link_Reasons.AsMMOItem);
+                                                            alterior.AddMeta(CMD_Link_Reasons.AsMMOItem, "m " + mType.getValue() + " " + mID.getValue());
+                                                        }
+                                                    }
+
+                                                    // Save
+                                                    alterior.Save();
+
+                                                    // Notify
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("OptiFine - Toggle JSON", "Successfuly \u00a7aregistered \u00a73" + iSource.getType() + "\u00a77-\u00a73" + iSource.getItemMeta().getCustomModelData() + "\u00a77 as a JSON Furniture.")); }
+                                                }
+                                            }
+
+                                        } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                            // Mention
+                                            logReturn.add(OotilityCeption.LogFormat("OptiFine - Toggle JSON", "You must call this as a player, holding the item you want to include."));
+                                        }
+
+                                    // No 1.14 lmao?
+                                    } else {
+
+                                        if (Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("OptiFine - Toggle JSON", "This links to item Custom Model Data, as such it requires MC version 1.14 or newer.")); }
+                                    }
+                                    break;
+                                //endregion
+                                default:
+                                    // I have no memory of that shit
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("OptiFine", "'\u00a73" + args[1] + "\u00a77' is not a valid OptiFine action! do \u00a7e/goop optifine\u00a77 for the list of actions."));
+                                    break;
+                            }
+
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73GooP-OptiFine, \u00a77Stuff to use with OptiFine's CEM and CIT.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop optifine {action}");
+                            logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                            logReturn.add("\u00a73 --> \u00a7eglintEnchant <player> <slot> <glint name>");
+                            logReturn.add("\u00a73      * \u00a77Enchants, as cosmetically as possible,");
+                            logReturn.add("\u00a73        \u00a77adding lore if defined, the item the");
+                            logReturn.add("\u00a73        \u00a77target player has in the specified slot.");
+                            logReturn.add("\u00a73 --> \u00a7eglintDefine <glint name> <ench> <ench level> [lore line]");
+                            logReturn.add("\u00a73      * \u00a77Defines a CIT custom glint, that uses");
+                            logReturn.add("\u00a73        \u00a77target enchantment at target level, as");
+                            logReturn.add("\u00a73        \u00a77well as a lore line to accompany it.");
+                            logReturn.add("\u00a73 --> \u00a7etoggleJSON");
+                            logReturn.add("\u00a73      * \u00a77Allows to place your item as a block in");
+                            logReturn.add("\u00a73        \u00a77the world (in the head of an armor stand)");
+                            logReturn.add("\u00a73        \u00a77as if it were a vanilla block.");
+                            logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Target slot in player's inventory.");
+                            logReturn.add("\u00a73 --> \u00a77Possible slots: \u00a7bhead\u00a73, \u00a7bchest\u00a73, \u00a7blegs\u00a73, \u00a7bfeet\u00a73, \u00a7bmainhand\u00a73, \u00a7boffhand\u00a73, and any number \u00a7b0\u00a73-\u00a7b35\u00a73.");
+                            logReturn.add("\u00a73 - \u00a7e<ench level> \u00a77Level of enchantment the .properties file matches.");
+                            logReturn.add("\u00a73 --> \u00a77Theoretically, any integer number between \u00a7b-32768 \u00a77and \u00a7b32767\u00a77; or, the \u00a7bnone\u00a77 keyword.");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("OptiFine", "Incorrect usage. For info: \u00a7e/goop optifine"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop optifine {action}");
+                            }
+                        }
+
+                        // No perms
+                    } else {
+                        // Tell him lmao
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to mess with textures!"));
+                    }
+                    break;
+                //endregion
+                //region reload
+                case reload:
+                    //   0      1    args.Length
+                    // /goop reload
+                    //   -      0    args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.reload");
+                    }
+
+                    // Got permission?
+                    if (permission) {
+
+                        // Reload
+                        Gunging_Ootilities_Plugin.theMain.Reload(false);
+
+                        // Will always announce reloads. Regardless of log gamerules.
+                        logReturn.add(OotilityCeption.LogFormat("Reload", "Reloaded all \u00a7e.yml\u00a77 files."));
+
+                    // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to reload the configs!"));
+                    }
+                    break;
+                    //endregion
+                //region nbt
+                case nbt:
+                    //   0      1         2    args.Length
+                    // /goop nbt {action}
+                    //   -      0         1     args[n]
+
+                    // To extract log return
+                    // Delegate onto NBT
+                    onCommand_GooPNBT(sender, command, label, args, senderLocation, chained, chainedCommand, logReturnUrn, failMessage);
+
+                    // Extract
+                    if (logReturnUrn.getValue() != null) {
+
+                        // For
+                        for (String ret : logReturnUrn.getValue()) {
+
+                            // Add
+                            logReturn.add(ret);
+                        }
+                    }
+                    break;
+                //endregion
+                //region unlocc
+                case unlockables:
+                    // Delegate onto NBT
+                    onCommand_GooPUnlock(sender, command, label, args, senderLocation, chained, chainedCommand, logReturnUrn, failMessage);
+
+                    // Extract
+                    if (logReturnUrn.getValue() != null) {
+
+                        // For
+                        for (String ret : logReturnUrn.getValue()) {
+
+                            // Add
+                            logReturn.add(ret);
+                        }
+                    }
+                    break;
+                //endregion
+                //region customstructures
+                case customstructures:
+                    //   0          1             2    args.Length
+                    // /goop customstructures {action}
+                    //   -          0             1     args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.customstructures");
+                    }
+
+                    // Got permission?
+                    if (permission) {
+                        if (args.length >= 2) {
+                            // Some bool to know if failure
+                            boolean failure = false;
+
+                            switch (args[1].toLowerCase()) {
+                                //region edit
+                                case "edit":
+                                    //   0           1           2     3     args.Length
+                                    // /goop customstructures  edit {action}
+                                    //   -           0           1     2     args[n]
+
+                                    // Correct number of args?
+                                    if (args.length >= 3) {
+
+                                        switch (args[2].toLowerCase()) {
+                                            //region actions
+                                            case "actions":
+                                                //   0           1           2     3       4          5            args.Length
+                                                // /goop customstructures  edit actions {action} <structure name>
+                                                //   -           0           1     2       3          4            args[n]
+
+                                                // Correct number of args?
+                                                if (args.length >= 5) {
+
+                                                    CustomStructure csRef = null;
+                                                    if (!CustomStructures.csLoadedStructures.containsKey(args[4])) {
+
+                                                        // Fail
+                                                        failure = true;
+
+                                                        // Log
+                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Structure \u00a73" + args[4] + "\u00a77 not loaded."));
+
+                                                    } else {
+
+                                                        // Get
+                                                        csRef = CustomStructures.csLoadedStructures.get(args[4]);
+                                                    }
+
+                                                    switch (args[3].toLowerCase()) {
+                                                        //region list
+                                                        case "list":
+                                                            //   0           1          2     3     4          5         args.Length
+                                                            // /goop customstructures edit actions list <structure name>
+                                                            //   -           0          1     2     3          4        args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 5) {
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+                                                                    logReturn.add("\u00a7e______________________________________________");
+                                                                    logReturn.add("\u00a77Actions of structure \u00a73" + args[4] + "\u00a77:");
+
+                                                                    if (csRef.getStructureActions() == null) {
+                                                                        logReturn.add("\u00a73> \u00a77No Actions Defined \u00a73<");
+
+                                                                    } else if (csRef.getStructureActions().size() == 0) {
+                                                                        logReturn.add("\u00a73> \u00a77No Actions Defined \u00a73<");
+
+                                                                    } else {
+                                                                        for (int i = 0; i < csRef.getStructureActions().size(); i++ ) {  logReturn.add("\u00a73" + i + "\u00a7e - \u00a77" + csRef.getStructureActions().get(i)); }
+                                                                    }
+                                                                }
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Incorrect usage. For info: \u00a7e/goop customstructures edit actions"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit actions list <structure name>");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region remove
+                                                        case "remove":
+                                                            //   0           1          2     3       4         5             6    args.Length
+                                                            // /goop customstructures edit actions remove <structure name> <index>
+                                                            //   -           0          1     2       3         4             5    args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 6) {
+
+                                                                Integer indx = null;
+                                                                if (!OotilityCeption.IntTryParse(args[5])) {
+
+                                                                    // Filure time
+                                                                    failure = true;
+
+                                                                    // Note
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Parameter index must be an integer number"));
+
+                                                                } else {
+
+                                                                    indx = OotilityCeption.ParseInt(args[5]);
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Remove action at that index
+                                                                    ArrayList<String> csActions = csRef.getStructureActions();
+
+                                                                    // If exists
+                                                                    if (csActions != null) {
+
+                                                                        // If fits
+                                                                        if (indx < csActions.size() && indx >= 0) {
+
+                                                                            // Remove alv
+                                                                            csActions.remove((int)indx);
+
+                                                                            // Get Logger
+                                                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                            // Edit n Roll
+                                                                            CustomStructures.EditStructureActions(args[4], csActions, logAddition);
+
+                                                                            // Log Results
+                                                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", logAddition.GetValue()));}
+
+                                                                        } else {
+
+                                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Index out of range"));
+                                                                        }
+
+                                                                    } else {
+
+                                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Index out of range (no actions to begin remove from anyway)"));
+                                                                    }
+
+                                                                }
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Incorrect usage. For info: \u00a7e/goop customstructures edit actions"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit actions remove <structure name> <index>");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region edit
+                                                        case "edit":
+                                                            //   0           1          2     3      4         5             6       7+      args.Length
+                                                            // /goop customstructures edit actions edit <structure name> <index> <action...>
+                                                            //   -           0          1     2      3         4             5       6+      args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length >= 7) {
+
+                                                                Integer indx = null;
+                                                                if (!OotilityCeption.IntTryParse(args[5])) {
+
+                                                                    // Filure time
+                                                                    failure = true;
+
+                                                                    // Note
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Parameter index must be an integer number"));
+
+                                                                } else {
+
+                                                                    indx = OotilityCeption.ParseInt(args[5]);
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Remove action at that index
+                                                                    ArrayList<String> csActions = csRef.getStructureActions();
+
+                                                                    // If exists
+                                                                    if (csActions != null) {
+
+                                                                        // If fits
+                                                                        if (indx < csActions.size()) {
+
+                                                                            StringBuilder fullParam = new StringBuilder(args[6]);
+                                                                            for (int i = 7; i < args.length; i++) { fullParam.append(" ").append(args[i]); }
+
+                                                                            // Remove alv
+                                                                            csActions.set(indx, fullParam.toString());
+
+                                                                            // Get Logger
+                                                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                            // Edit n Roll
+                                                                            CustomStructures.EditStructureActions(args[4], csActions, logAddition);
+
+                                                                            // Log Results
+                                                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", logAddition.GetValue()));}
+
+                                                                        } else {
+
+                                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Index out of range"));
+                                                                        }
+
+                                                                    } else {
+
+                                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Index out of range (no actions to begin remove from anyway)"));
+                                                                    }
+
+                                                                }
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Incorrect usage. For info: \u00a7e/goop customstructures edit actions"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit actions edit <structure name> <index> <command>");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region add
+                                                        case "add":
+                                                            //   0           1          2     3      4         5             6+      args.Length
+                                                            // /goop customstructures edit actions add <structure name> <action...>
+                                                            //   -           0          1     2      3         4             5+      args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length >= 6) {
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Remove action at that index
+                                                                    ArrayList<String> csActions = csRef.getStructureActions();
+
+                                                                    // Make sure it exists
+                                                                    if (csActions == null) { csActions = new ArrayList<>(); }
+
+                                                                    StringBuilder fullParam = new StringBuilder(args[5]);
+                                                                    for (int i = 6; i < args.length; i++) { fullParam.append(" ").append(args[i]); }
+                                                                    if (chained) { fullParam.append(" oS: ").append(chainedNoLocation); }
+                                                                    String fP = fullParam.toString();
+                                                                    fP = fP.replace("<oS>", "oS:");
+
+                                                                    // Remove alv
+                                                                    csActions.add(fP);
+
+                                                                    // Get Logger
+                                                                    RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                    // Edit n Roll
+                                                                    CustomStructures.EditStructureActions(args[4], csActions, logAddition);
+
+                                                                    // Log Results
+                                                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", logAddition.GetValue()));}
+                                                                }
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Incorrect usage. For info: \u00a7e/goop customstructures edit actions"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit actions edit <structure name> <index> <command>");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        default:
+                                                            // I have no memory of that shit
+                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "'\u00a73" + args[2] + "\u00a77' is not a valid Custom Structures Edit Actions action! do \u00a7e/goop customstructures edit actions\u00a77 for the list of actions."));
+                                                            break;
+                                                    }
+
+                                                    // Incorrect number of args
+                                                } else if (args.length == 3) {
+
+                                                    logReturn.add("\u00a7e______________________________________________");
+                                                    logReturn.add("\u00a73Custom Structures - \u00a7bEdit Actions, \u00a77What commands will the structure run when used?.");
+                                                    logReturn.add("\u00a73Usage: \u00a7e/goop edit commands actions {action}");
+                                                    logReturn.add("\u00a73 - \u00a7e{action} \u00a77What action to perform:");
+                                                    logReturn.add("\u00a73 --> \u00a7elist <structure name>");
+                                                    logReturn.add("\u00a73      * \u00a77Shows what commands are executed by a structure.");
+                                                    logReturn.add("\u00a73 --> \u00a7eadd <structure name> <command...>");
+                                                    logReturn.add("\u00a73      * \u00a77Adds commands to be executed by a structure.");
+                                                    logReturn.add("\u00a73 --> \u00a7eremove <structure name> <index>");
+                                                    logReturn.add("\u00a73      * \u00a77Removes commands from being executed by a structure.");
+                                                    logReturn.add("\u00a73 --> \u00a7eedit <structure name> <index> <command...>");
+                                                    logReturn.add("\u00a73      * \u00a77Edits the commands that are executed by a structure.");
+
+                                                } else {
+
+                                                    // Notify
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                        logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Incorrect usage. For info: \u00a7e/goop customstructures edit actions"));
+                                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit actions {action}");
+                                                    }
+                                                }
+                                                break;
+                                            //endregion
+                                            //region triggers
+                                            case "triggers":
+                                                //   0           1          2     3     args.Length
+                                                // /goop customstructures edit triggers {action}
+                                                //   -           0          1     2     args[n]
+
+                                                // Correct number of args?
+                                                if (args.length >= 4) {
+
+                                                    switch (args[3].toLowerCase()) {
+                                                        //region list
+                                                        case "list":
+                                                            //   0           1          2       3    4          5         args.Length
+                                                            // /goop customstructures edit triggers list [structure name]
+                                                            //   -           0          1       2    3          4          args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 5) {
+
+                                                                // Is structure loaded?
+                                                                if (!CustomStructures.csLoadedStructures.containsKey(args[4])) {
+
+                                                                    // Loaded strucutre of such name
+                                                                    failure = true;
+
+                                                                    // Mention
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - List Triggers","There isnt any loaded structure of name \u00a73" + args[4] + "\u00a77!.")); }
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+                                                                    logReturn.add("\u00a77Triggers of structure \u00a73" + args[4] + "\u00a77:");
+
+                                                                    ArrayList<CustomStructureTriggers> triggList = CustomStructures.csLoadedStructures.get(args[4]).getStructureTriggers();
+
+                                                                    if (triggList == null) {
+                                                                        logReturn.add("\u00a73> \u00a77No Triggers Defined \u00a73<");
+
+                                                                    } else if (triggList.size() == 0) {
+                                                                        logReturn.add("\u00a73> \u00a77No Triggers In Structure \u00a73<");
+
+                                                                    } else {
+
+                                                                        for (CustomStructureTriggers trig : triggList) { logReturn.add("\u00a7e - \u00a77" + trig); }
+                                                                    }
+                                                                }
+
+                                                            // Incorrect number of args
+                                                            } else if (args.length == 4) {
+
+                                                                logReturn.add("\u00a73Possible structure Triggers:");
+                                                                logReturn.add("\u00a7e--------- \u00a77Always Available:");
+                                                                logReturn.add("\u00a7e > \u00a73INTERACT");
+                                                                logReturn.add("\u00a73   \u00a77When a player right-clicks the core.");
+                                                                logReturn.add("\u00a7e > \u00a73PUNCH");
+                                                                logReturn.add("\u00a73   \u00a77When a player left-clicks the core.");
+                                                                logReturn.add("\u00a7e > \u00a73COMPLETE");
+                                                                logReturn.add("\u00a73   \u00a77When a player places the core block last");
+                                                                logReturn.add("\u00a7e > \u00a73BREAK");
+                                                                logReturn.add("\u00a73   \u00a77When a player breaks the core block first");
+                                                                logReturn.add("");
+                                                                logReturn.add("\u00a7e--------- \u00a77When the core block is a pressure plate:");
+                                                                logReturn.add("\u00a7e > \u00a73PRESSUREPLATE_PLAYERS");
+                                                                logReturn.add("\u00a73   \u00a77When an player steps on the core block");
+                                                                logReturn.add("\u00a7e > \u00a73PRESSUREPLATE_MONSTERS");
+                                                                logReturn.add("\u00a73   \u00a77When a monster steps on the core block");
+                                                                logReturn.add("\u00a7e > \u00a73PRESSUREPLATE_ANIMALS");
+                                                                logReturn.add("\u00a73   \u00a77When an animal steps on the core block");
+                                                                logReturn.add("\u00a7e > \u00a73PRESSUREPLATE_ITEMS");
+                                                                logReturn.add("\u00a73   \u00a77When an item is dropped on to the core block");
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - List Triggers", "Incorrect usage. For info: \u00a7e/goop customstructures edit triggers"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers list [structure name]");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region remove
+                                                        case "remove":
+                                                            //   0           1          2       3    4          5             6          args.Length
+                                                            // /goop customstructures edit triggers remove <structure name> <trigger name>
+                                                            //   -           0          1       2    3          4             5           args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 6) {
+
+                                                                // Is structure loaded?
+                                                                if (!CustomStructures.csLoadedStructures.containsKey(args[4])) {
+
+                                                                    // Loaded strucutre of such name
+                                                                    failure = true;
+
+                                                                    // Mention
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Triggers","There isnt any loaded structure of name \u00a73" + args[4] + "\u00a77!.")); }
+                                                                }
+
+                                                                // Is it an actual trigger
+                                                                CustomStructureTriggers trig = null;
+                                                                try {
+                                                                    // Yes, it seems to be
+                                                                    trig = CustomStructureTriggers.valueOf(args[5].toUpperCase());
+
+                                                                    // Not recognized
+                                                                } catch (IllegalArgumentException ex) {
+
+                                                                    // Fail
+                                                                    failure = true;
+
+                                                                    // Note
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Triggers","There isnt any trigger of name \u00a7e" + args[5] + "\u00a77!.")); }
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Get the list of triggers
+                                                                    ArrayList<CustomStructureTriggers> eval = CustomStructures.csLoadedStructures.get(args[4]).getStructureTriggers();
+
+                                                                    // Cant remove if doesnt exist
+                                                                    if (!eval.contains(trig)) {
+
+                                                                        // Note that it was already present
+                                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Triggers","Structure of name \u00a73" + args[4] + " \u00a77didnt have the \u00a7e" + args[5] + "\u00a77 trigger.")); }
+
+                                                                    // Remove it
+                                                                    } else {
+
+                                                                        // Add
+                                                                        eval.remove(trig);
+
+                                                                        // Git Ref
+                                                                        RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                        // Append
+                                                                        CustomStructures.EditStructureTriggers(args[4], eval, logAddition);
+
+                                                                        // Mention
+                                                                        if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Triggers", logAddition.GetValue())); }
+                                                                    }
+                                                                }
+
+                                                            // Incorrect number of args
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Triggers", "Incorrect usage. For info: \u00a7e/goop customstructures edit triggers"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers remove <structure name> <trigger name>");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region add
+                                                        case "add":
+                                                            //   0           1          2       3    4          5             6          args.Length
+                                                            // /goop customstructures edit triggers add <structure name> <trigger name>
+                                                            //   -           0          1       2    3          4             5           args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 6) {
+
+                                                                // Is structure loaded?
+                                                                if (!CustomStructures.csLoadedStructures.containsKey(args[4])) {
+
+                                                                    // Loaded strucutre of such name
+                                                                    failure = true;
+
+                                                                    // Mention
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Triggers","There isnt any loaded structure of name \u00a73" + args[4] + "\u00a77!.")); }
+                                                                }
+
+                                                                // Is it an actual trigger
+                                                                CustomStructureTriggers trig = null;
+                                                                try {
+                                                                    // Yes, it seems to be
+                                                                    trig = CustomStructureTriggers.valueOf(args[5].toUpperCase());
+
+                                                                    // Not recognized
+                                                                } catch (IllegalArgumentException ex) {
+
+                                                                    // Fail
+                                                                    failure = true;
+
+                                                                    // Note
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Triggers","There isnt any trigger of name \u00a7e" + args[5] + "\u00a77!.")); }
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Get the list of triggers
+                                                                    ArrayList<CustomStructureTriggers> eval = CustomStructures.csLoadedStructures.get(args[4]).getStructureTriggers();
+
+                                                                    // No duplicate triggers
+                                                                    if (eval.contains(trig)) {
+
+                                                                        // Note that it was already present
+                                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Triggers","Structure of name \u00a73" + args[4] + "\u00a77 already has trigger \u00a7e" + args[5] + "\u00a77.")); }
+
+                                                                        // Add it
+                                                                    } else {
+
+                                                                        // Add
+                                                                        eval.add(trig);
+
+                                                                        // Git Ref
+                                                                        RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                        // Append
+                                                                        CustomStructures.EditStructureTriggers(args[4], eval, logAddition);
+
+                                                                        // Mention
+                                                                        if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Triggers", logAddition.GetValue())); }
+                                                                    }
+
+                                                                }
+
+                                                                // Incorrect number of args
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Triggers", "Incorrect usage. For info: \u00a7e/goop customstructures edit triggers"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers add <structure name> <trigger name>");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region parameter
+                                                        case "parameter":
+                                                            //   0           1          2       3        4        5          6                7           8       args.Length
+                                                            // /goop customstructures edit triggers parameter {action} <structure name> <trigger name> {action}
+                                                            //   -           0          1       2        3        4          5                6           7       args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length >= 7) {
+
+                                                                // Is structure loaded?
+                                                                CustomStructure csTarget = null;
+                                                                if (!CustomStructures.csLoadedStructures.containsKey(args[5])) {
+
+                                                                    // Loaded strucutre of such name
+                                                                    failure = true;
+
+                                                                    // Mention
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters","There isnt any loaded structure of name \u00a73" + args[5] + "\u00a77!.")); }
+                                                                } else {
+
+                                                                    // Retrieve
+                                                                    csTarget = CustomStructures.csLoadedStructures.get(args[5]);
+                                                                }
+
+                                                                // Is it an actual trigger
+                                                                CustomStructureTriggers trigr = null;
+                                                                try {
+                                                                    // Yes, it seems to be
+                                                                    trigr = CustomStructureTriggers.valueOf(args[6].toUpperCase());
+
+                                                                    // Not recognized
+                                                                } catch (IllegalArgumentException ex) {
+
+                                                                    // Fail
+                                                                    failure = true;
+
+                                                                    // Note
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters","There isnt any trigger of name \u00a7e" + args[6] + "\u00a77!.")); }
+                                                                }
+
+                                                                switch (args[4].toLowerCase()) {
+                                                                    //region list
+                                                                    case "list":
+                                                                        //   0           1          2       3        4      5          6                7       args.Length
+                                                                        // /goop customstructures edit triggers parameter list <structure name> <trigger name>
+                                                                        //   -           0          1       2        3      4          5                6       args[n]
+
+                                                                        // Correct number of args?
+                                                                        if (args.length == 7) {
+
+                                                                            // So far, both the structure and trigger parsed....
+                                                                            if (!failure) {
+
+                                                                                // Some wild info on the parameters
+                                                                                logReturn.add("\u00a7e______________________________________________");
+                                                                                logReturn.add("\u00a77Parameters of the Trigger \u00a73" + trigr + "\u00a77:");
+                                                                                ArrayList<String> ret = new ArrayList<>();
+                                                                                switch (trigr) {
+                                                                                    case BREAK:
+                                                                                    case COMPLETE:
+                                                                                    case SNEAK_COMPLETE:
+                                                                                    case SNEAK_BREAK:
+                                                                                        logReturn.add("\u00a77This trigger doesnt support parameters!");
+                                                                                        break;
+                                                                                    case INTERACT:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.INTERACT);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they interact");
+                                                                                        break;
+                                                                                    case SNEAK_INTERACT:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.SNEAK_INTERACT);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they interact (while sneaking).");
+                                                                                        break;
+                                                                                    case PUNCH:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PUNCH);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they punch");
+                                                                                        break;
+                                                                                    case SNEAK_PUNCH:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.SNEAK_PUNCH);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they punch (while sneaking)");
+                                                                                        break;
+                                                                                    case PRESSUREPLATE_PLAYERS:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PRESSUREPLATE_PLAYERS);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they step on the plate");
+                                                                                        break;
+                                                                                    case SNEAK_PRESSUREPLATE_PLAYERS:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.SNEAK_PRESSUREPLATE_PLAYERS);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they step on the plate (while sneaking)");
+                                                                                        break;
+                                                                                    case PRESSUREPLATE_ITEMS:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PRESSUREPLATE_ITEMS);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe item dropped on the pressure plate must match these.");
+                                                                                        break;
+                                                                                    case PRESSUREPLATE_MONSTERS:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PRESSUREPLATE_MONSTERS);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe monsters that step on the pressure plate must match these.");
+                                                                                        break;
+                                                                                    case PRESSUREPLATE_ANIMALS:
+                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PRESSUREPLATE_ANIMALS);
+                                                                                        logReturn.add("\u00a7b\u00a7oThe animals that step on the pressure plate must match these.");
+                                                                                        break;
+                                                                                }
+
+                                                                                if (!(csTarget.getStructureTriggers().contains(trigr))) {
+
+                                                                                    // Filure time
+                                                                                    failure = true;
+
+                                                                                    // Note
+                                                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - List Trigger Parameters", "Structure \u00a73" + args[5] + "\u00a77 doesnt have that trigger!"));
+                                                                                }
+
+                                                                                // Bice sintax
+                                                                                if (!failure) {
+                                                                                    if (ret != null) {
+                                                                                        for (int i = 0; i < ret.size(); i++) { logReturn.add("\u00a73" + i + "\u00a7e - \u00a77" + ret.get(i)); }
+
+                                                                                    } else {
+                                                                                        logReturn.add("\u00a73> \u00a77No Parameters \u00a73<");
+                                                                                    }
+                                                                                }
+
+                                                                            }
+                                                                        } else {
+
+                                                                            // Notify
+                                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                                logReturn.add(OotilityCeption.LogFormat("Custom Structures - List Trigger Parameters", "Incorrect usage. For info: \u00a7e/goop customstructures edit triggers"));
+                                                                                logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers parameters list <structure name> <trigger name>");
+                                                                            }
+                                                                        }
+                                                                        break;
+                                                                    //endregion
+                                                                    //region remove
+                                                                    case "remove":
+                                                                        //   0           1          2       3        4      5          6                7           8       args.Length
+                                                                        // /goop customstructures edit triggers parameter remove <structure name> <trigger name> <parameter index>
+                                                                        //   -           0          1       2        3      4          5                6           7       args[n]
+
+
+                                                                        // Correct number of args?
+                                                                        if (args.length == 8) {
+
+                                                                            // So far, both the structure and trigger parsed....
+                                                                            if (!failure) {
+
+                                                                                if (!csTarget.getStructureTriggers().contains(trigr)) {
+
+                                                                                    // Filure time
+                                                                                    failure = true;
+
+                                                                                    // Note
+                                                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Trigger Parameters", "That structure doesnt have that trigger!"));
+                                                                                }
+                                                                            }
+
+                                                                            Integer indx = null;
+                                                                            if (!OotilityCeption.IntTryParse(args[7])) {
+
+                                                                                // Filure time
+                                                                                failure = true;
+
+                                                                                // Note
+                                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Trigger Parameters", "Parameter index must be an integer number"));
+
+                                                                            } else {
+
+                                                                                indx = OotilityCeption.ParseInt(args[7]);
+                                                                            }
+
+
+                                                                            // Bice sintax
+                                                                            if (!failure) {
+
+                                                                                ArrayList<String> ret = new ArrayList<>();
+                                                                                RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                                switch (trigr) {
+                                                                                    case BREAK:
+                                                                                    case COMPLETE:
+                                                                                    case SNEAK_COMPLETE:
+                                                                                    case SNEAK_BREAK:
+                                                                                        ret = null;
+                                                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Trigger Parameters", "This trigger doesnt support parameters!"));
+                                                                                        break;
+                                                                                    default:
+                                                                                        ret = csTarget.getTriggerParameters().get(trigr);
+                                                                                        break;
+                                                                                }
+
+                                                                                if (ret != null) {
+                                                                                    if (ret.size() > indx && indx >= 0) {
+
+                                                                                        // Index in range I guess I uh remove it?
+                                                                                        ret.remove((int)indx);
+
+                                                                                        CustomStructures.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
+
+                                                                                        if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Trigger Parameters", logAddition.GetValue())); }
+
+                                                                                    } else {
+                                                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Trigger Parameters", "Index out of range!"));
+                                                                                    }
+                                                                                } else {
+                                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Trigger Parameters", "Structure has no parameters to remove for trigger \u00a7e" + trigr));
+                                                                                }
+                                                                            }
+
+                                                                        } else {
+
+                                                                            // Notify
+                                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                                logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Trigger Parameters", "Incorrect usage. For info: \u00a7e/goop customstructures edit triggers"));
+                                                                                logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers parameters remove <structure name> <trigger name> <parameter index>");
+                                                                            }
+                                                                        }
+                                                                        break;
+                                                                    //endregion
+                                                                    //region edit
+                                                                    case "edit":
+                                                                        //   0           1          2       3        4      5          6                7             8               9 10 [11]     args.Length
+                                                                        // /goop customstructures edit triggers parameter edit <structure name> <trigger name> <parameter index> <parameter args>
+                                                                        //   -           0          1       2        3      4          5                6             7               8  9 [10]     args[n]
+
+                                                                        // Correct number of args?
+                                                                        if (args.length == 10 || args.length == 11 || args.length == 12) {
+
+                                                                            // So far, both the structure and trigger parsed....
+                                                                            if (!failure) {
+
+                                                                                if (!csTarget.getStructureTriggers().contains(trigr)) {
+
+                                                                                    // Filure time
+                                                                                    failure = true;
+
+                                                                                    // Note
+                                                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", "That structure doesnt have that trigger!"));
+                                                                                }
+                                                                            }
+
+
+                                                                            Integer indx = null;
+                                                                            if (!OotilityCeption.IntTryParse(args[7])) {
+
+                                                                                // Filure time
+                                                                                failure = true;
+
+                                                                                // Note
+                                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", "Parameter index must be an integer number"));
+
+                                                                            } else {
+
+                                                                                indx = OotilityCeption.ParseInt(args[7]);
+                                                                            }
+
+                                                                            // Bice sintax
+                                                                            if (!failure) {
+
+                                                                                // BUild Parameter
+                                                                                StringBuilder fullParam = new StringBuilder(args[8]);
+                                                                                for (int i = 9; i < args.length; i ++) { fullParam.append(" ").append(args[i]); }
+
+                                                                                ArrayList<String> ret;
+                                                                                RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                                // Get may-existent amount
+                                                                                String amount = null;
+                                                                                if (args.length == 12) { amount = args[11]; }
+
+                                                                                switch (trigr) {
+                                                                                    case BREAK:
+                                                                                    case COMPLETE:
+                                                                                    case SNEAK_COMPLETE:
+                                                                                    case SNEAK_BREAK:
+                                                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", "This trigger doesnt support parameters!"));
+                                                                                        break;
+                                                                                    case INTERACT:
+                                                                                    case PUNCH:
+                                                                                    case SNEAK_INTERACT:
+                                                                                    case SNEAK_PUNCH:
+                                                                                    case SNEAK_PRESSUREPLATE_PLAYERS:
+                                                                                    case PRESSUREPLATE_PLAYERS:
+                                                                                    case PRESSUREPLATE_ITEMS:
+                                                                                        ret = csTarget.getTriggerParameters().get(trigr);
+
+                                                                                        // Of type NBT ITEM
+                                                                                        if (args.length >= 11)  {
+                                                                                            if (!OotilityCeption.IsInvalidItemNBTtestString(args[8], args[9], args[10], amount, logAddition)) {
+
+                                                                                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", logAddition.GetValue())); }
+
+                                                                                                if (ret.size() > indx && indx >= 0) {
+
+                                                                                                    ret.add(indx, fullParam.toString());
+
+                                                                                                    CustomStructures.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
+
+                                                                                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", logAddition.GetValue())); }
+
+                                                                                                } else {
+
+                                                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", "Index out of Range!"));
+                                                                                                }
+
+                                                                                            }  else if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", logAddition.GetValue())); }
+
+                                                                                        }  else {
+
+                                                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", "Item NBT Filters require 3 arguments. You've provided two: \u00a7e" + args[8] + " " + args[9]));
+                                                                                        }
+
+                                                                                        break;
+                                                                                    case PRESSUREPLATE_MONSTERS:
+                                                                                    case PRESSUREPLATE_ANIMALS:
+                                                                                        ret = csTarget.getTriggerParameters().get(trigr);
+
+                                                                                        // Of type NBT Entity
+                                                                                        if (!OotilityCeption.IsInvalidEntityNBTtestString(args[8], args[9], logAddition)) {
+
+                                                                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", logAddition.GetValue())); }
+
+                                                                                            if (ret.size() > indx) {
+
+                                                                                                ret.add(indx, fullParam.toString());
+
+                                                                                                CustomStructures.EditStructureTriggerParameters(args[4], trigr, ret, logAddition);
+
+                                                                                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", logAddition.GetValue())); }
+
+                                                                                            } else {
+
+                                                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", "Index out of Range!"));
+                                                                                            }
+
+                                                                                        } else if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", logAddition.GetValue())); }
+                                                                                        break;
+                                                                                }
+                                                                            }
+
+                                                                        } else {
+
+                                                                            // Notify
+                                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                                logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", "Incorrect usage. For info: \u00a7e/goop customstructures edit triggers"));
+                                                                                logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers parameters edit <structure name> <trigger name> <parameter index> <parameter args>");
+                                                                            }
+                                                                        }
+                                                                        break;
+                                                                    //endregion
+                                                                    //region add
+                                                                    case "add":
+                                                                        //   0           1          2       3        4      5          6                7        8 9 [10]       args.Length
+                                                                        // /goop customstructures edit triggers parameter add <structure name> <trigger name> <parameter args>
+                                                                        //   -           0          1       2        3      4          5                6        7 8 [9]        args[n]
+
+                                                                        // Correct number of args?
+                                                                        if (args.length == 9 || args.length == 10 || args.length == 11) {
+
+                                                                            // So far, both the structure and trigger parsed....
+                                                                            if (!failure) {
+
+                                                                                if (!csTarget.getStructureTriggers().contains(trigr)) {
+
+                                                                                    // Filure time
+                                                                                    failure = true;
+
+                                                                                    // Note
+                                                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", "That structure doesnt have that trigger!"));
+                                                                                }
+                                                                            }
+
+
+                                                                            // Bice sintax
+                                                                            if (!failure) {
+
+                                                                                // BUild Parameter
+                                                                                StringBuilder fullParam = new StringBuilder(args[7]);
+                                                                                for (int i = 8; i < args.length; i ++) { fullParam.append(" ").append(args[i]); }
+
+                                                                                ArrayList<String> ret;
+                                                                                RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                                // Get may-existent amount
+                                                                                String amount = null;
+                                                                                if (args.length == 11) { amount = args[10]; }
+
+                                                                                switch (trigr) {
+                                                                                    case BREAK:
+                                                                                    case COMPLETE:
+                                                                                    case SNEAK_BREAK:
+                                                                                    case SNEAK_COMPLETE:
+                                                                                        // Yea no
+                                                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", "This trigger doesnt support parameters!"));
+                                                                                        break;
+                                                                                    case INTERACT:
+                                                                                    case PUNCH:
+                                                                                    case SNEAK_INTERACT:
+                                                                                    case SNEAK_PRESSUREPLATE_PLAYERS:
+                                                                                    case PRESSUREPLATE_ITEMS:
+                                                                                    case PRESSUREPLATE_PLAYERS:
+                                                                                    case SNEAK_PUNCH:
+                                                                                        ret = csTarget.getTriggerParameters().get(trigr);
+
+                                                                                        if (ret == null) { ret = new ArrayList<>(); }
+
+                                                                                        // Of type NBT ITEM
+                                                                                        if (args.length >= 10) {
+
+                                                                                            // Test for vailidty
+                                                                                            if (!OotilityCeption.IsInvalidItemNBTtestString(args[7], args[8], args[9], amount, logAddition)) {
+
+                                                                                                // Cook and add
+                                                                                                ret.add(fullParam.toString());
+
+                                                                                                // Log
+                                                                                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", logAddition.GetValue()));
+                                                                                                }
+
+                                                                                                // Save
+                                                                                                CustomStructures.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
+                                                                                            }
+
+                                                                                            // Tell success or failure
+                                                                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", logAddition.GetValue())); }
+
+                                                                                        // Not enough args
+                                                                                        } else {
+
+                                                                                            // Tell that they need more args
+                                                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", "Item NBT Filters require 3 arguments."));
+                                                                                        }
+
+                                                                                        break;
+                                                                                    case PRESSUREPLATE_MONSTERS:
+                                                                                    case PRESSUREPLATE_ANIMALS:
+                                                                                        ret = csTarget.getTriggerParameters().get(trigr);
+
+                                                                                        if (ret == null) { ret = new ArrayList<>(); }
+
+                                                                                        // Of type NBT Entity
+                                                                                        if (!OotilityCeption.IsInvalidEntityNBTtestString(args[7], args[8], logAddition)) {
+
+                                                                                            ret.add(fullParam.toString());
+
+                                                                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", logAddition.GetValue())); }
+
+                                                                                            CustomStructures.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
+                                                                                        }
+
+                                                                                        if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", logAddition.GetValue())); }
+                                                                                        break;
+                                                                                }
+                                                                            }
+
+                                                                        } else {
+
+                                                                            // Notify
+                                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                                logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", "Incorrect usage. For info: \u00a7e/goop customstructures edit triggers"));
+                                                                                logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers parameters add <structure name> <trigger name> <parameter args>");
+                                                                            }
+                                                                        }
+                                                                        break;
+                                                                    //endregion
+                                                                    default:
+                                                                        // I have no memory of that shit
+                                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", "'\u00a73" + args[4] + "\u00a77' is not a valid Custom Structures Edit Trigger-parameters Action! do \u00a7e/goop customstructures edit triggers\u00a77 for the list of actions."));
+                                                                        break;
+                                                                }
+
+                                                            // Incorrect number of args
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Triggers", "Incorrect usage. For info: \u00a7e/goop customstructures edit triggers"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers parameter <sub action key> <structure name> <trigger name> {sub action}");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        default:
+                                                            // I have no memory of that shit
+                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Triggers", "'\u00a73" + args[3] + "\u00a77' is not a valid Custom Structures Edit Triggers Action! do \u00a7e/goop customstructures edit triggers\u00a77 for the list of actions."));
+                                                            break;
+                                                    }
+
+                                                // Incorrect number of args
+                                                } else if (args.length == 3) {
+
+                                                    logReturn.add("\u00a7e______________________________________________");
+                                                    logReturn.add("\u00a73Custom Structures - \u00a7bEdit, \u00a77Edits a loaded structure.");
+                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit triggers {action}");
+                                                    logReturn.add("\u00a73 - \u00a7e{action} \u00a77What action to perform:");
+                                                    logReturn.add("\u00a73 --> \u00a7elist");
+                                                    logReturn.add("\u00a73      * \u00a77Lists the triggers of structures.");
+                                                    logReturn.add("\u00a73 --> \u00a7elist <structure name>");
+                                                    logReturn.add("\u00a73      * \u00a77Lists the triggers of a loaded structure.");
+                                                    logReturn.add("\u00a73 --> \u00a7eadd <structure name> <trigger name>");
+                                                    logReturn.add("\u00a73      * \u00a77Adds a trigger to a structure.");
+                                                    logReturn.add("\u00a73 --> \u00a7eremove <structure name> <trigger name>");
+                                                    logReturn.add("\u00a73      * \u00a77Removes a trigger from a structure.");
+                                                    logReturn.add("\u00a73 --> \u00a7eparameter list <structure name> <trigger name>");
+                                                    logReturn.add("\u00a73      * \u00a77Lists the trigger parameters of a loaded structure");
+                                                    logReturn.add("\u00a73 --> \u00a7eparameter add <structure name> <trigger name> <parameter args>");
+                                                    logReturn.add("\u00a73      * \u00a77Adds a trigger parameter to a loaded structure");
+                                                    logReturn.add("\u00a73 --> \u00a7eparameter remove <structure name> <trigger name> <parameter index>");
+                                                    logReturn.add("\u00a73      * \u00a77Removes a trigger parameter from a loaded structure");
+                                                    logReturn.add("\u00a73 --> \u00a7eparameter edit <structure name> <trigger name> <parameter index> <new parameter args>");
+                                                    logReturn.add("\u00a73      * \u00a77Edits a trigger parameter of a loaded structure");
+
+                                                } else {
+
+                                                    // Notify
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                        logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit", "Incorrect usage. For info: \u00a7e/goop customstructures edit"));
+                                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit {action}");
+                                                    }
+                                                }
+                                                break;
+                                            //endregion
+                                            //region composition
+                                            case "composition":
+                                                //   0           1          2       3              4               5         6   7   8   9  args.Length
+                                                // /goop customstructures edit composition <structure name> <cuboid radius> [w] [x] [y] [z]
+                                                //   -           0          1       2              3               4         5   6   7   8  args[n]
+
+                                                // Correct number of args?
+                                                if (args.length == 5 || args.length == 9) {
+
+                                                    // Gets that location boi
+                                                    Location targetLocation = null;
+                                                    if (args.length == 5) {
+                                                        if (sender instanceof Player) {
+
+                                                            // Just target location I guess?
+                                                            Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
+
+                                                            // If exists
+                                                            if (bLock == null) {
+
+                                                                // Invalid location
+                                                                failure = true;
+
+                                                                // Mention
+                                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition","You are not looking at any block!")); }
+
+                                                                // I suppose its not air, right?
+                                                            } else if (!OotilityCeption.IsAir(bLock.getType())) {
+
+                                                                // Git Target Location
+                                                                targetLocation = bLock.getLocation();
+
+                                                                // Nvm it is air.
+                                                            } else {
+
+                                                                // Invalid location
+                                                                failure = true;
+
+                                                                // Mention
+                                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition","You are not looking at any block!")); }
+
+                                                            }
+
+                                                        } else {
+                                                            // Vro need coords
+                                                            failure = true;
+
+                                                            // Say
+                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition", "When editiong composition of structures from the console, you must specify co-ordinates and a world!")); }
+                                                        }
+
+                                                        // Build Location from args, later, if they parse.
+                                                    }
+
+                                                    // Is structure loaded?
+                                                    if (!CustomStructures.csLoadedStructures.containsKey(args[3])) {
+
+                                                        // Loaded strucutre of such name
+                                                        failure = true;
+
+                                                        // Mention
+                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition","There isnt any loaded structure of name \u00a73" + args[3] + "\u00a77!.")); }
+                                                    }
+
+                                                    // Size Parses?
+                                                    Integer size = null; boolean asSelection = false;
+                                                    if (args[4].toLowerCase().equals("selection")) {
+                                                        asSelection = true;
+                                                    } else if (!OotilityCeption.IntTryParse(args[4])) {
+
+                                                        // Bruh
+                                                        failure = true;
+
+                                                        // Mention
+                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition", "Expected integer number for cuboid radius instead of \u00a73" + args[4])); }
+                                                    } else { size = OotilityCeption.ParseInt(args[4]); }
+
+                                                    // Through Selection huh?
+                                                    Player target = null;
+                                                    if (asSelection) {
+
+                                                        if (!Gunging_Ootilities_Plugin.foundWorldEdit) {
+
+                                                            // Not so fast!
+                                                            failure = true;
+
+                                                            // Mention
+                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition","To import structures from a WorldEdit selection, you need WorldEdit!"));
+                                                        }
+
+                                                        // Player must be sender
+                                                        if (sender instanceof Player) {
+
+                                                            // Store
+                                                            target = (Player) sender;
+
+                                                            // Selection?
+                                                            if (Gunging_Ootilities_Plugin.foundWorldEdit) {
+
+                                                                // Have they no selection?
+                                                                if (!GooPWorldEdit.HasSelection(target)) {
+
+                                                                    // Not so fast!
+                                                                    failure = true;
+
+                                                                    // Mention
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition","To import from selections, you must have a WorldEdit region selected."));
+                                                                }
+                                                            }
+
+                                                        // Not a playerrr?
+                                                        } else {
+
+                                                            // Not so fast!
+                                                            failure = true;
+
+                                                            // Mention
+                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition","To import from selections, the command must be called in-game, not from the console."));
+                                                        }
+                                                    }
+
+                                                    // Parse location?
+                                                    if (args.length == 9) {
+
+                                                        // Make Error Messager
+                                                        RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                        // Relativity
+                                                        Player rel = null;
+                                                        if (sender instanceof Player) { rel = (Player)sender;}
+
+                                                        // Get
+                                                        targetLocation = OotilityCeption.ValidLocation(rel, args[5], args[6], args[7], args[8], logAddition);
+
+                                                        // Ret
+                                                        if (targetLocation == null) { failure = true; }
+
+                                                        // Add Log
+                                                        if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition", logAddition.GetValue())); }
+                                                    }
+
+                                                    // Bice sintax
+                                                    if (!failure) {
+
+                                                        // Obtain composition
+                                                        ArrayList<CustomStructureBlock> comp = null;
+                                                        if (asSelection) {
+
+                                                            // Get From Selecton
+                                                            comp = CustomStructures.GenerateStructureFromPlayerSelection(targetLocation.getBlock(), target);
+
+                                                        } else {
+
+                                                            // Get From Radius
+                                                            comp = CustomStructures.GenerateStructureFromWorld(targetLocation.getBlock(), size);
+                                                        }
+                                                        // Git Ref
+                                                        RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                        // Ediet structure
+                                                        CustomStructures.EditStructureComposition(args[3], comp, logAddition);
+
+                                                        // Log
+                                                        if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition", logAddition.GetValue())); }
+                                                    }
+
+                                                // Incorrect number of args
+                                                } else if (args.length == 3) {
+
+                                                    logReturn.add("\u00a7e______________________________________________");
+                                                    logReturn.add("\u00a73Custom Structures - \u00a7bEdit Composition, \u00a77Edits the YML of a structure from something in the world.");
+                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit composition <structure name> <cuboid radius> [w x y z]");
+                                                    logReturn.add("\u00a73 - \u00a7e<structure name> \u00a77Name of loaded structure");
+                                                    logReturn.add("\u00a73 - \u00a7e<cuboid radius> \u00a77Blocks around the 'core' to account for.");
+                                                    logReturn.add("\u00a7e ---> \u00a77Air and Barrier blocks will be ignored (match any block)");
+                                                    logReturn.add("\u00a7e ---> \u00a77Structure Void blocks will be saved as Air (match air)");
+                                                    logReturn.add("\u00a73 - \u00a7e[w] \u00a77World");
+                                                    logReturn.add("\u00a73 - \u00a7e[x y z] \u00a77Coords");
+                                                    logReturn.add("\u00a78/goop customstructures edit composition Stove 1 world 420 69 30");
+                                                    logReturn.add("\u00a73If coords are not specified, the 'core' will be the block you're looking at.");
+
+                                                } else {
+
+                                                    // Notify
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                        logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition", "Incorrect usage. For info: \u00a7e/goop customstructures edit composition"));
+                                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit composition <structure name> <cuboid radius> [w x y z]");
+                                                    }
+                                                }
+                                                break;
+                                            //endregion
+
+                                            default:
+                                                // I have no memory of that shit
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit", "'\u00a73" + args[2] + "\u00a77' is not a valid Custom Structures Edit Action! do \u00a7e/goop customstructures edit\u00a77 for the list of actions."));
+                                                break;
+                                        }
+
+                                    // Incorrect number of args
+                                    } else if (args.length == 2) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Custom Structures - \u00a7bEdit, \u00a77Edits a loaded structure.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit {action}");
+                                        logReturn.add("\u00a73 - \u00a7e{action} \u00a77What action to perform:");
+                                        logReturn.add("\u00a73 --> \u00a7ecomposition <structure name> <cuboid radius> [world x y z]");
+                                        logReturn.add("\u00a73      * \u00a77Edits what blocks compose a structure.");
+                                        logReturn.add("\u00a73      * \u00a73Barriers and Air wont be saved (will match any block)");
+                                        logReturn.add("\u00a73      * \u00a73Structure Void will be saved as AIR (will match air)");
+                                        logReturn.add("\u00a73 --> \u00a7etriggers {action}");
+                                        logReturn.add("\u00a73      * \u00a77Stuff regarding what makes the structure activate.");
+                                        logReturn.add("\u00a73 --> \u00a7eactions {action}");
+                                        logReturn.add("\u00a73      * \u00a77Manage what commands to run when the structure activates.");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit", "Incorrect usage. For info: \u00a7e/goop customstructures edit"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit {action}");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region list
+                                case "list":
+                                    //   0           1          2     args.Length
+                                    // /goop customstructures list
+                                    //   -           0          1     args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 2) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        if (CustomStructures.loadedStructures.size() == 0) {
+                                            logReturn.add("\u00a73Custom Structures - \u00a7bList, \u00a77Lists all loaded structures, there arent any right now though.");
+                                        } else {
+                                            logReturn.add("\u00a73Custom Structures - \u00a7bList, \u00a77All loaded structures:");
+                                            for (CustomStructure struct : CustomStructures.loadedStructures) { logReturn.add("\u00a73 - \u00a77" + struct.getStructureName()); }
+                                        }
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - List", "Incorrect usage. \u00a7e/goop customstructures list")); }
+                                    }
+                                    break;
+                                //endregion
+                                //region import
+                                case "import":
+                                    //   0           1           2         3                4          5   6   7   8    args.Length
+                                    // /goop customstructures import <structure name> <cuboid radius> [w] [x] [y] [z]
+                                    //   -           0           1          2               3          4   5   6   9  args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 4 || args.length == 8) {
+
+                                        // Gets that location boi
+                                        Location targetLocation = null;
+                                        if (args.length == 4) {
+                                            if (sender instanceof Player) {
+
+                                                // Just target location I guess?
+                                                Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
+
+                                                // If exists
+                                                if (bLock == null) {
+
+                                                    // Invalid location
+                                                    failure = true;
+
+                                                    // Mention
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import","You are not looking at any block!"));
+
+                                                    // I suppose its not air, right?
+                                                } else if (!OotilityCeption.IsAir(bLock.getType())) {
+
+                                                    // Git Target Location
+                                                    targetLocation = bLock.getLocation();
+
+                                                    // Nvm it is air.
+                                                } else {
+
+                                                    // Invalid location
+                                                    failure = true;
+
+                                                    // Mention
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import","You are not looking at any block!"));
+
+                                                }
+
+                                            } else {
+                                                // Vro need coords
+                                                failure = true;
+
+                                                // Say
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import", "When importing structures from the console, you must specify co-ordinates and a world!"));
+                                            }
+
+                                        // Build Location from args, later, if they parse.
+                                        }
+
+                                        // Is structure loaded?
+                                        if (CustomStructures.csLoadedStructures.containsKey(args[2])) {
+
+                                            // Loaded strucutre of such name
+                                            failure = true;
+
+                                            // Mention
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import","There already is a loaded structure of name \u00a73" + args[2] + "\u00a77!. Instead, try \u00a7e/goop customstructures edit composition " + args[2] + " " + args[3]));
+                                        }
+
+                                        // Size Parses?
+                                        Integer size = null; boolean asSelection = false;
+                                        if (args[3].toLowerCase().equals("selection")) {
+                                            asSelection = true;
+                                        } else if (!OotilityCeption.IntTryParse(args[3])) {
+
+                                            // Bruh
+                                            failure = true;
+
+                                            // Mention
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import", "Expected integer number for cuboid radius instead of '\u00a73" + args[3] + "\u00a77'"));
+
+                                        } else { size = OotilityCeption.ParseInt(args[3]); }
+
+                                        // Through Selection huh?
+                                        Player target = null;
+                                        if (asSelection) {
+
+                                            if (!Gunging_Ootilities_Plugin.foundWorldEdit) {
+
+                                                // Not so fast!
+                                                failure = true;
+
+                                                // Mention
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import","To import structures from a WorldEdit selection, you need WorldEdit!"));
+                                            }
+
+                                            // Player must be sender
+                                            if (sender instanceof Player) {
+
+                                                // Store
+                                                target = (Player) sender;
+
+                                                // Selection?
+                                                if (Gunging_Ootilities_Plugin.foundWorldEdit) {
+
+                                                    // Have they no selection?
+                                                    if (!GooPWorldEdit.HasSelection(target)) {
+
+                                                        // Not so fast!
+                                                        failure = true;
+
+                                                        // Mention
+                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import","To import from selections, you must have a WorldEdit region selected."));
+                                                    }
+                                                }
+
+                                            // Not a playerrr?
+                                            } else {
+
+                                                // Not so fast!
+                                                failure = true;
+
+                                                // Mention
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import","To import from selections, the command must be called in-game, not from the console."));
+                                            }
+                                        }
+
+                                        // Parse location?
+                                        if (args.length == 8) {
+
+                                            // Make Error Messager
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                            // Relativity
+                                            Player rel = null;
+                                            if (sender instanceof Player) { rel = (Player)sender;}
+
+                                            // Get
+                                            targetLocation = OotilityCeption.ValidLocation(rel, args[4], args[5], args[6], args[7], logAddition);
+
+                                            // Ret
+                                            if (targetLocation == null) { failure = true; }
+
+                                            // Add Log
+                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import", logAddition.GetValue())); }
+                                        }
+
+                                        // Bice sintax
+                                        if (!failure) {
+
+                                            // Obtain composition
+                                            ArrayList<CustomStructureBlock> comp = null;
+                                            if (asSelection) {
+
+                                                // Get From Selecton
+                                                comp = CustomStructures.GenerateStructureFromPlayerSelection(targetLocation.getBlock(), target);
+
+                                            } else {
+
+                                                // Get From Radius
+                                                comp = CustomStructures.GenerateStructureFromWorld(targetLocation.getBlock(), size);
+                                            }
+
+                                            // Git Ref
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                            // Save structure
+                                            CustomStructures.SaveNewStructure(args[2], comp, null, null, logAddition);
+
+                                            // Log
+                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import", logAddition.GetValue())); }
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 2) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Custom Structures - \u00a7bImport, \u00a77Writes a YML structure from something in the world.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures import <structure name> <cuboid radius> [w x y z]");
+                                        logReturn.add("\u00a73 - \u00a7e<structure name> \u00a77Name of the new structure");
+                                        logReturn.add("\u00a73 - \u00a7e<cuboid radius> \u00a77Blocks around the 'core' to account for.");
+                                        logReturn.add("\u00a7e ---> \u00a77Air and Barrier blocks will be ignored (match any block)");
+                                        logReturn.add("\u00a7e ---> \u00a77Structure Void blocks will be saved as Air (match air)");
+                                        logReturn.add("\u00a73 - \u00a7e[w] \u00a77World");
+                                        logReturn.add("\u00a73 - \u00a7e[x y z] \u00a77Coords");
+                                        logReturn.add("\u00a78/goop customstructures import Stove 1 world 420 69 30");
+                                        logReturn.add("\u00a73If coords are not specified, the 'core' will be the block you're looking at.");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import", "Incorrect usage. For info: \u00a7e/goop customstructures import"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop customstructures import <structure name> <cuboid radius> [w x y z]");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region build
+                                case "build":
+                                    //   0           1           2         3          4   5   6   7    args.Length
+                                    // /goop customstructures build <structure name> [w] [x] [y] [z]
+                                    //   -           0           1          2         3   4   5   6    args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 3 || args.length == 7) {
+
+                                        // Gets that location boi
+                                        Location targetLocation = null;
+                                        if (args.length == 3) {
+                                            if (sender instanceof Player) {
+
+                                                // Just target location I guess?
+                                                Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
+
+                                                // If exists
+                                                if (bLock == null) {
+
+                                                    // Invalid location
+                                                    failure = true;
+
+                                                    // Mention
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build","You are not looking at any block!"));
+
+                                                // I suppose its not air, right?
+                                                } else if (!OotilityCeption.IsAir(bLock.getType())) {
+
+                                                    // Git Target Location
+                                                    targetLocation = bLock.getLocation();
+
+                                                // Nvm it is air.
+                                                } else {
+
+                                                    // Invalid location
+                                                    failure = true;
+
+                                                    // Mention
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build","You are not looking at any block!"));
+
+                                                }
+
+                                            } else {
+                                                // Vro need coords
+                                                failure = true;
+
+                                                // Say
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build", "When building structures from the console, you must specify co-ordinates and a world!"));
+                                            }
+
+                                        // Build Location from args, later, if they parse.
+                                        }
+
+                                        // Is structure loaded?
+                                        if (!CustomStructures.csLoadedStructures.containsKey(args[2])) {
+
+                                            // No loaded strucutre of such name
+                                            failure = true;
+
+                                            // Mention
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build","No loaded structure of such name \u00a73" + args[2]));
+                                        }
+
+                                        // Parse location?
+                                        if (args.length == 7) {
+
+                                            // Make Error Messager
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                            // Relativity
+                                            Player rel = null;
+                                            if (sender instanceof Player) { rel = (Player)sender;}
+
+                                            // Get
+                                            targetLocation = OotilityCeption.ValidLocation(rel, args[3], args[4], args[5], args[6], logAddition);
+
+                                            // Ret
+                                            if (targetLocation == null) { failure = true; }
+
+                                            // Add Log
+                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build", logAddition.GetValue())); }
+                                        }
+
+                                        // Bice sintax
+                                        if (!failure) {
+
+                                            // Build at location
+                                            CustomStructures.csLoadedStructures.get(args[2]).generateAt(targetLocation, Orientations.SouthForward);
+
+                                            // Mention success
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build","Successfuly Generated Structure \u00a73" + args[2] + "\u00a77 at \u00a7e " + OotilityCeption.BlockLocation2String(targetLocation))); }
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 2) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Custom Structures - \u00a7bBuild, \u00a77Place loaded structure in the world.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures build <structure name> [w x y z]");
+                                        logReturn.add("\u00a73 - \u00a7e<structure name> \u00a77Name of the loaded structure");
+                                        logReturn.add("\u00a73 - \u00a7e[w] \u00a77World");
+                                        logReturn.add("\u00a73 - \u00a7e[x y z] \u00a77Coords");
+                                        logReturn.add("\u00a78/goop customstructures build Stove world 420 69 30");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build", "Incorrect usage. For info: \u00a7e/goop customstructures build"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop customstructures build <structure name> [w x y z]");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+
+                                default:
+                                    // I have no memory of that shit
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures", "'\u00a73" + args[1] + "\u00a77' is not a valid Custom Structures action! do \u00a7e/goop customstructures\u00a77 for the list of actions."));
+                                    break;
+                            }
+
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Custom Structures, \u00a77Make player-buildable stuff come to life!");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop customstructures {action}");
+                            logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                            logReturn.add("\u00a73 --> \u00a7eimport <structure name> <cuboid radius> [world x y z]");
+                            logReturn.add("\u00a73      * \u00a77Creates a new structure from the blocks you are looking at.");
+                            logReturn.add("\u00a73        \u00a77You must edit it further for it to actually work.");
+                            logReturn.add("\u00a73      * \u00a73Barriers and Air wont be saved (will match any block)");
+                            logReturn.add("\u00a73      * \u00a73Structure Void will be saved as AIR (will match air)");
+                            logReturn.add("\u00a73 --> \u00a7eedit {action}");
+                            logReturn.add("\u00a73      * \u00a77Edit structures realtime in-game.");
+                            logReturn.add("\u00a73 --> \u00a7ebuild <structure name> [world x y z]");
+                            logReturn.add("\u00a73      * \u00a77Places such structure in the world,");
+                            logReturn.add("\u00a73        \u00a77Centered on the block you are looking at.");
+                            logReturn.add("\u00a73 --> \u00a7elist");
+                            logReturn.add("\u00a73      * \u00a77List all loaded structures.");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt {action}");
+                            }
+                        }
+
+                        // No perms
+                    } else {
+                        // Tell him lmao
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to configure custom structures!"));
+                    }
+                    break;
+                //endregion
+                //region mythicmobs
+                case mythicmobs:
+                    //   0      1        2      args.Length
+                    // /goop mythicmobs {action}
+                    //   -      0        1      args[n]
+
+                    // FFS Check for MMOItems
+                    if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+
+                        // Check 5 Permission
+                        if (sender instanceof Player) {
+                            // Solid check for permission
+                            permission = sender.hasPermission("gunging_ootilities_plugin.mythicmobs");
+                        }
+
+                        // Got permission?
+                        if (permission) {
+                            if (args.length >= 2) {
+                                // Some bool to know if failure
+                                boolean failure = false;
+
+                                switch (args[1].toLowerCase()) {
+                                    //region runSkillAS
+                                    case "runskillas":
+                                        //   0      1           2           3             4           5            6        7       args.Length
+                                        // /goop mythicmobs runskillas <skill name> <uuid/pname> [@<target>] [~<trigger>] [v[NAME]=[VALUE];[NAME2]=[VALUE2]]
+                                        //   -      0           1           2             3           4            5        6       args[n]
+
+                                        // Correct number of args
+                                        if (args.length >= 4 && args.length <= 7) {
+
+                                            // Skill exists?
+                                            if (!GooPMythicMobs.SkillExists(args[2])) {
+
+                                                // Fail
+                                                failure = true;
+
+                                                // Note
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Run Skill As", "There is no Mythic Skill of name \u00a73" + args[2]));
+                                            }
+
+                                            // Try to find entity
+                                            ArrayList<Entity> casters = new ArrayList<>();
+                                            ArrayList<Player> pTargets = OotilityCeption.GetPlayers(senderLocation, args[3], null);
+                                            Entity tEntity = OotilityCeption.getEntityByUniqueId(args[3]);
+                                            if (tEntity != null && !(tEntity instanceof Player)) { casters.add(tEntity); }
+                                            for (Player target : pTargets) { casters.add(target); }
+
+                                            // Still Null?
+                                            if (casters.size() < 1) {
+
+                                                // No entity was found
+                                                failure = true;
+
+                                                // Yike
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Run Skill As", "No entity nor player was found."));
+                                            }
+
+                                            Entity tTarEntity = null, tTriEntity = null;
+                                            ArrayList<CompactCodedValue> vars = new ArrayList<>();
+                                            if (args.length > 4) {
+
+                                                String targetTry = null, triggerTry = null, varTry = null;
+                                                // Attain
+                                                for (int i = 4; i < args.length; i++) {
+
+                                                    // Gather
+                                                    if (args[i].startsWith("@")) { targetTry = args[i].substring(1); }
+                                                    if (args[i].startsWith("~")) { triggerTry = args[i].substring(1); }
+                                                    if (args[i].startsWith("v")) { varTry = args[i].substring(1); }
+                                                }
+
+                                                // If had target
+                                                if (targetTry != null) {
+
+                                                    // Try to find entity
+                                                    tTarEntity = Bukkit.getPlayerExact(targetTry);
+                                                    if (tTarEntity == null) {
+
+                                                        // Its not a player name, lets git from UUID
+                                                        tTarEntity = OotilityCeption.getEntityByUniqueId(targetTry);
+                                                    }
+
+                                                    // Still Null?
+                                                    if (tTarEntity == null) {
+
+                                                        // Yike
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Run Skill As", "Target entity was invalid, ignoring."));
+                                                    }
+                                                }
+
+                                                // If had target
+                                                if (triggerTry != null) {
+
+                                                    // Try to find entity
+                                                    tTriEntity = Bukkit.getPlayerExact(triggerTry);
+                                                    if (tTriEntity == null) {
+
+                                                        // Its not a player name, lets git from UUID
+                                                        tTriEntity = OotilityCeption.getEntityByUniqueId(triggerTry);
+                                                    }
+
+                                                    // Still Null?
+                                                    if (tTriEntity == null) {
+
+                                                        // Yike
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Run Skill As", "Trigger entity was invalid, ignoring."));
+                                                    }
+                                                }
+
+                                                // If vars exist BRUH
+                                                if (varTry != null) {
+
+                                                    // Variables, anyone?
+                                                    vars = CompactCodedValue.ListFromString(varTry.replace("-", " "));
+                                                }
+                                            }
+
+                                            // Bryce Sintax
+                                            if (!failure) {
+
+                                                // For
+                                                for (Entity kaster : casters) {
+
+                                                    // Sudoskill Skidush
+                                                    GooPMythicMobs.ExecuteMythicSkillAs(args[2], kaster, tTriEntity, tTarEntity, vars);
+
+                                                    // Log Output
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Run Skill As", "Forced \u00a7f" + kaster.getName() + "\u00a77 to run Mythic Skill \u00a7e" + args[2]));
+
+                                                    // Run Chain
+                                                    if (chained) {
+
+                                                        // Proc Chain
+                                                        Player chainProc = null;
+                                                        if (kaster instanceof Player) { chainProc = (Player) kaster; }
+
+                                                        // Chain
+                                                        OotilityCeption.SendAndParseConsoleCommand(chainProc, chainedCommand, sender, null, null, null);
+                                                    }
+                                                }
+                                            }
+
+                                        } else if (args.length == 2) {
+                                            logReturn.add("\u00a7e______________________________________________");
+                                            logReturn.add("\u00a73Run Skill As, \u00a77Sudoskills an entity.");
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop runSkillAs <skill name> <entity> [@<target.uuid>] [~<trigger.uuid>] [v[NAME]=[VALUE];[NAME2]=[VALUE2]]");
+                                            logReturn.add("\u00a73 - \u00a7e<skill name> \u00a77Internal name of the Mythic Skill");
+                                            logReturn.add("\u00a73 - \u00a7e<entity> \u00a77UUID of the entity to sudoskill");
+                                            logReturn.add("\u00a73 --> \u00a77May be a player name to sudoskill players.");
+                                            logReturn.add("\u00a73 - \u00a7e[@<target.uuid>] \u00a77UUID of an entity to set as skill target.");
+                                            logReturn.add("\u00a73 - \u00a7e[~<trigger.uuid>] \u00a77UUID of an entity to set as skill trigger.");
+                                            logReturn.add("\u00a73 - \u00a7e[v[NAME]=[VALUE];[NAME2]=[VALUE2]] \u00a77Dynamic vars \u00a7b<goop.dynamic.[NAME]>");
+                                            logReturn.add("\u00a73Examples:");
+                                            logReturn.add("\u00a77 /goop runSkillAs RadiantDiscThrow gunging @HexedHero");
+                                            logReturn.add("\u00a78 -> Caster is player 'gunging', target is player 'HexedHero'");
+                                            logReturn.add("\u00a77 /goop runSkillAs Poison gunging ~cocopad @libraryaddict");
+                                            logReturn.add("\u00a78 -> Caster is player 'gunging', target is player 'libraryaddict', trigger will be player 'cocopad'");
+
+                                        } else {
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MythicMobs - Run Skill As", "Incorrect usage. For info: \u00a7e/goop mythicmobs runSkillAs"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mythicmobs runskillas <skill name> <(uuid)/(player name)>");
+                                            }
+                                        }
+
+                                        break;
+                                        //endregion
+                                    //region minion
+                                    case "minion":
+                                    case "minions":
+                                        //   0      1          2        3             4            5          6      args.Length
+                                        // /goop mythicmobs minion <owner uuid> <minion uuid> [leashrange] [skill]
+                                        //   -      0          1        2             3            4          5      args[n]
+
+                                        // Correct number of args
+                                        if (args.length >= 4 && args.length <= 6) {
+
+                                            // Get minion and owner
+                                            Entity mOwner = OotilityCeption.getEntityByUniqueId(args[2]);
+                                            if (mOwner == null) { mOwner = (Entity) OotilityCeption.GetPlayer(args[2], false); }
+                                            Entity mMinion = OotilityCeption.getEntityByUniqueId(args[3]);
+
+                                            // They existed right?
+                                            if (mOwner == null) {
+
+                                                // Fail
+                                                failure = true;
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "Could not find owner \u00a73" + args[2]));
+                                            }
+                                            if (mMinion == null) {
+
+                                                // Fail
+                                                failure = true;
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "Could not find minion \u00a73" + args[3]));
+
+                                            // Is it already an entity?
+                                            } else if (SummonerClassMinion.isMinion(mMinion)) {
+
+                                                // Fail
+                                                failure = true;
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "That \u00a7e" + mMinion.getName() + "\u00a77 is already a minion."));
+
+                                            } else if (mMinion instanceof Player) {
+
+                                                // Fail
+                                                failure = true;
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "Players cannot be minions."));
+                                            }
+
+                                            // Leash range valid?
+                                            double leashRange = 20;
+                                            if (args.length >= 5) {
+
+                                                // Try parse?
+                                                if (OotilityCeption.DoubleTryParse(args[4])) {
+
+                                                    // Parse
+                                                    leashRange = Double.parseDouble(args[4]);
+
+                                                } else {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Note
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "Expected numeric value instead of \u00a73" + args[4]));
+                                                }
+                                            }
+
+                                            // Get MM Skill
+                                            String skill = null;
+                                            if (args.length == 6) {
+
+                                                // Skill exists?
+                                                if (!GooPMythicMobs.SkillExists(args[5])) {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Note
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "There is no Mythic Skill of name \u00a73" + args[5]));
+
+                                                // Skill does exist, nice.
+                                                } else {
+
+                                                    // Store
+                                                    skill = args[5];
+                                                }
+                                            }
+
+                                            // Bryce Sintax
+                                            if (!failure) {
+
+                                                // Create entity
+                                                SummonerClassMinion newMinion = new SummonerClassMinion(mOwner, mMinion);
+
+                                                // Set the options
+                                                newMinion.setLeashRange(leashRange);
+                                                newMinion.setSkillOnRemove(skill);
+
+                                                // Enable
+                                                newMinion.Enable();
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "Registered minion \u00a7e" + mMinion.getName() + "\u00a77 under the command of \u00a73" + mOwner.getName()));
+
+
+                                                // Run Chain
+                                                if (chained) {
+
+                                                    // Proc Chain
+                                                    Player chainProc = null;
+                                                    if (mOwner instanceof Player) { chainProc = (Player) mOwner; }
+
+                                                    // Chain
+                                                    OotilityCeption.SendAndParseConsoleCommand(chainProc, chainedCommand, sender, null, null, null);
+                                                }
+                                            }
+
+                                        } else if (args.length == 2) {
+                                            logReturn.add("\u00a7e______________________________________________");
+                                            logReturn.add("\u00a73Minion, \u00a77Classifies an entity as someone's minion.");
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop minion <owner uuid> <minion uuid> [leashrange] [skill]");
+                                            logReturn.add("\u00a73 - \u00a7e<owner uuid> \u00a77UUID of the entity, or player name, who will own the minion.");
+                                            logReturn.add("\u00a73 - \u00a7e<minion uuid> \u00a77UUID of the entity that will be the minion.");
+                                            logReturn.add("\u00a73 - \u00a7e[leashrange] \u00a77Will teleport minion to owner if they are too far.");
+                                            logReturn.add("\u00a73 --> \u00a77Default is set to \u00a7b20\u00a77, measured in blocks.");
+                                            logReturn.add("\u00a73 - \u00a7e[skill] \u00a77Mythic Skill to run when minion dies due to this command.");
+                                            logReturn.add("\u00a73 --> \u00a7d@Self \u00a77The minion.");
+                                            logReturn.add("\u00a73 --> \u00a7e@Trigger \u00a77The owner");
+                                            logReturn.add("\u00a73 --> \u00a7a@Origin \u00a77Owner's death location.");
+                                            logReturn.add("\u00a78Minions will die when their owner dies or leaves the server.");
+                                            logReturn.add("\u00a78If they run a mythic skill, you must kill them through it; They will run that instead of dying.");
+
+                                        } else {
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "Incorrect usage. For info: \u00a7e/goop mythicmobs minion"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mythicmobs minion <owner uuid/name> <minion uuid> [leashrange] [skill]");
+                                            }
+                                        }
+                                        break;
+                                    //endregion
+                                    //region damageTakenLink
+                                    case "damagetakenlink":
+                                        //   0      1              2              3             4               5                   6             7         8       args.Length
+                                        // /goop mythicmobs damagetakenlink <source uuid> <receiver uuid> [transfer percent] [prevent percent] [loud]  [duration]
+                                        //   -      0              1              2             3               4                   5             6         7       args[n]
+
+                                        // Correct number of args
+                                        if (args.length >= 4 && args.length <= 8) {
+
+                                            // Try to find entity
+                                            ArrayList<Entity> sources = new ArrayList<>();
+                                            ArrayList<Player> pSources = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                                            if (!args[2].contains(";")) {
+                                                Entity sEntity = OotilityCeption.getEntityByUniqueId(args[2]);
+                                                if (sEntity != null && !(sEntity instanceof Player)) { sources.add(sEntity); }
+                                            } else {
+                                                for (String str : args[2].split(";")) {
+                                                    Entity sEntity = OotilityCeption.getEntityByUniqueId(str);
+                                                    if (sEntity != null && !(sEntity instanceof Player)) { sources.add(sEntity); } } }
+
+                                            for (Player target : pSources) { sources.add(target); }
+                                            if (sources.size() < 1) {
+                                                // Fail
+                                                failure = true;
+
+                                                // Bruh
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Source entity not found, unable to link."));
+                                            }
+
+                                            // Try to find entity
+                                            ArrayList<Entity> receivers = new ArrayList<>();
+                                            ArrayList<Player> pReceivers = OotilityCeption.GetPlayers(senderLocation, args[3], null);
+                                            Entity rEntity = OotilityCeption.getEntityByUniqueId(args[3]);
+                                            Entity receiver = null;
+                                            if (rEntity != null && !(rEntity instanceof Player)) { receivers.add(rEntity); }
+                                            for (Player target : pReceivers) { receivers.add(target); }
+                                            if (receivers.size() < 1) {
+                                                // Fail
+                                                failure = true;
+
+                                                // Bruh
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Receiver entity not found, unable to link."));
+                                            } else {
+
+                                                // Get first heck
+                                                receiver = receivers.get(0);
+                                            }
+                                            if (receiver == null) {
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Invalid Receiver"));
+                                                failure = true;
+                                            }
+
+                                            double transferPercent = 1.0D, preventPercent = 1.0D;
+                                            if (args.length >= 5) {
+                                                String tP = args[4]; boolean pc = false;
+                                                if (args[4].endsWith("%")) { pc = true;  tP = args[4].substring(0, args[4].length() - 1); }
+
+                                                if (OotilityCeption.DoubleTryParse(tP)) {
+
+                                                    // Parse
+                                                    transferPercent = Double.parseDouble(tP);
+
+                                                    // Multiply
+                                                    if (pc) { transferPercent *= 0.01D; }
+
+                                                } else {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Bruh
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Expected numeric value like \u00a7b0.4\u00a77 or \u00a7b40%\u00a77 (two versions to write the same thing) instead of \u00a7e" + tP));
+                                                }
+                                            }
+                                            if (args.length >= 6) {
+                                                String tP = args[5]; boolean pc = false;
+                                                if (args[5].endsWith("%")) { pc = true;  tP = args[5].substring(0, args[5].length() - 1); }
+
+                                                if (OotilityCeption.DoubleTryParse(tP)) {
+
+                                                    // Parse
+                                                    preventPercent = Double.parseDouble(tP);
+
+                                                    // Multiply
+                                                    if (pc) { preventPercent *= 0.01D; }
+
+                                                } else {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Bruh
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Expected numeric value like \u00a7b0.8\u00a77 or \u00a7b80%\u00a77 (two versions to write the same thing) instead of \u00a7e" + tP));
+                                                }
+                                            }
+                                            boolean silent = false;
+                                            if (args.length >= 7) {
+
+                                                if (OotilityCeption.BoolTryParse(args[6])) {
+
+                                                    // Parse
+                                                    silent = !OotilityCeption.BoolParse(args[6]);
+
+                                                } else {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Bruh
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[6]));
+                                                }
+                                            }
+
+                                            // Timer
+                                            OptimizedTimeFormat otf = null;
+                                            if (args.length >= 8) {
+
+                                                // Identify time measure
+                                                String magnitude = args[7].substring(0, args[7].length() - 1);
+                                                String units = args[7].substring(args[7].length() - 1);
+
+                                                // Parses?
+                                                if (OotilityCeption.IntTryParse(magnitude)) {
+
+                                                    // Kreate
+                                                    otf = OptimizedTimeFormat.Current();
+                                                    Integer mag = OotilityCeption.ParseInt(magnitude);
+                                                    if (mag < 0) { mag = -mag; }
+
+                                                    // Units?
+                                                    switch (units) {
+                                                        case "s":
+                                                            otf.AddSeconds(mag);
+                                                            break;
+                                                        case "m":
+                                                            otf.AddMinutes(mag);
+                                                            break;
+                                                        case "h":
+                                                            otf.AddHours(mag);
+                                                            break;
+                                                        case "d":
+                                                            otf.AddDays(mag);
+                                                            break;
+                                                        case "y":
+                                                            otf.AddYears(mag);
+                                                            break;
+                                                        default:
+
+                                                            // Fail
+                                                            failure = true;
+
+                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Time units '" + units + "\u00a77' not recognized. Must use \u00a7bs m h d \u00a77or\u00a7b y \u00a77(Second, Minute, Hour, Day, Year)"));
+
+                                                            break;
+                                                    }
+
+                                                } else {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Expected an integer for time value instead of \u00a73" + magnitude));
+                                                }
+                                            }
+
+                                            // Bryce Sintax
+                                            if (!failure) {
+
+                                                // Receiver identified as receiver
+                                                GooPUnlockables uck = GooPUnlockables.From(receiver.getUniqueId(), EntityLinkedEntity.transferLinkReceiver);
+                                                ScoreboardLinks.watchNoDupe(receiver.getUniqueId());
+                                                uck.SetTimed(otf, true);
+                                                uck.Unlock();
+                                                uck.setPersistent(false);
+
+                                                /*
+                                                 * # All entities who are not receivers will be linked to the same receiver.
+                                                 *
+                                                 * # The receiver cannot be linked to themselves
+                                                 */
+                                                ArrayList<EntityLinkedEntity> linkedEntities = new ArrayList<>();
+                                                for (Entity target : sources) {
+                                                    if (target == null) { continue; }
+
+                                                    // Not the reciever is it
+                                                    if (target.getUniqueId().equals(receiver.getUniqueId())) { continue; }
+
+                                                    // The target is not a receiver is they
+                                                    GooPUnlockables uuck = GooPUnlockables.From(target.getUniqueId(), EntityLinkedEntity.transferLinkReceiver);
+                                                    uuck.CheckTimer();
+                                                    uuck.setPersistent(false);
+
+                                                    // If unlocked, this is a receiver
+                                                    if (uuck.IsUnlocked()) { continue; }
+
+                                                    // Build end unlockable
+                                                    GooPUnlockables linkUCK = GooPUnlockables.From(target.getUniqueId(), EntityLinkedEntity.transferLinkParticipant + receiver.getUniqueId().toString());
+                                                    linkUCK.SetTimed(otf, true);
+                                                    linkUCK.Unlock();
+                                                    linkUCK.setPersistent(false);
+
+                                                    // All right, add
+                                                    linkedEntities.add(new DamageTransferLink(target, ObjectiveLinks.DamageTransferLink, linkUCK, receiver, uck, preventPercent, transferPercent, silent)); }
+
+                                                // Activate receiver
+                                                if (linkedEntities.size() > 0) {
+
+                                                    // FOreach
+                                                    for (EntityLinkedEntity source : linkedEntities) {
+
+                                                        // Load it hell yea
+                                                        ScoreboardLinks.linkNoDupe(source);
+
+                                                        // Log Output
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Now trasnfering \u00a7e" + (transferPercent * 100D) + "%\u00a77 of damage dealt from \u00a73" + source.getEntity().getName() + "\u00a77 to \u00a73" + receiver.getName()));
+
+                                                        // Run Chain
+                                                        if (chained) {
+
+                                                            Player target = null;
+                                                            if (source.getEntity() instanceof Player) { target = (Player) source.getEntity(); }
+
+                                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                                    }
+                                                }
+                                            }
+                                        } else if (args.length == 2) {
+                                            logReturn.add("\u00a7e______________________________________________");
+                                            logReturn.add("\u00a73Damage Taken Link, \u00a77Transfers damage from one entity to another.");
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop mythicmobs damagetakenlink <source uuid> <receiver uuid> [transfer percent] [prevent percent] [loud] [duration]");
+                                            logReturn.add("\u00a73 - \u00a7e<source uuid> \u00a77Entities that are directly receiving the damage (\u00a78; separated list\u00a77) ");
+                                            logReturn.add("\u00a73 - \u00a7e<reciver uuid> \u00a77Entity to which the damage will be transfered");
+                                            logReturn.add("\u00a73 - \u00a7e[transfer percent] \u00a77Fraction of the damage that will be transferred (Default: \u00a7b1\u00a77=\u00a7b100%\u00a77)");
+                                            logReturn.add("\u00a73 - \u00a7e[prevent percent] \u00a77Lessening of the damage taken by the source (Default: \u00a7b1\u00a77=\u00a7b100%\u00a77)");
+                                            logReturn.add("\u00a73 - \u00a7e[loud] \u00a77Should the damage transfer fire the entity damage event (kinda advanced)?");
+                                            logReturn.add("\u00a73 - \u00a7e[duration] \u00a77Time that the link will last (Inlcude units, \u00a7bs m h d\u00a77, forever if unspecified)");
+                                            logReturn.add("\u00a78Wears out when the time runs out, when the receiver dies, or when the server reboots.");
+
+                                        } else {
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Incorrect usage. For info: \u00a7e/goop mythicmobs damageTakenLink"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mythicmobs damagetakenlink <source uuid> <receiver uuid> [transfer percent] [prevent percent] [loud] [duration]");
+                                            }
+                                        }
+
+                                        break;
+                                        //endregion
+                                    default:
+                                        // I have no memory of that shit
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs", "'\u00a73" + args[1] + "\u00a77' is not a valid MythicMobs action! do \u00a7e/goop mythicmobs\u00a77 for the list of actions."));
+                                        break;
+                                }
+
+                            } else if (args.length == 1) {
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73GooP-MythicMobs, \u00a77Related to the third party plugin.");
+                                logReturn.add("\u00a73Usage: \u00a7e/goop mythicmobs {action}");
+                                logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                                logReturn.add("\u00a73 --> \u00a7erunSkillAs <skill name> <entity uuid> [@<target.uuid>] [~<trigger.uuid>] [v[NAME]=[VALUE];[NAME2]=[VALUE2]]");
+                                logReturn.add("\u00a73      * \u00a77Sudoskills the entity to run a mythicmobs skill.");
+                                logReturn.add("\u00a73      * \u00a73Can be a player name instead of entity uuid.");
+                                logReturn.add("\u00a73 --> \u00a7eminion <owner uuid> <entity uuid> [leashrange] [skill]");
+                                logReturn.add("\u00a73      * \u00a77If the owner dies or logs out, the minion dies.");
+
+
+                            } else {
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                    logReturn.add(OotilityCeption.LogFormat("MythicMobs", "Incorrect usage. For info: \u00a7e/goop mythicmobs"));
+                                    logReturn.add("\u00a73Usage: \u00a7e/goop mythicmobs {action}");
+                                }
+                            }
+
+                            // No perms
+                        } else {
+                            // Tell him lmao
+                            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to use mythicmobs-related commands!"));
+                        }
+
+                        // MMOItems not installed. Returning
+                    } else {
+
+                        // Tell him lmao
+                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("\u00a77These commands are to be used with the third party plugin \u00a7e\u00a7lMythicMobs \u00a77which you dont have installed."));
+                    }
+                    break;
+                //endregion
+                //region scoreboard
+                case scoreboard:
+                    //   0      1         2    args.Length
+                    // /goop scoreboard {action}
+                    //   -      0         1     args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.scoreboard");
+                    }
+
+                    // Got permission?
+                    if (permission) {
+                        if (args.length >= 2) {
+                            // Some bool to know if failure
+                            boolean failure = false;
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+
+                            switch (args[1].toLowerCase()) {
+                                //region top
+                                case "top":
+                                    //   0        1      2           3                4            5       args.Length
+                                    // /goop scoreboard top <objective source> <objective target> <n>
+                                    //   -        0      1           2                3            4       args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 5) {
+
+                                        Objective sourceObjective = targetScoreboard.getObjective(args[2]);
+                                        Objective targetObjective = targetScoreboard.getObjective(args[3]);
+                                        boolean tExists = true;
+
+                                        // Does the scoreboard objective exist?
+                                        if (sourceObjective == null) {
+                                            // Failure
+                                            failure = true;
+
+                                            // Mention
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Scoreboard Objective '\u00a73" + args[2] + "\u00a77' does not exist."));
+                                        }
+
+                                        // Does the scoreboard objective exist?
+                                        if (targetObjective == null) {
+                                            // Target doesnt exist
+                                            tExists = false;
+                                        }
+
+                                        // Reasonable name
+                                        if (args[3].length() > 16)  {
+
+                                            // Fail
+                                            failure = true;
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Output objective name '\u00a73" + args[3] + "\u00a77' must not be longer than 16 characters."));
+                                        }
+
+                                        // Does n parse?
+                                        Integer n = null;
+                                        if (OotilityCeption.IntTryParse(args[4])) {
+                                            n = OotilityCeption.ParseInt(args[4]);
+                                        } else {
+
+                                            // Fail
+                                            failure = true;
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Expected integer number for \u00a7e\u00a7on\u00a77 instead of '\u00a73" + args[4] + "\u00a77'"));
+                                        }
+
+                                        // Bice sintax
+                                        if (!failure) {
+
+                                            // Get all participants
+                                            ArrayList<OrderedScoreboardEntry> scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective);
+                                            /*SCR*/OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a77 Resultant entries \u00a7b" + scoreboardParticipants.size());
+                                            /*SCR*/try { for (String str : io.lumine.mythic.lib.api.util.ui.SilentNumbers.transcribeList(scoreboardParticipants, (s) -> (s == null ? "null" : ((OrderedScoreboardEntry) s).getEntry() + ", \u00a77Score\u00a7b " + ((OrderedScoreboardEntry) s).getScore() + "\u00a77, Value \u00a7e" + ((OrderedScoreboardEntry) s).getValue()))) { OotilityCeption.Log("\u00a7e:\u00a73:\u00a77 " + str); } } catch (IllegalArgumentException ignored) {}
+
+                                            // Refresh the target
+                                            if (tExists) { targetObjective.unregister(); }
+                                            targetObjective = targetScoreboard.registerNewObjective(args[3], "dummy", args[3]);
+
+                                            // Log as Feedback
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N","Resulting Order:")); }
+
+                                            // Get the top n yes
+                                            int p = 1; Integer lastScore = null; int emergencyEscaper = 0;
+                                            for (int i = (scoreboardParticipants.size() - 1); (i >= 0) && (n > 0); i--) { emergencyEscaper++; if (emergencyEscaper > 200) { Gunging_Ootilities_Plugin.theOots.CPLog("\u00a7cFatal Loop Error\u00a77 (I guess), Escaped at 200th iteration, seems an infinite loop."); break; }
+
+                                                // N decrease
+                                                n--;
+
+                                                // Get obsered participant
+                                                OrderedScoreboardEntry obs = scoreboardParticipants.get(i);
+
+                                                // Valid?
+                                                if (obs != null) {
+
+                                                    // Get Entry
+                                                    String ntry = obs.getEntry();
+                                                    /*SCR*/OotilityCeption.Log("\u00a7e>\u00a7b>\u00a73>\u00a77 " + obs.getEntry() + "\u00a7b " + obs.getScore() + " \u00a7e" + obs.getValue());
+
+                                                    // Valid?
+                                                    if (ntry != null) {
+
+                                                        // Valid?
+                                                        if (ntry.length() <= 40) {
+
+                                                            // Get Score
+                                                            Score qScore = sourceObjective.getScore(ntry);
+                                                            int qScored = qScore.getScore();
+
+                                                            // Compare to previous
+                                                            if (lastScore != null) {
+
+                                                                // Does it equal the last score? Add a tolerance for the place they occupy and number of used spots
+                                                                if (lastScore.equals(qScored)) { p--; n++; } }
+
+                                                            // Aquire last score
+                                                            lastScore = qScored;
+
+                                                            // Get target score
+                                                            Score fn = targetObjective.getScore(ntry);
+
+                                                            // Set palce
+                                                            fn.setScore(p);
+
+                                                            // Log as Feedback
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                                logReturn.add("  \u00a7e#" + p + " \u00a77" + ntry + " \u00a78(\u00a73" + OotilityCeption.GetEntryScore(sourceObjective, ntry) + "\u00a78)"); }
+
+                                                            // P increase
+                                                            p++;
+                                                        }
+                                                        /*SCR*/ else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Entry too Long"); }
+                                                    }
+                                                    /*SCR*/ else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Null Entry"); }
+                                                }
+                                                /*SCR*/ else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Null Ordered Scoreboard Entry"); }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                                        }
+
+                                    // Incorrect number of args
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Incorrect usage. For info: \u00a7e/goop scoreboard"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard top <objective source> <objective target> <n>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region last
+                                case "last":
+                                    //   0        1      2           3                4            5       args.Length
+                                    // /goop scoreboard last <objective source> <objective target> <n>
+                                    //   -        0      1           2                3            4       args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 5) {
+
+                                        Objective sourceObjective = targetScoreboard.getObjective(args[2]);
+                                        Objective targetObjective = targetScoreboard.getObjective(args[3]);
+                                        boolean tExists = true;
+
+                                        // Does the scoreboard objective exist?
+                                        if (sourceObjective == null) {
+                                            // Failure
+                                            failure = true;
+
+                                            // Mention
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Last N", "Scoreboard Objective '\u00a73" + args[2] + "\u00a77' does not exist."));
+                                        }
+
+                                        // Does the scoreboard objective exist?
+                                        if (targetObjective == null) {
+                                            // Target doesnt exist
+                                            tExists = false;
+                                        }
+
+                                        // Reasonable name
+                                        if (args[3].length() > 16)  {
+
+                                            // Fail
+                                            failure = true;
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Last N", "Output objective name '\u00a73" + args[3] + "\u00a77' must not be longer than 16 characters."));
+                                        }
+
+                                        // Does n parse?
+                                        Integer n = null;
+                                        if (OotilityCeption.IntTryParse(args[4])) {
+                                            n = OotilityCeption.ParseInt(args[4]);
+                                        } else {
+
+                                            // Fail
+                                            failure = true;
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Last N", "Expected integer number for \u00a7e\u00a7on\u00a77 instead of '\u00a73" + args[4] + "\u00a77'"));
+                                        }
+
+                                        // Bice sintax
+                                        if (!failure) {
+
+                                            // Get all participants
+                                            ArrayList<OrderedScoreboardEntry> scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective);
+
+                                            // Refresh the target
+                                            if (tExists) { targetObjective.unregister(); }
+                                            targetObjective = targetScoreboard.registerNewObjective(args[3], "dummy", args[3]);
+
+                                            // Get the top n yes
+                                            int p = 1; Integer lastScore = null; int emergencyEscaper = 0;
+                                            for (int i = 0; (i < scoreboardParticipants.size()) && (n > 0); i++) { emergencyEscaper++; if (emergencyEscaper > 200) { Gunging_Ootilities_Plugin.theOots.CPLog("\u00a7cFatal Loop Error\u00a77 (I guess), Escaped at 200th iteration, seems an endless loop."); break; }
+
+                                                // N decrease
+                                                n--;
+
+                                                // Get obsered participant
+                                                OrderedScoreboardEntry obs = scoreboardParticipants.get(i);
+
+                                                // Valid?
+                                                if (obs != null) {
+
+                                                    // Get Entry
+                                                    String ntry = obs.getEntry();
+
+                                                    // Valid?
+                                                    if (ntry != null) {
+
+                                                        // Valid?
+                                                        if (ntry.length() <= 40) {
+
+                                                            // Get Score
+                                                            Score qScore = sourceObjective.getScore(ntry);
+                                                            int qScored = qScore.getScore();
+
+                                                            // Compare to previous
+                                                            if (lastScore != null) {
+
+                                                                // Does it equal the last score? Add a tolerance for the place they occupy and number of used spots
+                                                                if (lastScore.equals(qScored)) { p--; n++; }
+                                                            }
+
+                                                            // Aquire last score
+                                                            lastScore = qScored;
+
+                                                            // Get target score
+                                                            Score fn = targetObjective.getScore(ntry);
+
+                                                            // Set palce
+                                                            fn.setScore(p);
+
+                                                            // P increase
+                                                            p++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                                        }
+
+                                        // Incorrect number of args
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Incorrect usage. For info: \u00a7e/goop scoreboard"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard top <objective source> <objective target> <n>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region range
+                                case "range":
+                                    //   0        1      2       3       4           5      args.Length
+                                    // /goop scoreboard range <entry> <objective> <range>
+                                    //   -        0      1       2       3           4      args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 5) {
+
+                                        // Attempt to get players
+                                        ArrayList<Player> players = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+
+                                        // Range valid?
+                                        QuickNumberRange qnr = QuickNumberRange.FromString(args[4]);
+
+                                        // Source objective exists
+                                        Objective sourceObjective = targetScoreboard.getObjective(args[3]);
+
+                                        // Does the scoreboard objective exist?
+                                        if (sourceObjective == null) {
+                                            // Failure
+                                            failure = true;
+
+                                            // Mention
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range", "Objective '\u00a73" + args[3] + "\u00a77' does not exist."));
+                                        }
+
+                                        // Does the scoreboard objective exist?
+                                        if (qnr == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Mention
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range", "Invalid range '\u00a73" + args[4] + "\u00a77', expected a numeric range like \u00a7e0..10"));
+
+                                        }
+
+                                        // Bice sintax
+                                        if (!failure) {
+
+                                            // As each player
+                                            if (players.size() > 0) {
+
+                                                // For every player
+                                                for (Player target : players) {
+
+                                                    // Get entry score ig
+                                                    int score = OotilityCeption.GetPlayerScore(sourceObjective, target);
+
+                                                    // Check entry score
+                                                    if (qnr.InRange(score)) {
+
+                                                        // Log as Feedback
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                            logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range","Player '\u00a73" + target.getName() + "\u00a77's score for " + sourceObjective.getName() + " was \u00a7b'" + score + "\u00a77' which is \u00a7ain desired range " + args[4] + "\u00a77.")); }
+
+                                                        // Run Chain
+                                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+
+                                                    } else {
+
+                                                        // Send fail message
+                                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+
+                                                        // Mention
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range", "Player '\u00a73" + target.getName() + "\u00a77's score for " + sourceObjective.getName() + " was \u00a7b'" + score + "\u00a77' which is \u00a7c not in desired range " + args[4] + "\u00a77."));
+                                                    }
+                                                }
+
+                                            // As pure entry
+                                            } else {
+
+                                                // Get entry score ig
+                                                int score = OotilityCeption.GetEntryScore(sourceObjective, args[2]);
+
+                                                // Check entry score
+                                                if (qnr.InRange(score)) {
+
+                                                    // Log as Feedback
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range","Entry '\u00a73" + args[2] + "\u00a77' of objective " + sourceObjective.getName() + " had a score of \u00a7b'" + score + "\u00a77' which is \u00a7ain desired range " + args[4] + "\u00a77.")); }
+
+                                                    // Run Chain
+                                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+
+                                                } else {
+
+                                                    // Mention
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range", "Entry '\u00a73" + args[2] + "\u00a77' of objective " + sourceObjective.getName() + " had a score of \u00a7b'" + score + "\u00a77' which is \u00a7c not in desired range " + args[4] + "\u00a77."));
+                                                }
+                                            }
+                                        }
+
+                                    // Incorrect number of args
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range", "Incorrect usage. For info: \u00a7e/goop scoreboard"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard range <entry> <objective> <range>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region damageTakenLink
+                                case "damagetakenlink":
+                                    //   0      1           2                3             4            5             6         args.Length
+                                    // /goop mythicmobs damagetakenlink <entity uuid> <objective> [players only] [dont delete]
+                                    //   -      0           1                2             3            4             5         args[n]
+
+                                    // Correct number of args
+                                    if (args.length == 4 || args.length == 5 || args.length == 6) {
+
+                                        // Try to find entity
+                                        ArrayList<Entity> targets = new ArrayList<>();
+                                        ArrayList<Player> pTargets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                                        Entity tEntity = OotilityCeption.getEntityByUniqueId(args[2]);
+                                        if (tEntity != null && !(tEntity instanceof Player)) { targets.add(tEntity); }
+                                        for (Player target : pTargets) { targets.add(target); }
+                                        if (targets.size()< 1) {
+                                            // Fail
+                                            failure = true;
+
+                                            // Bruh
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Damage Taken Link", "Entity not found, unable to link."));
+                                        }
+
+                                        // Some scoreboards to test
+                                        Objective targetObjective = targetScoreboard.getObjective(args[3]);
+
+                                        // Bool
+                                        boolean pOnly = false;
+                                        if (args.length == 5) {
+                                            if (OotilityCeption.BoolTryParse(args[4])) {
+                                                pOnly = Boolean.parseBoolean(args[4]);
+                                            } else {
+
+                                                // Fail
+                                                failure = true;
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Damage Taken Link", "Expected \u00a7etrue \u00a77or \u00a7efalse \u00a77instead of \u00a73" + args[4]));
+
+                                            }
+                                        }
+                                        // Bool
+                                        boolean dDelete = false;
+                                        if (args.length == 6) {
+                                            if (OotilityCeption.BoolTryParse(args[5])) {
+                                                pOnly = Boolean.parseBoolean(args[5]);
+                                            } else {
+
+                                                // Fail
+                                                failure = true;
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Damage Taken Link", "Expected \u00a7etrue \u00a77or \u00a7efalse \u00a77instead of \u00a73" + args[5]));
+
+                                            }
+                                        }
+
+                                        // Bryce Sintax
+                                        if (!failure) {
+
+                                            // Refresh the objective
+                                            if (targetObjective != null && !dDelete) { targetObjective.unregister(); }
+                                            targetObjective = targetScoreboard.registerNewObjective(args[3], "dummy", args[3]);
+
+                                            // FOreach
+                                            for (Entity targ : targets) {
+
+                                                // Create link and load it hell yea
+                                                ScoreboardLinks.linkNoDupe(new ObjectiveLinkedEntity(targ, ObjectiveLinks.DamageTakenLink, null, targetObjective, pOnly));
+
+                                                // Log Output
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Damage Taken Link", "Now tracking damage dealt to \u00a7f" + targ.getName() + "\u00a77 into objective \u00a7e" + args[3]));
+
+                                                // Run Chain
+                                                if (chained) {
+
+                                                    Player target = null;
+                                                    if (targ instanceof Player) { target = (Player) targ; }
+
+                                                    OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                            }
+                                        }
+                                    } else if (args.length == 2) {
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Damage Taken Link, \u00a77Stores damage taken in a scoreboard.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard damageTakenLink <entity uuid> <objective> [players only] [dont delete]");
+                                        logReturn.add("\u00a73 - \u00a7e<entity uuid> \u00a77Which entity to link");
+                                        logReturn.add("\u00a73 - \u00a7e<objective> \u00a77Name of scoreboard where damage will be stored");
+                                        logReturn.add("\u00a73 - \u00a7e[players only] \u00a77Should ignore damage sources from non-players?");
+                                        logReturn.add("\u00a73 - \u00a7e[dont delete] \u00a77Wheter to reset the score when this command is run.");
+
+                                    } else {
+
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Scoreboard - Damage Taken Link", "Incorrect usage. For info: \u00a7e/goop scoreboard damageTakenLink"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard damageTakenLink <entity uuid> <objective> [players only]");
+                                        }
+                                    }
+
+                                    break;
+                                //endregion
+                                default:
+                                    // I have no memory of that shit
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard", "'\u00a73" + args[1] + "\u00a77' is not a valid Scoreboard action! do \u00a7e/goop scoreboard\u00a77 for the list of actions."));
+                                    break;
+                            }
+
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Scoreboard Operations, \u00a77Literally why arent these vanilla omg.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard {action}");
+                            logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                            logReturn.add("\u00a73 --> \u00a7etop <objective source> <objective target> <n>");
+                            logReturn.add("\u00a73      * \u00a77Get the top n players from the source objective");
+                            logReturn.add("\u00a73 --> \u00a7elast <objective source> <objective target> <n>");
+                            logReturn.add("\u00a73      * \u00a77Get the last n players from the source objective");
+                            logReturn.add("\u00a73 --> \u00a7erange <entry or players> <objective> <range>");
+                            logReturn.add("\u00a73      * \u00a77Check that such entry is in such range.");
+                            logReturn.add("\u00a73 --> \u00a7edamagetakenlink <uuid> <objective> [players only] [dont delete]");
+                            logReturn.add("\u00a73      * \u00a77Keeps track of how much damage is dealt to an entity.");
+                            logReturn.add("\u00a73        \u00a77and who is dealing the damage.");
+                            logReturn.add("\u00a73      * \u00a77It will reset the \u00a7eobjective \u00a77unless \u00a7edont delete\u00a7");
+                            logReturn.add("\u00a73      * \u00a77is set to \u00a7efalse\u00a77. Will create new if missing.");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Scoreboard", "Incorrect usage. For info: \u00a7e/goop scoreboard"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard {action}");
+                            }
+                        }
+
+                    // No perms
+                    } else {
+                        // Tell him lmao
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to perform scoreboard operations!"));
+                    }
+                    break;
+                    //endregion
+                //region containers
+                case containers:
+                    //   0      1         2    args.Length
+                    // /goop containers {action}
+                    //   -      0         1     args[n]
+
+                    // To extract log return
+                    // Delegate onto NBT
+                    onCommand_GooPContainers(sender, command, label, args, senderLocation, chained, chainedCommand, chainedNoLocation, logReturnUrn);
+
+                    // Extract
+                    if (logReturnUrn.getValue() != null) {
+
+                        // For
+                        for (String ret : logReturnUrn.getValue()) {
+
+                            // Add
+                            logReturn.add(ret);
+                        }
+                    }
+                    break;
+                //endregion
+                //region grief
+                case grief:
+                    //   0     1     2       3     4 5 6 7      8            9               10                    11           args.Length
+                    // /goop grief <b|l> <player> <w x y z> <radius> [asCuboid = false] [pickaxe power] [bedrock break bypass]
+                    //   -     0     1       2     3 4 5 6      7            8               9                    10           args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.grief");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length >= 8 && args.length <= 12) {
+
+                            // CHeck for failure
+                            boolean failure = false;
+
+                            boolean incBlocks = args[1].contains("b"), incLiquids = args[1].contains("l");
+                            if (!incBlocks && !incLiquids) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "You must specify if mining blocks (\u00a7bb\u00a77), liquids (\u00a7bl\u00a77), or both (\u00a7bbl\u00a77)!"));
+                            }
+
+                            // Gets that player boi
+                            ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                            if (targets.size() < 1) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "Target must be an online player!"));
+                            }
+
+                            // Make Error Messager
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Radius is an integer
+                            if (!OotilityCeption.IntTryParse(args[7])) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "Radius must be an integer number."));
+                            }
+
+                            // If args long enough
+                            if (args.length >= 9) {
+
+                                // Parse cuboid
+                                if (!OotilityCeption.BoolTryParse(args[8])) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "Expected \u00a7btrue \u00a77or \u00a7bfalse \u00a77instead of \u00a73" + args[8]));
+                                }
+                            }
+
+                            // If args long enough
+                            int pickPower = 4;
+                            if (args.length >= 10) {
+
+                                // Parse cuboid
+                                if (!OotilityCeption.IntTryParse(args[9])) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "Pickaxe Power must be an integer number."));
+
+                                    // Parse
+                                } else {
+
+                                    pickPower = OotilityCeption.ParseInt(args[9]);
+                                }
+                            }
+
+                            // Should it bypass even though gamerule?
+                            boolean bedrockBypass = false;
+                            if (args.length >= 11) {
+
+                                // Parse boolean
+                                bedrockBypass = args[10].equals("true");
+                            }
+
+                            // Foreach player
+                            for (Player target : targets) {
+
+                                //region Gets that location boi
+                                Location targetLocation;
+
+                                // Get
+                                targetLocation = OotilityCeption.ValidLocation(target, args[3], args[4], args[5], args[6], logAddition);
+
+                                // Ret
+                                if (targetLocation == null) {
+                                    failure = true;
+                                }
+
+                                // Add Log
+                                if (logAddition.GetValue() != null) {
+                                    logReturn.add(OotilityCeption.LogFormat("Grief", logAddition.GetValue()));
+                                }
+                                //endregion
+
+                                if (!failure) {
+
+                                    // Parse the success
+                                    int radii = Math.abs(OotilityCeption.ParseInt(args[7]));
+                                    boolean asCuboid = false;
+                                    if (args.length >= 9) {
+                                        asCuboid = Boolean.parseBoolean(args[8]);
+                                    }
+
+                                    // Get BLocks
+                                    ArrayList<Block> bkks = new ArrayList<>();
+
+                                    // Triple Integral over Cartesian Co-Ordinates
+                                    for (int xRl = (targetLocation.getBlockX() - radii); xRl <= (targetLocation.getBlockX() + radii); xRl++) {
+                                        for (int yRl = (targetLocation.getBlockY() - radii); yRl <= (targetLocation.getBlockY() + radii); yRl++) {
+                                            for (int zRl = (targetLocation.getBlockZ() - radii); zRl <= (targetLocation.getBlockZ() + radii); zRl++) {
+
+                                                // Ignore if outside the world
+                                                if (yRl >= 0 && yRl <= 255) {
+                                                    double range = Math.sqrt(Math.pow(xRl - targetLocation.getBlockX(), 2) + Math.pow(yRl - targetLocation.getBlockY(), 2) + Math.pow(zRl - targetLocation.getBlockZ(), 2));
+
+                                                    // Ignore if outside the sphere region
+                                                    if (asCuboid || (radii >= range)) {
+
+                                                        // Get such block from world
+                                                        Block tBlock = targetLocation.getWorld().getBlockAt(xRl, yRl, zRl);
+
+                                                        // Include in array
+                                                        if (!OotilityCeption.IsAirNullAllowed(tBlock)) {
+
+                                                            // If liquid
+                                                            if (tBlock.isLiquid() && incLiquids) {
+
+                                                                // Add as liquid
+                                                                bkks.add(tBlock);
+                                                            }
+
+                                                            // If solid
+                                                            if (!tBlock.isLiquid() && incBlocks) {
+
+                                                                // Bedrock-type block
+                                                                boolean canBreakAsBedrock = Gunging_Ootilities_Plugin.griefBreaksBedrock || bedrockBypass || tBlock.getType() != Material.BEDROCK;
+                                                                boolean unbreakableAtAll =
+                                                                        tBlock.getType() == Material.END_PORTAL_FRAME ||
+                                                                                tBlock.getType() == Material.END_PORTAL ||
+                                                                                tBlock.getType() == Material.COMMAND_BLOCK ||
+                                                                                tBlock.getType() == Material.CHAIN_COMMAND_BLOCK ||
+                                                                                tBlock.getType() == Material.REPEATING_COMMAND_BLOCK ||
+                                                                                tBlock.getType() == Material.STRUCTURE_BLOCK ||
+                                                                                tBlock.getType() == Material.STRUCTURE_VOID ||
+                                                                                tBlock.getType() == Material.BARRIER ||
+                                                                                tBlock.getType() == Material.END_GATEWAY;
+
+                                                                if (canBreakAsBedrock && !unbreakableAtAll) {
+
+                                                                    // Add as solid
+                                                                    bkks.add(tBlock);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // If any
+                                    if (bkks.size() > 0) {
+
+                                        // Compute tool
+                                        ItemStack t0l;
+                                        switch (pickPower) {
+                                            default:
+                                                t0l = new ItemStack(Material.STONE);
+                                                break;
+                                            case 1:
+                                                t0l = new ItemStack(Material.WOODEN_PICKAXE);
+                                                break;
+                                            case 2:
+                                                t0l = new ItemStack(Material.STONE_PICKAXE);
+                                                break;
+                                            case 3:
+                                                t0l = new ItemStack(Material.IRON_PICKAXE);
+                                                break;
+                                            case 4:
+                                                t0l = new ItemStack(Material.DIAMOND_PICKAXE);
+                                                break;
+                                            case 5:
+                                                t0l = new ItemStack(GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_PICKAXE, Material.DIAMOND_PICKAXE));
+                                                break;
+                                        }
+
+                                        // GOd damn run event
+                                        GooPGriefEvent evG = new GooPGriefEvent(target, bkks, t0l);
+                                        Bukkit.getPluginManager().callEvent(evG);
+
+                                        // Notify the success
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
+                                            logReturn.add(OotilityCeption.LogFormat("Grief", "Forced player \u00a73" + target.getName() + "\u00a77 to mine/dry \u00a7e" + bkks.size() + "\u00a77 blocks."));
+
+                                        // Run Chain
+                                        if (chained) {
+                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                        }
+
+                                    } else {
+
+                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+
+                                        // lol found no
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                            logReturn.add(OotilityCeption.LogFormat("Grief", "No blocks were found as to force player \u00a73" + target.getName() + "\u00a77 to mine/dry them."));
+                                    }
+                                }
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Grief, \u00a77Simulates a player breaking blocks manually.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop grief <b|l> <w x y z> <player> <radius> [asCuboid] [pickaxe power] [bedrock break]");
+                            logReturn.add("\u00a73 - \u00a7e<b|l> \u00a77Remove blocks and/or liquids?");
+                            logReturn.add("\u00a73 --> \u00a73b \u00a77Only blocks");
+                            logReturn.add("\u00a73 --> \u00a73l \u00a77Only liquids");
+                            logReturn.add("\u00a73 --> \u00a73bl \u00a77Both");
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77Break the blocks as whom.");
+                            logReturn.add("\u00a73 - \u00a7e<w x y z> \u00a77Epicenter of the breaking");
+                            logReturn.add("\u00a73 - \u00a7e<radius> \u00a77Size of grief.");
+                            logReturn.add("\u00a73 - \u00a7e[asCuboid] \u00a77Instead of a sphere, carve as a cube.");
+                            logReturn.add("\u00a73 - \u00a7e[pickaxe power] \u00a77Tier of the pickaxe supposedly used.");
+                            logReturn.add("\u00a73 --> \u00a730 \u00a77Fist");
+                            logReturn.add("\u00a73 --> \u00a731 \u00a77Wooden/Gold");
+                            logReturn.add("\u00a73 --> \u00a732 \u00a77Stone");
+                            logReturn.add("\u00a73 --> \u00a733 \u00a77Iron");
+                            logReturn.add("\u00a73 --> \u00a734 \u00a77Diamond \u00a78(default)");
+                            logReturn.add("\u00a73 --> \u00a735 \u00a77Netherite");
+                            logReturn.add("\u00a73 - \u00a7e[bedrock break] \u00a77If the '\u00a73Grief Breaks Bedrock\u00a77' gamerule is disabled, this command won't break vanilla-unbreakable blocks (bedrock, end portal frames...) unless this is set to \u00a7btrue\u00a77.");
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Grief", "Incorrect usage. For info: \u00a7e/goop grief"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop grief <b|l> <player> <w x y z> <radius> [asCuboid] [pickaxePower] [bedrock break]");
+                            }
+                        }
+
+                        // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to power-grief the terrain!"));
+                    }
+                    break;
+                //endregion
+                //region compare
+                case compare:
+                    //   0     1        2           3        4        5...                                 args.Length
+                    // /goop compare <player> <objective> <score> {Something} GC_<operator> {Anything}
+                    //   -     0        1           2        3        4...                                 args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.compare");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length >= 7) {
+
+                            // CHeck for failure
+                            boolean failure = false;
+
+                            // Gets that player boi
+                            ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[1], null);
+                            Entity asNonplayer = null;
+                            if (targets.size() < 1) {
+
+                                // Perhaps its an entity
+                                asNonplayer = OotilityCeption.getEntityByUniqueId(args[1]);
+
+                                if (asNonplayer == null || asNonplayer instanceof Player) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Compare", "Target must be an online player!"));
+                                }
+                            }
+
+                            // Some scoreboards to test
+                            Objective targetObjective = OotilityCeption.GetObjective(args[2]);
+                            // Does the scoreboard objective exist?
+                            if (targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                // Mention
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Compare", "Scoreboard Objective '\u00a73" + args[2] + "\u00a77' does not exist."));
+                            }
+
+                            // Parse score form
+                            boolean asDifference = false,
+                                    asSum = false,
+                                    asProduct = false,
+                                    asDivision = false,
+                                    asPower = false,
+                                    asRoot = false,
+                                    asCosine = false,
+                                    asSine = false,
+                                    asTangent = false,
+                                    asArcCosine = false,
+                                    asArcSine = false,
+                                    asArcTangent = false;
+                            PlusMinusPercent asNumber = PlusMinusPercent.GetPMP(args[3], null);
+                            if (asNumber == null) {
+
+                                switch (args[3].toLowerCase()) {
+                                    case "difference": asDifference = true; break;
+                                    case "sum": asSum = true; break;
+                                    case "product": asProduct = true; break;
+                                    case "division": asDivision = true; break;
+                                    case "root": asRoot = true; break;
+                                    case "power": asPower = true; break;
+                                    case "cos": asCosine = true; break;
+                                    case "sin": asSine = true; break;
+                                    case "tan": asTangent = true; break;
+                                    case "arccos": asArcCosine = true; break;
+                                    case "arcsin": asArcSine = true; break;
+                                    case "arctan": asArcTangent = true; break;
+                                    default:
+
+                                        // Failure, not numeric nor keyword
+                                        failure = true;
+
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Compare", "Expected integer number for score or one of the math operation keywords instead of \u00a73" + args[3]));
+                                        break;
+                                }
+                            }
+
+                            // Parse comparables
+                            StringBuilder somethingBLDR = new StringBuilder(), anythingBLDR = new StringBuilder();
+                            String operator = null, something = null, anything = null;
+                            boolean cmprd = false;
+                            for (int c = 4; c < args.length; c++) {
+
+                                // Get observed
+                                String obs = args[c];
+
+                                // Does it equal the OS sequence?
+                                if (obs.startsWith("GC_")) {
+
+                                    // It is now chained
+                                    cmprd = true;
+
+                                    // Just store operator for now
+                                    operator = obs;
+
+                                } else {
+
+                                    // Chaining or true?
+                                    if (!cmprd) {
+
+                                        // Build Something
+                                        somethingBLDR.append(" ").append(obs);
+
+                                    // Its chained, shall now build
+                                    } else {
+
+                                        // Append to Anything
+                                        anythingBLDR.append(" ").append(obs);
+                                    }
+                                }
+                            }
+
+                            boolean greaterThan = false,
+                                    lessThan = false,
+                                    equals = false,
+                                    forceString = false,
+                                    negate = false,
+                                    ignoreCaps = false;
+                            int finalMultiplier = 100;
+                            // Success?
+                            if (cmprd) {
+
+                                // Build both
+                                anything = anythingBLDR.toString().substring(1);
+                                something = somethingBLDR.toString().substring(1);
+                                operator = operator.substring("GC_".length());
+
+                                // Parse operator
+                                if (operator.contains(">")) { greaterThan = true; }
+                                if (operator.contains("<")) { lessThan = true; }
+                                if (operator.contains("=")) { equals = true; }
+                                if (operator.contains("!")) { negate = true; }
+                                if (operator.contains("S")) { forceString = true; }
+                                if (operator.contains("s")) { forceString = true; }
+                                if (operator.contains("c")) { ignoreCaps = true; }
+                                if (operator.contains("C")) { ignoreCaps = true; }
+                                if (operator.contains("e")) { finalMultiplier = 1; }
+                                if (operator.contains("E")) { finalMultiplier = 1; }
+
+                                // Force string with guaranteed parsed non-integer
+                                if (forceString && asNumber == null && !failure) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Compare", "Forcing a string operation (\u00a7bS\u00a77) with your operator (\u00a73" + operator + "\u00a77) is incompatible with math operations like \u00a73" + args[3]));
+                                }
+
+                                // Operator unsuccessful
+                                if (!greaterThan && !lessThan && !equals) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Compare", "Your operator \u00a73" + operator + "\u00a77 doesnt make sense. Try \u00a7bGC_=\u00a77 or \u00a7bGC_>\u00a77 for beginners. Full explanation in \u00a7e/goop compare"));
+                                }
+
+                                // Force string with guaranteed parsed non-integer
+                                if (forceString && (greaterThan || lessThan)) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Compare", "Forcing a string operation (\u00a7bS\u00a77) with your operator (\u00a73" + operator + "\u00a77) is incompatible with math comparators \u00a7b>\u00a77 and \u00a7b<\u00a77."));
+                                }
+
+                            } else {
+
+                                // Must be comparing something-yo!
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Compare", "You must insert a comparison operation there! Try \u00a7bGC_=\u00a77 or \u00a7bGC_>=\u00a77 for beginners. Full explanation in \u00a7e/goop compare"));
+                            }
+
+                            if (!failure) {
+
+                                if (asNonplayer != null) {
+
+                                    // Parse both things
+                                    String pSomething = OotilityCeption.ParseConsoleCommand(something, asNonplayer, null, null);
+                                    String pAnything = OotilityCeption.ParseConsoleCommand(anything, asNonplayer, null, null);
+
+                                    // Doubley
+                                    Double pS = OotilityCeption.MathExpressionResult(pSomething, new ArrayList<>()), pA = OotilityCeption.MathExpressionResult(pAnything, new ArrayList<>());
+
+                                    // Attempt as numeric if both parse
+                                    boolean isNumeric = !forceString && (pS != null) && (pA != null);
+
+                                    // Proceed to compare
+                                    boolean resultant = false;
+                                    if (isNumeric) {
+
+                                        // Evaluate Operations
+                                        if (equals && (pS.equals(pA))) {
+                                            resultant = true;
+                                        }
+                                        if (greaterThan && (pS > pA)) {
+                                            resultant = true;
+                                        }
+                                        if (lessThan && (pS < pA)) {
+                                            resultant = true;
+                                        }
+
+                                    } else {
+
+                                        // Caps differentation
+                                        if (ignoreCaps) {
+
+                                            // Compare stringally
+                                            if (equals && (pSomething.equalsIgnoreCase(pAnything))) {
+                                                resultant = true;
+                                            }
+                                        } else {
+
+                                            // Compare stringally
+                                            if (equals && (pSomething.equals(pAnything))) {
+                                                resultant = true;
+                                            }
+                                        }
+                                    }
+
+                                    // Invert result if appropiate
+                                    if (negate) {
+                                        resultant = !resultant;
+                                    }
+
+                                    // Success?
+                                    if (resultant) {
+
+                                        // Get result
+                                        int scoreSet = -32767;
+                                        if (asNumber != null) {
+
+                                            // They specified a specific number, lest go
+                                            scoreSet = OotilityCeption.RoundToInt(asNumber.apply(OotilityCeption.GetEntryScore(targetObjective, asNonplayer.getUniqueId().toString()) + 0.0D));
+
+                                            // Perform operation
+                                        } else if (isNumeric) {
+
+                                            // Perform operations
+                                            try {
+
+                                                // As dictated
+                                                if (asSum) {
+                                                    scoreSet = OotilityCeption.RoundToInt((pS + pA) * finalMultiplier);
+                                                } else if (asDifference) {
+                                                    scoreSet = OotilityCeption.RoundToInt((pS - pA) * finalMultiplier);
+                                                } else if (asProduct) {
+                                                    scoreSet = OotilityCeption.RoundToInt((pS * pA) * finalMultiplier);
+                                                } else if (asDivision) {
+                                                    scoreSet = OotilityCeption.RoundToInt((pS / pA) * finalMultiplier);
+                                                } else if (asPower) {
+                                                    scoreSet = OotilityCeption.RoundToInt((Math.pow(pS, pA)) * finalMultiplier);
+                                                } else if (asRoot) {
+                                                    scoreSet = OotilityCeption.RoundToInt((Math.pow(pS, 1.0D / pA)) * finalMultiplier);
+                                                } else if (asCosine) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.cos(pS * Math.PI / 180.0) * finalMultiplier);
+                                                } else if (asSine) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.sin(pS * Math.PI / 180.0) * finalMultiplier);
+                                                } else if (asTangent) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.tan(pS * Math.PI / 180.0) * finalMultiplier);
+                                                } else if (asArcCosine) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.acos(pS) * finalMultiplier * 180.0 / Math.PI);
+                                                } else if (asArcSine) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.asin(pS) * finalMultiplier * 180.0 / Math.PI);
+                                                } else if (asArcTangent) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.atan(pS) * finalMultiplier * 180.0 / Math.PI);
+                                                }
+
+                                            } catch (Exception ignored) {
+                                                scoreSet = -32767;
+                                            }
+                                        }
+
+                                        // Set score lma0
+                                        OotilityCeption.SetEntryScore(targetObjective, asNonplayer.getUniqueId().toString(), scoreSet);
+
+                                        // Notify the success
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
+                                            logReturn.add(OotilityCeption.LogFormat("Compare", "Comparison returned true! Setting score \u00a73" + args[2] + "\u00a77 of \u00a73" + asNonplayer.getName() + "\u00a77 to \u00a7e" + scoreSet + "\u00a77."));
+
+                                        // Run Chain
+                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(asNonplayer.getUniqueId(), chainedCommand, sender, null, null, null); }
+
+                                    } else {
+
+                                        // lol found no
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                            logReturn.add(OotilityCeption.LogFormat("Compare", "{Something} (\u00a73" + pSomething + "\u00a77) did not match {Anything} (\u00a73" + pAnything + "\u00a77)."));
+                                    }
+                                }
+
+                                // For every
+                                for (Player target : targets) {
+
+                                    // Parse both things
+                                    String pSomething = OotilityCeption.ParseConsoleCommand(something, target, target, null);
+                                    String pAnything = OotilityCeption.ParseConsoleCommand(anything, target, target, null);
+
+                                    // Doubley
+                                    Double pS = OotilityCeption.MathExpressionResult(pSomething, new ArrayList<>()), pA = OotilityCeption.MathExpressionResult(pAnything, new ArrayList<>());
+
+                                    // Attempt as numeric if both parse
+                                    boolean isNumeric = !forceString && (pS != null) && (pA != null);
+
+                                    // Proceed to compare
+                                    boolean resultant = false;
+                                    if (isNumeric) {
+
+                                        // Evaluate Operations
+                                        if (equals && (pS.equals(pA))) {
+                                            resultant = true;
+                                        }
+                                        if (greaterThan && (pS > pA)) {
+                                            resultant = true;
+                                        }
+                                        if (lessThan && (pS < pA)) {
+                                            resultant = true;
+                                        }
+
+                                    } else {
+
+                                        // Caps differentation
+                                        if (ignoreCaps) {
+
+                                            // Compare stringally
+                                            if (equals && (pSomething.equalsIgnoreCase(pAnything))) {
+                                                resultant = true;
+                                            }
+                                        } else {
+
+                                            // Compare stringally
+                                            if (equals && (pSomething.equals(pAnything))) {
+                                                resultant = true;
+                                            }
+                                        }
+                                    }
+
+                                    // Invert result if appropiate
+                                    if (negate) {
+                                        resultant = !resultant;
+                                    }
+
+                                    // Success?
+                                    if (resultant) {
+
+                                        // Get result
+                                        int scoreSet = -32767;
+                                        if (asNumber != null) {
+
+                                            // They specified a specific number, lest go
+                                            scoreSet = OotilityCeption.RoundToInt(asNumber.apply(OotilityCeption.GetPlayerScore(targetObjective, target) + 0.0D));
+
+                                            // Perform operation
+                                        } else if (isNumeric) {
+
+                                            // Perform operations
+                                            try {
+
+                                                // As dictated
+                                                if (asSum) {
+                                                    scoreSet = OotilityCeption.RoundToInt((pS + pA) * finalMultiplier);
+                                                } else if (asDifference) {
+                                                    scoreSet = OotilityCeption.RoundToInt((pS - pA) * finalMultiplier);
+                                                } else if (asProduct) {
+                                                    scoreSet = OotilityCeption.RoundToInt((pS * pA) * finalMultiplier);
+                                                } else if (asDivision) {
+                                                    scoreSet = OotilityCeption.RoundToInt((pS / pA) * finalMultiplier);
+                                                } else if (asPower) {
+                                                    scoreSet = OotilityCeption.RoundToInt((Math.pow(pS, pA)) * finalMultiplier);
+                                                } else if (asRoot) {
+                                                    scoreSet = OotilityCeption.RoundToInt((Math.pow(pS, 1.0D / pA)) * finalMultiplier);
+                                                } else if (asCosine) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.cos(pS * Math.PI / 180.0) * finalMultiplier);
+                                                } else if (asSine) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.sin(pS * Math.PI / 180.0) * finalMultiplier);
+                                                } else if (asTangent) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.tan(pS * Math.PI / 180.0) * finalMultiplier);
+                                                } else if (asArcCosine) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.acos(pS) * finalMultiplier * 180.0 / Math.PI);
+                                                } else if (asArcSine) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.asin(pS) * finalMultiplier * 180.0 / Math.PI);
+                                                } else if (asArcTangent) {
+                                                    scoreSet = OotilityCeption.RoundToInt(Math.atan(pS) * finalMultiplier * 180.0 / Math.PI);
+                                                }
+
+                                            } catch (Exception ignored) {
+                                                scoreSet = -32767;
+                                            }
+                                        }
+
+                                        // Set score lma0
+                                        OotilityCeption.SetPlayerScore(targetObjective, target, scoreSet);
+
+                                        // Notify the success
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
+                                            logReturn.add(OotilityCeption.LogFormat("Compare", "Comparison returned true! Setting score \u00a73" + args[2] + "\u00a77 of player \u00a73" + target.getName() + "\u00a77 to \u00a7e" + scoreSet + "\u00a77."));
+
+                                        // Run Chain
+                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+
+                                    } else {
+
+                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+
+                                        // lol found no
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                            logReturn.add(OotilityCeption.LogFormat("Compare", "{Something} (\u00a73" + pSomething + "\u00a77) did not match {Anything} (\u00a73" + pAnything + "\u00a77)."));
+                                    }
+                                }
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Compare, \u00a77Parses placeholders and changes a player's score.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop compare <player> <objective> <score> {Something} GC_<operator> {Anything}");
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player to parse placeholders, and change score.");
+                            logReturn.add("\u00a73 - \u00a7e<objective> \u00a77Scoreboard objective to store results IF the values match.");
+                            logReturn.add("\u00a73 - \u00a7e<score> \u00a77Score value that will be given \u00a7nif this succeeds.");
+                            logReturn.add("\u00a73 -> If both {Something} and {Anything} are numeric, you can use these keywords:");
+                            logReturn.add("\u00a73 --> \u00a7bsum \u00a77The result of \u00a7e{Something}\u00a73+\u00a7e{Anything}");
+                            logReturn.add("\u00a73 --> \u00a7bdifference \u00a77The result of \u00a7e{Something}\u00a73-\u00a7e{Anything}");
+                            logReturn.add("\u00a73 --> \u00a7bproduct \u00a77The result of \u00a7e{Something}\u00a73*\u00a7e{Anything}");
+                            logReturn.add("\u00a73 --> \u00a7bdivision \u00a77The result of \u00a7e{Something}\u00a73/\u00a7e{Anything}");
+                            logReturn.add("\u00a73 --> \u00a7bpower \u00a77The result of \u00a7e{Something}\u00a73^\u00a7e{Anything}");
+                            logReturn.add("\u00a73 --> \u00a7broot \u00a77The \u00a7e{Anything}th \u00a73root of \u00a7e{Something}\u00a77.");
+                            logReturn.add("\u00a73 --> \u00a7bcos \u00a77Will ignore {Anything} and set to the Cosine of \u00a7e{Something}\u00a77 (degrees).");
+                            logReturn.add("\u00a73 --> \u00a7bsin \u00a77Will ignore {Anything} and set to the Sine of \u00a7e{Something}\u00a77 (degrees).");
+                            logReturn.add("\u00a73 --> \u00a7btan \u00a77Will ignore {Anything} and set to the Tangent of \u00a7e{Something}\u00a77 (degrees).");
+                            logReturn.add("\u00a73 --> \u00a7barcCos \u00a77Will ignore {Anything} and set to the ArcCosine of \u00a7e{Something}\u00a77 (degrees).");
+                            logReturn.add("\u00a73 --> \u00a7barcSin \u00a77Will ignore {Anything} and set to the ArcSine of \u00a7e{Something}\u00a77 (degrees).");
+                            logReturn.add("\u00a73 --> \u00a7barcTan \u00a77Will ignore {Anything} and set to the ArcTangent of \u00a7e{Something}\u00a77 (degrees).");
+                            logReturn.add("\u00a77 ----- \u00a7cValues will be multiplied by 100, basically to store two decimal places.");
+                            logReturn.add("\u00a77 ----- *Math Errors (\u00a7fdiv by 0, etc\u00a77) will cause score to be set to -32767, but the command will 'succeed'");
+                            logReturn.add("\u00a73 - \u00a7e{Something} \u00a77Any length and order of placeholders and strings (even with spaces).");
+                            logReturn.add("\u00a73 - \u00a7e<operator> \u00a77The way to compare. Must be preceded with \u00a7eGC_");
+                            logReturn.add("\u00a73 --> \u00a7b= \u00a77If these are equal. Will parse numeric placeholders automatically.");
+                            logReturn.add("\u00a73 --> \u00a7b> \u00a77If {Something} exceeds {Anything}. Will fail if even one isnt numerical.");
+                            logReturn.add("\u00a73 --> \u00a7b< \u00a77If {Something} is less than {Anything}. Will fail if even one isnt numerical.");
+                            logReturn.add("\u00a73 --> \u00a7bS \u00a77Will not parse numerically, and strictly check as strings (\u00a7f0.00 \u00a77wont equal \u00a7f0\u00a77, thus).");
+                            logReturn.add("\u00a73 --> \u00a7bC \u00a77Ignore capitalization (\u00a7fno\u00a77 =\u00a7fNo\u00a77).");
+                            logReturn.add("\u00a73 --> \u00a7bE \u00a77Exact Result (\u00a7fDont multiply by 100 after operation\u00a77).");
+                            logReturn.add("\u00a73 --> \u00a7b! \u00a77Will run the comparison pretending its not there, then invert the result.");
+                            logReturn.add("\u00a77 ----- \u00a73Any combination and order is acceptable: \u00a7bGC_><\u00a73 for example, will fail if they are equal.");
+                            logReturn.add("\u00a77 ----- \u00a73Using \u00a7bGC_<=>\u00a73 can only fail if you input non-numerical stuff.");
+                            logReturn.add("\u00a73 - \u00a7e{Anything} \u00a77Any length and order of placeholders and strings (even with spaces).");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Compare", "Incorrect usage. For info: \u00a7e/goop compare"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop compare <player> <objective> <score> {Something} GC_<operator> {Anything}");
+                            }
+                        }
+
+                        // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to compare data!"));
+                    }
+                    break;
+                //endregion
+                //region tell
+                case tell:
+                    //   0    1      2         3...     args.Length
+                    // /goop tell <player> <message>
+                    //   -    0      1         2...     args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.tell");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length >= 3) {
+
+                            // CHeck for failure
+                            boolean failure = false;
+
+                            // Gets that player boi
+                            ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[1], null);
+                            if (targets.size() < 1) {
+                                // Failure
+                                failure = true;
+
+                                // Notify
+                                logReturn.add(OotilityCeption.LogFormat("Tell", "Player not found"));
+                            }
+
+                            // If player was found
+                            if (!failure) {
+
+                                // Build message
+                                StringBuilder messageBuilder = new StringBuilder();
+                                for (int a = 2; a < args.length; a++) { messageBuilder.append(" ").append(args[a]); }
+                                String message = messageBuilder.toString().substring(1);
+
+                                // Parse font codes
+                                message = GooP_FontUtils.ParseFontLinks(message);
+
+                                // Each target
+                                for (Player target : targets) {
+
+                                    // Parse message
+                                    String mInstance = OotilityCeption.ParseConsoleCommand(message, target, target, null);
+
+                                    // Parse again, with colour codes this time
+                                    mInstance = OotilityCeption.ParseColour(mInstance);
+
+                                    // Send
+                                    target.sendMessage(mInstance);
+                                    // Mention
+                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Tell", "Told \u00a73" + target.getName() + "\u00a77: \u00a7f" + mInstance)); }
+
+                                    // Run Chain
+                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                }
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Tell, \u00a77Sends a message to a player, parses colour codes and placeholders.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop tell <player> <message...>");
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player that will be displayed such a message.");
+                            logReturn.add("\u00a73 - \u00a7e<message...> \u00a77Message to display");
+                            logReturn.add("\u00a78In more technical language, parses placeholders, and then colour codes.");
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Tell", "Incorrect usage. For info: \u00a7e/goop tell"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop tell <player> <message...>");
+                            }
+                        }
+
+                    // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oCan you not tell whats happening?"));
+                    }
+                    break;
+                //endregion
+                //region tp
+                case tp:
+                    //   0    1      2        3...      args.Length
+                    // /goop delay <time> <command...>
+                    //   -    0      1        2...      args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.tp");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length == 2 || args.length == 3 || args.length == 5 || args.length == 6) {
+
+                            // CHeck for failure
+                            boolean failure = false;
+
+                            // Identify args
+                            String whoms = "";
+                            String pW = null, pX = null, pY = null, pZ = null;
+                            Player pAt;
+                            Location targetLocation = null;
+
+                            // Starts with parsing location
+                            if (args.length >= 5) {
+
+                                // Starting from last
+                                for (int a = args.length - 1; a > 0; a--) {
+
+                                    // In expected order
+                                    if (pZ == null) { pZ = args[a]; }
+                                    else if (pY == null) { pY = args[a];}
+                                    else if (pX == null) { pX = args[a];}
+                                    else if (pW == null) { pW = args[a];}
+                                    else break;
+                                }
+
+                                // Valid location?
+                                RefSimulator<String> logAddition = new RefSimulator<>("");
+                                Player p = null; if (sender instanceof Player) { p = (Player) sender; }
+                                targetLocation = OotilityCeption.ValidLocation(p, senderLocation, pW, pX, pY, pZ, logAddition);
+
+                                // Ret
+                                if (targetLocation == null) {
+                                    failure = true;
+                                }
+
+                                // Add Log
+                                if (logAddition.GetValue() != null) {
+                                    logReturn.add(OotilityCeption.LogFormat("Tp", logAddition.GetValue()));
+                                }
+                            }
+
+                            // Not parsing locaton, last arg must be a player
+                            if (args.length < 5) {
+
+                                // Just get ig
+                                pAt = (Player) OotilityCeption.GetPlayer(args[args.length - 1], false);
+
+                                // Success?
+                                if (pAt == null) {
+
+                                    // No rip
+                                    failure = true;
+
+                                    // Notify
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Tp", "Could not find location of player \u00a73" + args[args.length-1]));}
+                                }
+
+                                // Thus thats their location
+                                targetLocation = pAt.getLocation();
+                            }
+
+                            // So we must have a location or a target, right?
+                            if (!failure) {
+
+                                // Is it implied?
+                                if (args.length == 2 || args.length == 5) {
+
+                                    // Must be a player
+                                    if (sender instanceof  Player) {
+
+                                        // Gets the name
+                                        whoms = ((Player) sender).getName();
+
+
+                                    // Cant implicitly tp the console
+                                    } else {
+
+                                        // Hey!
+                                        failure = true;
+
+                                        // Log
+                                        logReturn.add(OotilityCeption.LogFormat("Tp", "You must specify who to teleport when called from the console!"));
+                                    }
+
+                                // No, its explicit
+                                } else {
+
+                                    // Will be 1
+                                    whoms = args[1];
+                                }
+                            }
+
+                            // Gets that player boi
+                            ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, whoms, null);
+                            if (targets.size() < 1 && !failure) {
+                                // Failure
+                                failure = true;
+
+                                // Notify
+                                logReturn.add(OotilityCeption.LogFormat("Tp", "Player not found"));
+                            }
+
+                            // If player was found
+                            if (!failure) {
+
+                                // Each target
+                                for (Player target : targets) {
+
+                                    // Teleport lma0
+                                    target.teleport(targetLocation);
+
+                                    // Mention
+                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Tp", "Teleported \u00a73" + target.getName() + "\u00a77 to \u00a7e" + OotilityCeption.BlockLocation2String(targetLocation))); }
+
+                                    // Run Chain
+                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                }
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Teleport, \u00a77Straight up teleports someone somewhere");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop tp [who] <where>");
+                            logReturn.add("\u00a73 - \u00a7e[who] \u00a77Players to teleport; you if missing.");
+                            logReturn.add("\u00a73 - \u00a7e<where> \u00a77Location to teleport them all.");
+                            logReturn.add("\u00a7b ---> \u00a77May be another player's name.");
+                            logReturn.add("\u00a7b ---> \u00a77May in the format \u00a7ew x y z");
+                            logReturn.add("\u00a78Because vanilla command does not support world ffs.");
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Teleport", "Incorrect usage. For info: \u00a7e/goop tp"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop tp [who] <where>");
+                            }
+                        }
+
+                        // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oCant zip zoom, no permission."));
+                    }
+                    break;
+                //endregion
+                //region delay
+                case delay:
+                    //   0    1      2        3...      args.Length
+                    // /goop delay <ticks> <command...>
+                    //   -    0      1        2...      args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.delay");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length >= 3) {
+
+                            // CHeck failure
+                            boolean failure = false;
+
+                            // CHeck for failure
+                            Integer ticks2Wait = null;
+                            if (OotilityCeption.IntTryParse(args[1])) {
+
+                                // Parse
+                                ticks2Wait = OotilityCeption.ParseInt(args[1]);
+
+                            // Otherwise failure
+                            } else {
+
+                                // Fail
+                                failure = true;
+
+                                // Notify
+                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Delay", "Expected integer number of ticks instead of \u00a73" + args[1])); }
+
+                            }
+
+                            // If player was found
+                            if (!failure) {
+
+                                // Build Command
+                                StringBuilder lLine;
+
+                                // Gather initial value
+                                lLine = new StringBuilder(args[2]);
+                                for (int i = 3; i < args.length; i++) {
+
+                                    // Add, separating with spaces
+                                    lLine.append(" ").append(args[i]);
+                                }
+
+                                // Append chained
+                                if (chained) { lLine.append(" oS: ").append(chainedNoLocation); }
+                                String cmddd = lLine.toString();
+
+                                // Run
+                                (new BukkitRunnable() {
+                                    public void run() {
+
+                                        // Just run I guess
+                                        OotilityCeption.SendConsoleCommand(cmddd, null, null, null);
+                                    }
+
+                                }).runTaskLater(Gunging_Ootilities_Plugin.getPlugin(), ticks2Wait);
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Delay, \u00a77Execute a command after some ticks");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop delay <ticks> <command>");
+                            logReturn.add("\u00a73 - \u00a7e<ticks> \u00a77Ticks to wait, 1 sec = 20 ticks");
+                            logReturn.add("\u00a73 - \u00a7e<command> \u00a77Command to execute");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Delay", "Incorrect usage. For info: \u00a7e/goop delay"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop delay <ticks> <command>");
+                            }
+                        }
+
+                    // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oWait a moment to use this command."));
+                    }
+                    break;
+                //endregion
+                //region chance
+                case chance:
+                    //   0    1             2               3...      args.Length
+                    // /goop chance <percent/fraction> <command...>
+                    //   -    0             1               2...      args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.chance");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length >= 3) {
+
+                            // CHeck failure
+                            boolean failure = false;
+
+                            // CHeck for failure
+                            double chance = 0;
+                            String unparsedChance = args[1];
+                            boolean percentage = unparsedChance.endsWith("%");
+                            if (percentage) { unparsedChance = unparsedChance.substring(0, unparsedChance.length() -1); }
+                            if (OotilityCeption.DoubleTryParse(unparsedChance)) {
+
+                                // Parse
+                                chance = Double.parseDouble(unparsedChance);
+
+                                if (!percentage) { chance *= 100; }
+
+                            // Otherwise failure
+                            } else {
+
+                                // Fail
+                                failure = true;
+
+                                // Notify
+                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Chance", "Expected a number (even followed by a % symbol) instead of \u00a73" + args[1])); }
+
+                            }
+
+                            // If player was found
+                            if (!failure) {
+
+                                // Chance 5 Success
+                                if (OotilityCeption.GetRandomInt(0, 10000) < (chance * 100)) {
+
+                                    // Build Command
+                                    StringBuilder lLine;
+
+                                    // Gather initial value
+                                    lLine = new StringBuilder(args[2]);
+                                    for (int i = 3; i < args.length; i++) {
+
+                                        // Add, separating with spaces
+                                        lLine.append(" ").append(args[i]);
+                                    }
+
+                                    // Append chained
+                                    if (chained) { lLine.append(" oS: ").append(chainedNoLocation); }
+                                    String cmddd = lLine.toString();
+
+                                    // Mention
+                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Chance", "Roll of \u00a7b" + chance + "%\u00a77 chance \u00a7asucceeded\u00a77!")); }
+
+                                    // Just run I guess
+                                    OotilityCeption.SendConsoleCommand(cmddd, null, null, null);
+
+                                } else {
+
+                                    // Mention
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Chance", "Roll of \u00a7b" + chance + "%\u00a77 chance \u00a7cfailed\u00a77!")); }
+
+                                }
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Chance, \u00a77Random chance to run a command");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop chance <chance> <command>");
+                            logReturn.add("\u00a73 - \u00a7e<chance> \u00a77Chance to run following command");
+                            logReturn.add("\u00a73 - \u00a7e<command> \u00a77Command to execute");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Chance", "Incorrect usage. For info: \u00a7e/goop chance"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop chance <chance> <command>");
+                            }
+                        }
+
+                    // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oWhat are the odds of this?!"));
+                    }
+                    break;
+                //endregion
+                //region vault
+                case vault:
+                    //   0      1        2      args.Length
+                    // /goop vault {action}
+                    //   -      0        1      args[n]
+
+                    // FFS Check for MMOItems
+                    if (Gunging_Ootilities_Plugin.foundVault) {
+
+                        // Check 5 Permission
+                        if (sender instanceof Player) {
+                            // Solid check for permission
+                            permission = sender.hasPermission("gunging_ootilities_plugin.vault");
+                        }
+
+                        // Got permission?
+                        if (permission) {
+                            if (args.length >= 2) {
+                                // Some bool to know if failure
+                                boolean failure = false;
+                                ArrayList<OfflinePlayer> targets = null;
+
+                                switch (args[1].toLowerCase()) {
+                                    //region charge
+                                    case "charge":
+                                        //   0      1     2       3       4         args.Length
+                                        // /goop vault charge <player> <amount>
+                                        //   -      0     1       2       3         args[n]
+
+                                        // Git Vault
+                                        if (args.length == 4) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[2], true, null);
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Charge", "Target must be a player!"));
+                                            }
+
+                                            // Parse amount?
+                                            Double charge = null;
+                                            if (OotilityCeption.DoubleTryParse(args[3])) { charge = Double.parseDouble(args[3]); }
+                                            if (charge < 0) { charge = null; }
+                                            if (charge == null) {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Charge", "Expected positive numeric value instead of \u00a73" + args[3]));
+                                            }
+
+                                            // Valid Sintax
+                                            if (!failure) {
+
+                                                // Execute for each player
+                                                for (OfflinePlayer target : targets) {
+
+                                                    // Get this' eco
+                                                    double balance = GooPVault.GetPlayerBalance(target);
+
+                                                    // Enough?
+                                                    if (balance >= charge) {
+
+                                                        // Charge I guess
+                                                        GooPVault.Withdraw(target, charge);
+
+                                                        // Run Chain
+                                                        if (chained && target.isOnline()) { OotilityCeption.SendAndParseConsoleCommand(target.getPlayer(), chainedCommand, sender, null, null, null); }
+
+                                                        // Say that
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Charge", "Charged \u00a7e" + charge + " to player \u00a73" + target.getName() + "\u00a77, they now have \u00a7e" + GooPVault.GetPlayerBalance(target)));
+
+                                                    } else {
+
+                                                        // Say that
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Charge", "Player \u00a73" + target.getName() + "\u00a77 doesnt have enough money!"));
+
+                                                        // Notify
+                                                        if (failMessage != null && target.isOnline()) { target.getPlayer().sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage.replace("%charge%", String.valueOf(charge)), target.getPlayer(), target.getPlayer(), null, null))); }
+                                                    }
+                                                }
+                                            }
+
+                                        // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("Vault - Charge", "Incorrect usage. For info: \u00a7e/goop vault"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop vault charge <player> <amount>");
+                                            }
+                                        }
+
+                                        break;
+                                    //endregion
+                                    //region balancecheck
+                                    case "checkbalance":
+                                        //   0      1     2             3       4         5         6       args.Length
+                                        // /goop vault checkbalance <player> <range> [objective] [score]
+                                        //   -      0     1             2       3         4         5       args[n]
+
+                                        // Git Vault
+                                        if (args.length == 4) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[2], true, null);
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Check Balance", "Target must be a player!"));
+                                            }
+
+                                            // Parse amount?
+                                            QuickNumberRange charge = null;
+                                            charge = QuickNumberRange.FromString(args[3]);
+                                            if (charge == null) {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Check Balance", "Expected a number or numeric range instead of \u00a73" + args[3] + "\u00a77. Ranges are specified with two numbers separated by \u00a7bb\u00a77. Example \u00a7e-4\u00a77 and \u00a7e32.4\u00a77: \u00a7b-4..32.5\u00a77. They are inclusive, and you may not specify either of the bounds (\u00a7b10..\u00a77 will match anything equal or greater than 10)."));
+                                            }
+
+                                            Objective objective = null;
+                                            PlusMinusPercent scoreOps = null;
+                                            boolean asAmount = false;
+                                            RefSimulator<String> logAddtion = new RefSimulator<>("");
+                                            if (args.length == 6) {
+
+                                                // Get
+                                                objective = OotilityCeption.GetObjective(args[4]);
+                                                scoreOps = PlusMinusPercent.GetPMP(args[5], logAddtion);
+
+                                                // Log
+                                                if (objective == null) {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Notify the error
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Check Balance", "Objective \u00a73" + args[4] + "\u00a77 not found."));
+                                                }
+
+                                                // Aequal?
+                                                if (args[5].toLowerCase().equals("amount")) {
+
+                                                    asAmount = true;
+
+                                                // PMP
+                                                } else if (scoreOps == null) {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Notify the error
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Check Balance", "Expected numeric value or PMP instead of \u00a7e" + args[5] + "\u00a77."));
+                                                }
+                                            }
+
+                                            // Valid Sintax
+                                            if (!failure) {
+
+                                                // Execute for each player
+                                                for (OfflinePlayer target : targets) {
+
+                                                    // Get this' eco
+                                                    double balance = GooPVault.GetPlayerBalance(target);
+
+                                                    // Enough?
+                                                    if (charge.InRange(balance)) {
+
+                                                        // Edit score
+                                                        if (objective != null) {
+
+                                                            // Amount?
+                                                            if (asAmount) { scoreOps = new PlusMinusPercent(balance, false, false); }
+
+                                                            // Operate
+                                                            OotilityCeption.SetEntryScore(objective, target.getName().toString(), scoreOps);
+                                                        }
+
+                                                        // Run Chain
+                                                        if (chained && target.isOnline()) { OotilityCeption.SendAndParseConsoleCommand(target.getPlayer(), chainedCommand, sender, null, null, null); }
+
+                                                        // Say that
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Check Balance", "Player \u00a73" + target.getName() + "\u00a77 has \u00a7e" + balance + "\u00a77. \u00a7aSuccessfuly\u00a77 in range \u00a73" + args[3]));
+
+                                                    } else {
+
+                                                        // Say that
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Check Balance", "Player \u00a73" + target.getName() + "\u00a77 has \u00a7e" + balance + "\u00a77. \u00a7cNot within\u00a77 range \u00a73" + args[3]));
+                                                    }
+                                                }
+                                            }
+
+                                            // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("Vault - Charge", "Incorrect usage. For info: \u00a7e/goop vault"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop vault charge <player> <amount>");
+                                            }
+                                        }
+
+                                        break;
+                                    //endregion
+                                    //region operation
+                                    case "operation":
+                                        //   0      1     2       3       4         args.Length
+                                        // /goop vault operation <player> <value>
+                                        //   -      0     1       2       3         args[n]
+
+                                        // Git Vault
+                                        if (args.length == 4) {
+
+                                            // Gets that player boi
+                                            targets = OotilityCeption.GetPlayers(senderLocation, args[2], true, null);
+
+                                            // Does the player exist?
+                                            if (targets.size() < 1) {
+                                                // Failure
+                                                failure = true;
+
+                                                // Notify the error
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Operation", "Target must be a player!"));
+                                            }
+
+                                            // Parse amount?
+                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+                                            PlusMinusPercent charge = PlusMinusPercent.GetPMP(args[3], logAddition);
+                                            if (logAddition.getValue() != null) {
+
+                                                // Notify
+                                                logReturn.add(OotilityCeption.LogFormat("Vault - Operation", logAddition.getValue()));
+                                            }
+                                            if (charge == null) {
+
+                                                // Failure
+                                                failure = true;
+                                            }
+
+                                            // Valid Sintax
+                                            if (!failure) {
+
+                                                // Execute for each player
+                                                for (OfflinePlayer target : targets) {
+
+                                                    // Get this' eco
+                                                    double balance = GooPVault.GetPlayerBalance(target);
+
+                                                    // Charge I guess
+                                                    GooPVault.SetPlayerBalance(target, charge);
+
+                                                    // Say that
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Operation", "Player \u00a73" + target.getName() + "\u00a77 now has a balance of \u00a7e" + GooPVault.GetPlayerBalance(target)));
+
+
+                                                    // Run Chain
+                                                    if (chained && target.isOnline()) { OotilityCeption.SendAndParseConsoleCommand(target.getPlayer(), chainedCommand, sender, null, null, null); }
+                                                }
+                                            }
+
+                                            // Incorrect number of args
+                                        } else {
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("Vault - Operation", "Incorrect usage. For info: \u00a7e/goop vault"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop vault operation <player> [±]<amount>[%]");
+                                            }
+                                        }
+
+                                        break;
+                                    //endregion
+                                    default:
+                                        // I have no memory of that shit
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Vault", "'\u00a73" + args[1] + "\u00a77' is not a valid Vault action! do \u00a7e/goop vault\u00a77 for the list of actions."));
+                                        break;
+                                }
+
+                            } else if (args.length == 1) {
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73GooP-Vault, \u00a77Related to the third party plugin.");
+                                logReturn.add("\u00a73Usage: \u00a7e/goop vault {action}");
+                                logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                                logReturn.add("\u00a73 --> \u00a7echarge <player> <amount>");
+                                logReturn.add("\u00a73      * \u00a77If the player has enoigh eco, charges this amount.");
+                                logReturn.add("\u00a73      * \u00a77If the target doesnt have enough, fails and doesn't do anything.");
+                                logReturn.add("\u00a73 --> \u00a7eoperation <player> [±]<amount>[%]");
+                                logReturn.add("\u00a73      * \u00a77Performs a PMP Operation on the player's balance.");
+
+                            } else {
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                    logReturn.add(OotilityCeption.LogFormat("Vault", "Incorrect usage. For info: \u00a7e/goop vault"));
+                                    logReturn.add("\u00a73Usage: \u00a7e/goop vault {action}");
+                                }
+                            }
+
+                        // No perms
+                        } else {
+
+                            // Tell him lmao
+                            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to use vault-related commands!"));
+                        }
+
+                    // Vault not installed. Returning
+                    } else {
+
+                        // Tell him lmao
+                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("\u00a77These commands are to be used with the third party plugin \u00a7e\u00a7lVault \u00a77which you dont have installed."));
+                    }
+                    break;
+                //endregion
+                //region sudo
+                case sudo:
+                    //   0    1      2        3...      args.Length
+                    // /goop delay <entity> <command...>
+                    //   -    0      1        2...      args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.sudo");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length >= 3) {
+
+                            // CHeck failure
+                            boolean failure = false;
+                            boolean asOP = args[0].toLowerCase().endsWith("p");
+                            RefSimulator<String> logAddtion = new RefSimulator<>("");
+
+                            // Get Playes / Entity
+                            CommandSender asConsole = Bukkit.getServer().getConsoleSender(); boolean isConsole = false;
+                            Entity asEntity = OotilityCeption.getEntityByUniqueId(args[1]);
+                            ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[1], logAddtion);
+
+                            // not console?
+                            if (!args[1].equals("console")) {
+                                //DBG//OotilityCeption.Log("\u00a73sudop\u00a77 Sudoing entity? \u00a7e" + (asEntity != null));
+                                //DBG//OotilityCeption.Log("\u00a73sudop\u00a77 Sudoing players? \u00a7e" + targets.size());
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asEntity == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Sudo", "Target must be an online player!"));
+                                }
+
+                            // Was Console
+                            } else {
+
+                                // As console IG
+                                isConsole = true;
+                                //DBG//OotilityCeption.Log("\u00a73sudop\u00a77 Sudoing console");
+                            }
+
+                            // If player was found
+                            if (!failure) {
+
+                                // Build Command
+                                StringBuilder lLine;
+
+                                // Gather initial value
+                                lLine = new StringBuilder(args[2]);
+                                for (int i = 3; i < args.length; i++) {
+
+                                    // Add, separating with spaces
+                                    lLine.append(" ").append(args[i]);
+                                }
+
+                                // Append chained
+                                if (chained) { lLine.append(" oS: ").append(chainedNoLocation); }
+                                String cmddd = lLine.toString();
+
+                                if (!isConsole) {
+
+                                    // Run
+                                    for (Player target : targets) {
+                                        //DBG//OotilityCeption.Log("\u00a73sudop\u00a77 Running as \u00a7e" + target.getName() + "\u00a73 " + cmddd);
+
+                                        // OP Perms?
+                                        boolean wasOP = target.isOp();
+                                        if (asOP) { target.setOp(true); }
+
+                                        // As Player
+                                        OotilityCeption.SendAndParseConsoleCommand(target, cmddd, target, null, null, null, null);
+
+                                        // Revert
+                                        if (asOP && !wasOP) { target.setOp(false); }
+                                    }
+
+                                    // Run
+                                    if (asEntity != null) {
+                                        //DBG//OotilityCeption.Log("\u00a73sudop\u00a77 Running as \u00a7e" + asEntity.getName() + "\u00a73 " + cmddd);
+
+                                        // As Entity
+                                        OotilityCeption.SendAndParseConsoleCommand(asEntity.getUniqueId(), cmddd, asEntity, null, null, null, null);
+                                    }
+
+                                // Lest go
+                                } else {
+                                    //DBG//OotilityCeption.Log("\u00a73sudop\u00a77 Running as \u00a7econsole\u00a73 " + cmddd);
+
+                                    // As Entity
+                                    OotilityCeption.SendAndParseConsoleCommand(cmddd, asConsole, null, null, null);
+
+                                }
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Sudo, \u00a77Execute a command as someone");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop sudo <entity> <command>");
+                            logReturn.add("\u00a73 - \u00a7e<entity> \u00a77UUID, vanilla selector, player name");
+                            logReturn.add("\u00a73 - \u00a7e<command> \u00a77Command to execute");
+                            logReturn.add("\u00a7c> \u00a77May use command \u00a7csudop\u00a77 to run with OP perms.");
+                            logReturn.add("\u00a78Be aware that this turns players OP for the sync duration of the command, and they will remain OPd if the command crashes the server while executing. Async commands may not finish executing by the time a player is reverted to normal.");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Sudo", "Incorrect usage. For info: \u00a7e/goop sudo"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop sudo <players / entity uuid> <command>");
+                            }
+                        }
+
+                        // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oNo permission to hyjack people's command sending abilities."));
+                    }
+                    break;
+                //endregion
+                //region permission
+                case permission:
+                    //   0      1          2        3       4           5   args.Length
+                    // /goop permission <player> <perm> [objective] [score]
+                    //   -      0          1        2       3           4   args[n]
+
+                    // Check 5 Permission
+                    if (sender instanceof Player) {
+                        // Solid check for permission
+                        permission = sender.hasPermission("gunging_ootilities_plugin.permission");
+                    }
+
+                    // GOt permission?
+                    if (permission) {
+
+                        // Chek for args length
+                        if (args.length == 3 || args.length == 5) {
+
+                            // CHeck failure
+                            boolean failure = false;
+                            RefSimulator<String> logAddtion = new RefSimulator<>("");
+
+                            // Get Playes / Entity
+                            CommandSender asConsole = Bukkit.getServer().getConsoleSender(); boolean isConsole = false;
+                            Entity asEntity = OotilityCeption.getEntityByUniqueId(args[1]);
+                            ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[1], logAddtion);
+
+                            // Does the player exist?
+                            if (targets.size() < 1 && asEntity == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Permission", "Target must be an online player!"));
+                            }
+
+                            Objective objective = null;
+                            PlusMinusPercent scoreOps = null;
+                            if (args.length == 5) {
+
+                                // Get
+                                objective = OotilityCeption.GetObjective(args[3]);
+                                scoreOps = PlusMinusPercent.GetPMP(args[4], logAddtion);
+
+                                // Log
+                                if (objective == null) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Permission", "Objective \u00a73" + args[3] + "\u00a77 not found."));
+                                }
+
+                                // PMP
+                                if (scoreOps == null) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Permission", "Expected numeric value or PMP instead of \u00a7e" + args[4] + "\u00a77."));
+                                }
+                            }
+
+                            // If player was found
+                            if (!failure) {
+
+                                if (asEntity != null) {
+
+                                    if (objective != null) {
+                                        // Operate
+                                        OotilityCeption.SetEntryScore(objective, asEntity.getUniqueId().toString(), scoreOps);
+                                    }
+
+                                    // Mention
+                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Permission", "Non-Players \u00a7aalways\u00a77 have permission.")); }
+
+
+                                    // Run Chain
+                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(asEntity.getUniqueId(), chainedCommand, sender, null, null, null); }
+                                }
+
+                                // Each target
+                                for (Player target : targets) {
+
+                                    // Has perm?
+                                    if (target.hasPermission(args[2])) {
+
+                                        if (objective != null) {
+                                            // Operate
+                                            OotilityCeption.SetPlayerScore(objective, target, scoreOps);
+                                        }
+
+                                        // Mention
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Permission", "Player \u00a73" + target.getName() + "\u00a7a had\u00a77 permission.")); }
+
+                                        // Run Chain
+                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+
+                                    // Fail = No Perms
+                                    } else {
+
+                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+
+                                        // Mention
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Permission", "Player \u00a73" + target.getName() + "\u00a7c missing\u00a77 permission.")); }
+                                    }
+                                }
+                            }
+
+                        } else if (args.length == 1) {
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Permission, \u00a77Succeeds if the player has permission");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop permission <player> <perm> [objective] [score]");
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77UUID, vanilla selector, player name.");
+                            logReturn.add("\u00a73 - \u00a7e<perm> \u00a77Permission to check.");
+                            logReturn.add("\u00a73 - \u00a7e[objective] \u00a77Will store the score result.");
+                            logReturn.add("\u00a73 - \u00a7e[score] \u00a77Score result if succeeds.");
+
+                        } else {
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Permission", "Incorrect usage. For info: \u00a7e/goop permission"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop permission <player> <perm> [objective] [±][score][%]");
+                            }
+                        }
+
+                        // No perms
+                    } else {
+
+                        // Clarify it lack of perms
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou have no permission to check permissio... holdon... this command failed unspecifiedly."));
+                    }
+                    break;
+                //endregion
+                default: break;
+            }
+        }
+
+        //
+        // MESSAGE LOGGING TIME YEET{
+        //
+
+        // If the caster is a player, it sends messages.
+        if (sender instanceof Player) {
+
+            // I guess this works?
+            for (String s : logReturn) { sender.sendMessage(s); }
+
+        // Otherwise this B is the console
+        } else {
+
+            // Print a line for each thing
+            for (String s : logReturn) { oots.CLog(s); }
+        }
+
+        return false;
+        //return super.onCommand(sender, command, label, args);
+    }
+
+    public void onCommand_GooPUnlock(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
+        // Has permission?
+        boolean permission = true;
+
+        // What will be said to the caster (caster = sender of command)
+        List<String> logReturn = new ArrayList<>();
+
+        // Check 5 Permission
+        if (sender instanceof Player) {
+            // Solid check for permission
+            permission = sender.hasPermission("gunging_ootilities_plugin.unlockables");
+        }
+
+        if (permission) {
+
+            if (args.length >= 3) {
+                //   0    1      2      3      4    5+       args.Length
+                // /goop unlock {a} <player> <goal> {a}
+                //   -    0      1      2       3    4+       args[n]
+
+                // Failure
+                boolean failure = false;
+
+                // Gets the players
+                ArrayList<Player> targets = new ArrayList<>();
+                targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+
+                // Switch
+                switch (args[1].toLowerCase()) {
+                    //region Unlock
+                    case "unlock":
+                        //   0    1        2       3      4     5        6        7         args.Length
+                        // /goop unlock unlock <player> <goal> [x] [reset timer] [time]
+                        //   -    0        1       2      3     4        5        6         args[n]
+
+                        // Get x
+                        if (args.length >= 4 && args.length <= 7) {
+
+                            // Does the player exist?
+                            if (targets.size() < 1) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Target must be an online player!"));
+                            }
+
+                            // Get
+                            PlusMinusPercent ex = null;
+                            if (args.length >= 5) {
+
+                                // Correct
+                                switch (args[4].toLowerCase()) {
+                                    case "true":
+                                        args[4] = "1";
+                                        break;
+                                    case "false":
+                                        args[4] = "0";
+                                        break;
+                                }
+
+                                // Ref Sim
+                                RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                // Try parse
+                                ex = PlusMinusPercent.GetPMP(args[4], logAddition);
+
+                                // Log
+                                if (logAddition != null && logAddition.getValue() != null && logAddition.getValue().length() > 1) { logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", logAddition.getValue())); }
+
+                                if (ex == null) {
+
+                                    // Failure
+                                    failure = true;
+                                }
+                            }
+
+                            // Timer
+                            OptimizedTimeFormat otf = null;
+                            if (args.length >= 7) {
+
+                                // Identify time measure
+                                String magnitude = args[6].substring(0, args[6].length() - 1);
+                                String units = args[6].substring(args[6].length() - 1);
+
+                                // Parses?
+                                if (OotilityCeption.IntTryParse(magnitude)) {
+
+                                    // Kreate
+                                    otf = OptimizedTimeFormat.Current();
+                                    Integer mag = OotilityCeption.ParseInt(magnitude);
+                                    if (mag < 0) { mag = -mag; }
+
+                                    // Units?
+                                    switch (units) {
+                                        case "s":
+                                            otf.AddSeconds(mag);
+                                            break;
+                                        case "m":
+                                            otf.AddMinutes(mag);
+                                            break;
+                                        case "h":
+                                            otf.AddHours(mag);
+                                            break;
+                                        case "d":
+                                            otf.AddDays(mag);
+                                            break;
+                                        case "y":
+                                            otf.AddYears(mag);
+                                            break;
+                                        default:
+
+                                            // Fail
+                                            failure = true;
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Time units '" + units + "\u00a77' not recognized. Must use \u00a7bs m h d \u00a77or\u00a7b y \u00a77(Second, Minute, Hour, Day, Year)"));
+
+                                            break;
+                                    }
+
+                                } else {
+
+                                    // Fail
+                                    failure = true;
+
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Expected an integer for time value instead of \u00a73" + magnitude));
+                                }
+                            }
+
+                            boolean reset = false;
+                            if (args.length >= 6) {
+
+                                // Parse
+                                if (OotilityCeption.BoolTryParse(args[5])) {
+
+                                    reset = Boolean.parseBoolean(args[5]);
+
+                                } else {
+
+                                    // Fail
+                                    failure = true;
+
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a73" + args[5]));
+
+                                }
+                            }
+
+                            // No more failure
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+
+                                    // Chaining succ
+                                    failure = false;
+                                    boolean chainingSuccess = false;
+
+                                    // Unlock
+                                    GooPUnlockables uck = GooPUnlockables.From(target.getUniqueId(), args[3]);
+                                    uck.CheckTimer();
+                                    String logMod = "";
+
+                                    // No new timer was specified
+                                    if (otf == null) {
+
+                                        // What to do with the old timer?
+                                        if (reset) {
+
+                                            // If unlocked
+                                            if (uck.IsUnlocked()) {
+
+                                                // Timed to begin with
+                                                if (uck.isTimed()) {
+
+                                                    // Remove it
+                                                    uck.SetTimed(null);
+
+                                                    // Run Chain
+                                                    chainingSuccess = true;
+
+                                                    logMod = "\u00a77 Removed old goal timer.";
+                                                }
+
+                                            // Not unlocked
+                                            } else {
+
+                                                // Failure
+                                                failure = true;
+
+                                                logMod = "\u00a77 Failed to remove goal timer: \u00a7eGoal is not unlocked!";
+                                            }
+                                        }
+
+                                    // A new timer was specified
+                                    } else {
+
+                                        // Not forcing reset but, its not unlocked in the first place... or forcing a timer reset sure.
+                                        if (reset || !uck.IsUnlocked()) {
+
+                                            // Replace it
+                                            uck.SetTimed(otf);
+
+                                            // Run Chain
+                                            chainingSuccess = true;
+
+                                            // Already unlocked?
+                                            if (uck.isTimed()) {
+
+                                                logMod = "\u00a77 Set goal to automatically lock \u00a73" + args[6] + "\u00a77 from now.";
+
+                                            } else {
+
+
+                                                logMod = "\u00a77 Replaced old goal timer with new one.";
+                                            }
+
+                                        }
+                                    }
+
+                                    // If its not yet unlocked
+                                    if ((!uck.IsUnlocked() || (ex != null)) && !failure) {
+
+                                        // Raw Unlock
+                                        if (ex == null) {
+
+                                            // Unlock
+                                            uck.Unlock();
+
+                                            // Ntify
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Player \u00a73" + target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77." + logMod));
+
+                                            // Run Chain
+                                            chainingSuccess = true;
+
+                                            // Save
+                                            uck.Save();
+
+                                        // Unlock opps
+                                        } else {
+
+                                            // Get
+                                            double u = uck.GetUnlock();
+
+                                            // Oppe
+                                            uck.SetUnlock(ex.apply(u));
+
+                                            // Must be diff
+                                            if (u != uck.GetUnlock()) {
+
+                                                // Ntify
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Player \u00a73" + target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77 at \u00a7b" + uck.GetUnlock() + "\u00a77." + logMod));
+
+                                                // Run Chain
+                                                chainingSuccess = true;
+
+                                                // Save
+                                                uck.Save();
+
+                                            } else {
+
+                                                // L
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Player \u00a73" + target.getName() + "\u00a77 already had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
+                                            }
+                                        }
+
+                                    } else {
+
+                                        // L
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Player \u00a73" + target.getName() + "\u00a77 alraedy had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
+                                    }
+
+                                    // Run Chain
+                                    if (chained && chainingSuccess) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+
+                                    else if (!chainingSuccess) {
+
+                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                    }
+                                }
+                            }
+
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Incorrect usage. For info: \u00a7e/goop unlock"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop unlock unlock <player> <goal> [x]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Lock
+                    case "lock":
+                        //   0    1        2       3      4      args.Length
+                        // /goop unlock unlock <player> <goal>
+                        //   -    0        1       2      3      args[n]
+
+                        // Get x
+                        if (args.length == 4) {
+
+                            // Does the player exist?
+                            if (targets.size() < 1) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Lock", "Target must be an online player!"));
+                            }
+
+                            // No more failure
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+
+                                    // Unlock
+                                    GooPUnlockables uck = GooPUnlockables.From(target.getUniqueId(), args[3]);
+                                    uck.CheckTimer();
+
+                                    // If its not yet unlocked
+                                    if (uck.IsUnlocked()) {
+
+                                        // Unlock
+                                        uck.Lock();
+
+                                        // Ntify
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Lock", "Player \u00a73" + target.getName() + "\u00a77 now has goal \u00a7e" + args[3] + "\u00a77 as \u00a7clocked\u00a77."));
+
+                                        // Run Chain
+                                        if (chained) {
+                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                        }
+
+                                        // Save
+                                        uck.Save();
+
+                                    } else {
+
+                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+
+                                        // L
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Lock", "Player \u00a73" + target.getName() + "\u00a77 alraedy had goal \u00a7e" + args[3] + "\u00a77 locked."));
+                                    }
+                                }
+                            }
+
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Unlock - Lock", "Incorrect usage. For info: \u00a7e/goop unlock"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop unlock lock <player> <goal>");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Lockstate
+                    case "lockstate":
+                        //   0    1        2          3      4     5      6          7      args.Length
+                        // /goop unlock lockstate <player> <goal> <x> [objective] [score]
+                        //   -    0        1          2      3     4      5          6      args[n]
+
+                        // Get x
+                        if (args.length == 5 || args.length == 7) {
+
+                            // Does the player exist?
+                            if (targets.size() < 1) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - LockState", "Target must be an online player!"));
+                            }
+
+                            // Get
+                            QuickNumberRange tLock = null;
+                            boolean anySuccess = args[4].toLowerCase().equals("true");
+
+                            if (OotilityCeption.BoolTryParse(args[4])) {
+
+                                // Parse
+                                Boolean tBool = Boolean.parseBoolean(args[4]);
+
+                                // Modify if tru
+                                if (tBool) { tLock = new QuickNumberRange(1.0, 1.0); }
+                                else { tLock = new QuickNumberRange(0.0, 0.0); }
+
+                            // Neither, cancel
+                            } else {
+
+                                // Parse Heab
+                                tLock = QuickNumberRange.FromString(args[4]);
+
+                                // Valid?
+                                if (tLock == null) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - LockState", "Expected \u00a7btrue\u00a77/\u00a7bfalse\u00a77 value (or numeric) (or range) instead of \u00a7e" + args[4]));
+                                }
+                            }
+
+                            // Obj
+                            Objective targetObjective = null;
+                            PlusMinusPercent targetScore = null;
+                            if (args.length == 7) {
+
+                                // Ref
+                                RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                // Parse
+                                targetObjective = OotilityCeption.GetObjective(args[5]);
+
+                                targetScore = PlusMinusPercent.GetPMP(args[6], logAddition);
+
+                                // Failurii
+                                if (targetObjective == null) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    // Note
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - LockState", "Could not find objective of name \u00a73" + args[5]));
+                                }
+
+                                // Log
+                                if (logAddition != null && logAddition.getValue() != null && logAddition.getValue().length() > 1) { logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", logAddition.getValue())); }
+
+                                // Fail
+                                if (targetScore == null && !args[6].toLowerCase().equals("read")) {
+
+                                    // Not intended
+                                    failure = true;
+                                }
+                            }
+
+                            // No more failure
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+
+                                    // Unlock
+                                    GooPUnlockables uck = GooPUnlockables.From(target.getUniqueId(), args[3]);
+                                    uck.CheckTimer();
+
+                                    // Get Score
+                                    double fax = uck.GetUnlock();
+
+                                    // Range success?
+                                    if (tLock.InRange(fax) || (anySuccess && uck.IsUnlocked())) {
+
+                                        // Run Chain
+                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+
+                                        // Score check
+                                        if (targetObjective != null) {
+
+                                            // Declassify score
+                                            if (targetScore == null) { targetScore = new PlusMinusPercent(uck.GetUnlock(), false, false); }
+
+                                            // Set
+                                            OotilityCeption.SetPlayerScore(targetObjective, target, targetScore);
+
+                                            // Ntify
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Player \u00a73" + target.getName() + "\u00a7a had \u00a77goal in the correct lock state. Set their score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7b" + OotilityCeption.GetPlayerScore(targetObjective, target)));
+
+                                        } else {
+
+                                            // Ntify
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Player \u00a73" + target.getName() + "\u00a7a had \u00a77goal in the correct lock state."));
+                                        }
+
+                                    // Score doesnt match
+                                    } else {
+
+                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+
+                                        // Ntify
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - Unlock", "Player \u00a73" + target.getName() + "\u00a77 did \u00a7cnot\u00a77 have the goal in the correct unlock state (\u00a7e" + uck.GetUnlock() + "\u00a77)."));
+                                    }
+                                }
+                            }
+
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Unlock - LockState", "Incorrect usage. For info: \u00a7e/goop unlock"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop unlock lockstate <player> <goal> <x> [objective] [score]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Check
+                    case "check":
+                        //   0    1        2      3     args.Length
+                        // /goop unlock check <player>
+                        //   -    0        1      2     args[n]
+
+                        // Player is offline yo
+                        OfflinePlayer asOffline = OotilityCeption.GetPlayer(args[2], true);
+
+                        // Does the player exist?
+                        if (targets.size() < 1 && asOffline == null) {
+                            // Failure
+                            failure = true;
+
+                            // Notify the error
+                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Unlock - LockState", "Target must be an online player!"));
+                        }
+
+                        // No more failure
+                        if (!failure) {
+
+                            // Strs
+                            String col, bol = " \u00a7c", suc = " \u00a7a";
+
+                            // The offline one yes
+                            if (asOffline != null) {
+                                logReturn.add("\u00a7b+++\u00a77 For player \u00a7e" + asOffline.getName());
+                                for (GooPUnlockables uck : GooPUnlockables.getRegisteredTo(asOffline.getUniqueId())) {
+                                    if (uck == null) { continue; }
+                                    uck.CheckTimer();
+                                    if (uck.IsUnlocked()) { col = suc; } else { col = bol; }
+
+                                    String timeRemaining = "";
+                                    if (uck.isTimed()) {
+                                        timeRemaining = "\u00a73 " + OotilityCeption.NicestTimeValueFrom((double) OotilityCeption.SecondsElapsedSince(OptimizedTimeFormat.Current(), uck.GetTimed())); }
+
+                                    logReturn.add("\u00a7a> \u00a77 " + uck.getGoalname() + col + uck.IsUnlocked() + timeRemaining); } }
+
+                            // For every player
+                            for (Player target : targets) {
+                                if (asOffline != null && target.getUniqueId().equals(asOffline.getUniqueId())) { continue; }
+
+                                logReturn.add("\u00a7b+++\u00a77 For player \u00a7e" + target.getName());
+                                for (GooPUnlockables uck : GooPUnlockables.getRegisteredTo(target.getUniqueId())) {
+                                    if (uck == null) { continue; }
+                                    uck.CheckTimer();
+                                    if (uck.IsUnlocked()) { col = suc; } else { col = bol; }
+
+                                    String timeRemaining = "";
+                                    if (uck.isTimed()) {
+                                        timeRemaining = "\u00a73 " + OotilityCeption.NicestTimeValueFrom((double) OotilityCeption.SecondsElapsedSince(OptimizedTimeFormat.Current(), uck.GetTimed())); }
+
+                                    logReturn.add("\u00a7a> \u00a77 " + uck.getGoalname() + col + uck.IsUnlocked() + timeRemaining);
+                                }
+                            }
+                        }
+                        break;
+                    //endregion
+                }
+
+            } else if (args.length == 1) {
+                logReturn.add("\u00a7e______________________________________________");
+                logReturn.add("\u00a73Unlockables, \u00a77Yet another way of 'unlocking' stuff.");
+                logReturn.add("\u00a73Usage: \u00a7e/goop unlock {action}");
+                logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                logReturn.add("\u00a73 --> \u00a7eunlock <player> <goal> [x] [reset timer] [time]");
+                logReturn.add("\u00a73      * \u00a77Target goal is now unlocked by target player");
+                logReturn.add("\u00a73      * \u00a77You may specify a non-zero value for X to store");
+                logReturn.add("\u00a73 --> \u00a7elock <player> <goal>");
+                logReturn.add("\u00a73      * \u00a77Target goal, to target player, is now locked");
+                logReturn.add("\u00a73 --> \u00a7elockstate <player> <goal> <x> [objective] [score]");
+                logReturn.add("\u00a73      * \u00a77Checks that the goal is locked or unlocked.");
+                logReturn.add("\u00a73      * \u00a77You may specify a range, \u00a7b0..10\u00a77 for x.");
+                logReturn.add("\u00a73      * \u00a78Note that '\u00a7clocked\u00a78' means that \u00a7cx = 0.0");
+                logReturn.add("\u00a73 --> \u00a7echeck <player>");
+                logReturn.add("\u00a73      * \u00a77For debugging, check the goals of all the players.");
+                logReturn.add("\u00a73      * \u00a77This just prints their values so you can see them.");
+            } else {
+                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                    logReturn.add(OotilityCeption.LogFormat("Unlock", "Incorrect usage. For info: \u00a7e/goop unlock"));
+                    logReturn.add("\u00a73Usage: \u00a7e/goop unlock {action} <player> <goal>");
+                }
+            }
+
+        } else {
+
+            // Tell him lmao
+            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission unlock stuff this way!"));
+        }
+
+        //Set Log Return Urn Value
+        logReturnUrn.SetValue(logReturn);
+    }
+    public void onCommand_GooPNBT(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
+        // Has permission?
+        boolean permission = true;
+
+        // What will be said to the caster (caster = sender of command)
+        List<String> logReturn = new ArrayList<>();
+
+        // Check 5 Permission
+        if (sender instanceof Player) {
+            // Solid check for permission
+            permission = sender.hasPermission("gunging_ootilities_plugin.nbt");
+        }
+
+        // Got permission?
+        if (permission) {
+            if (args.length >= 2) {
+                // Some bool to know if failure
+                boolean failure = false;
+
+                // Gets the players
+                ArrayList<Player> targets = new ArrayList<>();
+                Entity asDroppedItem = null;
+                // Get the players
+                int playerIndex = 2;
+                if (args[1].toLowerCase().endsWith("lore")) { playerIndex++; }
+                if (args.length > playerIndex) {
+
+                    // Actually Get
+                    targets = OotilityCeption.GetPlayers(senderLocation, args[playerIndex], null);
+                    asDroppedItem = OotilityCeption.getEntityByUniqueId(args[playerIndex]);
+                }
+                if (!(asDroppedItem instanceof Item)) { asDroppedItem = null; }
+                StringBuilder successSlots = new StringBuilder();
+
+                // Amount of successes
+                int succ = 0;
+
+                switch (args[1].toLowerCase()) {
+                    //region rename
+                    case "rename":
+                        //   0    1      2      3      4    5+       args.Length
+                        // /goop nbt rename <player> <slot> <name>
+                        //   -    0     1      2       3    4+       args[n]
+
+                        // Correct number of args?
+                        if (args.length >= 5) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Does the player exist?
+                            if (targets.size() < 1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Rename", "Target must be an online player!"));
+                            }
+
+                            // Build Lore Line ig
+                            String aLoreLine = "";
+                            if (!failure) {
+
+                                // Build lore Line out of the remainder args
+                                StringBuilder lLine;
+
+                                // Gather initial value
+                                lLine = new StringBuilder(args[4]);
+                                for (int i = 5; i < args.length; i++) {
+
+                                    // Add, separating with spaces
+                                    lLine.append(" ").append(args[i]);
+                                }
+                                aLoreLine = lLine.toString();
+                                aLoreLine = OotilityCeption.ParseColour(aLoreLine);
+                            }
+
+                            // Dropped item?
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.RenameItem(targetItem, aLoreLine, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Replace Item
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Rename Dropped Item lma0
+                                        asDroppedItem.setCustomName(OotilityCeption.GetItemName(resul));
+                                    }
+
+                                    // Log if exists
+                                    if (logAddition != null) {
+
+                                        if (logAddition.GetValue() != null) {
+
+                                            logReturn.add(OotilityCeption.LogFormat("NBT - Rename", logAddition.GetValue()));
+                                        }
+                                    }
+
+                                    // On Success
+                                    if (succ > 0) {
+
+                                        // Run Chain
+                                        if (chained) {
+                                            OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+                                // Apply to item
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Rename", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.RenameItem(targetItem, aLoreLine, target, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Replace Item
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                    }
+
+                                                    // Log if exists
+                                                    if (logAddition != null) {
+
+                                                        if (logAddition.GetValue() != null) {
+
+                                                            logReturn.add(OotilityCeption.LogFormat("NBT - Rename", logAddition.GetValue()));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Rename", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt rename <player> <slot> <name...>");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region revar
+                    case "revar":
+                    case "revariable":
+                        //   0    1    2      3      4           5+       args.Length
+                        // /goop nbt revar <player> <slot> <variable=value...;variable=value...>
+                        //   -    0    1      2       3         4+       args[n]
+
+                        // Correct number of args?
+                        if (args.length >= 5) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Does the player exist?
+                            if (targets.size() < 1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Revariable", "Target must be an online player!"));
+                            }
+
+                            // Build Lore Line ig
+                            NameVariableOperation nvo = null;
+                            if (!failure) {
+
+                                // Build lore Line out of the remainder args
+                                String aLoreLine = "";
+                                StringBuilder lLine;
+
+                                // Gather initial value
+                                lLine = new StringBuilder(args[4]);
+                                for (int i = 5; i < args.length; i++) {
+
+                                    // Add, separating with spaces
+                                    lLine.append(" ").append(args[i]);
+                                }
+
+                                // Cooked
+                                ArrayList<NameVariable> iOperation = new ArrayList<>();
+                                aLoreLine = lLine.toString();
+
+                                // Split into names and vars
+                                if (aLoreLine.contains(";")) {
+
+                                    // Split
+                                    String[] nVars = aLoreLine.split(";");
+
+                                    // Evaluate
+                                    for (String nvr : nVars) {
+
+                                        // Get Nmae
+                                        NameVariable baked = OotilityCeption.GetNameVariable(nvr.replace("<&sc>", ";").replace("<$sc>", ";"));
+
+                                        // If valid
+                                        if (baked != null) { iOperation.add(baked); }
+                                    }
+
+                                // Seems to be simple
+                                } else {
+
+                                    // Add if valid
+                                    NameVariable bar = OotilityCeption.GetNameVariable(aLoreLine);
+                                    if (bar == null) { if (aLoreLine.equals("PAPI")) { iOperation.add(new NameVariable("PAPI", "")); } } else { iOperation.add(bar); }
+                                }
+
+
+                                // Does the player exist?
+                                if (iOperation.size() < 1) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Revariable", "Must specify at least one variable in the format \u00a73[name_no_spaces]=[text with <$sc> instead of semicolons]\u00a77. To specify more than one variable, make a semicolon separated list."));
+
+                                } else {
+
+                                    // If there is only one and it is the PAPI
+                                    if (iOperation.size() == 1 && iOperation.get(0).getIdentifier().equals("PAPI")) {
+
+                                        // Its a just refresh
+                                        nvo = new NameVariableOperation();
+
+                                    } else {
+
+                                        // Fill as var replace
+                                        nvo = new NameVariableOperation(iOperation);
+                                    }
+                                }
+                            }
+
+                            // Dropped item?
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.RenameItem(targetItem, nvo, null, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Replace Item
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Rename Dropped Item lma0
+                                        asDroppedItem.setCustomName(OotilityCeption.GetItemName(resul));
+                                    }
+
+                                    // Log if exists
+                                    if (logAddition != null) {
+
+                                        if (logAddition.GetValue() != null) {
+
+                                            logReturn.add(OotilityCeption.LogFormat("NBT - Revariable", logAddition.GetValue()));
+                                        }
+                                    }
+
+                                    // On Success
+                                    if (succ > 0) {
+
+                                        // Run Chain
+                                        if (chained) {
+                                            OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // Apply to item
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Revariable", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.RenameItem(targetItem, nvo, target, logAddition);
+
+                                                    // Scry Through Lore
+                                                    resul = OotilityCeption.RevariabilizeLore(resul, nvo, target);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Replace Item
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                    }
+
+                                                    // Log if exists
+                                                    if (logAddition != null) {
+
+                                                        if (logAddition.GetValue() != null) {
+
+                                                            logReturn.add(OotilityCeption.LogFormat("NBT - Revariable", logAddition.GetValue()));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Revariable", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt revariable <player> <slot> <variable=value...>");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region addLore
+                    case "addlore":
+                        //   0    1      2      3       4        5    6+       args.Length
+                        // /goop nbt addLore <index> <player> <slot> [fv] <lore line>
+                        //   -    0      1       2       3       4    5+       args[n]
+
+                        // Correct number of args?
+                        if (args.length >= 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Index Parses?
+                            Integer iIndex = 0;
+                            if (args[2].equalsIgnoreCase("top")) {
+
+                                // Very first entry
+                                iIndex = 0;
+
+                                // Alternate keyword parse
+                            } else if (args[2].equalsIgnoreCase("bottom")) {
+
+                                // No Leve = last entry
+                                iIndex = null;
+
+                                // Does it parse?
+                            } else if (OotilityCeption.IntTryParse(args[2])) {
+
+                                // Get that number, straight up
+                                iIndex = OotilityCeption.ParseInt(args[2]);
+
+                                // Doesnt work rip
+                            } else {
+
+                                // Failure
+                                failure = true;
+
+                                // Log
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("NBT - Add Lore", "Expected index to be an integer number or \u00a7etop\u00a77/\u00a7ebottom\u00a77 keywords instead of '\u00a73" + args[2] + "\u00a77'.")); }
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Add Lore", "Target must be an online player!"));
+                            }
+
+                            boolean fVanilla = false;
+                            int loreAdd = 0;
+                            if (args.length >= 7) {
+                                if (OotilityCeption.BoolTryParse(args[5])) {
+                                    fVanilla = OotilityCeption.BoolParse(args[5]);
+                                    loreAdd = 1;
+                                }
+                            }
+
+                            // Parse Lore line
+                            String aLoreLine = "";
+                            if (!failure) {
+
+                                // Build lore Line out of the remainder args
+                                StringBuilder lLine;
+
+                                // Gather initial value
+                                lLine = new StringBuilder(args[5 + loreAdd]);
+                                for (int i = 6 + loreAdd; i < args.length; i++) {
+
+                                    // Add, separating with spaces
+                                    lLine.append(" ").append(args[i]);
+                                }
+                                aLoreLine = lLine.toString();
+                            }
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul;
+                                    if (fVanilla) {
+                                        resul = OotilityCeption.AppendLoreLineVanilla(targetItem, aLoreLine, iIndex, logAddition);
+                                    } else {
+                                        resul = OotilityCeption.AppendLoreLine(targetItem, aLoreLine, iIndex, logAddition);
+                                    }
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Replace Item
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+                                    }
+
+                                    // Log if exists
+                                    if (logAddition != null) {
+
+                                        if (logAddition.GetValue() != null) {
+
+                                            logReturn.add(OotilityCeption.LogFormat("NBT - Add Lore", logAddition.GetValue()));
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Add Lore", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul;
+                                                    if (fVanilla) {
+                                                        resul = OotilityCeption.AppendLoreLineVanilla(targetItem, aLoreLine, target, iIndex, logAddition);
+                                                    } else {
+                                                        resul = OotilityCeption.AppendLoreLine(targetItem, aLoreLine, target, iIndex, logAddition);
+                                                    }
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Replace Item
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                    }
+
+                                                    // Log if exists
+                                                    if (logAddition != null) {
+
+                                                        if (logAddition.GetValue() != null) {
+
+                                                            logReturn.add(OotilityCeption.LogFormat("NBT - Add Lore", logAddition.GetValue()));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Add Lore Line", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt addLore <index> <player> <slot> [fv] <lore line...>");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region removeLore
+                    case "removelore":
+                        //   0    1      2         3       4        5         6        args.Length
+                        // /goop nbt removeLore <index> <player> <slot> [forcevanilla]
+                        //   -    0      1         2       3        4         5        args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            boolean revAll = false;
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Index Parses?
+                            Integer iIndex = 0;
+                            if (args[2].equalsIgnoreCase("top")) {
+
+                                // Very first entry
+                                iIndex = 0;
+
+                                // Alternate keyword parse
+                            } else if (args[2].equalsIgnoreCase("bottom")) {
+
+                                // No Leve = last entry
+                                iIndex = null;
+
+                                // Alternate keyword parse
+                            } else if (args[2].equalsIgnoreCase("all")) {
+
+                                // No Leve = last entry
+                                revAll = true;
+
+                                // Does it parse?
+                            } else if (OotilityCeption.IntTryParse(args[2])) {
+
+                                // Get that number, straight up
+                                iIndex = OotilityCeption.ParseInt(args[2]);
+
+                                // Doesnt work rip
+                            } else {
+
+                                // Failure
+                                failure = true;
+
+                                // Log
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("NBT - Remove Lore", "Expected index to be an integer number or \u00a7etop\u00a77/\u00a7ebottom\u00a77 keywords instead of '\u00a73" + args[2] + "\u00a77'.")); }
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Remove Lore", "Target must be an online player!"));
+                            }
+
+                            boolean fVanilla = false;
+                            if (args.length == 6) {
+                                if (OotilityCeption.BoolTryParse(args[5])) {
+                                    fVanilla = OotilityCeption.BoolParse(args[5]);
+
+                                } else {
+                                    // Fail
+                                    failure = true;
+
+                                    // Log
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Remove Lore", "Expected '\u00a7etrue\u00a77' or '\u00a7efalse\u00a77' instead of '\u00a73" + args[5] + "\u00a77'"));
+                                }
+                            }
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul, reval;
+                                    if (fVanilla) {
+                                        resul = OotilityCeption.RemoveLoreLineVanilla(targetItem, iIndex, logAddition);
+
+                                    } else {
+                                        resul = OotilityCeption.RemoveLoreLine(targetItem, iIndex, logAddition);
+                                    }
+
+                                    if (resul != null && revAll) {
+
+                                        // Temporary item
+                                        reval = resul;
+
+                                        while (revAll) {
+
+                                            // Remove last lore line
+                                            if (fVanilla) {
+                                                reval = OotilityCeption.RemoveLoreLineVanilla(reval, 0, null);
+
+                                            } else {
+                                                reval = OotilityCeption.RemoveLoreLine(reval, 0, null);
+                                            }
+
+                                            // If it finally reached an error
+                                            if (reval == null) {
+
+                                                // Clear this shit
+                                                revAll = false;
+
+                                                // Still standing
+                                            } else {
+
+                                                // Accomodate the result
+                                                resul = reval;
+                                            }
+                                        }
+                                    }
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Replace Item
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+                                    }
+
+                                    // Log if exists
+                                    if (logAddition != null) {
+
+                                        if (logAddition.GetValue() != null) {
+
+                                            logReturn.add(OotilityCeption.LogFormat("NBT - Remove Lore", logAddition.GetValue()));
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Remove Lore", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul, reval;
+                                                    if (fVanilla) {
+                                                        resul = OotilityCeption.RemoveLoreLineVanilla(targetItem, iIndex, logAddition);
+
+                                                    } else {
+                                                        resul = OotilityCeption.RemoveLoreLine(targetItem, iIndex, logAddition);
+                                                    }
+
+                                                    if (resul != null && revAll) {
+
+                                                        // Temporary item
+                                                        reval = resul;
+
+                                                        while (revAll) {
+
+                                                            // Remove last lore line
+                                                            if (fVanilla) {
+                                                                reval = OotilityCeption.RemoveLoreLineVanilla(reval, 0, null);
+
+                                                            } else {
+                                                                reval = OotilityCeption.RemoveLoreLine(reval, 0, null);
+                                                            }
+
+                                                            // If it finally reached an error
+                                                            if (reval == null) {
+
+                                                                // Clear this shit
+                                                                revAll = false;
+
+                                                                // Still standing
+                                                            } else {
+
+                                                                // Accomodate the result
+                                                                resul = reval;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Replace Item
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                    }
+
+                                                    // Log if exists
+                                                    if (logAddition != null) {
+
+                                                        if (logAddition.GetValue() != null) {
+
+                                                            logReturn.add(OotilityCeption.LogFormat("NBT - Remove Lore", logAddition.GetValue()));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Remove Lore Line", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt removeLore <index> <player> <slot> [fv]");
+                            }
+                        }
+                        break;
+
+                    //endregion
+                    //region mSpeed
+                    case "mspeed":
+                    case "movementspeed":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt mspeed <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() < 1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                    logReturn.add(OotilityCeption.LogFormat("NBT - Move. Speed", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Move. Speed", logAddition.getValue()));
+                            }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback)
+                                    logReturn.add(OotilityCeption.LogFormat("NBT - Move. Speed", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_MOVEMENT_SPEED, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Move. Speed", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_MOVEMENT_SPEED, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Move. Speed", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Move. Speed", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt mspeed <player> <slot> [±]<movement speed>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region mhealth
+                    case "mhealth":
+                    case "maxhealth":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt mhealth <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Max Health", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Max Health", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Max Health", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_MAX_HEALTH, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Max Health", slotFailure.getValue())); }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_MAX_HEALTH, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Max Health", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Max Health", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt mhealth <player> <slot> [±]<max health>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Attack Damage
+                    case "adamage":
+                    case "attackdamage":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt adamage <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Att. Damage", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Att. Damage", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Att. Damage", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_ATTACK_DAMAGE, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Att. Damage", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_ATTACK_DAMAGE, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Att. Damage", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Att. Damage", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt adamage <player> <slot> [±]<attack damage>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Armour
+                    case "armour":
+                    case "armor":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt armour <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Armour", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Armour", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Armour", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_ARMOR, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Armour", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_ARMOR, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Armour", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Armour", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt armour <player> <slot> [±]<armour>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Armor Toughness
+                    case "atoughness":
+                    case "armortoughness":
+                    case "armourtoughness":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt atoughness <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Armour Toughness", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Armour Toughness", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Armour Toughness", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_ARMOR_TOUGHNESS, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Armour Toughness", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_ARMOR_TOUGHNESS, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Armour Toughness", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Armour Toughness", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt atoughness <player> <slot> [±]<toughness>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Attack Speed
+                    case "aspeed":
+                    case "attackspeed":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt aspeed <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Att. Speed", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Att. Speed", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Att. Speed", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_ATTACK_SPEED, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Att. Speed", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_ATTACK_SPEED, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Att. Speed", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Att. Speed", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt aspeed <player> <slot> [±]<attack speed>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Knockback Resistance
+                    case "kresistance":
+                    case "knockbackr":
+                    case "knockbackresistance":
+                    case "kres":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt kres <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Knokback Res.", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Knokback Res.", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Knokback Res.", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_KNOCKBACK_RESISTANCE, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Knokback Res", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_KNOCKBACK_RESISTANCE, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Knokback Res.", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Knokback Res.", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt kresistance <player> <slot> [±]<k. resistance>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Luck
+                    case "luck":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt luckk <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5 || args.length == 6) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Luck", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Luck", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Luck", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_LUCK, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Luck", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAttribute(targetItem, pValue, Attribute.GENERIC_LUCK, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Luck", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Luck", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt luck <player> <slot> [±]<luck>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region cModelData
+                    case "cmodeldata":
+                    case "custommodeldata":
+                    case "cmdata":
+                    case "cmodeld":
+                    case "custommd":
+                        //   0    1      2      3      4       5         6       args.Length
+                        // /goop nbt cmodeldata <player> <slot> <value> [objective]
+                        //   -    0     1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if ((args.length == 5 || args.length == 6)) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() < 1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                    logReturn.add(OotilityCeption.LogFormat("NBT - C. Model D.", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - C. Model D.", logAddition.getValue()));
+                            }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback)
+                                    logReturn.add(OotilityCeption.LogFormat("NBT - C. Model D.", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // Correct MC Versions?
+                            if (GooP_MinecraftVersions.GetMinecraftVersion() < 14.0) {
+
+                                // BRUH
+                                failure = true;
+
+                                // Notify the error
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback)
+                                    logReturn.add(OotilityCeption.LogFormat("NBT - C. Model D.", "\u00a7cCustom Model Data is for Minecraft 1.14+"));
+
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetCMD(targetItem, pValue, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - C. Model D.", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetCMD(targetItem, pValue, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - C. Model D.", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - C. Model D.", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt cModelData <player> <slot> [±]<value>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Damage
+                    case "damage":
+                        //   0    1     2      3       4       5       6        7       args.Length
+                        // /goop nbt damage <player> <slot> <value> [break] [objective]
+                        //   -    0     1      2       3       4       5        6       args[n]
+
+                        // Correct number of args?
+                        if ((args.length >= 5 && args.length <= 7)) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Boolean to save or keep
+                            boolean preventBreaking = true;
+                            String scoreboardGit = null;
+                            if (args.length >= 6) {
+
+                                // It did not parse, is there a seventh?
+                                if (args.length == 7) {
+
+                                    // Take that as the score
+                                    scoreboardGit = args[6];
+                                }
+
+                                // Does it parse as boolean?
+                                if (OotilityCeption.BoolTryParse(args[5])) {
+
+                                    // Thats the prevent break
+                                    preventBreaking = Boolean.parseBoolean(args[5]);
+
+                                    // Why gotta decide which one is the scoreboard
+                                } else if (args.length == 6) {
+
+                                    // Length is 6 and it is not a bool value, assume it is the coreboard
+                                    scoreboardGit = args[5];
+
+                                    // It doesnt parse but it is of length 7
+                                } else {
+
+                                    // Boolean parse error
+                                    failure = true;
+
+                                    // Notify
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Damage", "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a73" + args[5] + "\u00a77 for prevent breaking option."));
+                                }
+                            }
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (scoreboardGit != null) {
+                                targetObjective = targetScoreboard.getObjective(scoreboardGit);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Damage", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Damage", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (scoreboardGit != null && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Damage", "Scoreboard objective \u00a73" + scoreboardGit + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetDurability(targetItem, null, pValue, scor, preventBreaking, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Is it AIR¡
+                                        if (resul.getType() == Material.DEBUG_STICK) { resul = null; }
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Damage", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetDurability(targetItem, target, pValue, scor, preventBreaking, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Is it AIR¡
+                                                        if (resul.getType() == Material.DEBUG_STICK) { resul = null; }
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Damage", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Damage", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt damage <player> <slot> [±]<value>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Enchantment
+                    case "enchantment":
+                        //   0    1         2        3      4       5      6         7       args.Length
+                        // /goop nbt enchantment <player> <slot> <ench> <value> [objective]
+                        //   -    0         1        2      3       4      5         6       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 6 || args.length == 7) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Integer> scor = null;
+                            if (args.length == 7) {
+                                targetObjective = targetScoreboard.getObjective(args[6]);
+                                scor = new RefSimulator<>(0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Enchantment", "Target must be an online player!"));
+                            }
+
+                            // Enchantment exsts?
+                            Enchantment tEnch = null;
+                            if (!args[4].toLowerCase().equals("all")) {
+
+                                // If it is not 'all', get target
+                                tEnch = OotilityCeption.GetEnchantmentByName(args[4]);
+
+                                // If it wasn't found
+                                if (tEnch == null) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // log
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("NBT - Enchantment", "Enchantment '\u00a73" + args[4] + "\u00a77' does not exist. Remember to use vanilla names.")); }
+                                }
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[5], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Enchantment", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 7 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Enchantment", "Scoreboard objective \u00a73" + args[6] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            int tScore = 0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Transform into enchantment lists
+                                    ArrayList<Enchantment> enchs = new ArrayList<>();
+
+                                    // If it was the all keyword
+                                    if (tEnch == null) {
+
+                                        // Ad d all
+                                        enchs.addAll(Arrays.asList(Enchantment.values()));
+
+                                        // Otherwise
+                                    } else {
+
+                                        // Set as the enchantment iseld
+                                        enchs.add(tEnch);
+                                    }
+
+                                    ItemStack resul = targetItem;
+
+                                    // All of them
+                                    for (Enchantment ech : enchs) {
+                                        if (targetObjective != null) {
+                                            scor = new RefSimulator<>(0);
+                                        }
+
+                                        // Get and Update
+                                        ItemStack resulEdited = OotilityCeption.EnchantmentOperation(resul, ech, pValue, scor, logAddition);
+
+                                        if (resulEdited != null) {
+
+                                            // Update to currentmost
+                                            resul = resulEdited;
+
+                                            // Set Score
+                                            if (scor != null) {
+
+                                                // If there was actually  a value
+                                                if (scor.getValue() != null) {
+
+                                                    // Increase
+                                                    tScore += scor.getValue();
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Enchantment", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Transform into enchantment lists
+                                                    ArrayList<Enchantment> enchs = new ArrayList<>();
+
+                                                    // If it was the all keyword
+                                                    if (tEnch == null) {
+
+                                                        // Ad d all
+                                                        enchs.addAll(Arrays.asList(Enchantment.values()));
+
+                                                        // Otherwise
+                                                    } else {
+
+                                                        // Set as the enchantment iseld
+                                                        enchs.add(tEnch);
+                                                    }
+
+                                                    ItemStack resul = targetItem;
+
+                                                    // All of them
+                                                    for (Enchantment ech : enchs) {
+                                                        if (targetObjective != null) {
+                                                            scor = new RefSimulator<>(0);
+                                                        }
+
+                                                        // Get and Update
+                                                        ItemStack resulEdited = OotilityCeption.EnchantmentOperation(resul, ech, pValue, scor, logAddition);
+
+                                                        if (resulEdited != null) {
+
+                                                            // Update to currentmost
+                                                            resul = resulEdited;
+
+                                                            // Set Score
+                                                            if (scor != null) {
+
+                                                                // If there was actually  a value
+                                                                if (scor.getValue() != null) {
+
+                                                                    // Increase
+                                                                    tScore += scor.getValue();
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Enchantment", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Enchantment", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt enchantment <player> <slot> <enchantment> [±]<level>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Morph Material
+                    case "setmaterial":
+                        //   0    1      2      3      4    5       args.Length
+                        // /goop nbt setmaterial <player> <slot> <Mateiral>
+                        //   -    0     1      2       3    4       args[n]
+
+                        // Correct number of args?
+                        if (args.length == 5) {
+
+                            // Gets that player boi
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Set Material", "Target must be an online player!"));
+                            }
+
+                            // Is it a real material?
+                            Material mat = null;
+                            try {
+                                // Yes, it seems to be
+                                mat = Material.valueOf(args[4].toUpperCase());
+
+                                // Well it is supported then
+
+                                // Not recognized
+                            } catch (IllegalArgumentException ex) {
+
+                                // Not recognized
+                                failure = true;
+
+                                // Notify the error
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Set Material", "That is not a valid material!"));
+
+                            }
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get Name
+                                    String tName = OotilityCeption.GetItemName(targetItem);
+
+                                    // Get and Update
+                                    targetItem.setType(mat);
+
+                                    // Apply Changes
+                                    OotilityCeption.SetDroppedItemItemStack(asDroppedItem, targetItem);
+                                    succ++;
+
+                                    // Log if exists
+                                    logReturn.add(OotilityCeption.LogFormat("NBT - Set Mateiral", "Changed material of " + tName + "\u00a77 to \u00a73" + mat.toString()));
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Set Material", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get Name
+                                                    String tName = OotilityCeption.GetItemName(targetItem);
+
+                                                    // Get and Update
+                                                    targetItem.setType(mat);
+
+                                                    // Apply Changes
+                                                    tISource.ReplaceItem(targetItem);
+                                                    succ++;
+                                                    if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                    // Log if exists
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("NBT - Set Mateiral", "Changed material of " + tName + "\u00a77 to \u00a73" + mat.toString())); }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Set Material", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt setMaterial <player> <slot> <material>");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region amount
+                    case "amount":
+                        //   0    1    2      3      4       5         6       args.Length
+                        // /goop nbt amount <player> <slot> <value> [objective]
+                        //   -    0    1      2       3       4         5       args[n]
+
+                        // Correct number of args?
+                        if ((args.length == 5 || args.length == 6)) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Some scoreboards to test
+                            ScoreboardManager manager = Bukkit.getScoreboardManager();
+                            Scoreboard targetScoreboard = manager.getMainScoreboard();
+                            Objective targetObjective = null;
+                            RefSimulator<Double> scor = null;
+                            if (args.length == 6) {
+                                targetObjective = targetScoreboard.getObjective(args[5]);
+                                scor = new RefSimulator<>(0.0);
+                            }
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Amount", "Target must be an online player!"));
+                            }
+
+                            PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
+                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Amount", logAddition.getValue())); }
+                            if (pValue == null) {
+                                // Failure
+                                failure = true;
+                            }
+
+                            if (args.length == 6 && targetObjective == null) {
+                                // Failure
+                                failure = true;
+
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Amount", "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                            }
+
+                            // For cummulative score
+                            double tScore = 0.0;
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Get and Update
+                                    ItemStack resul = OotilityCeption.SetAmount(targetItem, pValue, scor, logAddition);
+
+                                    // If there was success
+                                    if (resul != null) {
+
+                                        // Is it debug stick? thats a fat L
+                                        if (resul.getType() == Material.DEBUG_STICK) { resul = null; }
+
+                                        // Apply Changes
+                                        OotilityCeption.SetDroppedItemItemStack(asDroppedItem, resul);
+                                        succ++;
+
+                                        // Set Score
+                                        if (scor != null) {
+
+                                            // If there was actually  a value
+                                            if (scor.getValue() != null) {
+
+                                                // Increase
+                                                tScore += scor.getValue();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // If scoreboard was provided
+                                    if (scor != null) {
+
+                                        // Run score
+                                        OotilityCeption.SetEntityScore(targetObjective, asDroppedItem, OotilityCeption.RoundToInt(tScore * 10));
+
+                                        // Modify the log addition
+                                        if (logAddition != null) {
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                logAddition.setValue(logAddition.getValue() + "\u00a77. Also set item's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetEntityScore(targetObjective, asDroppedItem));
+                                            }
+                                        }
+                                    }
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    // Starts at score of 0
+                                    tScore = 0.0;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Amount", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For cummulative score
+                                        tScore = 0.0;
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Item
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Get and Update
+                                                    ItemStack resul = OotilityCeption.SetAmount(targetItem, pValue, scor, logAddition);
+
+                                                    // If there was success
+                                                    if (resul != null) {
+
+                                                        // Is it debug stick? thats a fat L
+                                                        if (resul.getType() == Material.DEBUG_STICK) { resul = null; }
+
+                                                        // Apply Changes
+                                                        tISource.ReplaceItem(resul);
+                                                        succ++;
+                                                        if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                                        // Set Score
+                                                        if (scor != null) {
+
+                                                            // If there was actually  a value
+                                                            if (scor.getValue() != null) {
+
+                                                                // Increase
+                                                                tScore += scor.getValue();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // If scoreboard was provided
+                                            if (scor != null) {
+
+                                                // Run score
+                                                OotilityCeption.SetPlayerScore(targetObjective, target, OotilityCeption.RoundToInt(tScore * 10));
+
+                                                // Modify the log addition
+                                                if (logAddition != null) {
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                        logAddition.setValue(logAddition.getValue() + "\u00a77. Also set player's score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7e" + OotilityCeption.GetPlayerScore(targetObjective, target));
+                                                    }
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        } else {
+
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        }
+
+                                        // Log if exists
+                                        if (logAddition != null) {
+
+                                            if (logAddition.GetValue() != null) {
+
+                                                logReturn.add(OotilityCeption.LogFormat("NBT - Amount", logAddition.GetValue()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Amount", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt amount <player> <slot> [±]<quantity>[%] [objective]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region Set Item
+                    case "setitem":
+                        //   0    1      2      3       4       5 6 7        8     args.Length
+                        // /goop nbt setitem <player> <slot> {nbt string} [<amount>]
+                        //   -    0     1      2        3       4 5 6        7     args[n]
+
+                        // Correct number of args?
+                        if (args.length == 7 || args.length == 8) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Set Item", "Target must be an online player!"));
+                            }
+
+                            // Valid NBT String?
+                            ItemStack tSource = null; logAddition.setValue("");
+                            if (OotilityCeption.IsInvalidItemNBTtestString(args[4], args[5], args[6], logAddition)) {
+
+                                // Fail lol
+                                failure = true;
+
+                                // Log
+                                if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Set Item", logAddition.getValue())); }
+
+                                // Why it says it is valid
+                            } else {
+
+                                // Git
+                                tSource = OotilityCeption.ItemFromNBTTestString(args[4], args[5], args[6], "1", logAddition);
+
+                                // Null?
+                                if (tSource == null) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Log
+                                    if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Set Item", logAddition.getValue())); }
+                                }
+                            }
+
+                            // Check PMP
+                            PlusMinusPercent pValue;
+                            if (args.length == 8) {
+                                pValue = PlusMinusPercent.GetPMP(args[7], logAddition);
+                                if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("NBT - Set Item", logAddition.getValue())); }
+                                if (pValue == null) {
+                                    // Failure
+                                    failure = true;
+                                }
+
+                            } else {
+                                pValue = new PlusMinusPercent(1.0, false, false);
+                            }
+
+                            // Dropped Item
+                            if (asDroppedItem != null && !failure) {
+
+                                // Amount
+                                int amount = 0;
+
+                                //Time to get that item stack
+                                ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+
+                                // Any item found?
+                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                    // Define 'amount'
+                                    amount = targetItem.getAmount();
+                                }
+
+                                // Apply PCP Operation
+                                amount = OotilityCeption.RoundToInt(pValue.apply((double) amount));
+
+                                // Set amount
+                                ItemStack setta = tSource.clone();
+                                setta.setAmount(amount);
+
+                                // Set Item lmaO
+                                OotilityCeption.SetDroppedItemItemStack(asDroppedItem, setta);
+                                succ++;
+
+                                // On Success
+                                if (succ > 0) {
+
+                                    // Run Chain
+                                    if (chained) {
+                                        OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);
+                                    }
+                                }
+                            }
+
+                            if (!failure) {
+
+                                // For every player
+                                for (Player target : targets) {
+                                    failure = false;
+
+                                    //Lets get that inven slot
+                                    RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                    ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[3], target, slotFailure);
+
+                                    // So, does the slot make no sense?
+                                    if (slott.size() == 0) {
+                                        // Failure
+                                        failure = true;
+                                    }
+
+                                    // Log
+                                    if (slotFailure.getValue() != null) {
+                                        logReturn.add(OotilityCeption.LogFormat("NBT - Set Item", slotFailure.getValue()));
+                                    }
+
+                                    // Bice sintax
+                                    if (!failure) {
+
+                                        // For every slot
+                                        for (ItemStackSlot oSlot : slott) {
+
+                                            // Get Current Item (For amount calculations)
+                                            ItemStackLocation tISource = OotilityCeption.GetInvenItem(target, oSlot);
+                                            int amount = 0;
+
+                                            // If non-null
+                                            if (tISource != null) {
+
+                                                //Time to get that item stack
+                                                ItemStack targetItem = tISource.getItem();
+
+                                                // Any item found?
+                                                if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                                    // Define 'amount'
+                                                    amount = targetItem.getAmount();
+                                                }
+                                            }
+
+                                            // Apply PCP Operation
+                                            amount = OotilityCeption.RoundToInt(pValue.apply((double) amount));
+
+                                            // Set amount
+                                            ItemStack setta = tSource.clone();
+                                            setta.setAmount(amount);
+
+                                            // Set Item lmaO
+                                            OotilityCeption.SetInvenItem(target, oSlot, setta);
+                                            succ++;
+                                            if (chained) { OotilityCeption.Slot4Success(successSlots, oSlot, OotilityCeption.comma); }
+
+                                            // Log if exists
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("NBT - Set Item", "Set Item \u00a7e" + OotilityCeption.GetItemName(tSource) + "\u00a77 in player \u00a73" + target.getName() + "\u00a77's \u00a7b" + oSlot.getLocation().toString()));
+                                        }
+
+                                        // On Success
+                                        if (succ > 0) {
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("NBT - Set Item", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop nbt setItem <player> <slot> {nbt string} [±]<amount>[%]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    default:
+                        // I have no memory of that shit
+                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("NBT", "'\u00a73" + args[1] + "\u00a77' is not a valid NBT action! do \u00a7e/goop nbt\u00a77 for the list of actions."));
+                        break;
+                }
+
+            } else if (args.length == 1) {
+                logReturn.add("\u00a7e______________________________________________");
+                logReturn.add("\u00a73NBT Manipulation, \u00a77Mostly add lore and edit item name.");
+                logReturn.add("\u00a73Usage: \u00a7e/goop nbt {action}");
+                logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                logReturn.add("\u00a73 --> \u00a7erename <player> <slot> <item name>");
+                logReturn.add("\u00a73      * \u00a77Sets the name of target item.");
+                logReturn.add("\u00a73 --> \u00a7eaddLore <index> <player> <slot> [fv] <lore line>");
+                logReturn.add("\u00a73      * \u00a77Adds a lore line to the item. <index> supports keywords \u00a7etop\u00a77 and \u00a7ebottom\u00a77.");
+                logReturn.add("\u00a73 --> \u00a7eremoveLore <index> <player> <slot> [fv]");
+                logReturn.add("\u00a73      * \u00a77Removes a line of lore. <index> supports keywords \u00a7etop\u00a77 and \u00a7ebottom\u00a77.");
+                logReturn.add("\u00a73 --> \u00a7emSpeed <player> <slot> [±]<movement speed value>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the movement speed attribute of the item.");
+                logReturn.add("\u00a73 --> \u00a7emHealth <player> <slot> [±]<max health>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the health boost attribute of the item.");
+                logReturn.add("\u00a73 --> \u00a7earmour <player> <slot> [±]<armor>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the armour boost attribute of the item.");
+                logReturn.add("\u00a73 --> \u00a7eaToughness <player> <slot> [±]<armor toughness>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the armor toughness attribute of the item.");
+                logReturn.add("\u00a73 --> \u00a7eaDamage <player> <slot> [±]<attack damage>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the attack damage attribute of the item.");
+                logReturn.add("\u00a73 --> \u00a7eaSpeed <player> <slot> [±]<attack speed>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the attack speed attribute of the item.");
+                logReturn.add("\u00a73 --> \u00a7ekResistance <player> <slot> [±]<knockback resistance>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the knockback resistance attribute of the item.");
+                logReturn.add("\u00a73 --> \u00a7eluck <player> <slot> [±]<luck>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the luck attribute of the item.");
+                logReturn.add("\u00a73 --> \u00a7ecModelData <player> <slot> [±]<custom model data>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies the CustomModelData of the item.");
+                logReturn.add("\u00a73 --> \u00a7eenchantment <player> <slot> <enchantment> [±]<enchantment>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Modifies an enchantment of the item.");
+                logReturn.add("\u00a73 --> \u00a7esetMaterial <player> <slot> <material>");
+                logReturn.add("\u00a73      * \u00a77Sets the material of target item.");
+                logReturn.add("\u00a73 --> \u00a7eamount <player> <slot> [±]<quantity>[%] [objective]");
+                logReturn.add("\u00a73      * \u00a77Increases or decreases the amount of target item.");
+                logReturn.add("\u00a73 --> \u00a7esetItem <player> <slot> {nbt} [[±]<amount>[%]]");
+                logReturn.add("\u00a73      * \u00a77Sets target item, {nbt} can be for vanilla or MMOItem.");
+                logReturn.add("\u00a73      * \u00a77Amount operation applied to old item amount, if there was.");
+                logReturn.add("\u00a73 --> \u00a7edamage <player> <slot> {nbt} [[±]<repair>[%]]");
+                logReturn.add("\u00a73      * \u00a77Modifies durability of item.");
+                logReturn.add("\u00a73      * \u00a73Can never break or go negative - will be set to 1 instead.");
+                logReturn.add("\u00a73 --> \u00a7erevar <player> <slot> <variable=value...>");
+                logReturn.add("\u00a73      * \u00a77Changes the value of a variable in the name/lore of an item");
+                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Target slot in player's inventory.");
+                logReturn.add("\u00a73 --> \u00a77Possible slots: \u00a7bhead\u00a73, \u00a7bchest\u00a73, \u00a7blegs\u00a73, \u00a7bfeet\u00a73, \u00a7bmainhand\u00a73, \u00a7boffhand\u00a73, and any number \u00a7b0\u00a73-\u00a7b35\u00a73.");
+                if (Gunging_Ootilities_Plugin.foundMMOItems) logReturn.add("\u00a73 - \u00a7e[fv] \u00a77Forces vanilla lore operations (For MMOItems).");
+                if (Gunging_Ootilities_Plugin.foundMMOItems) { logReturn.add("\u00a73         **\u00a77If not set or false, all operations will target MMOItem item data."); }
+                logReturn.add("\u00a73 - \u00a7e[objective] \u00a77If specified, the resulting value of the attribute will be stored in that objective score of the target player.");
+
+            } else {
+                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                    logReturn.add(OotilityCeption.LogFormat("NBT", "Incorrect usage. For info: \u00a7e/goop nbt"));
+                    logReturn.add("\u00a73Usage: \u00a7e/goop nbt {action}");
+                }
+            }
+
+            // No perms
+        } else {
+            // Tell him lmao
+            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to edit item nbt!"));
+        }
+
+        //Set Log Return Urn Value
+        logReturnUrn.SetValue(logReturn);
+    }
+    public void onCommand_GooPContainers(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @Nullable String chainedNoLocation, @NotNull RefSimulator<List<String>> logReturnUrn) {
+        // Has permission?
+        boolean permission = true;
+
+        // What will be said to the caster (caster = sender of command)
+        List<String> logReturn = new ArrayList<>();
+
+        // Check 5 Permission
+        if (sender instanceof Player) {
+            // Solid check for permission
+            permission = sender.hasPermission("gunging_ootilities_plugin.containers");
+        }
+
+        // Got permission?
+        if (permission) {
+            if (args.length >= 2) {
+                // Some bool to know if failure
+                boolean failure = false;
+
+                switch (args[1].toLowerCase()) {
+                    //region open
+                    case "open":
+                        //   0        1      2         3             4        5   args.Length
+                        // /goop containers open <container type> [player] [mode]
+                        //   -        0      1         2              3       4    args[n]
+
+                        // Correct number of args?
+                        if (args.length >= 3 && args.length <= 5) {
+
+                            // Gather Player
+                            Player target = null;
+                            if (args.length >= 4) {
+
+                                // If specified, just get target player
+                                target = Bukkit.getPlayerExact(args[3]);
+
+                            } else if (sender instanceof Player) {
+
+                                // If not specified, it must be the sender
+                                target = (Player) sender;
+                            }
+
+                            // Additional mode?
+                            ContainerOpeningReason reason = ContainerOpeningReason.USAGE;
+                            if (args.length >= 5) {
+
+                                // Preview
+                                if (args[4].equalsIgnoreCase("PREVIEW")) { reason = ContainerOpeningReason.LOCK_STORAGE;}
+                            }
+
+                            // If null, failure
+                            if (target == null) {
+
+                                // failure
+                                failure = true;
+
+                                // Notify
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Open", "Please specify an online player to open the container to."));
+                            }
+
+                            // Is container loaded?
+                            ContainerTemplateGooP targetContainer = ContainerTemplateGooP.GetLoadedTemplate(args[2]);
+                            if (targetContainer == null) {
+
+                                // Fat L
+                                failure = true;
+
+                                // Notify
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Open", "Could not find any loaded container of name \u00a73" + args[2]));
+
+                                // So it exists; Was it physical?
+                            } else if (targetContainer.IsPhysical()) {
+
+                                // Wont open PHYSICAl
+                                failure = true;
+
+                                // Notify Failure
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Open", "Incorrect method to open \u00a73PHYSICAL\u00a77 containers. Use \u00a7e/goop containers access\u00a77 instead."));
+                            }
+
+                            // So that is a success
+                            if (!failure) {
+
+                                // Open it for them
+                                switch (targetContainer.getContainerType()) {
+                                    default:
+                                        logReturn.add(OotilityCeption.LogFormat("Containers - Open", "\u00a7cThis is not supposed to happen. \u00a77Even if it says it 'opened it successfuly,' you cleary noticed nothing happened. Report this bug plz."));
+                                        break;
+                                    case PERSONAL:
+
+                                        // Will open target player's version. Get the corresponding Personal Container
+                                        PersonalContainerGooP tPers = ContainerTemplateGooP.GetPersonalContainer(targetContainer);
+
+                                        // Open it
+                                        tPers.OpenForPlayer(target, reason);
+                                        break;
+                                    case STATION:
+
+                                        // Straight-Up Open
+                                        targetContainer.StationOpenFor(target, reason);
+                                        break;
+                                }
+
+                                // Run whatever command-yo
+                                if (targetContainer.hasCommandOnOpen() && (ContainerTemplateGooP.IsPremiumEnabled() || target.isOp())) { OotilityCeption.SendConsoleCommand(targetContainer.getCommandOnOpen(), target); }
+
+                                // Log Success
+                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Open", "Opened container \u00a73" + targetContainer.getInternalName() + "\u00a77 to \u00a73" + target.getName() + "\u00a77 successfully."));
+
+                                // Run Chain
+                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                            }
+
+                            // Incorrect number of args
+                        } else if (args.length == 2) {
+
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Containers - \u00a7bOpen, \u00a77Opens a non-physical container.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop containers open <container type> [player] [mode]");
+                            logReturn.add("\u00a73 - \u00a7e<container type> \u00a77Name of the container template.");
+                            logReturn.add("\u00a73      * \u00a77Must not be a PHYSICAL type of container.");
+                            logReturn.add("\u00a73 - \u00a7e[player] \u00a77Who should it be opened to.");
+                            logReturn.add("\u00a73      * \u00a77Required if called from the console.");
+                            logReturn.add("\u00a73 - \u00a7e[mode] \u00a77Additional ways of accessing containers");
+                            logReturn.add("\u00a73  \u00a7bUSAGE \u00a77Normal use, normal features.");
+                            logReturn.add("\u00a73  \u00a7bPREVIEW \u00a77Locks storage slots but commands still clickable.");
+
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Containers - Open", "Incorrect usage. For info: \u00a7e/goop containers open"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop containers open <container type> [player] [mode]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region see
+                    case "see":
+                        //   0        1      2         3           [4]      4 [5]     5 [6]        args.Length
+                        // /goop containers see <container type> [oracle] <player> [preview]
+                        //   -        0      1         2           [3]      3 [4]     4 [5]        args[n]
+
+                        // Correct number of args?
+                        if (args.length >= 4 && args.length <= 6) {
+
+                            String oracle = null;
+                            String victim = args[3];
+                            ContainerOpeningReason preview = ContainerOpeningReason.USAGE;
+
+                            // Preview
+                            if (args.length == 5) {
+
+                                boolean prevv = args[4].equalsIgnoreCase("PREVIEW");
+                                boolean usagg = args[4].equalsIgnoreCase("USAGE");
+
+                                // Parse preview?
+                                if (prevv || usagg) {
+
+                                    /*
+                                     *  Well this means it is in normal format, and preview will parse appropiately
+                                     */
+                                    preview = prevv ? ContainerOpeningReason.LOCK_STORAGE : ContainerOpeningReason.USAGE;
+
+                                // Its not an opening reason, which means it'll try to be a player
+                                } else {
+
+                                    // Oracle is [3]
+                                    oracle = args[3];
+                                    victim = args[4];
+                                }
+
+                            // Full information?
+                            } else if (args.length == 6) {
+
+
+                                // Oracle is [3]
+                                oracle = args[3];
+                                victim = args[4];
+
+                                /*
+                                 * Parse opening reason
+                                 */
+                                boolean prevv = args[5].equalsIgnoreCase("PREVIEW");
+                                boolean usagg = args[5].equalsIgnoreCase("USAGE");
+
+                                // Parse preview?
+                                if (prevv || usagg) {
+
+                                    /*
+                                     *  Well this means it is in normal format, and preview will parse appropiately
+                                     */
+                                    preview = prevv ? ContainerOpeningReason.LOCK_STORAGE : ContainerOpeningReason.USAGE;
+
+                                // Its not an opening reason, which means it'll try to be a player
+                                } else {
+
+                                    // Cannot be sent from console
+                                    failure = true;
+
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - See", "Invalid opening mode '\u00a73" + args[5] + "\u00a77', expected\u00a7b PREVIEW\u00a77 or \u00a7bUSAGE"));
+                                }
+                            }
+
+                            // Get Self
+                            Player self = null;
+                            if (oracle == null) {
+
+                                if (sender instanceof Player) {
+                                    self = (Player) sender;
+
+                                } else {
+
+                                    // Cannot be sent from console
+                                    failure = true;
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - See", "This command cannot be called from the console."));
+                                }
+                            } else {
+
+                                // Gather Player
+                                self = (Player) OotilityCeption.GetPlayer(victim, false);
+
+                                // If null, failure
+                                if (self == null) {
+
+                                    // failure
+                                    failure = true;
+
+                                    // Notify
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - See", "Please specify the player that will see the inventory of someone else, '\u00a73" + oracle + "\u00a77' not found."));
+                                }
+                            }
+
+                            // Gather Player
+                            OfflinePlayer target = OotilityCeption.GetPlayer(victim, true);
+
+                            // If null, failure
+                            if (target == null) {
+
+                                // failure
+                                failure = true;
+
+                                // Notify
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - See", "Please specify a player to spy upon, '\u00a73" + victim + "\u00a77' not found."));
+                            }
+
+                            // Is container loaded?
+                            ContainerTemplateGooP targetContainer = ContainerTemplateGooP.GetLoadedTemplate(args[2]);
+                            if (targetContainer == null) {
+
+                                // Fat L
+                                failure = true;
+
+                                // Notify
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - See", "Could not find any loaded container of name \u00a73" + args[2]));
+
+                                // So it exists; Was it physical?
+                            } else if (!targetContainer.IsPersonal()) {
+
+                                // Wont open non-PERSONAL
+                                failure = true;
+
+                                // Notify Failure
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - See", "Target container is not PERSONAL, this method is intended to look at PERSONAL type containers."));
+                            }
+
+                            // So that is a success
+                            if (!failure) {
+
+                                // Will open target player's version. Get the corresponding Personal Container
+                                PersonalContainerGooP tPers = ContainerTemplateGooP.GetPersonalContainer(targetContainer);
+
+                                // Open it
+                                tPers.OpenForPlayer(self, target.getUniqueId(), preview);
+
+                                // Log Success
+                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - See", "\u00a7e" + self.getName() + " \u00a77opened " + target.getName() + "'s container \u00a73" + targetContainer.getInternalName() + "\u00a77 successfuly."));
+
+                                // Run Chain
+                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                            }
+
+                            // Incorrect number of args
+                        } else if (args.length == 2) {
+
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Containers - \u00a7bSee, \u00a77Spies into a player's enderchest-kind container.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop containers see <container type> [who] <player> [preview]");
+                            logReturn.add("\u00a73 - \u00a7e<container type> \u00a77Name of the container template.");
+                            logReturn.add("\u00a73      * \u00a77Must be a PERSONAL type of container.");
+                            logReturn.add("\u00a73 - \u00a7e[who] \u00a77Optional, player spying on another.");
+                            logReturn.add("\u00a73      * \u00a77If missing, it will be the sender of the command.");
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77Whose container to spy.");
+                            logReturn.add("\u00a73      * \u00a77The victim of this operation");
+                            logReturn.add("\u00a73 - \u00a7e[preview] \u00a77Mode to open the other container");
+                            logReturn.add("\u00a73      * \u00a77Either \u00a7bUSAGE\u00a77 or \u00a7bPREVIEW\u00a77.");
+
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Containers - See", "Incorrect usage. For info: \u00a7e/goop containers see"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop containers see <container type> [who] <player> [preview]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region access
+                    case "access":
+                        //   0         1       2           3           4      5 6 7 8    args.Length
+                        // /goop containers access <container type> [player] [w x y z]
+                        //   -         0       1           2           3      4 5 6 7   args[n]
+
+                        // Correct number of args?
+                        if (args.length == 3 || args.length == 4 || args.length == 8) {
+
+                            // Gather Player
+                            ArrayList<Player> targets = new ArrayList<>();
+                            if (args.length >= 4) {
+
+                                // If specified, just get target player
+                                targets = OotilityCeption.GetPlayers(senderLocation, args[3], null);
+                            } else if (sender instanceof Player) {
+
+                                // If not specified, it must be the sender
+                                targets.add((Player) sender);
+                            }
+
+                            // If null, failure
+                            if (targets.size() < 1) {
+
+                                // failure
+                                failure = true;
+
+                                // Notify
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Access", "Please specify an online player to open the container to."));
+                            }
+
+                            // Is container loaded?
+                            ContainerTemplateGooP targetContainer = null;
+                            if (!args[2].toUpperCase().equals("OPEN_ONLY")) {
+
+                                // If its not using the 'open_only' keyword. Load it to be created
+                                targetContainer = ContainerTemplateGooP.GetLoadedTemplate(args[2]);
+                                if (targetContainer == null) {
+
+                                    // Fat L
+                                    failure = true;
+
+                                    // Notify
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Access", "Could not find any loaded container of name \u00a73" + args[2]));
+
+                                    // It is loaded, is it not a PHYSICAL type?
+                                } else if (!targetContainer.IsPhysical()) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    // Notify
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Access", "Target container is not a \u00a7ePHYSICAL\u00a77 container!"));
+                                }
+                            }
+
+                            // Gets that location boi
+                            Location targetLocation = null;
+                            if (args.length < 5) {
+                                if (sender instanceof Player) {
+
+                                    // Just target location I guess?
+                                    Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
+
+                                    // If exists
+                                    if (bLock == null) {
+
+                                        // Invalid location
+                                        failure = true;
+
+                                        // Mention
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Access","You are not looking at any block!"));
+
+                                        // I suppose its not air, right?
+                                    } else if (!OotilityCeption.IsAir(bLock.getType())) {
+
+                                        // Git Target Location
+                                        targetLocation = bLock.getLocation();
+
+                                        // Nvm it is air.
+                                    } else {
+
+                                        // Invalid location
+                                        failure = true;
+
+                                        // Mention
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Access","You are not looking at any block!"));
+
+                                    }
+
+                                } else {
+                                    // Vro need coords
+                                    failure = true;
+
+                                    // Say
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Access", "When making players access PHYSICAl containers, you must specify co-ordinates and a world!"));
+                                }
+
+                                // Build Location from args, later, if they parse.
+                            }
+
+                            // Foreach player
+                            for (Player target : targets) {
+
+                                // Parse location?
+                                if (args.length == 8) {
+
+                                    // Make Error Messager
+                                    RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                    // Get
+                                    targetLocation = OotilityCeption.ValidLocation(target, args[4], args[5], args[6], args[7], logAddition);
+
+                                    // Ret
+                                    if (targetLocation == null) {
+                                        failure = true;
+                                    }
+
+                                    // Add Log
+                                    if (logAddition.GetValue() != null) {
+                                        if (logAddition.GetValue().length() > 0) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Access", logAddition.GetValue()));
+                                        }
+                                    }
+                                }
+
+                                // Get Instance
+                                PhysicalContainerInstanceGooP targetContainerInstance = null;
+                                boolean createInstead = false;
+                                if (!failure) {
+
+                                    // If everything is still valid, get that container
+                                    targetContainerInstance = ContainerTemplateGooP.GetPhysicalContainerAt(targetLocation);
+
+                                    // If there wasn't one
+                                    if (targetContainerInstance == null) {
+
+                                        // If it was supposed to only open
+                                        if (targetContainer == null) {
+
+                                            // Won't do anything further
+                                            failure = true;
+
+                                            // Well its technically a failure
+                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                                logReturn.add(OotilityCeption.LogFormat("Containers - Access", "There is no container bound to that block!"));
+
+                                        } else {
+
+                                            // Will create one
+                                            createInstead = true;
+                                        }
+
+                                        // Found an instance in there already
+                                    } else {
+
+                                        // But this is asking to open/create a specific type of container?
+                                        if (targetContainer != null) {
+
+                                            // Does it match the specified template?
+                                            if (!targetContainerInstance.getParentTemplate().getInternalName().equals(targetContainer.getInternalName())) {
+
+                                                // Won't do anything further
+                                                failure = true;
+
+                                                // Well its technically a failure
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                                    logReturn.add(OotilityCeption.LogFormat("Containers - Access", "There is already a container bound to that block (\u00a7e" + targetContainerInstance.getParentTemplate().getInternalName() + "\u00a77) which is not the specified one (\u00a73" + targetContainer.getInternalName() + "\u00a77)."));
+                                            }
+                                        }
+
+                                        // Can the instance NOT be opened by that player?
+                                        if (!targetContainerInstance.CanOpen(target)) {
+
+                                            // Won't do anything further
+                                            failure = true;
+
+                                            // Well its technically a failure
+                                            OotilityCeption.SendMessageNextTick(target, "\u00a7cThis " + OotilityCeption.ParseColour(targetContainerInstance.getParentTemplate().getTitleRawNoID()) + " \u00a7cis locked with a magical spell!", 0);
+                                        }
+                                    }
+                                }
+
+                                // So that is a success
+                                if (!failure) {
+
+                                    // Create Instance if Necessary
+                                    if (createInstead) {
+
+                                        // Get Ref
+                                        RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                        // CREATE BOOM (With no inherent structure)
+                                        ContainerTemplateGooP.CreateNewPhysicalInstanceAt(targetContainer, targetLocation, target.getUniqueId(), logAddition, true, ContainerTemplateGooP.ClaimInherentStructureIfExists(targetLocation));
+
+                                        // Get it now, for sure
+                                        targetContainerInstance = ContainerTemplateGooP.GetPhysicalContainerAt(targetLocation);
+
+                                        // Log
+                                        if (logAddition.getValue() != null) {
+                                            if (logAddition.getValue().length() > 0) {
+                                                logReturn.add(OotilityCeption.LogFormat("Containers - Access", logAddition.getValue()));
+                                            }
+                                        }
+                                    }
+
+                                    // Open it
+                                    targetContainerInstance.OpenForPlayer(target);
+
+                                    // Run whatever command-yo
+                                    if (targetContainer.hasCommandOnOpen() && (ContainerTemplateGooP.IsPremiumEnabled() || target.isOp())) {
+                                        OotilityCeption.SendConsoleCommand(targetContainer.getCommandOnOpen(), target);
+                                    }
+
+                                    // Mention it
+                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                        logReturn.add(OotilityCeption.LogFormat("Containers - Access", "Player \u00a73" + target.getName() + "\u00a77 successfully accessed container at \u00a7e" + OotilityCeption.BlockLocation2String(targetLocation)));
+                                    }
+
+                                    // Run Chain
+                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else if (args.length == 2) {
+
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Containers - \u00a7bAccess, \u00a77Opens a physical container.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop containers access <container type> [player] [w x y z]");
+                            logReturn.add("\u00a73 - \u00a7e<container type> \u00a77Name of the container template.");
+                            logReturn.add("\u00a73      * \u00a77Must be a PHYSICAL type of container.");
+                            logReturn.add("\u00a73      * \u00a77Set to \u00a7bopen_only\u00a77 keyword to not");
+                            logReturn.add("\u00a73               automatically create one if there isnt one.");
+                            logReturn.add("\u00a73 - \u00a7e[player] \u00a77Who should it be opened to.");
+                            logReturn.add("\u00a73      * \u00a77Required if called from the console.");
+                            logReturn.add("\u00a73 - \u00a7e[w x y z] \u00a77Co-ordinates of the PHYSICAl instance.");
+                            logReturn.add("\u00a73      * \u00a77Required if called from the console.");
+                            logReturn.add("\u00a7cWill create a new instance in the specified location");
+                            logReturn.add("\u00a7cif there is not one in there already.");
+
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Containers - Access", "Incorrect usage. For info: \u00a7e/goop containers access"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop containers access <container type> [player] [w x y z]");
+                            }
+                        }
+                        break;
+                    //endregion
+                    //region config
+                    case "config":
+                        //   0        1         2       3+     args.Length
+                        // /goop containers  config {action}
+                        //   -        0         1       2+     args[n]
+
+                        // Correct number of args?
+                        if (args.length >= 3) {
+
+                            switch (args[2].toLowerCase()) {
+                                //region New
+                                case "new":
+                                    //   0      1          2    3         4                 5          6        args.Length
+                                    // /goop containers config new <container name> <container type> [rows]
+                                    //   -      0          1    2         3                 4          5        args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 5 || args.length == 6) {
+
+                                        // Make sure it is not loaedd
+                                        if (ContainerTemplateGooP.IsContainerTemplateLoaded(args[3])) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - New", "A container of that name already exists!"));
+                                        }
+
+                                        // Attempt to get
+                                        ContainerTypes cType = null;
+                                        try {
+
+                                            // Attempt to parse
+                                            cType = ContainerTypes.valueOf(args[4].toUpperCase());
+
+                                        } catch (IllegalArgumentException e) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - New", "Please specify a valid Container Type instead of \u00a73" + args[4]));
+                                        }
+
+                                        // Get Number of ROws
+                                        int rows = 3;
+                                        if (args.length == 6) {
+
+                                            // Try to parse
+                                            if (OotilityCeption.IntTryParse(args[5])) {
+
+                                                // Parse da shit
+                                                rows = OotilityCeption.ParseInt(args[5]);
+
+                                                if (rows < 1 || rows > 6) {
+
+                                                    // Failure
+                                                    failure = true;
+
+                                                    // Note
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - New", "Expected integer number from 1 to 6 (inclusive) instead of \u00a73" + args[5]));
+                                                }
+
+                                            } else {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Note
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - New", "Expected integer number from 1 to 6 (inclusive) instead of \u00a73" + args[5]));
+                                            }
+                                        }
+
+                                        // Well thats a simple success isn't it
+                                        if (!failure) {
+
+                                            // Refine contents lmaO
+                                            HashMap<Integer, ContainerSlot> refinedContents = ContainerTemplateGooP.ValidContainerContentBuilder(new ArrayList<>(), rows);
+
+                                            // Create new container!
+                                            ContainerTemplateGooP newTemplate = new ContainerTemplateGooP(args[3], refinedContents, cType);
+
+                                            // Save it and load it, yeet
+                                            boolean success = ContainerTemplateGooP.SaveAndLoadNewTemplate(newTemplate);
+
+                                            // Note
+                                            if (success) { logReturn.add(OotilityCeption.LogFormat("Containers - New", "Created new \u00a7e" + cType.toString() + "\u00a77 container named \u00a73" + args[3])); }
+                                            else { logReturn.add(OotilityCeption.LogFormat("Containers - New", "\u00a7cFailed to create new \u00a7e" + cType.toString() + "\u00a7c container named \u00a73" + args[3])); }
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bNew, \u00a77Creates a container of the given type.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config new <container name> <container type>");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Case-sensitive, original name.");
+                                        logReturn.add("\u00a73 - \u00a7e<container type> \u00a77How should the container be treated?");
+                                        logReturn.add("\u00a73 --> \u00a7bPHYSICAL");
+                                        logReturn.add("\u00a73      * \u00a77Will behave as a chest. Will store items in the world.");
+                                        logReturn.add("\u00a73 --> \u00a7bPERSONAL");
+                                        logReturn.add("\u00a73      * \u00a77Will work as an enderchest, storing items per-player.");
+                                        logReturn.add("\u00a73 --> \u00a7bSTATION");
+                                        logReturn.add("\u00a73      * \u00a77Wont store items, dropping them on the ground when closed.");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - New Container", "Incorrect usage. For info: \u00a7e/goop containers config new"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config new <container name> <container type>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region Edge Material
+                                case "edgematerial":
+                                    //   0      1          2        3       args.Length
+                                    // /goop containers config edgeMaterial
+                                    //   -      0          1        2       args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 3) {
+
+                                        // Get Self
+                                        Player self = null;
+                                        if (sender instanceof Player) {
+                                            self = (Player) sender;
+
+                                        } else {
+
+                                            // Cannot be sent from console
+                                            failure = true;
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Get Edge Material", "This command cannot be called from the console."));
+                                        }
+
+                                        // Pretty Straight-Forward
+                                        if (!failure) {
+
+                                            // Give player some edge
+                                            HashMap<Integer, ItemStack> ret = self.getInventory().addItem(new ItemStack(ContainerTemplateGooP.edgeMaterial));
+
+                                            // Success if eempty
+                                            if (ret.size() == 0) {
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Get Edge Material", "You have been given a copy of the edge material!"));
+
+                                                // Notify
+                                            } else {
+
+                                                // FOricbly
+                                                logReturn.add(OotilityCeption.LogFormat("Containers - Get Edge Material", "There is no space in your inventory!"));
+                                            }
+                                        }
+
+                                        // Incorrect number of args
+                                    } else {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bGet Edge Material, \u00a77Get the 'edge material.'");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config getEdgeMaterial");
+                                        logReturn.add("\u00a73      * \u00a77The Edge Material will transform into container");
+                                        logReturn.add("\u00a73        \u00a77edges once the edition is complete.");
+                                        logReturn.add("\u00a73      * For use with /goop containers config contents");
+                                        logReturn.add("\u00a73      * \u00a77The Edge Material will transform into container");
+                                        logReturn.add("\u00a73        \u00a77edges once the edition is complete.");
+
+                                    }
+                                    break;
+                                //endregion
+                                //region Title
+                                case "title":
+                                    //   0      1          2     3          4            5+       args.Length
+                                    // /goop containers config title <container name> <title>
+                                    //   -      0          1     2          3            4+       args[n]
+
+                                    // Correct number of args?
+                                    if (args.length >= 5) {
+
+                                        // Make sure it is not loaedd
+                                        ContainerTemplateGooP tTemplate = ContainerTemplateGooP.GetLoadedTemplate(args[3]);
+                                        if (tTemplate == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Title", "A container of that name doesnt exist!"));
+                                        }
+
+                                        // Well thats a simple success isn't it
+                                        if (!failure) {
+
+                                            // Build the title
+                                            StringBuilder tTitle = new StringBuilder(args[4]);
+
+                                            // Build
+                                            for (int i = 5; i < args.length; i++) {
+
+                                                // Append With a Space
+                                                tTitle.append(" ").append(args[i]);
+                                            }
+
+                                            // FInished
+                                            String tProduct = tTitle.toString();
+
+                                            // Note
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Title", "Renamed \u00a7e" + OotilityCeption.ParseColour(tTemplate.getTitleRawNoID()) + "\u00a77 to \u00a73" + OotilityCeption.ParseColour(tProduct)));
+
+                                            // Rename
+                                            ContainerTemplateGooP.SetAndSaveTitleRaw(tTemplate, tProduct);
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bTitle, \u00a77Changes the display name of a container.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config title <container name> <new title>");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Name of the target container.");
+                                        logReturn.add("\u00a73 - \u00a7e<new title> \u00a77Whatever it is you want it to display.");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Title", "Incorrect usage. For info: \u00a7e/goop containers config title"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config title <container name> <new title>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region Commands
+                                case "commands":
+                                    //   0      1          2     3          4               5           6           7+       args.Length
+                                    // /goop containers config commands <container name> <slot>     <command>
+                                    // /goop containers config commands <container name> <slot> <onStore/onTake> <command>
+                                    // /goop containers config commands <container name> slots
+                                    //   -      0          1     2          3              4            5           6+       args[n]
+
+                                    // Correct number of args?
+                                    if (args.length >= 5) {
+
+                                        // Make sure it is not loaedd
+                                        ContainerTemplateGooP tTemplate = ContainerTemplateGooP.GetLoadedTemplate(args[3]);
+                                        if (tTemplate == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Commands", "A container of that name doesnt exist!"));
+                                        }
+
+                                        // Get target slot
+                                        Integer tSlot = null; boolean scryInstead = false, onCloseInstead = false, onOpenInstead = false;
+                                        if (OotilityCeption.IntTryParse(args[4])) {
+
+                                            //If can parse, then thats the slot
+                                            tSlot = OotilityCeption.ParseInt(args[4]);
+
+                                            // If out of range
+                                            if (tSlot < 0) {
+
+                                                // Negative out of bounds
+                                                failure = true;
+
+                                                // Note
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Commands", "Slot must be a positive number!"));
+
+                                            } else if (tTemplate != null) {
+
+                                                if (tSlot >= tTemplate.getTotalSlotCount()) {
+
+                                                    // Positive out of bounds
+                                                    failure = true;
+
+                                                    // Note
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Commands", "Slot must not be greater than the maximum of this container: \u00a7e" + (tTemplate.getTotalSlotCount() - 1)));
+
+                                                }
+                                            }
+
+                                            // Otherwise, are we scrying?
+                                        } else if (args[4].toLowerCase().equals("slots")) {
+
+                                            // Scry time
+                                            scryInstead = true;
+
+                                        } else if (args[4].toLowerCase().equals("onclose")) {
+
+                                            // Cloase time
+                                            onCloseInstead = true;
+
+                                            // Otherwise, are we scrying?
+                                        } else if (args[4].toLowerCase().equals("onopen")) {
+
+                                            // Cloase time
+                                            onOpenInstead = true;
+
+                                            // Doesnt make sense
+                                        } else {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Commands", "You must specify an integer or a keyword (\u00a7bslots\u00a77,\u00a7bonClose\u00a77) instead of \u00a73" + args[4]));
+                                        }
+
+                                        // What is it-yo
+                                        boolean onClick = false, onTake = false, onStore = false; int cStrt = 5;
+                                        if (args.length >= 6) {
+
+                                            if (args[5].length() > 0) {
+
+                                                onTake = args[5].toLowerCase().equals("ontake");
+                                                onStore = args[5].toLowerCase().equals("onstore");
+                                                onClick = !onTake && !onStore;
+
+                                                // Does it make sense?
+                                                if (!failure && !scryInstead) {
+
+                                                    // If it is not for on close
+                                                    if (!onCloseInstead && !onOpenInstead) {
+
+                                                        // If for storage
+                                                        if (tTemplate.IsStorageSlot(tSlot)) {
+
+                                                            // Inkrease
+                                                            cStrt++;
+
+                                                            // You must specify!
+                                                            if (onClick) {
+
+                                                                // Failure
+                                                                failure = true;
+
+                                                                // Note
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Commands", "Target slot is of type \u00a7eSTORAGE\u00a77, alas you must specify if the command will be run \u00a7bonStore \u00a77 (when an item is placed on this slot) or \u00a7bonTake \u00a77(when an item is removed from that slot)."));
+                                                            }
+
+                                                            // eh
+                                                        } else {
+
+                                                            // Reset thay alv
+                                                            onClick = true;
+                                                            onStore = false;
+                                                            onTake = false;
+                                                        }
+
+                                                        // If it is onClose, it doesn't care about what commands any slot can carry
+                                                    } else {
+
+                                                        // Reset thay alv
+                                                        onClick = true;
+                                                        onStore = false;
+                                                        onTake = false;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // Cant scry if console
+                                        if (scryInstead) {
+
+                                            if (!(sender instanceof Player)) {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Note
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Commands", "Sorry, but you cant do this from the console. That is---seeing the slots of this container."));
+                                            }
+                                        }
+
+                                        // Well, supposing everything makes sense
+                                        if (!failure) {
+
+                                            // Should we scry?
+                                            if (scryInstead) {
+
+                                                // Create phantom copy
+                                                Inventory inven = tTemplate.BuildDefaultInventory((Player)sender, null, ContainerTypes.STATION, ContainerOpeningReason.EDITION_COMMANDS);
+
+                                                // Rename every item for its slots
+                                                for (int i = 0; i < inven.getSize(); i++) {
+
+                                                    // Get item
+                                                    ItemStack tSource = inven.getItem(i);
+                                                    if (OotilityCeption.IsAirNullAllowed(tSource)) {
+
+                                                        // New Glass Pane
+                                                        tSource = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+                                                    }
+
+                                                    // Git slot
+                                                    ContainerSlot tcSlot = tTemplate.getSlotAt(i);
+
+                                                    String alias = "";
+                                                    if (tcSlot != null) {
+
+                                                        if (tcSlot.hasOptionalIdentifier()) { alias = "\u00a77 <\u00a7e" + tcSlot.getOptionalIdentifier() + "\u00a77>"; }
+                                                        boolean sp = false;
+
+                                                        tSource = OotilityCeption.AppendLoreLineVanilla(tSource, OotilityCeption.GetItemName(tSource), 0, null);
+
+                                                        if (tcSlot.GetMask() != null || tcSlot.GetIDMask() != null) { sp = true; tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a7r", 0, null); }
+                                                        if (tcSlot.GetIDMask() != null) { tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a77ID Mask:  \u00a7b" + tcSlot.GetIDMask(), 0, null); }
+                                                        if (tcSlot.GetMask() != null) { tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a77Type Mask:  \u00a7b" + tcSlot.GetMask().name, 0, null); }
+
+                                                        if (tcSlot.hasCommandOnTake() || tcSlot.hasCommandToExecute() || tcSlot.hasCommandOnStore()) { sp = true; tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a7r", 0, null); }
+                                                        if (tcSlot.hasCommandOnTake()) { tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a73OnTake:  \u00a7e" + tcSlot.GetCommandOnTake(), 0, null); }
+                                                        if (tcSlot.hasCommandToExecute()) { tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a73OnClick: \u00a7e" + tcSlot.GetCommandToExecute(), 0, null); }
+                                                        if (tcSlot.hasCommandOnStore()) { tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a73OnStore: \u00a7e" + tcSlot.GetCommandOnStore(), 0, null); }
+
+                                                        if (tcSlot.getAsEquipment()) {
+                                                            sp = true;
+                                                            tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a7r", 0, null);
+                                                            tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a7e + \u00a73For Equipment", 0, null);
+                                                        }
+
+                                                        if (tcSlot.getRestrictions().size() > 0) {
+                                                            sp = true;
+                                                            tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a7r", 0, null);
+                                                            for (SlotRestriction sr : tcSlot.getRestrictions()) { tSource = sr.appendLore(tSource); }
+                                                            tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a7e--- \u00a77Restriction Behaviour: \u00a73" + tcSlot.getRestrictedBehaviour().toString(), 0, null);
+                                                        }
+
+                                                        if (sp) { tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a7r", 0, null); }
+                                                        tSource = OotilityCeption.AppendLoreLineVanilla(tSource, "\u00a7eType: \u00a77" + tcSlot.getSlotType(), 0, null);
+                                                    }
+
+                                                    // Rename and set
+                                                    inven.setItem(i, OotilityCeption.RenameItem(tSource, "\u00a73[ \u00a7e" + i + "\u00a73 ]" + alias, null));
+                                                }
+
+                                                // Open for player
+                                                ((Player)sender).openInventory(inven);
+
+                                                // Send info on onClose and onOpen commands
+                                                sender.sendMessage(OotilityCeption.LogFormat("Commands \u00a7bonOpen\u00a77/\u00a7bonClose\u00a77 of " + OotilityCeption.ParseColour(tTemplate.getTitleRawNoID()) + "\u00a77:"));
+                                                if (tTemplate.hasCommandOnClose()) { sender.sendMessage("\u00a73(\u00a7eOn Close\u00a73) \u00a77" + tTemplate.getCommandOnClose()); } else { sender.sendMessage("\u00a73(\u00a7eNo Command On Close\u00a73)"); }
+                                                if (tTemplate.hasCommandOnOpen()) { sender.sendMessage("\u00a73(\u00a7eOn Open\u00a73) \u00a77" + tTemplate.getCommandOnOpen()); } else { sender.sendMessage("\u00a73(\u00a7eNo Command On Open\u00a73)"); }
+
+                                            } else {
+
+                                                // Build the command arg
+                                                String tProduct = null;
+                                                boolean wasteFul = false;
+
+                                                // Is it a remove?
+                                                if (args.length > cStrt) {
+
+                                                    if (args[cStrt].length() > 0) {
+
+                                                        StringBuilder tTitle = new StringBuilder(args[cStrt]);
+
+                                                        // Build
+                                                        for (int i = cStrt+1; i < args.length; i++) {
+
+                                                            // Append With a Space
+                                                            tTitle.append(" ").append(args[i]);
+                                                        }
+
+                                                        // Append chained
+                                                        if (chained) { tTitle.append(" oS: ").append(chainedNoLocation); }
+
+                                                        // FInished
+                                                        tProduct = tTitle.toString();
+                                                        tProduct = tProduct.replace("<oS>", "oS:");
+                                                    }
+                                                }
+
+                                                // Supposed to be onClose?
+                                                if (onCloseInstead) {
+
+                                                    // A waste of time if there wasnt a command to begin with
+                                                    if (!tTemplate.hasCommandOnClose() && tProduct == null) { wasteFul = true; }
+
+                                                    // Overwrite old command on click
+                                                    tTemplate.SetCommandOnClose(tProduct);
+
+                                                } else if (onOpenInstead) {
+
+                                                    // A waste of time if there wasnt a command to begin with
+                                                    if (!tTemplate.hasCommandOnOpen() && tProduct == null) { wasteFul = true; }
+
+                                                    // Overwrite old command on click
+                                                    tTemplate.SetCommandOnOpen(tProduct);
+
+                                                } else {
+                                                    // Solid set the damn command
+                                                    if (onClick) {
+
+                                                        // A waste of time if there wasnt a command to begin with
+                                                        if (!tTemplate.getSlotAt(tSlot).IsForCommand() && tProduct == null) { wasteFul = true; }
+
+                                                        // Overwrite old command on click
+                                                        tTemplate.getSlotAt(tSlot).SetCommand(tProduct);
+                                                    }
+                                                    if (onTake) {
+
+                                                        // A waste of time if there wasnt a command to begin with
+                                                        if (!tTemplate.getSlotAt(tSlot).hasCommandOnTake() && tProduct == null) { wasteFul = true; }
+
+                                                        // Overwrite old command on take
+                                                        tTemplate.getSlotAt(tSlot).SetOnTakeCommand(tProduct);
+                                                    }
+                                                    if (onStore) {
+                                                        if (!tTemplate.getSlotAt(tSlot).hasCommandOnStore() && tProduct == null) { wasteFul = true; }
+
+                                                        // Overwrite old command on store
+                                                        tTemplate.getSlotAt(tSlot).SetOnStoreCommand(tProduct);
+                                                    }
+                                                }
+
+                                                if (tProduct != null) {
+
+                                                    // If to slot?
+                                                    if (!onCloseInstead && !onOpenInstead) {
+
+                                                        // Note
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "Bound command \u00a7e" + tProduct + "\u00a77 to slot \u00a7e#" + tSlot + "\u00a77 of container \u00a73" + tTemplate.getInternalName()));
+                                                    } else if (onCloseInstead) {
+
+                                                        // Note
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "Bound command \u00a7e" + tProduct + "\u00a77 to when a player closes container \u00a73" + tTemplate.getInternalName()));
+                                                    } else {
+
+                                                        // Note
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "Bound command \u00a7e" + tProduct + "\u00a77 to when a player opens container \u00a73" + tTemplate.getInternalName()));
+                                                    }
+
+                                                } else {
+
+                                                    if (onCloseInstead) {
+
+                                                        // Removed Nothing
+                                                        if (wasteFul) {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "Nothing happened because there was no command upon closing container \u00a73" + tTemplate.getInternalName()));
+
+                                                            // Removed Something
+                                                        } else {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "No longer running commands when closing container \u00a73" + tTemplate.getInternalName()));
+                                                        }
+                                                    } else if (onOpenInstead) {
+
+                                                        // Removed Nothing
+                                                        if (wasteFul) {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "Nothing happened because there was no command upon opening container \u00a73" + tTemplate.getInternalName()));
+
+                                                            // Removed Something
+                                                        } else {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "No longer running commands when opening container \u00a73" + tTemplate.getInternalName()));
+                                                        }
+                                                    } else {
+
+                                                        // Removed Nothing
+                                                        if (wasteFul) {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "Nothing happened because there was no such command in slot \u00a7e#" + tSlot + "\u00a77 of container \u00a73" + tTemplate.getInternalName()));
+
+                                                            // Removed Something
+                                                        } else {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Command", "Removed specified command from slot \u00a7e#" + tSlot + "\u00a77 of container \u00a73" + tTemplate.getInternalName()));
+                                                        }
+                                                    }
+                                                }
+
+                                                // Two different ways of saving-yo
+                                                if (onOpenInstead || onCloseInstead) {
+                                                    // Save I guess
+                                                    ContainerTemplateGooP.SaveTemplateOpenCloseCommands(tTemplate);
+
+                                                } else {
+
+                                                    // Save I guess
+                                                    ContainerTemplateGooP.SaveTemplateContents(tTemplate);
+                                                }
+                                            }
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bCommands, \u00a77Binds commands to slots.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config commands <container name> <slot> [onStore/onTake] [command]");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Name of the target container.");
+                                        logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Integer Number - Slot to bind commands to.");
+                                        logReturn.add("\u00a73 ---> \u00a7bslots \u00a77Keword to see commands already bound to slots.");
+                                        logReturn.add("\u00a73 ---> \u00a7bonClose \u00a77Keword to set a command to run when the container closes.");
+                                        logReturn.add("\u00a73 ---> \u00a7bonOpen \u00a77Keword to set a command to run when the container is opened.");
+                                        logReturn.add("\u00a73 - \u00a7e<command> \u00a77Command to execute when the slot is pressed.");
+                                        logReturn.add("\u00a73 - \u00a7e[onStore/onTake] \u00a77For storage slots only.");
+                                        logReturn.add("\u00a73 --> \u00a73onStore \u00a77Command will run when an item is placed.");
+                                        logReturn.add("\u00a73 --> \u00a73onTake \u00a77Command will run when an item is removed.");
+                                        logReturn.add("\u00a73* Not sure of the slot numbers?");
+                                        logReturn.add("\u00a73  Check them with \u00a7e/goop containers config commands <container name> slots");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Commands", "Incorrect usage. For info: \u00a7e/goop containers config commands"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config commands <container name> <slot> [onStore/onTake] [command]");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region Aliases
+                                case "aliases":
+                                    //   0      1          2     3          4              5       6    args.Length
+                                    // /goop containers config aliases <container name> <slots> [alias]
+                                    //   -      0          1     2          3              4       5    args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 5 || args.length == 6) {
+
+                                        // Make sure it is not loaedd
+                                        ContainerTemplateGooP tTemplate = ContainerTemplateGooP.GetLoadedTemplate(args[3]);
+                                        if (tTemplate == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Aliases", "A container of that name doesnt exist!"));
+                                        }
+
+
+                                        //Lets get that inven slot
+                                        RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                        ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], null, slotFailure);
+
+                                        // So, does the slot make no sense?
+                                        if (slott.size() == 0) {
+                                            // Failure
+                                            failure = true;
+
+                                            // If no slots were wrong
+                                            if (slotFailure.getValue() == null && Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Containers - Aliases", "The slots specified didn't make sense in this context. As if trying to access shulker boxes where there are none, or using container placeholder names in non-goop inventories.")); }
+                                        }
+
+                                        // Log
+                                        if (slotFailure.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("Containers - Aliases", slotFailure.getValue())); }
+
+                                        // Well thats a simple success isn't it
+                                        if (!failure) {
+
+                                            // Get alias
+                                            String tAlias = null; int tCOunt = 0;
+                                            if (args.length == 6) { tAlias = args[5]; }
+
+                                            // Perform all changes
+                                            for (ItemStackSlot sl : slott) {
+
+                                                // If it is not null I guess
+                                                if (sl != null) {
+
+                                                    // If its of simple inventory type
+                                                    if (sl.getLocation() == SearchLocation.INVENTORY) {
+
+                                                        // If it fits in the container
+                                                        if (sl.getSlot() >= 0 && sl.getSlot() < tTemplate.getTotalSlotCount()) {
+
+                                                            // Well, get that slot and set its damn alias
+                                                            tTemplate.getSlotAt(sl.getSlot()).SetOptionalIdentifier(tAlias);
+                                                            tCOunt++;
+
+                                                        } else {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Aliases", "Slot \u00a7e#" + sl.getSlot() + "\u00a77 is out of range!"));
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+
+                                            // If existed
+                                            if (tAlias != null) {
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Aliases", "Bound \u00a7e" + tCOunt + "\u00a77 slots to the alias \u00a73" + tAlias));
+                                            } else {
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Aliases", "Removed aliases from \u00a7e" + tCOunt + "\u00a77 slots."));
+                                            }
+
+                                            // Save I guess
+                                            ContainerTemplateGooP.SaveTemplateContents(tTemplate);
+
+                                            // Force reprocess
+                                            tTemplate.ReprocessAliases();
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bAliases, \u00a77Allows to create placeholder strings for slots.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config aliases <container name> <slots> [alias]");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Name of the target container.");
+                                        logReturn.add("\u00a73 - \u00a7e<slots> \u00a77The slots and ranges of slots you want to bind.");
+                                        logReturn.add("\u00a73 - \u00a7e<alias> \u00a77The keyword that will represent those slots.");
+                                        logReturn.add("\u00a73* From then on, you can reference them as <alias>.");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Aliases", "Incorrect usage. For info: \u00a7e/goop containers config aliases"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config aliases <container name> <slots> [alias]");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region Equipment
+                                case "equipment":
+                                    //   0      1          2      3          4                5         6      args.Length
+                                    // /goop containers config equipment <container name> <slots> <true/false>
+                                    //   -      0          1      2          3                4         5      args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 6) {
+
+                                        // Make sure it is not loaedd
+                                        ContainerTemplateGooP tTemplate = ContainerTemplateGooP.GetLoadedTemplate(args[3]);
+                                        if (tTemplate == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "A container of that name doesnt exist!"));
+                                        }
+
+
+                                        //Lets get that inven slot
+                                        RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                        ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], null, slotFailure);
+
+                                        // So, does the slot make no sense?
+                                        if (slott.size() == 0) {
+                                            // Failure
+                                            failure = true;
+
+                                            // If no slots were wrong
+                                            if (slotFailure.getValue() == null && Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "The slots specified didn't make sense in this context. As if trying to access shulker boxes where there are none, or using container placeholder names in non-goop inventories.")); }
+                                        }
+
+                                        // Log
+                                        if (slotFailure.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", slotFailure.getValue())); }
+
+                                        // Get boolean
+                                        boolean toggle = false;
+                                        if (OotilityCeption.BoolTryParse(args[5])) {
+
+                                            // Parse bruh
+                                            toggle = Boolean.parseBoolean(args[5]);
+
+                                        } else {
+
+                                            // Fail
+                                            failure = true;
+
+                                            // Notify
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[5]));
+                                        }
+
+                                        // Well thats a simple success isn't it
+                                        if (!failure) {
+                                            int tCOunt = 0;
+
+                                            // Perform all changes
+                                            for (ItemStackSlot sl : slott) {
+
+                                                // If it is not null I guess
+                                                if (sl != null) {
+
+                                                    // If its of simple inventory type
+                                                    if (sl.getLocation() == SearchLocation.INVENTORY) {
+
+                                                        // If it fits in the container
+                                                        if (sl.getSlot() >= 0 && sl.getSlot() < tTemplate.getTotalSlotCount()) {
+
+                                                            if (tTemplate.getSlotAt(sl.getSlot()) != null) {
+
+                                                                // Well, get that slot and set its damn alias
+                                                                tTemplate.getSlotAt(sl.getSlot()).setAsEquipment(toggle);
+                                                                tCOunt++;
+
+                                                            } else {
+
+                                                                // Note
+                                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Slot \u00a7e#" + sl.getSlot() + "\u00a77 is \u00a7cnull\u00a77, notify \u00a7egunging\u00a77 about this."));
+                                                            }
+
+                                                        } else {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Slot \u00a7e#" + sl.getSlot() + "\u00a77 is out of range!"));
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            if (toggle) {
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Transformed \u00a7e" + tCOunt + "\u00a77 slots into \u00a79Equipment\u00a77 slots."));
+                                            } else {
+
+                                                // Note
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Those \u00a7e" + tCOunt + "\u00a77 are \u00a7cno longer\u00a77 equipment slots."));
+                                            }
+                                            // Save I guess
+                                            ContainerTemplateGooP.SaveTemplateContents(tTemplate);
+                                            tTemplate.RefreshEquipmentSlots();
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bEquipment, \u00a77Items placed here will add stats to the player.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config equipment <container name> <slots> <true/false>");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Name of the target container.");
+                                        logReturn.add("\u00a73 - \u00a7e<slots> \u00a77The slots and ranges of slots you want to bind.");
+                                        logReturn.add("\u00a73 - \u00a7e<true/false> \u00a77Toggle if the slots add equipment.");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Incorrect usage. For info: \u00a7e/goop containers config equipment"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config equipment <container name> <slots> <true/false>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region Contents
+                                case "contents":
+                                    //   0      1          2     3              4           args.Length
+                                    // /goop containers config contents <container name>
+                                    //   -      0          1     2              3           args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 4) {
+
+                                        // Cannot be send from the console
+                                        if (!(sender instanceof Player)) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Contents", "Can only edit the contents of a container from in-game."));
+                                        }
+
+                                        // Make sure it is not loaedd
+                                        ContainerTemplateGooP tTemplate = ContainerTemplateGooP.GetLoadedTemplate(args[3]);
+                                        if (tTemplate == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Contents", "A container of that name doesnt exist!"));
+                                        }
+
+                                        // Well thats a simple success isn't it
+                                        if (!failure) {
+
+                                            // Unecessary Ret
+                                            RefSimulator<String> logAddition = new RefSimulator<>(null);
+
+                                            // Mark such a player as an editor
+                                            ContainerTemplateGooP.Register((Player)sender, tTemplate, logAddition);
+
+                                            // If nonnull
+                                            if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("Containers - Contents", logAddition.getValue())); }
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bContents, \u00a77Edits the 'contents' of a container.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config contents <container name>");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Name of the target container.");
+                                        logReturn.add("\u00a73> \u00a77You will edit the container in two steps:");
+                                        logReturn.add("\u00a7e   #1: Display \u00a77- The items that players see but cant take.");
+                                        logReturn.add("\u00a7e   #2: Storage \u00a77- Where can players put items of their own.");
+                                        logReturn.add("\u00a73> \u00a77For the display stage, put all the items you want to display,");
+                                        logReturn.add("\u00a73  \u00a77this will be the default look of your container.");
+                                        logReturn.add("\u00a73> \u00a77For the storage phase, make changes where you want players to be able to store their items.");
+                                        logReturn.add("\u00a7e  - \u00a77All slots whose content is not the same at the beginning and in the end of the STORAGE phase, will be considered STORAGE slots and players will be able to store their items in them.");
+                                        logReturn.add("\u00a7e  - \u00a77Basically, if the default display of the slot is AIR, put something in it during #2");
+                                        logReturn.add("\u00a7e  - \u00a77And if the default display of the slot is not AIR, just remove the item during #2");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Aliases", "Incorrect usage. For info: \u00a7e/goop containers config aliases"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config aliases <container name> <slots> [alias]");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region Masks
+                                case "masks":
+                                    //   0      1          2     3          4            5       6          7      args.Length
+                                    // /goop containers config masks <container name> <slots> [<type/id> <name>]
+                                    //   -      0          1     2          3            4       5          6      args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 5 || args.length == 7) {
+
+                                        // Make sure it is not loaedd
+                                        ContainerTemplateGooP tTemplate = ContainerTemplateGooP.GetLoadedTemplate(args[3]);
+                                        if (tTemplate == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "A container of that name doesnt exist!"));
+                                        }
+
+                                        //Lets get that inven slot
+                                        RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                        ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], null, slotFailure);
+
+                                        // So, does the slot make no sense?
+                                        if (slott.size() == 0) {
+                                            // Failure
+                                            failure = true;
+
+                                            // If no slots were wrong
+                                            if (slotFailure.getValue() == null && Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "The slots specified didn't make sense in this context. As if trying to access shulker boxes where there are none, or using container placeholder names in non-goop inventories.")); }
+                                        }
+
+                                        // Log
+                                        if (slotFailure.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("Containers - Masks", slotFailure.getValue())); }
+
+
+                                        boolean forType = false, forID = false;
+                                        AppliccableMask oaMask = null;
+                                        if (args.length > 5) {
+
+                                            forType = args[5].toLowerCase().equals("type");
+                                            forID = args[5].toLowerCase().equals("id");
+
+                                            // Failure if neither
+                                            if (!forID && !forType) {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Note
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "Must specify what you're trying to mask, is it the \u00a7btype\u00a77 or the \u00a7bid\u00a77 of MMOItems?"));
+                                            }
+
+                                            if (forType) {
+
+                                                // Attempt to get OnApplyMask
+                                                oaMask = AppliccableMask.GetMask(args[6]);
+
+                                                // Succeess?
+                                                if (oaMask == null) {
+
+                                                    // Failure
+                                                    failure = true;
+
+                                                    // Note
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "For Type Mask restrictions, you must specify an OnApplyMask that you previously defined in \u00a7eonapply-masks.yml"));
+                                                }
+                                            }
+                                        }
+
+                                        // Well thats a simple success isn't it
+                                        if (!failure) {
+
+                                            int tCOunt = 0;
+                                            // Perform all changes
+                                            for (ItemStackSlot sl : slott) {
+
+                                                // If it is not null I guess
+                                                if (sl != null) {
+
+                                                    // If its of simple inventory type
+                                                    if (sl.getLocation() == SearchLocation.INVENTORY) {
+
+                                                        // If it fits in the container
+                                                        if (sl.getSlot() >= 0 && sl.getSlot() < tTemplate.getTotalSlotCount()) {
+
+                                                            if (tTemplate.getSlotAt(sl.getSlot()) != null) {
+
+                                                                // Well, get that slot and set its damn alias
+                                                                if (forType) {
+
+                                                                    // Do Appliccable Mask Shit
+                                                                    tTemplate.getSlotAt(sl.getSlot()).SetMask(oaMask);
+
+                                                                    // Otherwise it must be 5 iD
+                                                                } else if (forID) {
+
+                                                                    // Do Appliccable Mask Shit
+                                                                    tTemplate.getSlotAt(sl.getSlot()).SetIDMask(args[6]);
+
+                                                                    // Must be-a removing
+                                                                } else {
+
+                                                                    // Do Appliccable Mask Shit
+                                                                    tTemplate.getSlotAt(sl.getSlot()).SetMask(null);
+                                                                    tTemplate.getSlotAt(sl.getSlot()).SetIDMask(null);
+                                                                }
+
+                                                                // Inkrease
+                                                                tCOunt++;
+                                                            } else{
+
+                                                                // Note
+                                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "Slot \u00a7e#" + sl.getSlot() + "\u00a77 of container is &cnull&7. Please contact &egunging&7 about this."));
+                                                            }
+
+                                                        } else {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "Slot \u00a7e#" + sl.getSlot() + "\u00a77 is out of range!"));
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            if (forID || forType) {
+
+                                                // Mention
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "Masked the storage properties of \u00a7e" + tCOunt + "\u00a77 slots"));
+                                            } else {
+
+                                                // Mention
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "Removed all masks of the storage properties of \u00a7e" + tCOunt + "\u00a77 slots"));
+                                            }
+
+                                            // Save I guess
+                                            ContainerTemplateGooP.SaveTemplateContents(tTemplate);
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bMasks, \u00a77Allows only certain MMOItems to be stored in STORAGE slots.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config masks <container name> <slots> [<type/id> <name>]");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Name of the target container.");
+                                        logReturn.add("\u00a73 - \u00a7e<slots> \u00a77The slots and ranges of slots you want to mask.");
+                                        logReturn.add("\u00a73 - \u00a7e<type/id> \u00a77Specify if this is to restrict type or ids.");
+                                        logReturn.add("\u00a7e  --> \u00a7etype \u00a77Specify an OnApply Mask. Will only allow mmoitems");
+                                        logReturn.add("\u00a7e                  \u00a77that fit the mask to be placed in such slot.");
+                                        logReturn.add("\u00a7e  --> \u00a7eid \u00a77Specify the exact internal MMOItem ID of the item");
+                                        logReturn.add("\u00a7e                \u00a77that you intend to fit here.");
+                                        logReturn.add("\u00a73 - \u00a7e<name> \u00a77The mask name (for types) or id (for ids) to check.");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Masks", "Incorrect usage. For info: \u00a7e/goop containers config masks"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config masks <container name> <slots> [<type/id> <name>]");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region Rows
+                                case "rows":
+                                    //   0      1          2     3          4            5       args.Length
+                                    // /goop containers config rows <container name> <amount>
+                                    //   -      0          1     2          3            4       args[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 5) {
+
+                                        // Make sure it is not loaedd
+                                        ContainerTemplateGooP tTemplate = ContainerTemplateGooP.GetLoadedTemplate(args[3]);
+                                        if (tTemplate == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Rows", "A container of that name doesnt exist!"));
+                                        }
+
+                                        // Make sure rows parse
+                                        Integer rows = null;
+                                        if (OotilityCeption.IntTryParse(args[4])) {
+
+                                            // Parse
+                                            rows = OotilityCeption.ParseInt(args[4]);
+
+                                            // If out of bounds
+                                            if (rows < 1 || rows > 6) {
+
+                                                // Failure
+                                                failure = true;
+
+                                                // Note
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Rows", "Number of rows must be either 1, 2, 3, 4, 5, or 6."));
+                                            }
+
+                                        } else {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Rows", "Expected integer number instead of \u00a73" + args[4]));
+                                        }
+
+                                        // Well thats a simple success isn't it
+                                        if (!failure) {
+
+                                            // Note
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Rows", "Resized \u00a7e" + OotilityCeption.ParseColour(tTemplate.getTitleRawNoID()) + "\u00a77 to have \u00a73" + rows + "\u00a77 rows."));
+
+                                            // Rerow
+                                            ContainerTemplateGooP.ResizeRowsAndSave(tTemplate, rows);
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bRows, \u00a77Modifies the number of rows of the container.");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config rows <container name> <amount>");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Name of the target container.");
+                                        logReturn.add("\u00a73 - \u00a7e<amount> \u00a77Number of rows for display/storage of items.");
+                                        logReturn.add("\u00a7c * Amount only accepts an integer number between 1 and 6 (inclusive).");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Title", "Incorrect usage. For info: \u00a7e/goop containers config title"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config title <container name> <new title>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                //region Restrictions
+                                case "restrictions":
+                                case "restrict":
+                                    //   0      1          2      3          4                5         6       7       args.Length
+                                    // /goop containers config restrictions <container name> <slots> <kind> <value>
+                                    //   -      0          1      2          3                4         5      6        rgs[n]
+
+                                    // Correct number of args?
+                                    if (args.length == 7 || args.length == 6) {
+
+                                        // Make sure it is not loaedd
+                                        ContainerTemplateGooP tTemplate = ContainerTemplateGooP.GetLoadedTemplate(args[3]);
+                                        if (tTemplate == null) {
+
+                                            // Failure
+                                            failure = true;
+
+                                            // Note
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Restrictions", "A container of that name doesnt exist!"));
+                                        }
+
+                                        //Lets get that inven slot
+                                        RefSimulator<String> slotFailure = new RefSimulator<>("");
+                                        ArrayList<ItemStackSlot> slott = OotilityCeption.GetInventorySlots(args[4], null, slotFailure);
+
+                                        // So, does the slot make no sense?
+                                        if (slott.size() == 0) {
+                                            // Failure
+                                            failure = true;
+
+                                            // If no slots were wrong
+                                            if (slotFailure.getValue() == null && Gunging_Ootilities_Plugin.sendGooPFailFeedback) { logReturn.add(OotilityCeption.LogFormat("Containers - Restrictions", "The slots specified didn't make sense in this context. As if trying to access shulker boxes where there are none, or using container placeholder names in non-goop inventories.")); }
+                                        }
+
+                                        // Log
+                                        if (slotFailure.getValue() != null) { logReturn.add(OotilityCeption.LogFormat("Containers - Restrictions", slotFailure.getValue())); }
+
+                                        // Fail kind
+                                        boolean ofBehaviour = false, ofList = false, ofQNR = false;
+                                        String kind = args[5].toLowerCase().replace(" ", "_").replace("-", "_");
+                                        switch (kind) {
+                                            default:
+                                                // Fail
+                                                failure = true;
+
+                                                // Notify
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Restrictions", "Expected a kind of restriction, be it \u00a7bbehaviour\u00a77, \u00a7blevel\u00a77, \u00a7bclass\u00a77, \u00a7bpermission\u00a77, or \u00a7bunlockable\u00a77 instead of \u00a7e" + kind));
+                                                break;
+                                            case "behaviour":
+                                                ofBehaviour = true;
+                                                break;
+                                            case "level":
+                                                ofQNR = true;
+                                                break;
+                                            case "class":
+                                            case "permission":
+                                            case "unlockable":
+                                                ofList = true;
+                                                break;
+                                        }
+
+                                        RestrictedBehaviour rb = null;
+                                        QuickNumberRange qnr = null;
+                                        ArrayList<ArrayList<String>> partitions = new ArrayList<>();
+                                        boolean asClear = false;
+                                        if (args.length >= 7) {
+                                            if (ofBehaviour) {
+
+                                                // Parse
+                                                try { rb = RestrictedBehaviour.valueOf(args[6]); } catch (IllegalArgumentException ignored) {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    // Notify
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Restrictions", "Expected a restricted behaviour, be it \u00a7bLOCK\u00a77, \u00a7bTAKE\u00a77, \u00a7bDROP\u00a77, or \u00a7bDESTROY\u00a77 instead of \u00a7e" + args[6]));
+                                                }
+                                            } else if (ofQNR) {
+
+                                                qnr = QuickNumberRange.FromString(args[6]);
+
+                                                if (qnr == null) {
+
+                                                    // Failure
+                                                    failure = true;
+
+                                                    // Notify the error
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Restrictions", "Expected a number or numeric range instead of \u00a73" + args[6] + "\u00a77. Ranges are specified with two numbers separated by \u00a7bb\u00a77. Example \u00a7e-4\u00a77 and \u00a7e32.4\u00a77: \u00a7b-4..32.5\u00a77. They are inclusive, and you may not specify either of the bounds (\u00a7b10..\u00a77 will match anything equal or greater than 10)."));
+                                                }
+
+                                            } else if (ofList) {
+
+                                                ArrayList<String> pars;
+                                                if (args[6].contains("&&")) {
+
+                                                    // Split by ands
+                                                    pars = new ArrayList<>(Arrays.asList(args[6].split("&&")));
+
+                                                } else {
+                                                    pars = new ArrayList<>();
+                                                    pars.add(args[6]);
+                                                }
+
+                                                // Evaluate each par
+                                                for (String par : pars) {
+                                                    if (par.isEmpty()) { continue; }
+
+                                                    // Split by commas
+                                                    ArrayList<String> part = new ArrayList<>();
+                                                    if (par.contains(",")) {
+                                                        // Split by commas
+                                                        for (String p : par.split(",")) { part.add(p.replace("__", " "));}
+
+                                                    } else { part.add(par.replace("__", " ")); }
+
+                                                    partitions.add(part);
+                                                }
+                                            }
+                                        } else {
+                                            asClear = true;
+                                        }
+
+                                        // Well thats a simple success isn't it
+                                        if (!failure) {
+                                            int tCOunt = 0;
+
+                                            // Perform all changes
+                                            for (ItemStackSlot sl : slott) {
+
+                                                // If it is not null I guess
+                                                if (sl != null) {
+
+                                                    // If its of simple inventory type
+                                                    if (sl.getLocation() == SearchLocation.INVENTORY) {
+
+                                                        // If it fits in the container
+                                                        if (sl.getSlot() >= 0 && sl.getSlot() < tTemplate.getTotalSlotCount()) {
+
+                                                            ContainerSlot slt = tTemplate.getSlotAt(sl.getSlot());
+
+                                                            if (slt != null) {
+
+                                                                // Update behaviour
+                                                                if (ofBehaviour) {
+
+                                                                    if (asClear) { rb = RestrictedBehaviour.TAKE; }
+
+                                                                    // Set behaviour-yo
+                                                                    slt.setRestrictedBehaviour(rb);
+
+                                                                } else {
+
+                                                                    // Well, get update restriction... start by keeping all others
+                                                                    ArrayList<SlotRestriction> srs = new ArrayList<>(slt.getRestrictions());
+                                                                    ArrayList<SlotRestriction> srsLast = new ArrayList<>();
+
+                                                                    switch (kind) {
+                                                                        case "level":
+
+                                                                            // Keep all others
+                                                                            for (SlotRestriction sr : srs) { if (!(sr instanceof GCSR_Level)) { srsLast.add(sr); }}
+
+                                                                            // Build and add new
+                                                                            if (!asClear) { srsLast.add(new GCSR_Level(qnr)); }
+                                                                            break;
+                                                                        case "class":
+
+                                                                            // Keep all others
+                                                                            for (SlotRestriction sr : srs) { if (!(sr instanceof GCSR_Class)) { srsLast.add(sr); }}
+
+                                                                            // Build and add new ones
+                                                                            if (!asClear) for (ArrayList<String> str : partitions) { if (str.isEmpty()) { continue; } srsLast.add(new GCSR_Class(str)); }
+                                                                            break;
+                                                                        case "permission":
+
+                                                                            // Keep all others
+                                                                            for (SlotRestriction sr : srs) { if (!(sr instanceof GCSR_Permission)) { srsLast.add(sr); }}
+
+                                                                            // Build and add new ones
+                                                                            if (!asClear) for (ArrayList<String> str : partitions) { if (str.isEmpty()) { continue; } srsLast.add(new GCSR_Permission(str)); }
+                                                                            break;
+                                                                        case "unlockable":
+
+                                                                            // Keep all others
+                                                                            for (SlotRestriction sr : srs) { if (!(sr instanceof GCSR_Unlockable)) { srsLast.add(sr); }}
+
+                                                                            // Build and add new ones
+                                                                            if (!asClear) for (ArrayList<String> str : partitions) { if (str.isEmpty()) { continue; } srsLast.add(new GCSR_Unlockable(str)); }
+                                                                            break;
+                                                                    }
+
+                                                                    slt.clearRestrictions();
+                                                                    for (SlotRestriction sr : srsLast) { slt.addRestriction(sr); }
+                                                                }
+
+                                                                tCOunt++;
+
+                                                            } else {
+
+                                                                // Note
+                                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Slot \u00a7e#" + sl.getSlot() + "\u00a77 is \u00a7cnull\u00a77, notify \u00a7egunging\u00a77 about this."));
+                                                            }
+
+                                                        } else {
+
+                                                            // Note
+                                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Slot \u00a7e#" + sl.getSlot() + "\u00a77 is out of range!"));
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Note
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Restrictions", "Updated restrictions of \u00a7e" + tCOunt + "\u00a77 slots."));
+
+                                            // Save I guess
+                                            ContainerTemplateGooP.SaveTemplateContents(tTemplate);
+                                        }
+
+                                        // Incorrect number of args
+                                    } else if (args.length == 3) {
+
+                                        logReturn.add("\u00a7e______________________________________________");
+                                        logReturn.add("\u00a73Containers - \u00a7bRestrictions, \u00a77Require permissions to use container slots");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop containers config restrictions <container name> <slots> <kind> <value>");
+                                        logReturn.add("\u00a73 - \u00a7e<container name> \u00a77Name of the target container.");
+                                        logReturn.add("\u00a73 - \u00a7e<slots> \u00a77The slots and ranges of slots you want to bind.");
+                                        logReturn.add("\u00a73 - \u00a7e<kind> \u00a77Kind of restriction to setup.");
+                                        logReturn.add("\u00a73 --> \u00a7ebehaviour");
+                                        logReturn.add("\u00a73      * \u00a77If the player no longer has the permission, what");
+                                        logReturn.add("\u00a73        \u00a77happens to items already in restricted slots?");
+                                        logReturn.add("\u00a73 --> \u00a7elevel");
+                                        logReturn.add("\u00a73      * \u00a77A range of levels to use this slot");
+                                        logReturn.add("\u00a73 --> \u00a7eclass");
+                                        logReturn.add("\u00a73      * \u00a77Class required to interact with");
+                                        logReturn.add("\u00a73 --> \u00a7epermission");
+                                        logReturn.add("\u00a73      * \u00a77List of permissions that player must match");
+                                        logReturn.add("\u00a73 --> \u00a7eunlockable");
+                                        logReturn.add("\u00a73      * \u00a77GooP Unlockable goals that must be unlocked");
+                                        logReturn.add("\u00a73 - \u00a7e<value> \u00a77Value of the restriction.");
+
+                                    } else {
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                            logReturn.add(OotilityCeption.LogFormat("Containers - Equipment", "Incorrect usage. For info: \u00a7e/goop containers config equipment"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config equipment <container name> <slots> <true/false>");
+                                        }
+                                    }
+                                    break;
+                                //endregion
+                                default:
+                                    // I have no memory of that shit
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers - Config", "'\u00a73" + args[2] + "\u00a77' is not a valid Containers Config Action! do \u00a7e/goop containers config\u00a77 for the list of actions."));
+                                    break;
+                            }
+
+                            // Incorrect number of args
+                        } else if (args.length == 2) {
+
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Containers - \u00a7bConfig, \u00a77Edits and/or creates a container.");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop containers config {action}");
+                            logReturn.add("\u00a73 - \u00a7e{action} \u00a77What action to perform:");
+                            logReturn.add("\u00a73 --> \u00a7enew <container name> <container type>");
+                            logReturn.add("      \u00a7e<type> \u00a77How is your container accessed? Is it persistent?");
+                            logReturn.add("\u00a73       *\u00a7bPHYSICAL \u00a77Same functionality as a chest.");
+                            logReturn.add("\u00a73       *\u00a7bPERSONAL \u00a77Same functionality as an enderchest.");
+                            logReturn.add("\u00a73       *\u00a7bSTATION \u00a77Drops 'stored' items to the ground when closed.");
+                            logReturn.add("\u00a73 --> \u00a7econtents <container name>");
+                            logReturn.add("\u00a73      * \u00a77Edit the 'contents' of your container in the following order:");
+                            logReturn.add("\u00a73       #1 \u00a77Display Items - Unmovable items for showcase");
+                            logReturn.add("\u00a7e           > \u00a77Put all items for display during this phase.");
+                            if (Gunging_Ootilities_Plugin.foundMMOItems) logReturn.add("\u00a7e           >>> \u00a77MMOItems will store their reference,");
+                            if (Gunging_Ootilities_Plugin.foundMMOItems) logReturn.add("\u00a7e               \u00a77so they will update when edited from");
+                            if (Gunging_Ootilities_Plugin.foundMMOItems) logReturn.add("\u00a7e               \u00a77/mmoitems browse");
+                            logReturn.add("\u00a73       #2 \u00a77Storage Slots - Where can players put items");
+                            logReturn.add("\u00a7e           > \u00a77Upon closing, the slots that dont hold the same");
+                            logReturn.add("\u00a7e             \u00a77item as the DISPLAY part will be marked as STORAGE");
+                            logReturn.add("\u00a73 --> \u00a7etitle");
+                            logReturn.add("\u00a73      * \u00a77Sets the title players will see.");
+                            logReturn.add("\u00a73 --> \u00a7erows");
+                            logReturn.add("\u00a73      * \u00a77Modifies the number of rows (size of container).");
+                            logReturn.add("\u00a7c      * Only accepted row counts are: 1, 2, 3, 4, 5, and 6");
+                            logReturn.add("\u00a73 --> \u00a7ecommands");
+                            logReturn.add("\u00a73      * \u00a77Allows you to bind commands to slots.");
+                            logReturn.add("\u00a73 --> \u00a7eedgeMaterial");
+                            logReturn.add("\u00a73      * \u00a77Obtain the material placeholder for edges.");
+                            logReturn.add("\u00a73 --> \u00a7ealiases");
+                            logReturn.add("\u00a73      * \u00a77Allows you to name groups of slots.");
+                            logReturn.add("\u00a73        - Only one alias per slot is supported. New ones will overwrite previous.");
+                            if (Gunging_Ootilities_Plugin.foundMMOItems) {
+                                logReturn.add("\u00a73 --> \u00a7emasks");
+                                logReturn.add("\u00a73      * \u00a77Allows to make only certain MMOItems fit in STORAGE slots.");
+                            }
+
+                        } else {
+
+                            // Notify
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                logReturn.add(OotilityCeption.LogFormat("Containers - Config", "Incorrect usage. For info: \u00a7e/goop containers config"));
+                                logReturn.add("\u00a73Usage: \u00a7e/goop containers config {action}");
+                            }
+                        }
+                        break;
+                    //endregion
+                    default:
+                        // I have no memory of that shit
+                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers", "'\u00a73" + args[1] + "\u00a77' is not a valid Containers action! do \u00a7e/goop containers\u00a77 for the list of actions."));
+                        break;
+                }
+
+
+            } else if (args.length == 1) {
+                logReturn.add("\u00a7e______________________________________________");
+                logReturn.add("\u00a73Containers, \u00a77Custom menus and storage stations.");
+                logReturn.add("\u00a73Usage: \u00a7e/goop containers {action}");
+                logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                logReturn.add("\u00a73 --> \u00a7eopen <container type> [player] [mode]");
+                logReturn.add("\u00a73      * \u00a77Opens a non-physical container for a player.");
+                logReturn.add("\u00a73 --> \u00a7esee <container type> <player>");
+                logReturn.add("\u00a73      * \u00a77Opens target player's non-physical container");
+                logReturn.add("\u00a73        \u00a77to the admin calling this command.");
+                logReturn.add("\u00a73 --> \u00a7egoop containers access <container type> [player] [w x y z]");
+                logReturn.add("\u00a73      * \u00a77Allows player to open a physical container.");
+                logReturn.add("\u00a73      * \u00a77Will create the container if it doesnt exist.");
+                logReturn.add("\u00a73 --> \u00a7econfig {action}");
+                logReturn.add("\u00a73      * \u00a77Allows in-game configuration of containers.");
+
+            } else {
+                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                    logReturn.add(OotilityCeption.LogFormat("Containers", "Incorrect usage. For info: \u00a7e/goop containers"));
+                    logReturn.add("\u00a73Usage: \u00a7e/goop containers {action}");
+                }
+            }
+
+            // No perms
+        } else {
+            // Tell him lmao
+            //logReturn.add(OotilityCeption.LogFormat("Containers is a feature coming soon!"));
+            logReturn.add(OotilityCeption.LogFormat("You dont have permission to use containers this way!"));
+        }
+
+        //Set Log Return Urn Value
+        logReturnUrn.SetValue(logReturn);
+    }
+
+    public static HashMap<UUID, Integer> providedSlot = new HashMap<>();
+}

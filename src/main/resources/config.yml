@@ -1,0 +1,24 @@
+
+# Default Gamerule Values
+AnvilRename: false
+#NameExclusionMin: -0.5
+#NameExclusionMax: 0.5
+#NameNumberDecimals: 2
+SendSuccessFeedback: false
+SendFailFeedback: false
+BlockErrorFeedback: false
+SaveGameruleChanges: true
+GriefBedrockCommand: false
+#VaultLowBalance: "&cYou need $%charge% to use this"
+SummonLeashKillDistance: 60
+
+# Some MMOItems stuff, for the TAB complete
+SuggestedGemstoneColours:
+  - "Blue"
+  - "Red"
+  - "Green"
+  - "Yellow"
+  - "Uncolored"
+
+# Number of Misc. Stats for MMOItems
+MiscStatAmount: 3

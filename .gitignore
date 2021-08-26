@@ -1,0 +1,11 @@
+/lib/
+/target/
+/.settings/
+/.idea/
+/.m2/
+src/main/java/gunging/ootilities/gunging_ootilities_plugin/containers/**
+src/main/java/gunging/ootilities/gunging_ootilities_plugin/customstructures/**
+.classpath
+.project
+Gunging's Ootilities Plugin.eml
+Gunging's Ootilities Plugin.iml

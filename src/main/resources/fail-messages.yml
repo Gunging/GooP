@@ -1,0 +1,46 @@
+####
+####    When a command fails, this is the message that will be shown to
+####    the players it failed for.
+####
+####        'The players it failed for'
+####            Most commands have a <player> argument to specify who to target.
+####            These messages will display to those targets that fail.
+####
+####        To use, begin the subcommand with [#] where # is the fail message name.
+####            For example, /goop [DIRT]testinventory %player% mainhand v DIRT 1
+####            Will make that, if %player% is not holding dirt, message 5 will appear.
+####
+###
+###     Special Placholders
+###
+###         %charge%
+###             When using /goop vault; the money you are asking for
+###
+###         %amount%
+###             When using consumetiem, the amount being consumed.
+###
+###         %tier%
+###             When using /goop mmoitems tier; The tier that the item should be
+###
+##
+##
+##      Special Message Names:
+##
+##          VaultLowBalance
+##              Will bind automatically to /goop vault charge
+##              (No need to call with /goop [VaultLowBalance]vault charge)
+##
+##              Also used when a CustomStructure charges people and they
+##              dont have enough cash to use it.
+##
+##
+##          [name of a goop subcommand]
+##              Will bind automatically to that subcommand. Must be lowercase
+##              For example, this is redundant: /goop [testinventory]testinventory
+##
+
+VaultLowBalance: "&cYou need $%charge% to use this"
+
+consumeitem: "&cYou dont have the correct items!"
+
+Denied: "&eDont do that"

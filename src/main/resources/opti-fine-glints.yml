@@ -1,0 +1,10 @@
+Treasure:
+  Enchantment: looting
+  LoreLine: '&e< Glint: &6Treasure &e>'
+Rainbow:
+  Enchantment: lure
+  Level: 5
+  LoreLine: '&e< Glint: &cR&6a&ei&an&bb&9o&5w &e>'
+Vortex:
+  Enchantment: luck_of_the_sea
+  Level: 5

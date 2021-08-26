@@ -1,0 +1,24 @@
+name: Gunging_Ootilities_Plugin
+version: 1.8.0
+main: gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin
+api-version: 1.13
+prefix: GooP
+authors: [Gunging]
+softdepend: [DiscordSRV,ModelEngine,Vault,WorldGuard,MMOItems,MMOCore,MythicLib,MythicMobs,Graveyards,PlaceholderAPI,mcMMO,GriefPrevention,Towny]
+description: Honestly, why has no one else made these things before? I can't believe I needed to learn Java to make them myself.
+commands:
+  gungingootilities:
+    description: All commands associated to this plugin.
+    aliases: [goop]
+
+  # Containers Protections
+  gprivate:
+    description: Claim an unprotected container - make it private and can't be destroyed.
+  gpublic:
+    description: Claim an unprotected container - make it public but cant be destroyed.
+  gremove:
+    description: Unclaim a container of yours. Anyone will be able to destroy it.
+  gmodify:
+    description: Share your private containers with other players!
+  ginfo:
+    description: See who owns and the members of target container.

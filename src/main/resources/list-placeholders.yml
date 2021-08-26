@@ -1,0 +1,35 @@
+##### 
+##### List Placholders is a mostly a MythicMobs feature
+##### 
+## 
+## Called with the either placeholder <goop.ordered.[NAME]> or <goop.random.[NAME]>
+##       --> When using ordered, the weight value will be ignored.
+##       --> When using ordered, you may specify an index for independent calling <goop.ordered.[NAME].[INTEGER NUMBER]> (defaults to 0)
+##
+# 
+# Sintax:
+# 
+# [NAME (case sensitive)]:
+#  - Something [weight value (integer number)]
+#  - Anything [weight]
+#  - Whatever [w]
+#  - CaSe SensitIve [w]
+#  - supports spaces [w]
+#  - BUT It must not end in an integer number [w (because it will be considered as the weight when reading the file)]
+#
+#  DOES NOT SUPPORT REPEATED ENTRIES
+
+Rainbow:    # When called with <goop.ordered.Rainbow>, each time it parses it will give the next one and repeat when it reaches the final:
+  - §c
+  - §6
+  - §e
+  - §a
+  - §b
+  - §9
+  - §5
+  
+LootWithChances:      # When called with <goop.random.LootWithChances>, will be replaced with:
+  - diamond 3           # 3/45 chance of diamond
+  - gold_ingot 11       # 11/45 chance of gold
+  - iron_ingot 30       # 30/45 chance of iron
+  - netherite_ingot 1   # 1/45 chance of netherite

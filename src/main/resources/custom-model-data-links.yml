@@ -1,0 +1,20 @@
+##  
+##  Custom Model Data links, as their name imply, Link an Action to an item by it simply having the correct Custom Model Data.
+##  
+##  The way to do this is very simple:
+##  
+##  [Material]:
+##    [Custom Model Data]:
+##      {Link}: {Value}
+##      {Link}: {Value}
+##      {Link}: {Value}
+##      ...
+##  
+##  For Example:
+##  
+##  DIAMOND_SWORD:
+##    CMD_1337:
+##      AsJSONFurniture: true
+##  
+##  Will tell GooP to treat diamond swords with a Custom Model Data of '1337' as JSON Blocks.
+##    ( Basically will place them on armor stand heads, which in turn will be placed within barrier blocks; Allowing for custom blocks)

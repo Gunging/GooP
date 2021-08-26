@@ -1,0 +1,31 @@
+####
+####    Replace foreign letters and symbols in your texture pack by any image
+####    and easily use them in chat as you would emote in discord.
+####
+###
+###     When using in chat:
+###         :[CODE]:    (basically discord syntax for emojis)
+###
+###     When used in mythicmobs skills:
+###         <goop.font.[CODE]>
+##
+##  MythicMobs codes always parse when the variable parser runs (before the mechanic).
+#
+#   Sintax:
+#
+#   Unicode_Page_[PAGE]:
+#     - [Resourcepack Index] [CODE]
+#
+#   The only supported pages are 37 and 38
+#
+
+Unicode_Page_37:
+  
+  # Will manifest when someone writes :sword: in the chat
+  - 1 SWORD
+  
+  # Will show up when someone says :snooze:
+  - 2 SNOOZE
+
+  # Will appear when players say :eyes1: in the chat
+  - 3 EYES1

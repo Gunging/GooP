@@ -1,0 +1,13 @@
+### 
+### For Inter-Server Operations, one may setup a mySQL database
+### 
+##
+## There are not many things this is used for, got any suggestion?
+## 
+
+Enabled: false
+Host: ''
+Port: ''
+Database: ''
+Username: ''
+Password: ''

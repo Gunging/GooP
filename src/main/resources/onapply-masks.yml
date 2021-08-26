@@ -1,0 +1,90 @@
+
+# Masks are case and space insensitive.
+# Upon reading the file, the plugin will
+# transform them to MMOItem style.
+# thrusting sword ==> THRUSTING_SWORD
+# wHiP  ==> WHIP
+
+Armory:
+  - Armor
+  - Sword
+  - Dagger
+  - Hammer
+  - BOW
+  - CROSSBOW
+  - MUSKET
+  - axe
+  - thrusting sword
+  - sPEAR
+  - gauntlet
+  - wHiP
+  - staff
+  - LUTE
+  - GREATSwORD
+  - LONG_SWORD
+  - kaTANa
+  - grEAtAxe
+  - halberd
+  - LANCE
+  - greatHAMMER
+  - grEaTStaff
+  - STave
+  - WanD
+  - GreatBow
+  - SHIELD
+  
+Weapons:
+  - SWORD
+  - DAGGER
+  - HAMMER
+  - BOW
+  - CROSSBOW
+  - MUSKET
+  - AXE
+  - THRUSTING_SWORD
+  - SPEAR
+  - GAUNTLET
+  - WHIP
+  - STAFF
+  - LUTE
+  - GREATSWORD
+  - LONG_SWORD
+  - KATANA
+  - GREATAXE
+  - HALBERD
+  - LANCE
+  - GREATHAMMER
+  - GREATSTAFF
+  - STAVE
+  - WAND
+  - GREATBOW
+  
+MeleeWeapns:
+  - SWORD
+  - DAGGER
+  - HAMMER
+  - AXE
+  - THRUSTING_SWORD
+  - SPEAR
+  - GAUNTLET
+  - WHIP
+  - GREATSWORD
+  - LONG_SWORD
+  - KATANA
+  - GREATAXE
+  - HALBERD
+  - LANCE
+  - GREATHAMMER
+  
+RangedWeapons:
+  - BOW
+  - CROSSBOW
+  - MUSKET
+  - GREATBOW
+  
+MagicWeapons:
+  - STAFF
+  - LUTE
+  - GREATSTAFF
+  - STAVE
+  - WAND

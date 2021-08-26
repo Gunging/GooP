@@ -1,0 +1,50 @@
+################## MMOItems Converter ##################################################
+################## Items will preserve most nbt tags upon conversion.
+################## Tested and Working: Display Name, Enchantments, Attribute Modifiers.
+##############
+############## Enabling this will convert items into MMOItems:
+############## - When crafting
+############## - When picking them up
+########
+######## You must specify what kind of items to convert.
+##
+## Note that you are required to make an item of internal ID 'VANILLA'
+## In each MMOItem Type you are converting for this to work.
+#
+#Convert_Into_MMOItems:
+#  - ALL      # Stands for all the following:
+
+### General Types
+#  - ARMOUR   # Will convert armour   - MMOItem Type ARMOR
+#  - WHIP     # Will convert leads    - MMOItem Type WHIP
+#  - TOOL     # Will convert tools    - MMOItem Type TOOL
+#  - SHIELD   # Will convert shields  - MMOItem Type SHIELD (not default, you must create this type)
+#  - WEAPONS  # Will convert weapons. Stands for all the following:
+
+### If you dont want to convert all weapons, you can use these separately instead of WEAPONS
+#  - SWORD      # - MMOItem Type SWORD
+#  - AXE        # - MMOItem Type AXE
+#  - BOW        # - MMOItem Type BOW
+#  - CROSSBOW   # - MMOItem Type CROSSBOW
+#  - TRIDENT    # - MMOItem Type SPEAR
+
+
+
+#####
+##### You may specify a few conversion settings, and when to apply ( OnCraft / OnPickup )
+#####
+###
+###  [CATEGORY]:
+###    [OnCraft]:
+###      Tier:
+###        - COMMON 3
+###        - UNCOMMON 3
+###        - RARE 3
+###        - EPIC 3
+###    [OnApply]:
+###      Tier:
+###        - COMMON 3
+###        - UNCOMMON 3
+###        - RARE 3
+###        - EPIC 3
+###
