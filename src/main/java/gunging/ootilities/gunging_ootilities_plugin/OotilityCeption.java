@@ -42,6 +42,7 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -172,26 +173,26 @@ public class OotilityCeption {
         }
     }
 
-    @NotNull public static ArrayList<OrderedScoreboardEntry> SortEntriesOf(@Nullable Objective obj) {
+    @NotNull public static ArrayList<OrderedScoreboardEntry> SortEntriesOf(@Nullable Objective obj, @Nullable ArrayList<String> entries, int emergencyEscape) {
 
-        /*SCR*/OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a77 Ordering scoreboard entries of \u00a7e" + obj.getName());
+        //SCR//OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a77 Ordering scoreboard entries of \u00a7e" + obj.getName());
 
         // Get all participants
         ArrayList<OrderedScoreboardEntry> ret = new ArrayList<>();
 
         if (obj == null || obj.getScoreboard() == null) {
-            /*SCR*/OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a7c Scoreboard was null, cancelling.");
+            //SCR//OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a7c Scoreboard was null, cancelling.");
             return ret; }
 
         // Get Entries IG
-        ArrayList<String> entries = new ArrayList<>(obj.getScoreboard().getEntries());
+        if (entries == null) { entries = new ArrayList<>(obj.getScoreboard().getEntries()); }
 
-        /*SCR*/OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a77 Found \u00a7b" + entries.size() + "\u00a77 entries:");
-        /*SCR*/try { for (String str : io.lumine.mythic.lib.api.util.ui.SilentNumbers.transcribeList(entries, (s) -> (s == null ? "null" : ((String) s) + " \u00a7b" + obj.getScore((String) s).getScore()))) { OotilityCeption.Log("\u00a7e:\u00a73:\u00a77 " + str); } } catch (IllegalArgumentException ignored) {}
+        //SCR//OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a77 Found \u00a7b" + entries.size() + "\u00a77 entries:");
+        //SCR//try { for (String str : io.lumine.mythic.lib.api.util.ui.SilentNumbers.transcribeList(entries, (s) -> (s == null ? "null" : ((String) s) + " \u00a7b" + obj.getScore((String) s).getScore()))) { OotilityCeption.Log("\u00a7e:\u00a73:\u00a77 " + str); } } catch (IllegalArgumentException ignored) {}
 
         int emergencyEscaper = 0;
         // Get Participants
-        for (String r : entries) { emergencyEscaper++; if (emergencyEscaper > 200) { Gunging_Ootilities_Plugin.theOots.CPLog("\u00a7cFatal Loop Error\u00a77 (I guess), Escaped at 200th iteration, seems an infinite cycle."); break; }
+        for (String r : entries) { emergencyEscaper++; if (emergencyEscaper > emergencyEscape) { Gunging_Ootilities_Plugin.theOots.CPLog("\u00a7cFatal Loop Error\u00a77 (I guess), Escaped at 200th iteration, seems an infinite cycle."); break; }
 
             // Just check validity
             if (r != null) {
@@ -207,12 +208,14 @@ public class OotilityCeption {
 
                         // Theres
                         ret.add(new OrderedScoreboardEntry(tar));
-                        /*SCR*/OotilityCeption.Log("\u00a7e:\u00a7b:\u00a73:\u00a77 Included \u00a7a" + r + "\u00a77, score \u00a7b" + tar.getScore());
+                        //SCR//OotilityCeption.Log("\u00a7e:\u00a7b:\u00a73:\u00a77 Included \u00a7a" + r + "\u00a77, score \u00a7b" + tar.getScore());
 
                     }
-                    /*SCR*/else { OotilityCeption.Log("\u00a7e:\u00a7b:\u00a73:\u00a77 Excluded \u00a7c" + r + "\u00a77, score \u00a7b" + tar.getScore()); }
+                    //SCR//else { OotilityCeption.Log("\u00a7e:\u00a7b:\u00a73:\u00a77 Excluded \u00a7c" + r + "\u00a77, score \u00a7b" + tar.getScore()); }
                 }
-                /*SCR*/ else { OotilityCeption.Log("\u00a7e:\u00a7b:\u00a73:\u00a77 Excluded \u00a7c" + r + "\u00a77, too long."); } } }
+                //SCR// else { OotilityCeption.Log("\u00a7e:\u00a7b:\u00a73:\u00a77 Excluded \u00a7c" + r + "\u00a77, too long."); }
+
+            } }
 
         // Sort T_T
         Collections.sort(ret);
@@ -351,8 +354,10 @@ public class OotilityCeption {
 
     /**
      * Gets the Display Name of that item. If it has no display name, then the material name.
+     *
      * @return null if the item is null
      */
+    @Contract("!null -> !null; null -> null")
     @Nullable
     public static String GetItemName(@Nullable ItemStack tItem) {
 
@@ -613,7 +618,7 @@ public class OotilityCeption {
         }
     }
 
-    // Block Types
+    // Materials Types
     @Nullable public static Material getMaterial(@Nullable String mat) { if (mat == null) { return null; } try { return Material.valueOf(mat); } catch (IllegalArgumentException ignored) { return null; } }
     public static boolean IsShulkerBox(@NotNull Material mat) {
         switch (mat) {
@@ -638,7 +643,20 @@ public class OotilityCeption {
             default: return false;
         }
     }
-    @NotNull public static boolean IsLeaves(@NotNull Material mat) {
+    public static boolean IsDiamond(@NotNull Material iType) {
+        return  (iType == Material.DIAMOND_AXE) ||
+                (iType == Material.DIAMOND_HOE) ||
+                (iType == Material.DIAMOND_SWORD) ||
+                (iType == Material.DIAMOND_SHOVEL) ||
+                (iType == Material.DIAMOND_PICKAXE) ||
+                (iType == Material.DIAMOND_HELMET) ||
+                (iType == Material.DIAMOND_CHESTPLATE) ||
+                (iType == Material.DIAMOND_LEGGINGS) ||
+                (iType == Material.DIAMOND_BOOTS) ||
+                (iType == Material.DIAMOND_HORSE_ARMOR);
+    }
+
+    public static boolean IsLeaves(@NotNull Material mat) {
         switch (mat) {
             case OAK_LEAVES:
             case ACACIA_LEAVES:
@@ -4980,6 +4998,50 @@ public class OotilityCeption {
         if (!failure) { return new Location(wrdl, weX, weY, weZ); } else { return null; }
     }
 
+    public static void GatherDefaultVanillaAttributes(Material fromType, Material tType, RefSimulator<String> tName, RefSimulator<Double> vDamage, RefSimulator<Double> vSpeed, RefSimulator<Double> vArmor, RefSimulator<Double> vArmorT, RefSimulator<Double> mKRes) {
+
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aFRTO\u00a77 From:\u00a7a " + fromType.toString() + "\u00a77, To:\u00a7e " + tType.toString());
+
+        RefSimulator<Double>
+                vDamageRef = new RefSimulator<>(0.0),
+                vSpeedRef = new RefSimulator<>(0.0),
+                vArmorRef = new RefSimulator<>(0.0),
+                vArmorTRef = new RefSimulator<>(0.0),
+                mKResRef = new RefSimulator<>(0.0);
+        RefSimulator<String> tNameRef = new RefSimulator<>("MISCELLANEOUS");
+
+        GatherDefaultVanillaAttributes(fromType, tNameRef, vDamageRef, vSpeedRef, vArmorRef, vArmorTRef, mKResRef);
+
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aFROM\u00a77 Damage:\u00a7a " + vDamageRef.getValue());
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aFROM\u00a77 Speed:\u00a7a " + vSpeedRef.getValue());
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aFROM\u00a77 Armor:\u00a7a " + vArmorRef.getValue());
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aFROM\u00a77 Tough:\u00a7a " + vArmorTRef.getValue());
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aFROM\u00a77 MKRes:\u00a7a " + mKResRef.getValue());
+
+        RefSimulator<Double>
+                EvDamageRef = new RefSimulator<>(0.0),
+                EvSpeedRef = new RefSimulator<>(0.0),
+                EvArmorRef = new RefSimulator<>(0.0),
+                EvArmorTRef = new RefSimulator<>(0.0),
+                EmKResRef = new RefSimulator<>(0.0);
+        RefSimulator<String> EtNameRef = new RefSimulator<>("MISCELLANEOUS");
+
+        GatherDefaultVanillaAttributes(tType, EtNameRef, EvDamageRef, EvSpeedRef, EvArmorRef, EvArmorTRef, EmKResRef);
+
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aTO\u00a77 Damage:\u00a7a " + EvDamageRef.getValue());
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aTO\u00a77 Speed:\u00a7a " + EvSpeedRef.getValue());
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aTO\u00a77 Armor:\u00a7a " + EvArmorRef.getValue());
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aTO\u00a77 Tough:\u00a7a " + EvArmorTRef.getValue());
+        //SMH//OotilityCeption.Log("\u00a78GatheringVanilla \u00a7aTO\u00a77 MKRes:\u00a7a " + EmKResRef.getValue());
+
+        // Carry on
+        tName.SetValue(EtNameRef.GetValue());
+        vDamage.SetValue(EvDamageRef.GetValue() - vDamageRef.GetValue());
+        vSpeed.SetValue(EvSpeedRef.GetValue()  - vSpeedRef.GetValue());
+        vArmor.SetValue(EvArmorRef.GetValue()  - vArmorRef.GetValue());
+        vArmorT.SetValue(EvArmorTRef.GetValue() - vArmorTRef.GetValue());
+        mKRes.SetValue(EmKResRef.GetValue()   - mKResRef.GetValue());
+    }
     public static void GatherDefaultVanillaAttributes(Material tType, RefSimulator<String> tName, RefSimulator<Double> vDamage, RefSimulator<Double> vSpeed, RefSimulator<Double> vArmor, RefSimulator<Double> vArmorT, RefSimulator<Double> mKRes) {
 
         //region Sword
@@ -5123,7 +5185,7 @@ public class OotilityCeption {
         if (tType == Material.DIAMOND_HOE) {
             if (tName != null) { tName.SetValue("TOOL"); }
             if (vDamage != null) { vDamage.SetValue(0.01); }
-            if (vSpeed != null) { vSpeed.SetValue(1.0); }
+            if (vSpeed != null) { vSpeed.SetValue(4.0); }
         } else
         if (tType == Material.IRON_HOE) {
             if (tName != null) { tName.SetValue("TOOL"); }
@@ -5138,7 +5200,7 @@ public class OotilityCeption {
         if (tType == Material.STONE_HOE) {
             if (tName != null) { tName.SetValue("TOOL"); }
             if (vDamage != null) { vDamage.SetValue(0.01); }
-            if (vSpeed != null) { vSpeed.SetValue(1.0); }
+            if (vSpeed != null) { vSpeed.SetValue(2.0); }
         } else
         if (tType == Material.WOODEN_HOE) {
             if (tName != null) { tName.SetValue("TOOL"); }
@@ -6892,7 +6954,7 @@ public class OotilityCeption {
         StringBuilder invalids = new StringBuilder();
         if (arg.contains(",")) { slots = arg.split(","); }
         for (String sl : slots) {
-            //SLOT//OotilityCeption. Log(("Parsing Slot \u00a7f" + sl);
+            //SLOT//OotilityCeption.Log("Parsing Slot \u00a7f" + sl);
 
             // Does it parse?
             ItemStackSlot oSlot = OotilityCeption.GetInventorySlot(sl);
@@ -6900,11 +6962,20 @@ public class OotilityCeption {
             // Gather
             if (oSlot != null) {
 
+                ArrayList<ItemStackSlot> snooze = oSlot.Elaborate(elaborator);
+
+                // Unelaboratable
+                if (snooze.size() == 0) {
+
+                    // Include in invalids
+                    invalids.append("\u00a77, \u00a7b").append(sl);
+                }
+
                 // Thats the one
-                slott.addAll(oSlot.Elaborate(elaborator));
+                slott.addAll(snooze);
 
             } else {
-                //SLOT//OotilityCeption. Log(("\u00a78\u00a7oInvalid");
+                //SLOT//OotilityCeption.Log("\u00a78\u00a7oInvalid");
 
                 // Include in invalids
                 invalids.append("\u00a77, \u00a73").append(sl);

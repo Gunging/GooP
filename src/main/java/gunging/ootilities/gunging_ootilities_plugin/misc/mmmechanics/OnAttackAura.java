@@ -1,6 +1,7 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
+import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.XBow_Rockets;
 import io.lumine.xikage.mythicmobs.MythicMobs;
@@ -24,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+
+import static gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.OnShootAura.getName;
+import static gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.OnShootAura.logSkillData;
 
 public class OnAttackAura extends Aura implements ITargetedEntitySkill {
 
@@ -112,6 +116,9 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
                     event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK ||
                     event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE).filter((event) -> {
 
+                //SOM//OotilityCeption.Log("\u00a7cStep 3 \u00a77Subscribe Run: " + getName(event.getEntity()) + "\u00a77 vs " + getName(this.entity.get()) + "\u00a78 ~\u00a7e " + event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId()));
+
+
                 // Find the true entity
                 Entity trueDamager = event.getDamager();
 
@@ -151,10 +158,12 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
 
                 // Target is target yea
                 AbstractEntity target = BukkitAdapter.adapt(event.getEntity());
-                meta.setEntityTarget(target);
+                meta.setTrigger(target);
 
                 // Refresh
                 if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(meta, meta.getCaster().getEntity()));}
+
+                //SOM// OotilityCeption.Log("\u00a7cStep 4 \u00a77Aura Run:\u00a7d " + logSkillData(meta) + "\u00a7b " + metaskill.getInternalName());
 
                 // Execute
                 if (this.executeAuraSkill(Optional.ofNullable(metaskill), meta)) {

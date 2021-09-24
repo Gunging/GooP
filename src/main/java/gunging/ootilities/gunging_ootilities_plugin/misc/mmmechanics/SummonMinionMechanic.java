@@ -124,6 +124,8 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
         LivingEntity mob = (LivingEntity) BukkitAdapter.adapt(targetProbably);
         LivingEntity caster = (LivingEntity) BukkitAdapter.adapt(skillMetadata.getCaster().getEntity());
 
+        if (mob == null) { return false; }
+
         AsMinionSpawn(skillMetadata, caster, mob.getLocation());
 
         return false;

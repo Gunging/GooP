@@ -30,10 +30,10 @@ public class ItemStackSlot {
     @Nullable ItemStackSlot parentSlot;
 
     // Quickly where it is
-    SearchLocation locationName = null;
+    @NotNull SearchLocation locationName;
 
     // Placeholder for containers, maybe?
-    String goopContainersPlaceholder;
+    @Nullable String goopContainersPlaceholder;
 
     @Override public String toString() {
         StringBuilder s = new StringBuilder();
@@ -68,7 +68,7 @@ public class ItemStackSlot {
      * @param targetSlot The actual index of the slot. May be NULL for 'any'
      * @param parent If within a shulker box, the slot of thay shulker box. May be NULL
      */
-    public ItemStackSlot(SearchLocation targetLocation, Integer targetSlot, ItemStackSlot parent) {
+    public ItemStackSlot(@Nullable SearchLocation targetLocation, @Nullable Integer targetSlot, @Nullable ItemStackSlot parent) {
 
         // Set
         slot = targetSlot;
@@ -118,22 +118,52 @@ public class ItemStackSlot {
     @NotNull public ArrayList<ItemStackSlot> Elaborate(@Nullable Player forObservedContainer) {
         // Ret
         ArrayList<ItemStackSlot> ret = new ArrayList<>();
+        //SLOT//OotilityCeption.Log("\u00a78SLOT \u00a74ELB \u00a77Parsing Slot \u00a73" + toString());
 
         // If it is a placeholder slot
         if (goopContainersPlaceholder != null) {
+            //SLOT//OotilityCeption.Log("\u00a78SLOT \u00a74ELB \u00a77Placeholder \u00a73" + goopContainersPlaceholder);
+
+            // Attempt to get
+            ContainerTemplateGooP observed = null;
+            boolean asPers = false;
+
+            if(pSource != null) {
+                //SLOT//OotilityCeption.Log("\u00a78SLOT \u00a74ELB \u00a77Personal Procedure");
+                asPers = true;
+
+                // Attempt to get
+                observed = pSource.GetParentTemplate();
+            } else
 
             // Stop if null
             if (forObservedContainer != null) {
+                //SLOT//OotilityCeption.Log("\u00a78SLOT \u00a74ELB \u00a77Observed Procedure");
 
                 // Attempt to get
-                ContainerTemplateGooP observed = ContainerTemplateGooP.GetObservedStationTemplate(forObservedContainer.getUniqueId(), null);
+                observed = ContainerTemplateGooP.GetObservedStationTemplate(forObservedContainer.getUniqueId(), null);
 
-                // If ovserved existed
-                if (observed != null) {
+            // Allow personal?
+            }
 
-                    // Get
-                    ret = observed.GetPlaceholderSlots(goopContainersPlaceholder);
-                }
+            // If ovbserved existed
+            if (observed != null) {
+                //SLOT//OotilityCeption.Log("\u00a78SLOT \u00a74ELB \u00a77Found Observed \u00a76" + observed.getInternalName());
+
+                // Get
+                ArrayList<ItemStackSlot> prep = observed.GetPlaceholderSlots(goopContainersPlaceholder);
+                
+                if (asPers) {
+                    
+                    // Add processed
+                    for (ItemStackSlot pr : prep) {
+                        
+                        ItemStackSlot processed = new ItemStackSlot(SearchLocation.PERSONAL_CONTAINER, pr.slot, pr.parentSlot);
+                        processed.SetPersonalContainer(pSource);
+                        ret.add(processed);
+                    }
+                    
+                } else { ret = prep; }
             }
 
         } else if (IsAny()) {

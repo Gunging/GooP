@@ -208,7 +208,8 @@ public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
 
                 // Set the target of the skill to be the attacking entity
                 if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(meta, meta.getCaster().getEntity()));}
-                meta.setEntityTarget(BukkitAdapter.adapt(trueDamager));
+                AbstractEntity targ = BukkitAdapter.adapt(trueDamager);
+                meta.setTrigger(targ);
                 BukkitTriggerMetadata.apply(meta, event);
 
                 //SOM//OotilityCeption.Log("\u00a7cStep 5 \u00a7eTarget Set");

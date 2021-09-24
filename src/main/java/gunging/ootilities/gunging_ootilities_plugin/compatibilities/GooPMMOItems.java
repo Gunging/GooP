@@ -27,6 +27,7 @@ import net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem;
 import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
 import net.Indyuce.mmoitems.api.item.mmoitem.VolatileMMOItem;
 import net.Indyuce.mmoitems.api.item.template.MMOItemTemplate;
+import net.Indyuce.mmoitems.api.item.template.NameModifier;
 import net.Indyuce.mmoitems.api.item.template.TemplateModifier;
 import net.Indyuce.mmoitems.api.player.PlayerData;
 import net.Indyuce.mmoitems.api.player.RPGPlayer;
@@ -45,6 +46,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.*;
@@ -335,7 +337,11 @@ public class GooPMMOItems {
     }
 
     public static void RegisterStat(@Deprecated String legacyID, @NotNull ItemStat statt) { RegisterStat(statt); }
-    public static void RegisterStat(@NotNull ItemStat statt) { if (!Gunging_Ootilities_Plugin.foundMMOItems) { return; }MMOItems.plugin.getStats().register(statt); }
+    public static void RegisterStat(@NotNull ItemStat statt) {
+        if (!Gunging_Ootilities_Plugin.foundMMOItems) { return; }
+        if (MMOItems.plugin == null || MMOItems.plugin.getStats() == null) { Gunging_Ootilities_Plugin.foundMMOItems = false; return; }
+        MMOItems.plugin.getStats().register(statt);
+    }
     //endregion
 
     //region Getting Values (as well as the cummulative forms)
@@ -1325,7 +1331,8 @@ public class GooPMMOItems {
     //endregion
 
     //region Converting from Vanilla to MMOItem
-    public static NBTItem ConvertVanillaToMMOItemAsNBT(ItemStack base) {
+    public static String VANILLA_TYPE = "VANILLA";
+    @NotNull public static NBTItem ConvertVanillaToMMOItemAsNBT(@NotNull ItemStack base) {
 
         // Lets very quickly add a display name to this boi
         OotilityCeption.RenameItem(base, OotilityCeption.GetItemName(base), null);
@@ -1363,7 +1370,7 @@ public class GooPMMOItems {
 
         // Create the Item Tags
         ItemTag tTypeMI = new ItemTag("MMOITEMS_ITEM_TYPE", tName);
-        ItemTag tID = new ItemTag("MMOITEMS_ITEM_ID", "VANILLA");
+        ItemTag tID = new ItemTag("MMOITEMS_ITEM_ID", VANILLA_TYPE);
 
         // Add those tags
         tNBT.addTag(tTypeMI);
@@ -2687,6 +2694,7 @@ public class GooPMMOItems {
      * @param failureRet What to return if the ItemStack is NOT a MMOItem
      * @return Either the MMOItem Type (if MMOItem) or failureRet
      */
+    @Contract("null, _ -> param2; !null, _ -> param2")
     @Nullable
     public static String GetMMOItemID(@Nullable ItemStack iSource, @Nullable String failureRet) {
 
@@ -2737,8 +2745,8 @@ public class GooPMMOItems {
     /**
      * Checks if it is a valid MMOItems Modifier.
      */
-    @Nullable public static ItemStack ModifierOperation(@Nullable String tier, @Nullable ItemStack mmo, @Nullable RefSimulator<String> logger) {
-        if (tier == null || mmo == null) {
+    @Nullable public static ItemStack ModifierOperation(@Nullable String rawModifier, @Nullable ItemStack mmo, @Nullable RefSimulator<String> logger) {
+        if (rawModifier == null || mmo == null) {
             OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Unspecified modifier or item");
             return null; }
 
@@ -2754,12 +2762,12 @@ public class GooPMMOItems {
             OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item is a MMOItem but the template is not loaded, was it deleted?");
             return null; }
 
-        boolean random = tier.equalsIgnoreCase("random");
-        boolean clear = tier.equalsIgnoreCase("none");
+        boolean random = rawModifier.equalsIgnoreCase("random");
+        boolean clear = rawModifier.equalsIgnoreCase("none");
 
         // Ay exist?
-        if (!random && !clear && !template.hasModifier(tier)) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "There is no modifier of name \u00a73" + tier + "\u00a77.");
+        if (!random && !clear && !template.hasModifier(rawModifier)) {
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "There is no modifier of name \u00a73" + rawModifier + "\u00a77.");
             return null; }
 
         NBTItem nbt = NBTItem.get(mmo);
@@ -2774,7 +2782,8 @@ public class GooPMMOItems {
             // Ay exist?
             if (modifiers.size() == 0) {
                 OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "MMOItem \u00a7e" + template.getType().getId() + " " + template.getId() + "\u00a77 has no modifiers, cant pick a random one thus.");
-                return null; }
+                return null;
+            }
 
             // Get Modifier
             TemplateModifier modifier = modifiers.get(OotilityCeption.GetRandomInt(0, modifiers.size() - 1));
@@ -2804,7 +2813,25 @@ public class GooPMMOItems {
                 }
             }
 
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Applied \u00a7b" + modifier.getNameModifier().toString() + "\u00a77 to " + OotilityCeption.GetItemName(mmo));
+            // Rename
+            if (modifier.hasNameModifier()) {
+
+                // Get name data
+                StatHistory hist = StatHistory.from(live, ItemStats.NAME);
+
+                // Create new Name Data
+                NameModifier namemod = modifier.getNameModifier();
+                NameData modName = new NameData("");
+
+                // Include modifier information
+                if (namemod.getType() == NameModifier.ModifierType.PREFIX) { modName.addPrefix(namemod.getFormat()); }
+                if (namemod.getType() == NameModifier.ModifierType.SUFFIX) { modName.addSuffix(namemod.getFormat()); }
+
+                // Register onto SH
+                hist.registerModifierBonus(modUUID, modName);
+            }
+
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Applied \u00a7b" + modifier.getId() + "\u00a77 to " + OotilityCeption.GetItemName(mmo));
 
         } else if (clear) {
 
@@ -2820,7 +2847,7 @@ public class GooPMMOItems {
         } else {
 
             // Get Modifier
-            TemplateModifier modifier = template.getModifier(tier);
+            TemplateModifier modifier = template.getModifier(rawModifier);
             UUID modUUID = UUID.randomUUID();
 
             MMOItemBuilder snoozer = template.newBuilder();
@@ -2847,7 +2874,25 @@ public class GooPMMOItems {
                 }
             }
 
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Applied \u00a7b" + modifier.getNameModifier().toString() + "\u00a77 to " + OotilityCeption.GetItemName(mmo));
+            // Rename
+            if (modifier.hasNameModifier()) {
+
+                // Get name data
+                StatHistory hist = StatHistory.from(live, ItemStats.NAME);
+
+                // Create new Name Data
+                NameModifier namemod = modifier.getNameModifier();
+                NameData modName = new NameData("");
+
+                // Include modifier information
+                if (namemod.getType() == NameModifier.ModifierType.PREFIX) { modName.addPrefix(namemod.getFormat()); }
+                if (namemod.getType() == NameModifier.ModifierType.SUFFIX) { modName.addSuffix(namemod.getFormat()); }
+
+                // Register onto SH
+                hist.registerModifierBonus(modUUID, modName);
+            }
+
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Applied \u00a7b" + modifier.getId() + "\u00a77 to " + OotilityCeption.GetItemName(mmo));
         }
 
         // Yeah that's it

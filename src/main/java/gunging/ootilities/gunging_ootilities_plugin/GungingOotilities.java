@@ -19,10 +19,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -537,9 +534,9 @@ public class GungingOotilities implements CommandExecutor {
                 //endregion
                 //region testinventory
                 case testinventory:
-                    //   0      1              2       3    4 5 6       7         8     args.Length
-                    // /goop testinventory <player> <slot> {n b t} [objective] [score] [Shulker Box Name Filter]
-                    //   -      0              1       2    3 4 5       6         7     args[n]
+                    //   0      1              2       3    4 5 6     [7]       7 [8]     8 [9]  9 [10]     args.Length
+                    // /goop testinventory <player> <slot> {n b t} [amount] [objective] [score] [comp]  [Shulker Box Name Filter]
+                    //   -      0              1       2    3 4 5     [6]       6 [7]     7 [8]  8 [9]      args[n]
 
                     // Check 5 Permission
                     if (sender instanceof Player) {
@@ -561,19 +558,81 @@ public class GungingOotilities implements CommandExecutor {
                             Objective targetObjective = null;
                             PlusMinusPercent amountPMP = null;
                             PlusMinusPercent score = null;
-                            String amountPmPText = "";
-                            String completiontext = "";
-                            if (args.length >= 7) { completiontext = args[6]; }
-                            boolean toCompletion = completiontext.equals("comp");
-                            if (args.length >= 8) {
-                                amountPmPText = args[7];
-                                targetObjective = OotilityCeption.GetObjective(args[6]); }
+
+                            String objectiveStr = null;
+                            String amountPmPText = null;
+                            int nameFilterBegin = 32767;
+                            int scorelessNameFilterBegin = 32767;
+
+                            QuickNumberRange itemAmountTest = null;
+                            boolean toCompletion = false;
+
+                            /*
+                             * If any of the optional terms is used
+                             */
+                            if (args.length >= 7) {
+
+                                // Attempt to parse sixth argument as an amount range to accept
+                                itemAmountTest = QuickNumberRange.FromString(args[6]);
+                                int iAD = 0;
+
+                                // Item Amount Test was specified
+                                if (itemAmountTest != null) { iAD = 1; }
+
+                                // If there is only one optional argument
+                                if (args.length == (7 + iAD)) {
+
+                                    // It must be comp
+                                    toCompletion = args[6 + iAD].equals("comp");
+
+                                    // Name filter??? (of one word)
+                                    scorelessNameFilterBegin = 6 + iAD;
+
+                                // There is two optional arguments
+                                } else if (args.length == (8 + iAD)) {
+
+                                    // They must be an objective and a scoreo
+                                    objectiveStr = args[6 + iAD];
+                                    amountPmPText = args[7 + iAD];
+
+                                    // Name filter??? (two words)
+                                    scorelessNameFilterBegin = 6 + iAD;
+
+                                // There is three optional arguments
+                                } else if (args.length >= (9 + iAD)) {
+
+                                    // They must be an objective and a score
+                                    objectiveStr = args[6 + iAD];
+                                    amountPmPText = args[7 + iAD];
+                                    toCompletion = args[8 + iAD].equals("comp");
+
+                                    // Was the first one, comp?
+                                    if (toCompletion) {
+
+                                        // Begin index is 9 + iAD
+                                        nameFilterBegin = 9 + iAD;
+
+                                        // Name filter must begin after comp keyword
+                                        scorelessNameFilterBegin = 9 + iAD;
+
+                                    // Not comp, must be the start of the name filter
+                                    } else {
+
+                                        // Name filter is 8 + iAD
+                                        nameFilterBegin = 8 + iAD;
+
+                                        // Except the last three word could have been it
+                                        scorelessNameFilterBegin = 6 + iAD;
+                                    }
+                                }
+                            }
 
                             // Some bool to know if failure
                             boolean failure = false;
 
                             // Does the player exist?
                             if (targets.size() == 0) {
+
                                 // Failure
                                 failure = true;
 
@@ -595,9 +654,12 @@ public class GungingOotilities implements CommandExecutor {
                             } else { allowNull = (args[3].equals("v") && (args[4].toLowerCase()).equals("air"));  }
 
                             // Can it parse the score?
-                            boolean expectedAsScore = false;
-                            boolean uiAmount = amountPmPText.toLowerCase().contains("amount");
-                            if (args.length >= 8) {
+                            boolean scoreExpectedScoreboard = false;
+                            boolean uiAmount = false;
+                            if (amountPmPText != null) {
+
+                                // Will it set the objective to the count of items in the inventory?
+                                uiAmount = amountPmPText.toLowerCase().contains("amount");
                                 if (uiAmount) {
 
                                     // Build Amount PMP base
@@ -606,34 +668,48 @@ public class GungingOotilities implements CommandExecutor {
                                     // If it didnt parse, default to just set
                                     if (amountPMP == null) { amountPMP = new PlusMinusPercent(1337.0D, false, false); }
 
-                                    expectedAsScore = true;
+                                    // This guy tryna have an objective, man
+                                    scoreExpectedScoreboard = true;
                                 }
+
+                                // Get score increment as PMP
                                 score = PlusMinusPercent.GetPMP(amountPmPText, logAddition);
-                                if (score != null) { expectedAsScore = true; }
+                                if (score != null) { scoreExpectedScoreboard = true; }
+
+                                // Does the scoreboard objective exist?
+                                targetObjective = OotilityCeption.GetObjective(objectiveStr);
                             }
 
-                            // Does the scoreboard objective exist?
-                            if (targetObjective == null && args.length >= 8) {
-                                // Failure
-                                failure = failure || expectedAsScore;
+                            // Could not find the objective?
+                            if (targetObjective == null && amountPmPText != null) {
+
+                                /*
+                                 * So the player may specify a shulker box name filter without
+                                 * an objective/score pair, in which case the score text will not
+                                 * be a PMP nor 'amount' and will start immediately after comp.
+                                 */
+                                failure = failure || scoreExpectedScoreboard;
 
                                 // Mention
-                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback && failure) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Scoreboard Objective '\u00a73" + args[6] + "\u00a77' does not exist."));
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback && failure) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Scoreboard Objective '\u00a73" + objectiveStr + "\u00a77' does not exist."));
                             }
 
                             // Name
                             String fltr = null;
-                            if (args.length >= 7) {
+                            if (args.length > scorelessNameFilterBegin) {
 
-                                int start = 6;
-                                if (toCompletion) { start = 7; }
-                                if (expectedAsScore) { start = 8; } else { uiAmount = false; }
+                                // Identify where the name filter truly begins
+                                int trueNameFilter = scorelessNameFilterBegin;
 
-                                if (args.length > start) {
+                                // If expected scoreboard, use the alternative
+                                if (scoreExpectedScoreboard) { trueNameFilter = nameFilterBegin; }
+
+                                // If still can build the name
+                                if (args.length > trueNameFilter) {
 
                                     // Stringbuild the remaining args
                                     StringBuilder tot = new StringBuilder();
-                                    for (int ar = start; ar < args.length; ar++) {
+                                    for (int ar = trueNameFilter; ar < args.length; ar++) {
                                         if (!(tot.length() == 0)) { tot.append(" "); }
                                         tot.append(args[ar]); }
 
@@ -643,6 +719,7 @@ public class GungingOotilities implements CommandExecutor {
                                 }
                             }
 
+                            // Everthing went all right?
                             if (!failure) {
 
                                 // For every target
@@ -732,78 +809,113 @@ public class GungingOotilities implements CommandExecutor {
                                             }
                                         }
 
+                                        boolean success;
+                                        String logrt;
+
                                         // If found
                                         if (kount > 0) {
 
-                                            // Is it an amount counter?
-                                            if (uiAmount) {
+                                            logrt = "Item successfully detected, counted a total of \u00a7e" + kount + "\u00a77. ";
 
-                                                if (targetObjective != null){
+                                            // Does it proc?
+                                            if (itemAmountTest != null) {
 
-                                                    // Iamount pmp
-                                                    double negativity = amountPMP.getValue();
-                                                    amountPMP.OverrideValue(kount * negativity);
+                                                if (itemAmountTest.InRange(kount)) {
 
-                                                    // Done
-                                                    OotilityCeption.SetPlayerScore(targetObjective, target, amountPMP);
-                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Item successfully detected. Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target)));
+                                                    logrt += "Furthermore, the amount of stuff found (\u00a7b" + kount + "\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77.";
+                                                    success = true;
 
                                                 } else {
 
-                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Item successfully detected, a total of \u00a7e" + kount +"\u00a77."));
+                                                    logrt += "However, the amount of stuff found (\u00a7b" + kount + "\u00a77) \u00a7cdoes not\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. The command was forced to fail thus. ";
+                                                    success = false;
                                                 }
 
-                                                // The player provided a specific score
-                                            } else {
+                                            // No amount to say anything, true by default
+                                            } else { success = true; }
 
+                                            // Still succeeded?
+                                            if (success) {
+
+                                                // Some objective operation will be undergone
                                                 if (targetObjective != null) {
 
+                                                    // Provided an amount
+                                                    if (uiAmount) {
 
-                                                    //Behold
-                                                    OotilityCeption.SetPlayerScore(targetObjective, target, score);
-                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Item successfully detected. Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target)));
+                                                        // Iamount pmp
+                                                        double negativity = amountPMP.getValue();
+                                                        amountPMP.OverrideValue(kount * negativity);
+
+                                                        // Done
+                                                        OotilityCeption.SetPlayerScore(targetObjective, target, amountPMP);
+                                                        logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target) + "\u00a77. ";
+
+                                                    // Provided a score
+                                                    } else if (score != null) {
+
+                                                        //Behold
+                                                        OotilityCeption.SetPlayerScore(targetObjective, target, score);
+                                                        logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target) + "\u00a77. ";
+                                                    }
+                                                }
+
+                                                // Run Chain
+                                                if (chained) { chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString()); }
+                                            }
+
+                                        // Nothing was found
+                                        } else {
+
+                                            logrt = "Nothing matched the filter. ";
+                                            success = uiAmount;
+
+                                            // Does it proc?
+                                            if (itemAmountTest != null) {
+
+                                                if (itemAmountTest.InRange(0)) {
+
+                                                    logrt += "However, the amount of stuff found (\u00a7b0\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. The command was forced to succeed thus.";
+                                                    success = true;
 
                                                 } else {
 
-                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Item successfully detected, at least \u00a7e" + kount +"\u00a77."));
+                                                    logrt += "Furthermore, the amount of stuff found (\u00a7b0\u00a77) \u00a7cdoes not\u00a77 even fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. ";
+                                                    success = false;
                                                 }
                                             }
 
-                                            // Run Chain
-                                            if (chained) {
-                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
-                                                OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
-
-                                            // Nothing was found
-                                        } else {
-
                                             // Difference between amount and no amount
-                                            if (uiAmount) {
-                                                if (targetObjective != null) {
+                                            if (uiAmount && success) {
+
+                                                // Is there a target objective?
+                                                if (success && targetObjective != null) {
 
                                                     // Iamount pmp
                                                     amountPMP.OverrideValue(0.0D);
 
                                                     // Well nothing means 0 this time
                                                     OotilityCeption.SetPlayerScore(targetObjective, target, amountPMP);
-                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Nothing matched the filter. Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a730"));
 
-                                                } else {
-                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Nothing matched the filter. Succeeding anyway due to use of the \u00a7bamount\u00a77 keyword."));
-
+                                                    // Log
+                                                    logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a730\u00a77. ";
                                                 }
-
-                                                // Run Chain
-                                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
-
-                                                // General number, nothing happens
-                                            } else {
-
-                                                if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
-
-                                                // Mention
-                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", "Nothing matched the filter."));
                                             }
+                                        }
+
+
+                                        // Well
+                                        if (success) {
+
+                                            // Run Chain
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", logrt));
+                                            if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+
+                                        } else {
+
+                                            // N00b
+                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", logrt));
+                                            if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
                                         }
                                     }
                                 }
@@ -5439,12 +5551,12 @@ public class GungingOotilities implements CommandExecutor {
                             switch (args[1].toLowerCase()) {
                                 //region top
                                 case "top":
-                                    //   0        1      2           3                4            5       args.Length
-                                    // /goop scoreboard top <objective source> <objective target> <n>
-                                    //   -        0      1           2                3            4       args[n]
+                                    //   0        1      2           3                4            5     6      args.Length
+                                    // /goop scoreboard top <objective source> <objective target> <n> [max swp]
+                                    //   -        0      1           2                3            4     5      args[n]
 
                                     // Correct number of args?
-                                    if (args.length == 5) {
+                                    if (args.length >= 5 && args.length <= 6) {
 
                                         Objective sourceObjective = targetScoreboard.getObjective(args[2]);
                                         Objective targetObjective = targetScoreboard.getObjective(args[3]);
@@ -5474,6 +5586,71 @@ public class GungingOotilities implements CommandExecutor {
                                             if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Output objective name '\u00a73" + args[3] + "\u00a77' must not be longer than 16 characters."));
                                         }
 
+                                        ArrayList<EntityType> et = null;
+                                        int maxSWP = -1;
+                                        if (args.length >= 6) {
+
+                                            /*
+                                             * If it has commas, Entity List
+                                             * If it is a number, raw number
+                                             * If neither but existing, fail
+                                             * If missing, online players
+                                             */
+                                            
+                                            if (args[5].contains(",")) {
+                                                
+                                                // Parse entity list
+                                                et = new ArrayList<>();
+                                                
+                                                // Split by commas
+                                                for (String str : args[5].split(",")) {
+                                                    
+                                                    // Parses as Entity List?
+                                                    try {
+                                                        
+                                                        // Agony
+                                                        EntityType type = EntityType.valueOf(str);
+                                                        
+                                                        et.add(type);
+                                                        
+                                                    // 
+                                                    } catch (IllegalArgumentException ignored) { }
+                                                }
+                                                
+                                            // Parse as entity list
+                                            } else if (OotilityCeption.IntTryParse(args[5])) {
+                                                
+                                                // Number
+                                                maxSWP = OotilityCeption.ParseInt(args[5]);
+                                                
+                                            // Single Entity
+                                            } else {
+
+                                                // Parses as Entity List?
+                                                try {
+
+                                                    // Agony
+                                                    EntityType type = EntityType.valueOf(args[5]);
+
+                                                    // Might just be players in which there is a quicker way: Leaving it null
+                                                    if (type != EntityType.PLAYER) {
+
+                                                        // Create
+                                                        et = new ArrayList<>();
+                                                        et.add(type);
+                                                    }
+
+                                                // Failure
+                                                } catch (IllegalArgumentException ignored) {
+                                                    
+                                                    // Fail
+                                                    failure = true;
+
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Expected integer number or EntityType instead of '\u00a73" + args[5] + "\u00a77'"));
+                                                }
+                                            }
+                                        }
+
                                         // Does n parse?
                                         Integer n = null;
                                         if (OotilityCeption.IntTryParse(args[4])) {
@@ -5490,9 +5667,60 @@ public class GungingOotilities implements CommandExecutor {
                                         if (!failure) {
 
                                             // Get all participants
-                                            ArrayList<OrderedScoreboardEntry> scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective);
-                                            /*SCR*/OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a77 Resultant entries \u00a7b" + scoreboardParticipants.size());
-                                            /*SCR*/try { for (String str : io.lumine.mythic.lib.api.util.ui.SilentNumbers.transcribeList(scoreboardParticipants, (s) -> (s == null ? "null" : ((OrderedScoreboardEntry) s).getEntry() + ", \u00a77Score\u00a7b " + ((OrderedScoreboardEntry) s).getScore() + "\u00a77, Value \u00a7e" + ((OrderedScoreboardEntry) s).getValue()))) { OotilityCeption.Log("\u00a7e:\u00a73:\u00a77 " + str); } } catch (IllegalArgumentException ignored) {}
+                                            ArrayList<OrderedScoreboardEntry> scoreboardParticipants;
+
+                                            // Prepare entries override
+                                            if (maxSWP > 0) {
+
+                                                // Get all participants of the sweep
+                                                scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective, null, maxSWP);
+
+                                            // Et not null?
+                                            } else if (et != null) {
+
+                                                // UUIDs
+                                                ArrayList<String> entities = new ArrayList<>();
+
+                                                // Adds players as names
+                                                if (et.contains(EntityType.PLAYER)) {
+                                                    et.remove(EntityType.PLAYER);
+                                                    for (Player plyr : Bukkit.getOnlinePlayers()) {
+                                                        if (plyr == null) { continue; } entities.add(plyr.getName()); } }
+
+                                                // All loaded entities of thay type
+                                                for (World wrdl : Bukkit.getWorlds()) {
+
+                                                    // Add all loaded entities of type!
+                                                    for (Chunk chk : wrdl.getLoadedChunks()) {
+
+                                                        // Get entities
+                                                        for (Entity ent : chk.getEntities()) {
+
+                                                            // Type contained?
+                                                            if (et.contains(ent.getType())) {
+
+                                                                // Add UUID
+                                                                entities.add(ent.getUniqueId().toString());
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Get all participants of the sweep
+                                                scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective, entities, entities.size());
+
+                                            // Not null lets go
+                                            } else {
+
+                                                ArrayList<String> playersOnline = new ArrayList<>();
+                                                for (Player plyr : Bukkit.getOnlinePlayers()) { if (plyr == null) { continue; } playersOnline.add(plyr.getName());}
+
+                                                // Get all participants of the sweep
+                                                scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective, playersOnline, playersOnline.size());
+                                            }
+
+                                            //SCR//OotilityCeption.Log("\u00a7e-\u00a7b-\u00a73-\u00a77 Resultant entries \u00a7b" + scoreboardParticipants.size());
+                                            //SCR//try { for (String str : io.lumine.mythic.lib.api.util.ui.SilentNumbers.transcribeList(scoreboardParticipants, (s) -> (s == null ? "null" : ((OrderedScoreboardEntry) s).getEntry() + ", \u00a77Score\u00a7b " + ((OrderedScoreboardEntry) s).getScore() + "\u00a77, Value \u00a7e" + ((OrderedScoreboardEntry) s).getValue()))) { OotilityCeption.Log("\u00a7e:\u00a73:\u00a77 " + str); } } catch (IllegalArgumentException ignored) {}
 
                                             // Refresh the target
                                             if (tExists) { targetObjective.unregister(); }
@@ -5517,7 +5745,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                     // Get Entry
                                                     String ntry = obs.getEntry();
-                                                    /*SCR*/OotilityCeption.Log("\u00a7e>\u00a7b>\u00a73>\u00a77 " + obs.getEntry() + "\u00a7b " + obs.getScore() + " \u00a7e" + obs.getValue());
+                                                    //SCR//OotilityCeption.Log("\u00a7e>\u00a7b>\u00a73>\u00a77 " + obs.getEntry() + "\u00a7b " + obs.getScore() + " \u00a7e" + obs.getValue());
 
                                                     // Valid?
                                                     if (ntry != null) {
@@ -5551,11 +5779,11 @@ public class GungingOotilities implements CommandExecutor {
                                                             // P increase
                                                             p++;
                                                         }
-                                                        /*SCR*/ else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Entry too Long"); }
+                                                        //SCR// else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Entry too Long"); }
                                                     }
-                                                    /*SCR*/ else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Null Entry"); }
+                                                    //SCR// else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Null Entry"); }
                                                 }
-                                                /*SCR*/ else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Null Ordered Scoreboard Entry"); }
+                                                //SCR// else { OotilityCeption.Log("\u00a7c>\u00a73>\u00a77 Null Ordered Scoreboard Entry"); }
                                             }
 
                                             // Run Chain
@@ -5568,19 +5796,19 @@ public class GungingOotilities implements CommandExecutor {
                                         // Notify
                                         if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
                                             logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Incorrect usage. For info: \u00a7e/goop scoreboard"));
-                                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard top <objective source> <objective target> <n>");
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard top <objective source> <objective target> <n> [maxswp]");
                                         }
                                     }
                                     break;
                                 //endregion
                                 //region last
                                 case "last":
-                                    //   0        1      2           3                4            5       args.Length
-                                    // /goop scoreboard last <objective source> <objective target> <n>
-                                    //   -        0      1           2                3            4       args[n]
+                                    //   0        1      2           3                4            5       6    args.Length
+                                    // /goop scoreboard last <objective source> <objective target> <n> [maxswp]
+                                    //   -        0      1           2                3            4       5    args[n]
 
                                     // Correct number of args?
-                                    if (args.length == 5) {
+                                    if (args.length >= 5 && args.length <= 6) {
 
                                         Objective sourceObjective = targetScoreboard.getObjective(args[2]);
                                         Objective targetObjective = targetScoreboard.getObjective(args[3]);
@@ -5610,6 +5838,71 @@ public class GungingOotilities implements CommandExecutor {
                                             if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Last N", "Output objective name '\u00a73" + args[3] + "\u00a77' must not be longer than 16 characters."));
                                         }
 
+                                        ArrayList<EntityType> et = null;
+                                        int maxSWP = -1;
+                                        if (args.length >= 6) {
+
+                                            /*
+                                             * If it has commas, Entity List
+                                             * If it is a number, raw number
+                                             * If neither but existing, fail
+                                             * If missing, online players
+                                             */
+
+                                            if (args[5].contains(",")) {
+
+                                                // Parse entity list
+                                                et = new ArrayList<>();
+
+                                                // Split by commas
+                                                for (String str : args[5].split(",")) {
+
+                                                    // Parses as Entity List?
+                                                    try {
+
+                                                        // Agony
+                                                        EntityType type = EntityType.valueOf(str);
+
+                                                        et.add(type);
+
+                                                        //
+                                                    } catch (IllegalArgumentException ignored) { }
+                                                }
+
+                                            // Parse as entity list
+                                            } else if (OotilityCeption.IntTryParse(args[5])) {
+
+                                                // Number
+                                                maxSWP = OotilityCeption.ParseInt(args[5]);
+
+                                            // Single Entity
+                                            } else {
+
+                                                // Parses as Entity List?
+                                                try {
+
+                                                    // Agony
+                                                    EntityType type = EntityType.valueOf(args[5]);
+
+                                                    // Might just be players in which there is a quicker way: Leaving it null
+                                                    if (type != EntityType.PLAYER) {
+
+                                                        // Create
+                                                        et = new ArrayList<>();
+                                                        et.add(type);
+                                                    }
+
+                                                    // Failure
+                                                } catch (IllegalArgumentException ignored) {
+
+                                                    // Fail
+                                                    failure = true;
+
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Last N", "Expected integer number or EntityType instead of '\u00a73" + args[5] + "\u00a77'"));
+                                                }
+                                            }
+                                        }
+
                                         // Does n parse?
                                         Integer n = null;
                                         if (OotilityCeption.IntTryParse(args[4])) {
@@ -5626,7 +5919,57 @@ public class GungingOotilities implements CommandExecutor {
                                         if (!failure) {
 
                                             // Get all participants
-                                            ArrayList<OrderedScoreboardEntry> scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective);
+                                            ArrayList<OrderedScoreboardEntry> scoreboardParticipants;
+
+                                            // Prepare entries override
+                                            if (maxSWP > 0) {
+
+                                                // Get all participants of the sweep
+                                                scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective, null, maxSWP);
+
+                                            // Et not null?
+                                            } else if (et != null) {
+
+                                                // UUIDs
+                                                ArrayList<String> entities = new ArrayList<>();
+
+                                                // Adds players as names
+                                                if (et.contains(EntityType.PLAYER)) {
+                                                    et.remove(EntityType.PLAYER);
+                                                    for (Player plyr : Bukkit.getOnlinePlayers()) {
+                                                        if (plyr == null) { continue; } entities.add(plyr.getName()); } }
+
+                                                // All loaded entities of thay type
+                                                for (World wrdl : Bukkit.getWorlds()) {
+
+                                                    // Add all loaded entities of type!
+                                                    for (Chunk chk : wrdl.getLoadedChunks()) {
+
+                                                        // Get entities
+                                                        for (Entity ent : chk.getEntities()) {
+
+                                                            // Type contained?
+                                                            if (et.contains(ent.getType())) {
+
+                                                                // Add UUID
+                                                                entities.add(ent.getUniqueId().toString());
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Get all participants of the sweep
+                                                scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective, entities, entities.size());
+
+                                            // Not null lets go
+                                            } else {
+
+                                                ArrayList<String> playersOnline = new ArrayList<>();
+                                                for (Player plyr : Bukkit.getOnlinePlayers()) { if (plyr == null) { continue; } playersOnline.add(plyr.getName());}
+
+                                                // Get all participants of the sweep
+                                                scoreboardParticipants = OotilityCeption.SortEntriesOf(sourceObjective, playersOnline, playersOnline.size());
+                                            }
 
                                             // Refresh the target
                                             if (tExists) { targetObjective.unregister(); }
@@ -5690,8 +6033,8 @@ public class GungingOotilities implements CommandExecutor {
 
                                         // Notify
                                         if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
-                                            logReturn.add(OotilityCeption.LogFormat("Scoreboard - Top N", "Incorrect usage. For info: \u00a7e/goop scoreboard"));
-                                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard top <objective source> <objective target> <n>");
+                                            logReturn.add(OotilityCeption.LogFormat("Scoreboard - Last N", "Incorrect usage. For info: \u00a7e/goop scoreboard"));
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard last <objective source> <objective target> <n> [maxswp]");
                                         }
                                     }
                                     break;
@@ -5910,9 +6253,9 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73Scoreboard Operations, \u00a77Literally why arent these vanilla omg.");
                             logReturn.add("\u00a73Usage: \u00a7e/goop scoreboard {action}");
                             logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
-                            logReturn.add("\u00a73 --> \u00a7etop <objective source> <objective target> <n>");
+                            logReturn.add("\u00a73 --> \u00a7etop <objective source> <objective target> <n> [maxswp]");
                             logReturn.add("\u00a73      * \u00a77Get the top n players from the source objective");
-                            logReturn.add("\u00a73 --> \u00a7elast <objective source> <objective target> <n>");
+                            logReturn.add("\u00a73 --> \u00a7elast <objective source> <objective target> <n> [maxswp]");
                             logReturn.add("\u00a73      * \u00a77Get the last n players from the source objective");
                             logReturn.add("\u00a73 --> \u00a7erange <entry or players> <objective> <range>");
                             logReturn.add("\u00a73      * \u00a77Check that such entry is in such range.");

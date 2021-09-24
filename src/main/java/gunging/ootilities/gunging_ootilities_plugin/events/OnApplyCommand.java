@@ -5,16 +5,23 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.AppliccableMask;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypeNames;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypes;
 import io.lumine.mythic.lib.api.item.NBTItem;
+import net.Indyuce.mmoitems.ItemStats;
 import net.Indyuce.mmoitems.api.event.item.ApplyGemStoneEvent;
 import net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem;
 import net.Indyuce.mmoitems.api.item.mmoitem.VolatileMMOItem;
+import net.Indyuce.mmoitems.stat.data.DoubleData;
+import net.Indyuce.mmoitems.stat.data.StringData;
 import net.Indyuce.mmoitems.stat.data.StringListData;
+import net.Indyuce.mmoitems.stat.type.NameData;
 import net.Indyuce.mmoitems.stat.type.StatHistory;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -26,6 +33,7 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -502,6 +510,290 @@ public class OnApplyCommand implements Listener {
 
                     // Remove original
                     event.getItem().remove();
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void OnSmithPrep(PrepareSmithingEvent event) {
+
+        //SMH//OotilityCeption.Log("\u00a78Smith \u00a73PR\u00a77 Prep Begin -----------------------------------------------");
+
+        // Only players ffs
+        if (!(event.getView().getPlayer() instanceof Player)) { return; }
+        Player player = (Player) event.getView().getPlayer();
+
+        if (event.getInventory().getResult() != null) {
+
+            //SMH//OotilityCeption.Log("\u00a78Smith \u00a73PR\u00a77 Result Exist");
+
+            // Extract Name
+            RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
+
+            // Diamond Upgrading Reqs
+            boolean nitheriteIngot = event.getInventory().getInputMineral() != null && event.getInventory().getInputMineral().getType() == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_INGOT, Material.COMMAND_BLOCK);
+            boolean diamondPiece = event.getInventory().getInputEquipment() != null && OotilityCeption.IsDiamond(event.getInventory().getInputEquipment().getType());
+            //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NE\u00a77 Diamond:\u00a7b " + diamondPiece + "\u00a77, Nitherite:\u00a75 " + nitheriteIngot);
+            if (nitheriteIngot && diamondPiece && GooPMMOItems.VANILLA_TYPE.equals(GooPMMOItems.GetMMOItemID(event.getInventory().getInputEquipment(), "no"))) {
+
+                // Store
+                craftPrep.put(player.getUniqueId(), event.getInventory().getResult().clone());
+
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NE\u00a77 Nitherite Upgrade");
+
+                // Ok this people are upgrading this sh to nitherite, add power!
+                RefSimulator<Double>
+                        vDamageRef = new RefSimulator<>(0.0),
+                        vSpeedRef = new RefSimulator<>(0.0),
+                        vArmorRef = new RefSimulator<>(0.0),
+                        vArmorTRef = new RefSimulator<>(0.0),
+                        mKResRef = new RefSimulator<>(0.0);
+                RefSimulator<String> tNameRef = new RefSimulator<>("MISCELLANEOUS");
+
+                // Get those values
+                OotilityCeption.GatherDefaultVanillaAttributes(event.getInventory().getInputEquipment().getType(), event.getInventory().getResult().getType(), tNameRef, vDamageRef, vSpeedRef, vArmorRef, vArmorTRef, mKResRef);
+
+                // Get Live
+                LiveMMOItem mmo = new LiveMMOItem(event.getInventory().getResult());
+
+                // Any bonuses?
+                if (vDamageRef.GetValue()   != 0) {
+                    DoubleData val = (DoubleData) mmo.getData(ItemStats.ATTACK_DAMAGE);
+                    double current = val != null ? val.getValue() : 0;
+                    mmo.setData(ItemStats.ATTACK_DAMAGE,        new DoubleData(current + vDamageRef.GetValue()));
+                }
+                if (vSpeedRef.GetValue()    != 0) {
+                    DoubleData val = (DoubleData) mmo.getData(ItemStats.ATTACK_SPEED);
+                    double current = val != null ? val.getValue() : 0;
+                    mmo.setData(ItemStats.ATTACK_SPEED,        new DoubleData(current + vSpeedRef.GetValue()));
+                }
+                if (vArmorRef.GetValue()    != 0) {
+                    DoubleData val = (DoubleData) mmo.getData(ItemStats.ARMOR);
+                    double current = val != null ? val.getValue() : 0;
+                    mmo.setData(ItemStats.ARMOR,        new DoubleData(current + vArmorRef.GetValue()));
+                }
+                if (vArmorTRef.GetValue()   != 0) {
+                    DoubleData val = (DoubleData) mmo.getData(ItemStats.ARMOR_TOUGHNESS);
+                    double current = val != null ? val.getValue() : 0;
+                    mmo.setData(ItemStats.ARMOR_TOUGHNESS,        new DoubleData(current + vArmorTRef.GetValue()));
+                }
+                if (mKResRef.GetValue()     != 0) {
+                    DoubleData val = (DoubleData) mmo.getData(ItemStats.KNOCKBACK_RESISTANCE);
+                    double current = val != null ? val.getValue() : 0;
+                    mmo.setData(ItemStats.KNOCKBACK_RESISTANCE,        new DoubleData(current + mKResRef.GetValue()));
+                }
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73VL\u00a77 Damage:\u00a7a " + vDamageRef.getValue());
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73VL\u00a77 Speed:\u00a7a " + vSpeedRef.getValue());
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73VL\u00a77 Armor:\u00a7a " + vArmorRef.getValue());
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73VL\u00a77 Tough:\u00a7a " + vArmorTRef.getValue());
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73VL\u00a77 MKRes:\u00a7a " + mKResRef.getValue());
+
+                // Replace name ALV
+                tNameRef.SetValue(OotilityCeption.GetItemName(new ItemStack(event.getInventory().getResult().getType())));
+                NameData oldNameData = (NameData) mmo.getData(ItemStats.NAME);
+                NameData newData = oldNameData == null ? new NameData(tNameRef.getValue()) : oldNameData;
+                if (oldNameData != null) { newData.setString(tNameRef.getValue()); }
+                mmo.setData(ItemStats.NAME, newData);
+
+                // Build that shit
+                ItemStack result = mmo.newBuilder().build();
+
+                // Store
+                craftPrepResult.put(player.getUniqueId(), result.clone());
+
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NENENE\u00a77 Showing...");
+
+                // Well, override it I suppose. Drop another entity with the qualifications
+                event.getInventory().setResult(result);
+
+                // Run
+                (new BukkitRunnable() {
+                    public void run() {
+
+                        // Well, override it I suppose. Drop another entity with the qualifications
+                        event.getInventory().setResult(result);
+
+                        //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NENENE\u00a77 Shown...");
+
+                    }
+
+                }).runTaskLater(Gunging_Ootilities_Plugin.getPlugin(), 1L);
+
+            } else
+
+            // If the item picked up is marked as convertible
+            if (ConverterTypes.IsConvertable(event.getInventory().getResult().getType(), convName)) {
+
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a7cSNOOZE\u00a77 Snoozing...");
+
+                // If it is not a MMOItem
+                if (!GooPMMOItems.IsMMOItem(event.getInventory().getResult())) {
+
+                    // Store
+                    craftPrep.put(player.getUniqueId(), event.getInventory().getResult().clone());
+
+                    // Prepare result; Apply the pre craft I suppose
+                    ItemStack result = GooPMMOItems.ConvertVanillaToMMOItem(event.getInventory().getResult());
+                    ConverterTypeSettings set = ConverterTypeSettings.PertainingTo(convName.getValue());
+                    if (set != null) { set.ApplyTo(result, player, false); }
+
+                    // Store
+                    craftPrepResult.put(player.getUniqueId(), result.clone());
+
+                    //SMH//OotilityCeption.Log("\u00a78Smith \u00a7cSNOOZE\u00a77 Overriding...");
+
+                    // Well, override it I suppose. Drop another entity with the qualifications
+                    event.getInventory().setResult(result);
+                }
+            }
+        }
+    }
+    @EventHandler
+    public void OnSmith(SmithItemEvent event) {
+
+        //SMH//OotilityCeption.Log("\u00a78Smith \u00a76EV\u00a77 Event Begin");
+
+        // Only players ffs
+        if (!(event.getView().getPlayer() instanceof Player)) { return; }
+        Player player = (Player) event.getView().getPlayer();
+
+        // Get
+        ItemStack originalResult = craftPrep.get(player.getUniqueId());
+        craftPrep.remove(player.getUniqueId());
+
+        // Get predicted result
+        ItemStack postConvertedResult = craftPrepResult.get(player.getUniqueId());
+        craftPrepResult.remove(player.getUniqueId());
+        if (event.isCancelled()) { return; }
+
+        if (originalResult != null) {
+
+            //SMH//OotilityCeption.Log("\u00a78Smith \u00a76EV\u00a77 Found Result");
+
+            // Extract Name
+            RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
+
+            // If the item picked up is marked as convertible
+            if (ConverterTypes.IsConvertable(originalResult.getType(), convName)) {
+
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a76EV\u00a77 Convertible Result");
+
+                // Diamond Upgrading Reqs
+                boolean nitheriteIngot = event.getInventory().getInputMineral() != null && event.getInventory().getInputMineral().getType() == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_INGOT, Material.COMMAND_BLOCK);
+                boolean diamondPiece = event.getInventory().getInputEquipment() != null && OotilityCeption.IsDiamond(event.getInventory().getInputEquipment().getType());
+                if (nitheriteIngot && diamondPiece && GooPMMOItems.VANILLA_TYPE.equals(GooPMMOItems.GetMMOItemID(event.getInventory().getInputEquipment(), "no"))) {
+
+                    //SMH//OotilityCeption.Log("\u00a78Smith \u00a76NE\u00a77 Netherite Upgrade");
+
+                    // Set in inventory
+                    event.getInventory().setResult(postConvertedResult);
+
+                } else
+
+                    // If it is not a MMOItem
+                if (!GooPMMOItems.IsMMOItem(originalResult)) {
+
+                    // Convert
+                    ItemStack convertedResult = GooPMMOItems.ConvertVanillaToMMOItem(originalResult);
+
+                    // Capture those already crafted
+                    HashMap<Integer, ? extends ItemStack> heldItems = player.getInventory().all(postConvertedResult);
+
+                    // Get Conversion Setting to Apply
+                    ConverterTypeSettings set = ConverterTypeSettings.PertainingTo(convName.getValue());
+
+                    // Store
+                    crafters.add(player);
+                    craftHeld.put(player.getUniqueId(), heldItems);
+                    craftSearch.put(player.getUniqueId(), postConvertedResult.clone());
+                    craftPrepd.put(player.getUniqueId(), convertedResult.clone());
+                    craftSet.put(player.getUniqueId(), set);
+
+                    // Apply 2 result itself
+                    if (event.getInventory().getResult() != null) {
+
+                        // Convert
+                        ItemStack cursorResult = convertedResult.clone();
+
+                        // Transform Result
+                        if (set != null) {
+
+                            // Apply Pre
+                            cursorResult = set.ApplyTo(cursorResult, player, false);
+
+                            // Apply Post
+                            cursorResult = set.ApplyPostTo(cursorResult, player, false);
+                        }
+
+                        // Set in inventory a reroll
+                        event.getInventory().setResult(cursorResult);
+                    }
+
+                    // No need to spamm the method vro
+                    if (!messagesRunning) {
+
+                        // No need to spamm vro
+                        messagesRunning = true;
+
+                        // Run
+                        (new BukkitRunnable() {
+                            public void run() {
+
+                                // For each vro
+                                for (Player p : crafters) {
+
+                                    // Get The ones they already held
+                                    HashMap<Integer, ? extends ItemStack> oldHeld = craftHeld.get(p.getUniqueId());
+
+                                    // Get the ones that are new
+                                    HashMap<Integer, ? extends ItemStack> trulyHeld = p.getInventory().all(craftSearch.get(p.getUniqueId()));
+
+                                    // Prepare result
+                                    ItemStack asMMOItem = craftPrepd.get(p.getUniqueId());
+
+                                    // Random Tier?
+                                    ConverterTypeSettings set = craftSet.get(p.getUniqueId());
+
+                                    // Remove Originals
+                                    for (Integer i : oldHeld.keySet()) { trulyHeld.remove(i); }
+
+                                    // For each difference
+                                    for (Integer i : trulyHeld.keySet()) {
+                                        //DBG//OotilityCeption.Log("Converting At Slot: \u00a7b" + i);
+
+                                        // Clonium
+                                        ItemStack curr = asMMOItem.clone();
+
+                                        // Transform Result
+                                        if (set != null) {
+
+                                            // Apply Pre
+                                            curr = set.ApplyTo(curr, p, false);
+
+                                            // Apply Post
+                                            curr = set.ApplyPostTo(curr, p, false);
+                                        }
+
+                                        // Set in inventory a reroll
+                                        p.getInventory().setItem(i, curr);
+                                    }
+                                }
+
+                                // No longer running
+                                messagesRunning = false;
+
+                                // Clear both arrays
+                                crafters.clear();
+                                craftHeld.clear();
+                                craftSearch.clear();
+                                craftPrepd.clear();
+                                craftSet.clear();
+
+                            }
+
+                        }).runTaskLater(Gunging_Ootilities_Plugin.getPlugin(), 1L);
+                    }
                 }
             }
         }

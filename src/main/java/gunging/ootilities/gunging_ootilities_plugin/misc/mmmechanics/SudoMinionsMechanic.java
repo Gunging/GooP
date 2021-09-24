@@ -22,10 +22,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 @MythicMechanic(
         author = "gunging",
@@ -69,7 +66,7 @@ public class SudoMinionsMechanic extends SkillMechanic implements IMetaSkill {
     }
 
     public boolean cast(@NotNull SkillMetadata data) {
-        HashSet<AbstractEntity> targets = new HashSet<>();
+        Collection<AbstractEntity> targets = new HashSet<>();
         if (data.getEntityTargets() != null) { targets = new HashSet<>(data.getEntityTargets()); }
 
         // Get from placeholders :eyes1:

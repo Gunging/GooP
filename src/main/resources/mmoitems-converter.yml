@@ -35,16 +35,27 @@
 #####
 ###
 ###  [CATEGORY]:
-###    [OnCraft]:
+###    OnCraft:
 ###      Tier:
 ###        - COMMON 3
 ###        - UNCOMMON 3
 ###        - RARE 3
 ###        - EPIC 3
-###    [OnApply]:
+###    OnPickup:
 ###      Tier:
 ###        - COMMON 3
 ###        - UNCOMMON 3
 ###        - RARE 3
 ###        - EPIC 3
 ###
+###
+###
+###  AXE:
+###    OnCraft:
+###      Tier:
+###      - COMMON 3
+###      - UNCOMMON 3
+###      - RARE 3
+###      - EPIC 3
+###      Epic:
+###      - attack-damage: +4

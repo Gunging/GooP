@@ -10,10 +10,7 @@ import gunging.ootilities.gunging_ootilities_plugin.containers.restriction.Restr
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructure;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructureTriggers;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructures;
-import gunging.ootilities.gunging_ootilities_plugin.misc.GooPIngredient;
-import gunging.ootilities.gunging_ootilities_plugin.misc.GooPUnlockables;
-import gunging.ootilities.gunging_ootilities_plugin.misc.OptiFineGlint;
-import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
+import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.AppliccableMask;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
@@ -412,6 +409,8 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                 // Useful tab vars
                 Block tBlock = null;
+                ScoreboardManager scoreboardManager;
+                Scoreboard scoreboard;
 
                 // Which command thoi?
                 switch (cmd) {
@@ -510,13 +509,48 @@ public class GungingOotilitiesTab implements TabCompleter {
                                 }
                                 break;
                             case 7:
-                                ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
-
+                                scoreboardManager = Bukkit.getScoreboardManager();
+                                scoreboard = scoreboardManager.getMainScoreboard();
+                                        
                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
+
+                                Collections.addAll(tabM,  "1..", "8..", "10-32", "48", "..64");
                                 break;
                             case 8:
-                                Collections.addAll(tabM, "amount", "1", "2", "3", "4", "5", "6");
+                                        
+                                // Can it generate a QNR from args[6]?
+                                if (QuickNumberRange.FromString(args[6]) != null) {
+                                    tabM.add("comp");
+                                    
+                                    scoreboardManager = Bukkit.getScoreboardManager();
+                                    scoreboard = scoreboardManager.getMainScoreboard();
+
+                                    for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
+                                    
+                                } else {
+
+                                    Collections.addAll(tabM, "amount", "1", "2", "3", "4", "5", "6");
+                                }
+                                break;
+                            case 9:
+                                        
+                                // Can it generate a QNR from args[6]?
+                                if (QuickNumberRange.FromString(args[6]) != null) {
+                                    Collections.addAll(tabM, "amount", "1", "2", "3", "4", "5", "6");
+                                    
+                                } else if (!args[7].equalsIgnoreCase("amount")) {
+                                    
+                                    // Not amount? suggest comp
+                                    tabM.add("comp");
+                                }
+                                
+                                break;
+                            case 10:
+                                        
+                                // So it included a number
+                                if (QuickNumberRange.FromString(args[6]) != null
+                                    && !args[8].equalsIgnoreCase("amount")) { tabM.add("comp"); }
+                                
                                 break;
                         }
 
@@ -620,8 +654,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand");
                                                 break;
                                             case 6:
-                                                ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                                Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                                                scoreboardManager = Bukkit.getScoreboardManager();
+                                                scoreboard = scoreboardManager.getMainScoreboard();
 
                                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                                 break;
@@ -679,8 +713,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "+5", "n3", "-8", "+30%", "140%", "-10%");
                                                 break;
                                             case 7:
-                                                ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                                Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                                                scoreboardManager = Bukkit.getScoreboardManager();
+                                                scoreboard = scoreboardManager.getMainScoreboard();
                                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                                 break;
                                             default: break;
@@ -752,8 +786,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "true", "false");
                                                 break;
                                             case 7:
-                                                ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                                Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                                                scoreboardManager = Bukkit.getScoreboardManager();
+                                                scoreboard = scoreboardManager.getMainScoreboard();
 
                                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                                 break;
@@ -780,8 +814,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM.add("none");
                                                 break;
                                             case 6:
-                                                ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                                Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                                                scoreboardManager = Bukkit.getScoreboardManager();
+                                                scoreboard = scoreboardManager.getMainScoreboard();
 
                                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                                 break;
@@ -974,8 +1008,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                             tabM.add("damage");
 
                         } else if (args.length > 2) {
-                            ScoreboardManager scoreboardManager = null;
-                            Scoreboard scoreboard = null;
+                            scoreboardManager = null;
+                            scoreboard = null;
 
                             switch (args[1].toLowerCase()) {
                                 case "addlore":
@@ -2035,8 +2069,8 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                         } else if (args.length > 2) {
 
-                            ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                            Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                            scoreboardManager = Bukkit.getScoreboardManager();
+                            scoreboard = scoreboardManager.getMainScoreboard();
 
                             switch (args[1].toLowerCase()) {
                                 case "top":
@@ -2054,6 +2088,10 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             break;
                                         case 5:
                                             Collections.addAll(tabM, "5", "3", "1");
+                                            break;
+                                        case 6:
+                                            Collections.addAll(tabM, "200", "300", "600");
+                                            for (EntityType eType : EntityType.values()) { tabM.add(eType.toString()); }
                                             break;
                                         default: break;
                                     }
@@ -2615,8 +2653,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                         switch (args.length) {
                             case 2: tabM = null; break;
                             case 3:
-                                ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                                scoreboardManager = Bukkit.getScoreboardManager();
+                                scoreboard = scoreboardManager.getMainScoreboard();
 
                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                 break;
@@ -2872,8 +2910,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "5..10", "..9.999", "0..300", "100..", "299.99..", "4000..");
                                                 break;
                                             case 5:
-                                                ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                                Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                                                scoreboardManager = Bukkit.getScoreboardManager();
+                                                scoreboard = scoreboardManager.getMainScoreboard();
 
                                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                                 break;
@@ -2933,8 +2971,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                 }
                                 break;
                             case 4:
-                                ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                                scoreboardManager = Bukkit.getScoreboardManager();
+                                scoreboard = scoreboardManager.getMainScoreboard();
 
                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                 break;
@@ -3014,8 +3052,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             Collections.addAll(tabM, "true", "false", "5", "8", "30", "140", "2.5", "3.2", "0..3", "2.5..3.2", "10..20");
                                             break;
                                         case 6:
-                                            ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-                                            Scoreboard scoreboard = scoreboardManager.getMainScoreboard();
+                                            scoreboardManager = Bukkit.getScoreboardManager();
+                                            scoreboard = scoreboardManager.getMainScoreboard();
 
                                             for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                             break;

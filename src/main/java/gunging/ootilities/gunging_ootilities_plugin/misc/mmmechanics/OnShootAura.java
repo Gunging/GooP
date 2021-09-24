@@ -57,14 +57,14 @@ public class OnShootAura extends Aura implements ITargetedEntitySkill {
 
         // Will be caster of the skill, as a mythicmob
         if (MythicMobs.inst().getMobManager().isActiveMob(target)) {
-            /*SOM*/OotilityCeption.Log("\u00a73  * \u00a77Target as ActiveMob");
+            //SOM//OotilityCeption.Log("\u00a73  * \u00a77Target as ActiveMob");
 
             // Just pull the mythicmob
             caster = MythicMobs.inst().getMobManager().getMythicMobInstance(target);
 
             // If its a player or some other non-mythicmob
         } else {
-            /*SOM*/OotilityCeption.Log("\u00a73  * \u00a77Target as Non MM");
+            //SOM//OotilityCeption.Log("\u00a73  * \u00a77Target as Non MM");
 
             // I guess make a new caster out of them
             caster = new GenericCaster(target);
@@ -83,7 +83,7 @@ public class OnShootAura extends Aura implements ITargetedEntitySkill {
         public void auraStart() {
             this.registerAuraComponent(Events.subscribe(EntityShootBowEvent.class).filter((event) -> {
 
-                /*SOM*/OotilityCeption.Log("\u00a7cStep 3 \u00a77Subscribe Run: " + getName(event.getEntity()) + "\u00a77 vs " + getName(this.entity.get()) + "\u00a78 ~\u00a7e " + event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId()));
+                //SOM//OotilityCeption.Log("\u00a7cStep 3 \u00a77Subscribe Run: " + getName(event.getEntity()) + "\u00a77 vs " + getName(this.entity.get()) + "\u00a78 ~\u00a7e " + event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId()));
 
                 return event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId());
 
@@ -93,12 +93,13 @@ public class OnShootAura extends Aura implements ITargetedEntitySkill {
                 SkillMetadata meta = this.skillMetadata.deepClone();
 
                 // Target obviously the projectile
-                meta.setEntityTarget(BukkitAdapter.adapt(event.getProjectile()));
+                AbstractEntity projectile = BukkitAdapter.adapt(event.getProjectile());
+                meta.setTrigger(projectile);
 
                 // Refresh
                 if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(meta, meta.getCaster().getEntity()));}
 
-                /*SOM*/OotilityCeption.Log("\u00a7cStep 4 \u00a77Aura Run:\u00a7d " + logSkillData(meta) + "\u00a7b " + metaskill.getInternalName());
+                //SOM//OotilityCeption.Log("\u00a7cStep 4 \u00a77Aura Run:\u00a7d " + logSkillData(meta) + "\u00a7b " + metaskill.getInternalName());
                 if (this.executeAuraSkill(Optional.ofNullable(metaskill), meta)) {
 
                     this.consumeCharge();
