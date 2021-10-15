@@ -394,6 +394,8 @@ public class GooPMMOItems {
                 return CummaltiveEquipmentDoubleStatValue(target, Stat(GooPMMOItemsItemStats.ATTACK_SPEED));
             case "armor":
                 return CummaltiveEquipmentDoubleStatValue(target, Stat(GooPMMOItemsItemStats.ARMOR));
+            case "defnse":
+                return CummaltiveEquipmentDoubleStatValue(target, Stat(GooPMMOItemsItemStats.DEFENSE));
             case "armortoughness":
             case "atoughness":
             case "toughness":
@@ -1331,11 +1333,17 @@ public class GooPMMOItems {
     //endregion
 
     //region Converting from Vanilla to MMOItem
-    public static String VANILLA_TYPE = "VANILLA";
+    public static String VANILLA_MIID = "VANILLA";
     @NotNull public static NBTItem ConvertVanillaToMMOItemAsNBT(@NotNull ItemStack base) {
+        return ConvertVanillaToMMOItemAsNBT(base, null, null);
+    }
+
+    @NotNull public static NBTItem ConvertVanillaToMMOItemAsNBT(@NotNull ItemStack base, @Nullable String forcedTypePrefix, @Nullable String forcedIDFormat) {
 
         // Lets very quickly add a display name to this boi
         OotilityCeption.RenameItem(base, OotilityCeption.GetItemName(base), null);
+
+        if (forcedTypePrefix == null) { forcedTypePrefix = ""; }
 
         // Get NBT item
         NBTItem tNBT = NBTItem.get(base);
@@ -1358,19 +1366,21 @@ public class GooPMMOItems {
         // Replace if missing
         ArrayList<String> realTypes = GooPMMOItems.GetMMOItem_TypeNames();
         if (!realTypes.contains(tName)) {
+
             // Well replace I guess
             if (tName.equals("SHIELD")) { tName = "ARMOR"; }
             if (tName.equals("WHIP")) { tName = "MATERIAL"; }
 
             if (!realTypes.contains(tName)) {
+
                 // Well replace I guess
                 tName = "MISCELLANEOUS";
             }
         }
 
         // Create the Item Tags
-        ItemTag tTypeMI = new ItemTag("MMOITEMS_ITEM_TYPE", tName);
-        ItemTag tID = new ItemTag("MMOITEMS_ITEM_ID", VANILLA_TYPE);
+        ItemTag tTypeMI = new ItemTag("MMOITEMS_ITEM_TYPE", forcedTypePrefix + tName);
+        ItemTag tID = new ItemTag("MMOITEMS_ITEM_ID", forcedIDFormat == null ? VANILLA_MIID : forcedIDFormat);
 
         // Add those tags
         tNBT.addTag(tTypeMI);
@@ -1394,14 +1404,14 @@ public class GooPMMOItems {
         }
 
         // Create Tags
-        tDamage = new ItemTag("MMOITEMS_ATTACK_DAMAGE", vDamage);
-        tSpeed = new ItemTag("MMOITEMS_ATTACK_SPEED", vSpeed);
-        tArmor = new ItemTag("MMOITEMS_ARMOR", vArmor);
-        tArmorToughness = new ItemTag("MMOITEMS_ARMOR_TOUGHNESS", vArmorT);
-        tMHealth = new ItemTag("MMOITEMS_MAX_HEALTH", mHealthT);
-        tMSpeed = new ItemTag("MMOITEMS_MOVEMENT_SPEED", mSpeedT);
-        tKRes = new ItemTag("MMOITEMS_KNOCKBACK_RESISTANCE", mKRes);
-        tLuck = new ItemTag("MMOITEMS_GOOP_LUCK", mLuck);
+        tDamage = new ItemTag(ItemStats.ATTACK_DAMAGE.getNBTPath(), vDamage);
+        tSpeed = new ItemTag(ItemStats.ATTACK_SPEED.getNBTPath(), vSpeed);
+        tArmor = new ItemTag(Gunging_Ootilities_Plugin.useMMOLibDefenseConvert ? ItemStats.DEFENSE.getNBTPath() : ItemStats.ARMOR.getNBTPath(), vArmor);
+        tArmorToughness = new ItemTag(ItemStats.ARMOR_TOUGHNESS.getNBTPath(), vArmorT);
+        tMHealth = new ItemTag(ItemStats.MAX_HEALTH.getNBTPath(), mHealthT);
+        tMSpeed = new ItemTag(ItemStats.MOVEMENT_SPEED.getNBTPath(), mSpeedT);
+        tKRes = new ItemTag(ItemStats.KNOCKBACK_RESISTANCE.getNBTPath(), mKRes);
+        tLuck = new ItemTag(LUCK.getNBTPath(), mLuck);
 
         // Append Tags
         if (vDamage != 0) { tNBT.addTag(tDamage); }
@@ -1419,7 +1429,11 @@ public class GooPMMOItems {
         // Complete Operation
         return tNBT;
     }
-    public static ItemStack ConvertVanillaToMMOItem(ItemStack base) {
+
+    @NotNull public static ItemStack ConvertVanillaToMMOItem(@NotNull ItemStack base) {
+        return ConvertVanillaToMMOItem(base, null, null);
+    }
+    @NotNull public static ItemStack ConvertVanillaToMMOItem(@NotNull ItemStack base, @Nullable String forcedTypePrefix, @Nullable String forcedIDFormat) {
 
         // Store important nbt data
         int oCount = base.getAmount();
@@ -1430,7 +1444,7 @@ public class GooPMMOItems {
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (base.getItemMeta().hasCustomModelData()) { oCMD = base.getItemMeta().getCustomModelData(); } }
 
         // Convert it as NBT and then Build it
-        MMOItem mmoitem = LiveFromNBT(GooPMMOItems.ConvertVanillaToMMOItemAsNBT(base));
+        MMOItem mmoitem = LiveFromNBT(GooPMMOItems.ConvertVanillaToMMOItemAsNBT(base, forcedTypePrefix, forcedIDFormat));
         if (mmoitem == null) { return base; }
 
         //region Set Original Datas
@@ -2329,7 +2343,7 @@ public class GooPMMOItems {
                     stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.MAX_HEALTH);
                     break;
                 case GENERIC_ARMOR:
-                    stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ARMOR);
+                    stt = Gunging_Ootilities_Plugin.useMMOLibDefenseConvert ? ItemStats.DEFENSE : ItemStats.ARMOR;
                     break;
                 case GENERIC_ARMOR_TOUGHNESS:
                     stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ARMOR_TOUGHNESS);
@@ -2415,7 +2429,7 @@ public class GooPMMOItems {
                 // Store
                 if (finalTier != null) { finalTier.setValue(tData.toString()); }
 
-                // No tier, that sets the return to 'none'
+            // No tier, that sets the return to 'none'
             } else if (finalTier != null) { finalTier.setValue("none"); }
 
             // Apply if non-null
@@ -2479,15 +2493,11 @@ public class GooPMMOItems {
         // Is it an mmoItem?
         if (tNBT.hasType()) {
 
-            // Vro are they named the same?
-            if (idName.equalsIgnoreCase(tNBT.getString("MMOITEMS_ITEM_ID"))){
+            // Yea but is it the same type?
+            if (type.equalsIgnoreCase(tNBT.getString("MMOITEMS_ITEM_TYPE"))) {
 
-                // Yea but is it the same type?
-                if (type.equalsIgnoreCase(tNBT.getString("MMOITEMS_ITEM_TYPE"))){
-
-                    // Both Matched. Yeet
-                    return true;
-                }
+                // Vro are they named the same?
+                return "*".equals(idName) || idName.equalsIgnoreCase(tNBT.getString("MMOITEMS_ITEM_ID"));
             }
         }
 
@@ -2694,8 +2704,8 @@ public class GooPMMOItems {
      * @param failureRet What to return if the ItemStack is NOT a MMOItem
      * @return Either the MMOItem Type (if MMOItem) or failureRet
      */
-    @Contract("null, _ -> param2; !null, _ -> param2")
     @Nullable
+    @Contract("_, !null -> !null")
     public static String GetMMOItemID(@Nullable ItemStack iSource, @Nullable String failureRet) {
 
         // If MMOItem
@@ -2705,7 +2715,9 @@ public class GooPMMOItems {
             NBTItem itm = NBTItem.get(iSource);
 
             // Return thay
-            return itm.getString("MMOITEMS_ITEM_ID");
+            String ret = itm.getString("MMOITEMS_ITEM_ID");
+
+            return ret == null ? failureRet : ret;
 
             // If its not a MMOItem
         } else {
@@ -2735,6 +2747,8 @@ public class GooPMMOItems {
             typeStorage.SetValue(itm.getString("MMOITEMS_ITEM_TYPE"));
             idStorage.SetValue(itm.getString("MMOITEMS_ITEM_ID"));
         }
+
+        //CNV// else { OotilityCeption.Log("\u00a78GOOPMI \u00a7cINTERNALS\u00a77 Object " + OotilityCeption.GetItemName(iSource) + " \u00a77is \u00a7cnot\u00a77 a MMOItem"); }
     }
 
     /**
@@ -2765,8 +2779,11 @@ public class GooPMMOItems {
         boolean random = rawModifier.equalsIgnoreCase("random");
         boolean clear = rawModifier.equalsIgnoreCase("none");
 
+        boolean modifierLocal = template.hasModifier(rawModifier);
+        boolean modifierExists = modifierLocal || MMOItems.plugin.getTemplates().hasModifier(rawModifier);
+
         // Ay exist?
-        if (!random && !clear && !template.hasModifier(rawModifier)) {
+        if (!random && !clear && !modifierExists) {
             OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "There is no modifier of name \u00a73" + rawModifier + "\u00a77.");
             return null; }
 
@@ -2778,6 +2795,9 @@ public class GooPMMOItems {
 
             // Shuffle
             List<TemplateModifier> modifiers = new ArrayList<>(template.getModifiers().values());
+
+            // Add all globally loaded ones
+            modifiers.addAll(MMOItems.plugin.getTemplates().getModifiers());
 
             // Ay exist?
             if (modifiers.size() == 0) {
@@ -2847,7 +2867,7 @@ public class GooPMMOItems {
         } else {
 
             // Get Modifier
-            TemplateModifier modifier = template.getModifier(rawModifier);
+            TemplateModifier modifier = modifierLocal ? template.getModifier(rawModifier) : MMOItems.plugin.getTemplates().getModifier(rawModifier);
             UUID modUUID = UUID.randomUUID();
 
             MMOItemBuilder snoozer = template.newBuilder();

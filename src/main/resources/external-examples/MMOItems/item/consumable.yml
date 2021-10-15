@@ -1,0 +1,465 @@
+MANGO:
+  base:
+    material: PLAYER_HEAD
+    name: §a§l☇§6◎ §fMango
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTk1MzM4OGNjZDZmZjY0ZmMxOTUwZGQ0Y2VjNGFkZWFhMzQ4YWFhYmNjNTMyODI4ZTcxNDRmNTA5ZjIzYyJ9fX0=
+      uuid: 1c6aa7d0-582e-4111-8376-74a2a2f74a58
+    tier: COMMON
+    effects:
+      REGENERATION: 20.0,1
+    vanilla-eating: false
+    restore-health: 0.0
+    restore-food: 8.0
+    restore-saturation: 10.0
+    lore:
+    - <#998877>§oSweet and sour, perfect combination.
+GRAPES:
+  base:
+    material: PLAYER_HEAD
+    name: §a§l☇<#8c1aff>§l⚙ §fRykros Grapes
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWU1OTM1ODYzYzUzYTk5NmY1MzM0ZTkwZjU1ZGU1MzhlODNmZmM1ZjZiMGI4ZTgzYTRkYzRmNmU2YjEyMDgifX19
+      uuid: 768c2582-7d3f-40ca-b167-95d6f23f9037
+    effects:
+      REGENERATION:
+        duration: 5.0
+        amplifier: 5.0
+      JUMP:
+        duration: 25.0
+        amplifier: 5.0
+    vanilla-eating: false
+    item-cooldown: 3.0
+    restore-health: 0.0
+    restore-food: 0.0
+    restore-saturation: 0.0
+    lore:
+    - <#777799>§oA classic fruit, juicy and sweet,
+    - <#777799>§othe reason anyone would go to
+    - <#777799>§oRykros imo.
+    revision-id: 2
+TOMATO:
+  base:
+    material: PLAYER_HEAD
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTkxNzIyMjZkMjc2MDcwZGMyMWI3NWJhMjVjYzJhYTU2NDlkYTVjYWM3NDViYTk3NzY5NWI1OWFlYmQifX19
+      uuid: 6d00d20b-a23f-43f8-bb26-b6ac346a107a
+    effects:
+      REGENERATION: 20.0,1
+    vanilla-eating: false
+    restore-health: 4.0
+    name: §a§l☇§c§l☉ §fTomato
+    restore-food: 2.0
+    restore-stamina: 2.0
+    item-cooldown: 1.5
+    disable-crafting: true
+    disable-smelting: true
+    disable-smithing: true
+    disable-enchanting: true
+    disable-repairing: true
+    lore:
+    - <#997777>§oAn iconic yet common vegetable.
+    - §8Actually a fruit though.
+    - §3 §7
+    - §c'Ill pommodoro'
+PRICKLY_PEAR:
+  base:
+    material: PLAYER_HEAD
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWVjNTgwM2I5OGIwNzQwNWM0Yzg2YzdkZTZhNWVlZDVhYzUyZDNkM2FkN2FkNzFjMDg3MTA5NDY1ZmQyMGMzIn19fQ==
+      uuid: 740d451f-a38d-4658-b008-a7fcb0be51c2
+    vanilla-eating: false
+    restore-food: 10.0
+    restore-saturation: 20.0
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    item-cooldown: 5.0
+    lore:
+    - <#c4ff03>§oA rare fruit resulting from the
+    - <#c4ff03>§omutation of a cactus in the depths.
+    - §r
+    - <#f21d1d>§oSpicy as heck, gives intense
+    - <#f21d1d>§ostrength at the cost of health.
+    name: §c🔥<#aaff00>☀ <#ff0000>Du<#ff3333>tch <#ff0000>Pr<#ff3333>ickly <#ff0000>Pe<#ff3333>ar
+      <#aaff00>☀§c🔥
+    effects:
+      INCREASE_DAMAGE:
+        duration: 12.0
+        amplifier: 4.0
+      HARM:
+        duration: 0.1
+        amplifier: 2.0
+GIANT_BLUEBERRY:
+  base:
+    material: PLAYER_HEAD
+    name: §a§l☇§9◎ §fGiant Moonberry
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWIxODcwNGFhMGM5MmFiN2YzMDY1YjNlMzg0OTZkZDFjZDQyZjkzYjExODNhM2ZiNGYyNmI0ZThkOTk5YWUifX19
+      uuid: 4632330f-1c18-41a9-8a7c-82cae3b8c08f
+    effects:
+      REGENERATION: 20.0,1
+    vanilla-eating: false
+    restore-health: 0.0
+    restore-food: 8.0
+    lore:
+    - §9§oA somewhat sweet fruit that
+    - §9§ogrows only during the night.
+    restore-mana: 9.0
+    item-cooldown: 2.5
+SUNFRUIT:
+  base:
+    material: PLAYER_HEAD
+    name: <#FFDD00>✹§3§lᥐ §7Sunfruit
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjg5MDQyMDgyYmI3YTc2MThiNzg0ZWU3NjA1YTEzNGM1ODgzNGUyMWUzNzRjODg4OTM3MTYxMDU3ZjZjNyJ9fX0=
+      uuid: 13556f68-634d-4b3f-8e73-8a0ecdee3330
+    tier: RARE
+    effects:
+      REGENERATION: 20.0,1
+      FIRE_RESISTANCE:
+        duration: 30.0
+        amplifier: 1.0
+    vanilla-eating: false
+    restore-health: 0.0
+    restore-food: 8.0
+    restore-saturation: 10.0
+    restore-mana: 20.0
+    lore:
+    - §e§oA powerful fruit with a sparkly taste,
+    - §e§oit is said to grow only in other planets
+    - §e§oand then arrive here in asteroids.
+TOMATO_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: §c◠<#E30808>◯<#DB3C3C>◡ <#FE7474>Tomato Smoothie §c◠<#E30808>◯<#DB3C3C>◡
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    lore: &id004
+    - <#E3E3E3>§o'It has a squeeze of lime and
+    - <#E3E3E3>§oa speck of salt; Its perfect'
+    restore-saturation: 4.0
+    restore-health: 4.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjIzZTIyNTliYjgyYmY4ZDY5MTczMThkMzNlZmQ0YjNmZGRjODk5MjE2MWI4Yjg2NDFkYTA1MmMwM2IzZGNhMiJ9fX0=
+      uuid: 14194dea-dbfd-4d39-b841-aeae0fce0418
+    item-cooldown: 0.15
+GRAPE_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#993AFF>◠<#8637DA>◯<#7000E8>◡ <#BB7BFF>Rykogrape Smoothie <#993AFF>◠<#8637DA>◯<#7000E8>◡
+    lore:
+    - <#E3E3E3>§o'It has a squeeze of lime and
+    - <#E3E3E3>§osome honey; Its fabulous'
+    - §3 §2
+    - <HEXFEFEFE>§o■ §f+6% §7Skill Damage for §f40s
+    restore-saturation: 2.0
+    restore-health: 3.0
+    restore-mana: 5.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjk1MjY0YThlZDc2MWQyMTRiNTQyY2MxNDRhZDMzYTA1MmU3NGEyNjc4MGZhNTkxN2E3OTdjMjUyOWY4NDg2MiJ9fX0=
+      uuid: 2cbb4e26-6151-4226-b4cd-02dfe0bba40c
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    item-cooldown: 0.2
+    commands:
+      cmd0:
+        format: 'goop unlockables unlock %player% SMOOTHIE_GRAPE true true 40s oS:
+          goop nbt setItem @s |ConsumableBuffs|4 m CONBUFF GRAPESMOOTHIE 1'
+        delay: 0.0
+        console: true
+MANGO_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#FFF33A>◠<#EAB234>◯<#DEAD01>◡ <#FFD370>Mango Smoothie <#FFF33A>◠<#EAB234>◯<#DEAD01>◡
+    restore-saturation: 4.0
+    restore-food: 2.0
+    restore-health: 10.0
+    lore:
+    - <#E3E3E3>§o'Why would you do this? Why
+    - <#E3E3E3>§oblend a mango, why destroy
+    - <#E3E3E3>§osuch sacred produce?'
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDk1ODU1MmQ0MWNiM2IzNDVlY2ExM2M0YjE5MWM3NTUxM2I4MTQ2ZGI3Y2ViMWY0MTE2Y2RjZjgyZWZlN2ZjMiJ9fX0=
+      uuid: 26d954c8-9083-4d77-b58b-9d276595d7d7
+    disable-interaction: true
+    disable-crafting: true
+    disable-smelting: true
+    disable-smithing: true
+    disable-enchanting: true
+    disable-repairing: true
+    item-cooldown: 0.2
+MOONBERRY_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#465BD3>◠<#0022E5>◯<#2142FF>◡ <#7085FF>Moonberry Smoothie <#465BD3>◠<#0022E5>◯<#2142FF>◡
+    lore:
+    - <#E3E3E3>§o'It has a hint of lime and
+    - <#E3E3E3>§oenough of sugar; Its sweet'
+    - §3 §7
+    - §9§o■ §f+10% §7Magic Damage for §f3m
+    restore-saturation: 3.0
+    restore-mana: 15.0
+    restore-stamina: 2.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWY0M2Y3MWEwNGQzZTg1NDAzYzliMTUyNTAwNWRiMTNiYWYyYWQ1MDBlMTQxMTYxMzZkZTUxMmVjNGJjNDAwZCJ9fX0=
+      uuid: 0b3db6fb-b38e-4d46-b88a-ed5134b4b954
+    disable-interaction: true
+    disable-crafting: true
+    disable-smelting: true
+    disable-smithing: true
+    disable-enchanting: true
+    disable-repairing: true
+    item-cooldown: 0.2
+    commands:
+      cmd0:
+        format: 'goop unlockables unlock %player% SMOOTHIE_MOON true true 3m oS: goop
+          nbt setItem @s |ConsumableBuffs|6 m CONBUFF MOONSMOOTHIE 1'
+        delay: 0.0
+        console: true
+SUNFRUIT_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#FFF63C>◠<#E3D900>◯<#DFD956>◡ <gradient:#FBFF9F:#E3D900>Sunfruit Concoction
+      <#FFF63C>◠<#E3D900>◯<#DFD956>◡
+    lore:
+    - <#E3E3E3>§o'It has a hint of lime and a dash
+    - <#E3E3E3>§oof Oregano; Its out of this world!'
+    - §3 §7
+    - <#d4d0b6>The morning sun will protect you.
+    - §c♥ §f+20% §7Team Buffing Bonus for §f2m
+    restore-health: 20.0
+    restore-saturation: 10.0
+    restore-stamina: 5.0
+    effects:
+      SLOW_FALLING:
+        duration: 50.0
+        amplifier: 2.0
+      REGENERATION:
+        duration: 50.0
+        amplifier: 3.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2E4MmY3MWRkNzYxNGI5MGE4Nzg0MjkxM2Y5NGUwNDk3M2Q3N2YwMTg5MmRmNTg5NGQ1ZDJlZjQxMzY1YTllNyJ9fX0=
+      uuid: 51899376-2026-4416-b013-70ae9f667a89
+    disable-interaction: true
+    disable-crafting: true
+    disable-smelting: true
+    disable-smithing: true
+    disable-enchanting: true
+    disable-repairing: true
+    item-cooldown: 2.0
+    commands:
+      cmd1:
+        format: 'goop unlockables unlock %player% SMOOTHIE_SFRUIT true true 2m oS:
+          goop nbt setItem @s |ConsumableBuffs|7 m CONBUFF SFRUITSMOOTHIE 1'
+        delay: 0.0
+        console: true
+CACTUS_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#FF0000>◠<#66E811>◯<#DF5656>◡ <gradient:#65E25A:#F46D6D>Dutch Pear Concoction
+      <#FF0000>◠<#66E811>◯<#DF5656>◡
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    lore:
+    - <#E3E3E3>§o'It has a hint of lime, and even
+    - <#E3E3E3>§othough it is so spicy, it is sooo
+    - <#E3E3E3>§oeasy to drink!'
+    - §3 §7
+    - §c§l҉ §f+10% §7Critical Power for §f1m
+    - §3 §3
+    - <#70bd40>§o'Joosy'
+    restore-stamina: 5.0
+    effects:
+      INCREASE_DAMAGE:
+        duration: 40.0
+        amplifier: 3.0
+    restore-saturation: 5.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWZjOTQ3MzZjNDAyZDg5N2ZiY2U1OTkxZTU0ZmU5MjBjNzhiNzFmYzM5NTM0ODkyNzI3MTM3YmNkMThjNDEzOSJ9fX0=
+      uuid: 26c9b65f-8149-4ea3-954b-9335404d5902
+    item-cooldown: 2.0
+    commands:
+      cmd0:
+        format: 'goop unlockables unlock %player% SMOOTHIE_CACTUS true true 1m oS:
+          goop nbt setItem @s |ConsumableBuffs|8 m CONBUFF CACTUSMOOTHIE 1'
+        delay: 0.0
+        console: true
+APPLE_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#ff6d1f>◠<#d94c00>◯<#f58142>◡ <#ff896b>Apple Smoothie <#ff6d1f>◠<#d94c00>◯<#f58142>◡
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    lore: *id004
+    restore-saturation: 2.0
+    restore-health: 2.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWIxNzRjZTYxMGVhZTZlMTgwNGI1ZDY5OWIxY2RhOTljZDVmZGUyM2NjODFhYjcxODI1NDFiNWUzNDAzNGQzMiJ9fX0=
+      uuid: c95951b9-3fb7-4408-98ee-c6908a34a759
+    restore-food: 2.0
+    item-cooldown: 0.1
+GOLDEN_APPLE_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#fac946>◠<#e8b427>◯<#bd9937>◡ <#ffe08f>Golden Apple Smoothie <#fac946>◠<#e8b427>◯<#bd9937>◡
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    lore:
+    - <#E3E3E3>§o'It has a squeeze of lime and
+    - <#E3E3E3>§oa speck of salt; Its perfect'
+    - §3 §3
+    - §8§o■ §f+7% §7Physical Damage for §f2m
+    - §a§o■ §f+4% §7Projectile Damage for §f2m
+    restore-saturation: 2.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjdjMGY1YmUwOGNmNGU5Njg5YjhiMzQ1MTYyN2E2OTNhNDAyZjAwNjA1YTk5MTZmMWNiNmRlMWU1MDE0MDYxNiJ9fX0=
+      uuid: 5d657b40-3895-409d-b50a-2c48abdbe6b1
+    restore-food: 2.0
+    item-cooldown: 0.1
+    restore-health: 6.0
+    commands:
+      cmd0:
+        format: 'goop unlockables unlock %player% SMOOTHIE_GOPPLE true true 2m oS:
+          goop nbt setItem @s |ConsumableBuffs|10 m CONBUFF GOPPLESMOOTHIE 1'
+        delay: 0.0
+        console: true
+ENCHANTED_APPLE_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#fac946>◠<#dc73ff>◯<#bd9937>◡ <gradient:#eea3ff:#ffe3a3:#ffe08f>Enchanted
+      Apple Concoction <#fac946>◠<#dc73ff>◯<#bd9937>◡
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWNiZjE4MmRhMjE3NjcxNTg4YjVkM2U2ZDE0NDMxMTMzNzNhNmMxYmE5OWJiNDQzYWE3MWJkNDE2MTQ1MWZjMyJ9fX0=
+      uuid: 0758beff-aea9-476f-90e4-819885ff54f4
+    restore-stamina: 15.0
+    restore-health: 15.0
+    restore-saturation: 15.0
+    item-cooldown: 2.0
+    effects:
+      DAMAGE_RESISTANCE:
+        duration: 30.0
+        amplifier: 2.0
+      REGENERATION:
+        duration: 30.0
+        amplifier: 2.0
+      HEALTH_BOOST:
+        duration: 30.0
+        amplifier: 2.0
+    commands:
+      cmd0:
+        format: 'goop unlockables unlock %player% SMOOTHIE_GAPPLE true true 10s oS:
+          goop nbt setItem @s |ConsumableBuffs|11 m CONBUFF GAPPLESMOOTHIE 1'
+        delay: 0.0
+        console: true
+    lore:
+    - <#E3E3E3>§oIt has a squeeze of orange
+    - <#E3E3E3>§ojuice and some sparkling water.
+    - §7 §3
+    - §e§l҉ §f+40%§7 Crit Chance for §f10s
+WATERMELON_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#e37f7f>◠<#f75e5e>◯<#c74e4e>◡ <#ffabab>Watermelon Smoothie <#e37f7f>◠<#f75e5e>◯<#c74e4e>◡
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    lore: *id004
+    restore-health: 2.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDQyOWM2ZDVmZGFiZGFhZGVkYjVkNzZiYzdiNWJlNWQyYTZmOTkxNGY0ZTgzNGYwY2FkNjUxMmUzYjA5OGU5YiJ9fX0=
+      uuid: 97f07836-afc9-4da3-80a9-b7e52b8b37b5
+    restore-saturation: 4.0
+    item-cooldown: 0.2
+    restore-food: 3.0
+CHORUS_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#eaa6ff>◠<#cb7fe3>◯<#da63ff>◡ <#f4cfff>Purpur Smoothie <#eaa6ff>◠<#cb7fe3>◯<#da63ff>◡
+    lore:
+    - <#E3E3E3>§o'It has a squeeze of lime and
+    - <#E3E3E3>§osome honey; Its fabulous'
+    restore-mana: 2.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWI0NjMzYzhiMjEwNWFhNGJiNTc4ZGEwZjllYTMzMTFhZGYyZTNhYjE2ZDNlN2E0MTQ0NGRhYmMwYmY2MzBlNiJ9fX0=
+      uuid: 218cd801-918b-47de-b6cf-d6141706963e
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    restore-saturation: 2.0
+    effects:
+      LEVITATION:
+        duration: 0.1
+        amplifier: 47.0
+    item-cooldown: 0.7
+BERRY_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#c46499>◠<#d14994>◯<#cf0072>◡ <#f097c8>Sweet Berry Smoothie <#c46499>◠<#d14994>◯<#cf0072>◡
+    disable-repairing: true
+    disable-enchanting: true
+    disable-smithing: true
+    disable-smelting: true
+    disable-crafting: true
+    disable-interaction: true
+    lore: *id004
+    restore-saturation: 5.0
+    restore-health: 5.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjg5OTBmOTAwMjE4NzY0MmRjY2YwODJlMTZhNzhiMzAyOWE0ZWFlOGU0ZDhmMjkxOTM0MmQ3ZWUzMTUwN2FmYyJ9fX0=
+      uuid: 835f4119-d7b9-4721-b71b-9dffe8c697fe
+    item-cooldown: 0.15
+    restore-food: 5.0
+BANANA_SMOOTHIE:
+  base:
+    material: PLAYER_HEAD
+    name: <#FFF63C>◠§c◯<#DFD956>◡ <#FBFF9F>Banana Smoothie <#FFF63C>◠§c◯<#DFD956>◡
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2E4MmY3MWRkNzYxNGI5MGE4Nzg0MjkxM2Y5NGUwNDk3M2Q3N2YwMTg5MmRmNTg5NGQ1ZDJlZjQxMzY1YTllNyJ9fX0=
+      uuid: 61f48386-1376-4ea5-a672-8dd82c8d1abb
+    restore-health: 5.0
+    restore-food: 5.0
+    lore:
+    - <#E3E3E3>§oIt has some cream and a
+    - <#E3E3E3>§olot of liquid chocolate!
+    - §3 §3
+    - §cConsume to be banned.
+    commands:
+      cmd0:
+        format: tempban %player% 10m Banana Smoothie Effect
+        delay: 0.0
+        op: true

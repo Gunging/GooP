@@ -1,0 +1,12 @@
+SmoothieMaker:
+  Composition:
+  - NETHERITE_BLOCK -1 -1 0
+  - NETHERITE_BLOCK -1 0 0
+  - NETHERITE_BLOCK -1 1 0
+  - HOPPER 0 -1 0||FACING RIGHT
+  - DISPENSER 0 1 0||FACING DOWN
+  - WARPED_FENCE 0 0 0||FACING RIGHT
+  Triggers:
+  - INTERACT
+  Commands:
+  - goop containers open SmoothieMaker %player%

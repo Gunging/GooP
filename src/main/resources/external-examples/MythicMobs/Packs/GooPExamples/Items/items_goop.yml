@@ -1,0 +1,28 @@
+#########################################  " GooP Example " (Items)                  ############################################################
+#########################################  Items used by mobs that show off          ############################################################
+#########################################  mythicmob mechanics included in GooP      ############################################################
+#########################################                          -gunging          ############################################################
+# Netherite Golem (Custom Structures)
+GOOP_NGHead:
+  Id: carved_pumpkin
+  Display: '&cHead of the Netherite Golem'
+GOOP_NGHeadLit:
+  Id: jack_o_lantern
+  Display: '&eAngr of the Netherite Golem'
+GOOP_NGBodice:
+  Id: netherite_chestplate
+  Display: '&8Netherite Golem Torso'
+GOOP_NGLegs:
+  Id: netherite_leggings
+  Display: '&8Netherite Golem Legs'
+GOOP_NGFeet:
+  Id: netherite_boots
+  Display: '&8Netherite Golem Feet'
+GOOP_CSStep:
+  Id: leather_boots
+  Model: 23
+  Options:
+    Color: 191,166,26
+GOOP_PrismanecerBlade:
+  Id: iron_sword
+  Display: '&cP&6r&ei&as&bm&9a&5n&ce&6s&ec&ae&bn&9c&5e'

@@ -38,6 +38,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static Boolean saveGamerulesConfig = false;
     public static Boolean griefBreaksBedrock = false;
     public static Boolean anvilRenameEnabled = false;
+    public static boolean useMMOLibDefenseConvert = false;
     public static Boolean devLogging = false;
     public static Player devLogga = null;
     public static Double nameRangeExclusionMin = null;
@@ -532,6 +533,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         ///String sText = getConfig().getString("SampleText");
         ///String sFirstValue = getConfig().getStringList("SampleTArray").get(0);
         String nameRangeExclusionMinRaw = null, nameRangeExclusionMaxRaw = null, placeholderReadablenessRaw = null;
+        useMMOLibDefenseConvert = getConfig().getBoolean("ConverterUsesDefense", false);
         if (getConfig().contains("SendSuccessFeedback"))
             sendGooPSuccessFeedback = getConfig().getBoolean("SendSuccessFeedback");
         if (getConfig().contains("SummonLeashKillDistance"))
@@ -725,11 +727,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //endregion
 
         //region Recipes & Ingredients
-        recipesPairs = GetConfigsAt("container-templates/recipes");
-        for (FileConfigPair fcP : recipesPairs) { storageRoots.put(fcP.getStorage(), fcP); }
-
-        ingredientsPairs = GetConfigsAt("container-templates/ingredients");
-        for (FileConfigPair fcP : ingredientsPairs) { storageRoots.put(fcP.getStorage(), fcP); }
+        //recipesPairs = GetConfigsAt("container-templates/recipes");
+        //for (FileConfigPair fcP : recipesPairs) { storageRoots.put(fcP.getStorage(), fcP); }
+        //
+        //ingredientsPairs = GetConfigsAt("container-templates/ingredients");
+        //for (FileConfigPair fcP : ingredientsPairs) { storageRoots.put(fcP.getStorage(), fcP); }
         //endregion
 
         //region Custom Model Data Link
@@ -737,6 +739,22 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             customModelDataLinkPair = GetConfigAt(null, "custom-model-data-links.yml", true, false);
             if (customModelDataLinkPair != null) { storageRoots.put(customModelDataLinkPair.getStorage(), customModelDataLinkPair); }
         }
+        //endregion
+
+        //region Examples
+        GetConfigAt(null, "external-examples/GooP/container-templates/ConsumableBuffs.yml", true, false);
+        GetConfigAt(null, "external-examples/GooP/container-templates/SmoothieMaker.yml", true, false);
+        GetConfigAt(null, "external-examples/GooP/custom-structures/netheritegolem.yml", true, false);
+        GetConfigAt(null, "external-examples/GooP/custom-structures/SmoothieMaker.yml", true, false);
+
+        GetConfigAt(null, "external-examples/MMOItems/dynamic/mythic-mobs-abilities/prismanecer.yml", true, false);
+        GetConfigAt(null, "external-examples/MMOItems/item/conbuff.yml", true, false);
+        GetConfigAt(null, "external-examples/MMOItems/item/consumable.yml", true, false);
+        GetConfigAt(null, "external-examples/MMOItems/language/stats.yml", true, false);
+
+        GetConfigAt(null, "external-examples/MythicMobs/Packs/GooPExamples/Items/items_goop.yml", true, false);
+        GetConfigAt(null, "external-examples/MythicMobs/Packs/GooPExamples/Mobs/mobs_goop.yml", true, false);
+        GetConfigAt(null, "external-examples/MythicMobs/Packs/GooPExamples/Skills/skills_goop.yml", true, false);
         //endregion
 
         //region Unlockables
@@ -754,7 +772,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { CustomModelDataLink.ReloadCustomModelDataLinks(theOots); }
 
         // Containers supports Appliccable Masks so thay must load first
-        if (foundMMOItems) { AppliccableMask.ReloadMasks(theOots); ConverterTypes.ConverterReload(theOots); }
+        if (foundMMOItems) { AppliccableMask.ReloadMasks(theOots); ConverterTypes.ConverterReload(); }
         if (foundMythicMobs) { GooPMythicMobs.ReloadListPlaceholders(theOots); }
 
         // Reload the big ones gg

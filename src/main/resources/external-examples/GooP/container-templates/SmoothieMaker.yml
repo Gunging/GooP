@@ -1,0 +1,28 @@
+SmoothieMaker:
+  NumberOfRows: 2
+  ContainerType: STATION
+  Contents:
+  - CONTOUR 0||DISPLAY||v LADDER 0||1||
+  - 1||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - ICE 2||STORAGE||v LIGHT_BLUE_STAINED_GLASS_PANE 0||1||NME§7Put §f50x§bIce §7Total||LRE000§3||LRE001§eTurns
+    all fruit in the blending||LRE002§earea into smoothies!||LRE003§3||LRE004§c100
+    Ice is always consumed.||
+  - 3||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - 4||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - 5||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - 6||COMMAND||v GREEN_STAINED_GLASS_PANE 0||1||COCgoop mythicmobs runSkillAs CJ_Activate
+    %player%||NME§a§lActivate!||
+  - 7||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - CONTOUR 8||DISPLAY||v LADDER 0||1||
+  - CONTOUR 9||DISPLAY||v LADDER 0||1||
+  - 10||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - ICE 11||STORAGE||v LIGHT_BLUE_STAINED_GLASS_PANE 0||1||NME§7Put §f50x§bIce §7Total||LRE000§3||LRE001§eTurns
+    all fruit in the blending||LRE002§earea into smoothies!||LRE003§3||LRE004§c100
+    Ice is always consumed.||
+  - 12||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - FRUIT 13||STORAGE||v DEAD_BUBBLE_CORAL_FAN 0||1||NME§7Blender Blades||
+  - 14||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - 15||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - 16||EDGE||v LIGHT_GRAY_STAINED_GLASS_PANE 0||1||NME ||CMD3000||
+  - CONTOUR 17||DISPLAY||v LADDER 0||1||
+  DisplayTitle: <#DB3C3C>&lFruit Blender

@@ -24,230 +24,192 @@ public class ConverterTypes {
 
     public static ArrayList<ConverterTypeNames> convertingTypes = new ArrayList<>();
 
-    public static void ConverterReload(OotilityCeption oots) {
+    @Nullable public static String typePrefix = null;
+    @NotNull public static boolean preciseIDConversion = false;
 
+    @NotNull public static String GenerateConverterID(@NotNull Material mat, @Nullable String tier) {
+
+        if (!preciseIDConversion) { return GooPMMOItems.VANILLA_MIID; }
+
+        String tierPost = "";
+        if (tier != null) { tierPost = "_" + tier.toUpperCase(); }
+
+        String material = "";
+        if (OotilityCeption.IsNetherite(mat)) { material = "_" + "NETHERITE"; }
+        else if (OotilityCeption.IsDiamond(mat)) { material = "_" + "DIAMOND"; }
+        else if (OotilityCeption.IsGold(mat)) { material = "_" + "GOLDEN"; }
+        else if (OotilityCeption.IsIron(mat)) { material = "_" + "IRON"; }
+        else if (OotilityCeption.IsLeather(mat)) { material = "_" + "NETHERITE"; }
+        else if (OotilityCeption.IsChainmail(mat)) { material = "_" + "LEATHER"; }
+        else if (OotilityCeption.IsStone(mat)) { material = "_" + "STONE"; }
+        else if (OotilityCeption.IsWooden(mat)) { material = "_" + "WOODEN"; }
+
+        String equipment = "";
+        if (OotilityCeption.IsBoots(mat)) { equipment = "_" + "BOOTS"; }
+        else if (OotilityCeption.IsLeggings(mat)) { equipment = "_" + "LEGGINGS"; }
+        else if (OotilityCeption.IsChestplate(mat)) { equipment = "_" + "CHESTPLATE"; }
+        else if (OotilityCeption.IsHelmet(mat)) { equipment = "_" + "HELMET"; }
+        else if (mat == Material.BOW) { equipment = "_" + "BOW"; }
+        else if (mat == Material.CROSSBOW) { equipment = "_" + "GUN"; }
+        else if (OotilityCeption.IsHoe(mat)) { equipment = "_" + "HOE"; }
+        else if (OotilityCeption.IsShovel(mat)) { equipment = "_" + "SHOVEL"; }
+        else if (OotilityCeption.IsPickaxe(mat)) { equipment = "_" + "PICKAXE"; }
+        else if (OotilityCeption.IsAxe(mat)) { equipment = "_" + "AXE"; }
+        else if (OotilityCeption.IsSword(mat)) { equipment = "_" + "SWORD"; }
+
+        return "GENERIC" + equipment + material + tierPost;
+    }
+
+    public static void ConverterReload() {
+        //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a73RLD\u00a77 Reloading");
+
+        /*
+         *  Is there any settings for this?
+         */
         if (Gunging_Ootilities_Plugin.theMain.mmoitemsConverterPair != null) {
+            //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a73RLD\u00a77 File Existed");
 
-            // Read the file yeet
+            // Obtain file information
             FileConfigPair ofgPair = Gunging_Ootilities_Plugin.theMain.mmoitemsConverterPair;
             YamlConfiguration ofgStorage = ofgPair.getStorage();
+
+            typePrefix = ofgStorage.getString("MMOItems_Type_Prefix", null);
+            preciseIDConversion = ofgStorage.getBoolean("Differentiate_Items", false);
 
             // Compile Converter Types
             List<String> conv = ofgStorage.getStringList("Convert_Into_MMOItems");
             ArrayList<String> trueConversion = new ArrayList<>();
             for (String con : conv) { trueConversion.add(con.toUpperCase().replace(" ", "_").replace("-", "_")); }
 
-            // Reload
+            //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a73RLD\u00a77 Found \u00a76" + conv.size() + "\u00a77 converters.");
+
+            // Reload loaded types
             ReloadCTypes(trueConversion);
 
-            // For each value
+            // For each value in the file
             for(Map.Entry<String, Object> val : (ofgStorage.getValues(false)).entrySet()) {
 
-                // Get Mask Name
-                String tName = val.getKey();
+                // Shortcut for value name
+                String configSectionName = val.getKey();
 
                 // Get all involved
-                ArrayList<ConverterTypeNames> nmes = FromString(tName);
+                ArrayList<ConverterTypeNames> converterNames = FromString(configSectionName);
 
-                // If at least one existed, grab the sektion of it
-                ConfigurationSection typeConfig = ofgStorage.getConfigurationSection(tName);
+                //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a73ST-" + configSectionName + "\u00a77 Loading settings for \u00a76" + converterNames.size() + "\u00a77 converters.");
 
-                // Attempt to get bothe
+                // If at least one existed, grab the section of it
+                ConfigurationSection typeConfig = ofgStorage.getConfigurationSection(configSectionName);
+
+                // Attempt to get both crafting and pickup information.
                 if (typeConfig != null) {
 
-                    ArrayList<ConverterTypeSettings> set = new ArrayList<>();
-
                     // For all valid
-                    for (ConverterTypeNames nme : nmes) {
+                    for (ConverterTypeNames converterName : converterNames) {
+                        //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a73ST\u00a77 Settings for \u00a76" + converterName.toString());
 
-                        // Kreate new
-                        ConverterTypeSettings setti = new ConverterTypeSettings(nme);
-
-                        // Get OnKraft and OnPickup
-                        ConfigurationSection onCraft = typeConfig.getConfigurationSection("OnCraft");
-                        ConfigurationSection onPickup = typeConfig.getConfigurationSection("OnPickup");
+                        // Create new settings wrapper
+                        ConverterTypeSettings converterSettings = new ConverterTypeSettings(converterName);
 
                         // Stuff on craft
-                        if (onCraft != null) {
+                        ConfigurationSection onCraft = typeConfig.getConfigurationSection("OnCraft");
+                        if (onCraft != null) { converterSettings.SetPerTierStats(null, ParseConverterSettings(onCraft, converterSettings, null, false), false); }
 
-                            //region Random Tier
-                            // Get Absolute List
-                            List<String> rawList = onCraft.getStringList("Tier");
-
-                            // If long enough
-                            if (rawList.size() > 0) {
-
-                                // Add
-                                setti.SetTierRates(new ArrayList<>(rawList), false);
-
-                                //region Per Tier Modifiers
-                                // Attempt to get sections
-                                HashMap<String, ConfigurationSection> perTierMods = new HashMap<>();
-
-                                // Get
-                                for (String tire : rawList) {
-                                    // Split
-                                    int spaceSplit = tire.indexOf(" ");
-                                    if (spaceSplit < 1) { spaceSplit = tire.length(); }
-                                    String trueTier = tire.substring(0, spaceSplit);
-
-                                    //Get Config section?
-                                    ConfigurationSection sSection = onCraft.getConfigurationSection(trueTier);
-
-                                    // Add if valid
-                                    if (sSection != null) {
-
-                                        // Put
-                                        perTierMods.put(trueTier, sSection);
-                                    }
-                                }
-
-                                // Edit thay contents
-                                for (String t : perTierMods.keySet()) {
-
-                                    // Get sektion
-                                    ConfigurationSection sec = perTierMods.get(t);
-
-                                    // Create per tier
-                                    ConverterPerTier cpt = new ConverterPerTier(t);
-
-                                    // Put information
-                                    for (String stat : sec.getValues(false).keySet()) {
-
-
-                                        // Get as String List
-                                        ArrayList<String> statdataa = new ArrayList<>(sec.getStringList(stat));
-
-                                        // If existed
-                                        if (statdataa.size() > 1) {
-
-                                            // Add as scuh
-                                            cpt.AddStatData(stat, statdataa);
-
-                                        } else {
-
-                                            // Gather value
-                                            String statdatum = sec.getString(stat);
-                                            if (statdatum != null) {
-
-                                                // Add I gues
-                                                cpt.AddStatData(stat, statdatum);
-
-                                                // It wasn't a simple string
-                                            }
-                                        }
-                                    }
-
-                                    // Append CPT
-                                    setti.SetPerTierStats(t, cpt, false);
-                                }
-                                //endregion
-                            }
-                            //endregion
-
-                            //region Set Name
-                            // Get Absolute List
-                            String rawString = onCraft.getString("Name");
-
-                            // If long enough
-                            if (rawString != null) {
-
-                                // Add
-                                setti.SetName(rawString, false);
-                            }
-                            //endregion
-                        }
-
-                        if (onPickup != null) {
-
-                            //region Random Tier
-                            // Get Absolute List
-                            List<String> rawList = onPickup.getStringList("Tier");
-
-                            // If long enough
-                            if (rawList.size() > 0) {
-
-                                // Add
-                                setti.SetTierRates(new ArrayList<>(rawList), true);
-
-                                //region Per Tier Modifiers
-                                // Attempt to get sections
-                                HashMap<String, ConfigurationSection> perTierMods = new HashMap<>();
-
-                                // Get
-                                for (String tire : rawList) {
-
-                                    //Get Config section?
-                                    ConfigurationSection sSection = onPickup.getConfigurationSection(tire);
-
-                                    // Add if valid
-                                    if (sSection != null) {
-
-                                        // Put
-                                        perTierMods.put(tire, sSection);
-                                    }
-                                }
-
-                                // Edit thay contents
-                                for (String t : perTierMods.keySet()) {
-
-                                    // Get sektion
-                                    ConfigurationSection sec = perTierMods.get(t);
-
-                                    // Create per tier
-                                    ConverterPerTier cpt = new ConverterPerTier(t);
-
-                                    // Put information
-                                    for (String stat : sec.getValues(false).keySet()) {
-
-                                        // Gather value
-                                        String statdatum = sec.getString(stat);
-                                        if (statdatum != null) {
-
-                                            // Add I gues
-                                            cpt.AddStatData(stat, statdatum);
-
-                                        // It wasn't a simple string
-                                        } else {
-
-                                            // Get as String List
-                                            ArrayList<String> statdataa = new ArrayList<>(sec.getStringList(stat));
-
-                                            // If existed
-                                            if (statdataa.size() > 0) {
-
-                                                // Add as scuh
-                                                cpt.AddStatData(stat, statdataa);
-                                            }
-                                        }
-                                    }
-
-                                    // Append CPT
-                                    setti.SetPerTierStats(t, cpt, true);
-                                }
-                                //endregion
-                            }
-                            //endregion
-
-                            //region Rename
-                            // Get Absolute List
-                            String rawString = onPickup.getString("Name");
-
-                            // If long enough
-                            if (rawString != null) {
-
-                                // Add
-                                setti.SetName(rawString, false);
-                            }
-                            //endregion
-                        }
+                        // Stuff on pickup.
+                        ConfigurationSection onPickup = typeConfig.getConfigurationSection("OnPickup");
+                        if (onPickup != null) { converterSettings.SetPerTierStats(null, ParseConverterSettings(onPickup, converterSettings, null, true), true); }
                     }
+                }
+
+            }
+        }
+
+        //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a73RLD\u00a77 Final:");
+        //RLD//for (ConverterTypeNames ct : convertingTypes) OotilityCeption.Log("\u00a78CONVERTER \u00a73RLD\u00a77 + \u00a7e" + ct.toString());
+
+    }
+
+    static @NotNull ConverterPerTier ParseConverterSettings(@NotNull ConfigurationSection section, @NotNull ConverterTypeSettings converterSettings, @Nullable String tierName, boolean asPickup) {
+        //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bSETTINGS\u00a77 Parsing Settings (Pickup? \u00a73" + asPickup + "\u00a77)");
+
+        /*
+         * Only the main configuration can specify a tier list
+         */
+        if (tierName == null) {
+
+            // Get Absolute List
+            List<String> rawTierList = section.getStringList("Tier");
+
+            // If there were actually any entries in the tier list.
+            if (rawTierList.size() > 0) {
+                //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bSETTINGS\u00a77 Tier List\u00a7e x" + rawTierList.size());
+
+                // Add the tier rates
+                converterSettings.SetTierRates(new ArrayList<>(rawTierList), asPickup);
+
+                // Get tier settings
+                for (String rawTier : rawTierList) {
+                    //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bSETTINGS\u00a77 Tier\u00a7e " + rawTier);
+
+                    // Remove whatever number these people have in that
+                    int spaceSplit = rawTier.indexOf(" ");
+                    if (spaceSplit < 1) { spaceSplit = rawTier.length(); }
+                    String trueTier = rawTier.substring(0, spaceSplit);
+
+                    // Get the section of this tier configuration.
+                    ConfigurationSection sSection = section.getConfigurationSection(trueTier);
+
+                    // Cancel
+                    if (sSection == null) { continue; }
+
+                    // Apply settings
+                    converterSettings.SetPerTierStats(trueTier, ParseConverterSettings(sSection, converterSettings, trueTier, asPickup), asPickup);
                 }
             }
         }
+
+        // Create Per Tier
+        ConverterPerTier cpt = new ConverterPerTier(tierName);
+        //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bSETTINGS\u00a73 " + tierName + "-MOD\u00a77 Reading...");
+
+        // Put information
+        for (String stat : section.getValues(false).keySet()) {
+            //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bCRAFT\u00a73 " + tierName + "-MOD\u00a77 Section\u00a7f " + stat);
+
+            // Skip tier
+            if (tierName == null && stat.equals("Tier")) { continue; }
+
+            // Get as String List
+            ArrayList<String> readingAsList = new ArrayList<>(section.getStringList(stat));
+
+            // If existed
+            if (readingAsList.size() > 1) {
+                //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bCRAFT\u00a73 " + tierName + "-MOD\u00a77 Seems it was a string list\u00a7a x" + readingAsList.size());
+
+                // Add as such
+                cpt.AddStatData(stat, readingAsList);
+
+            } else if (!section.isConfigurationSection(stat)) {
+
+                // Gather value
+                String readingAsString = section.getString(stat);
+                if (readingAsString != null) {
+                    //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bCRAFT\u00a73 " + tierName + "-MOD\u00a77 Accepted\u00a7a " + readingAsString);
+
+                    // Add as such
+                    cpt.AddStatData(stat, readingAsString);
+                }
+
+            }
+
+            //RLD// else { OotilityCeption.Log("\u00a78CONVERTER \u00a7bCRAFT\u00a73 " + tierName + "-MOD\u00a77 It is a section,\u00a7c REJECTED "); }
+        }
+
+        // Nice
+        return cpt;
     }
 
     public static void ReloadCTypes(ArrayList<String> names) {
+        //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a73RLD\u00a77 Reloading \u00a76" + names.size() + "\u00a77 converters.");
 
         ArrayList<String> realTypes = GooPMMOItems.GetMMOItem_TypeNames();
         boolean whipEnabled = realTypes.contains("WHIP");
@@ -289,7 +251,10 @@ public class ConverterTypes {
                 // Yes, it seems to be
                 ConverterTypeNames cmd = ConverterTypeNames.valueOf(str);
 
-                if (cmd != ConverterTypeNames.WHIP || whipEnabled) { convertingTypes.add(cmd); }
+                if (cmd != ConverterTypeNames.WHIP || whipEnabled) {
+                    //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7aADD\u00a77 Added \u00a76" + cmd.toString());
+                    convertingTypes.add(cmd);
+                }
 
             // Not recognized
             } catch (IllegalArgumentException ex) {
@@ -299,6 +264,9 @@ public class ConverterTypes {
                 }
             }
         }
+
+
+        //RLD//for (ConverterTypeNames ct : convertingTypes) OotilityCeption.Log("\u00a78CONVERTER \u00a73RLD\u00a77 + Loaded \u00a7a" + ct.toString());
     }
 
     /**
@@ -353,8 +321,7 @@ public class ConverterTypes {
             try {
                 // Yes, it seems to be
                 ConverterTypeNames cmd = ConverterTypeNames.valueOf(str);
-
-                if (cmd != ConverterTypeNames.WHIP || whipEnabled) { convertingTypes.add(cmd); }
+                ret.add(cmd);
 
                 // Not recognized
             } catch (IllegalArgumentException ex) {
@@ -378,37 +345,72 @@ public class ConverterTypes {
         for (ConverterTypeNames conv : convertingTypes) {
             switch (conv) {
                 case ARMOUR:
-                    if (OotilityCeption.IsArmor(type)) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.ARMOUR); } return true; }
+                    if (OotilityCeption.IsArmor(type)) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.ARMOUR); }
+                        
+                        return true;
+                    }
                     break;
                 case SHIELD:
-                    if (type == Material.SHIELD) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.SHIELD); } return true; }
+                    if (type == Material.SHIELD) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.SHIELD); }
+                        
+                        return true;
+                    }
                     break;
                 case WHIP:
                     if ((type == Material.LEAD) ||
                             (type == Material.CARROT_ON_A_STICK) ||
-                            (type == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.WARPED_FUNGUS_ON_A_STICK))) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.WHIP); } return true; }
+                            (type == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.WARPED_FUNGUS_ON_A_STICK))) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.WHIP); }
+                        
+                        return true;
+                    }
                     break;
                 case TOOL:
-                    if (OotilityCeption.IsTool(type)) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.TOOL); }return true; }
+                    if (OotilityCeption.IsTool(type)) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.TOOL); }
+                        
+                        return true;
+                    }
                     break;
                 case SWORD:
-                    if (OotilityCeption.IsSword(type)) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.SWORD); }return true; }
+                    if (OotilityCeption.IsSword(type)) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.SWORD); }
+                        
+                        return true;
+                    }
                     break;
                 case AXE:
-                    if (OotilityCeption.IsAxe(type)) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.AXE); }return true; }
+                    if (OotilityCeption.IsAxe(type)) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.AXE); }
+                        
+                        return true;
+                    }
                     break;
                 case BOW:
-                    if (type == Material.BOW) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.BOW); }return true; }
+                    if (type == Material.BOW) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.BOW); }
+                        
+                        return true;
+                    }
                     break;
                 case CROSSBOW:
-                    if (type == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.CROSSBOW)) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.CROSSBOW); }return true; }
+                    if (type == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.CROSSBOW)) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.CROSSBOW); }
+                        
+                        return true;
+                    }
                     break;
                 case TRIDENT:
-                    if (type == Material.TRIDENT) { if (appliesto != null) { appliesto.setValue(ConverterTypeNames.TRIDENT); }return true; }
+                    if (type == Material.TRIDENT) {
+                        if (appliesto != null) { appliesto.setValue(ConverterTypeNames.TRIDENT); }
+                        
+                        return true;
+                    }
                     break;
             }
         }
-
         return false;
     }
 }

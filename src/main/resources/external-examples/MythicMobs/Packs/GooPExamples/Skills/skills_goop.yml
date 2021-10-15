@@ -1,0 +1,894 @@
+#########################################  " GooP Example " (Skills)                 ############################################################
+#########################################  Skills that show off mythicmob mechanics  ############################################################
+#########################################  included in GooP                          ############################################################
+#########################################                          -gunging          ############################################################
+
+RicochetHex:
+  Skills:
+  - GooPAsTrigger{s=RicochetHexFire} @PlayersInRadius{r=30}
+
+RicochetHexFire:
+  Skills:
+  - projectile{oT=RicochetHex_T;oE=RicochetHex_E;v=16;i=1;hR=1;vR=1;mr=30;g=1;tyo=1.5;sE=true;sB=true;hp=true;hnp=false;fo=true}
+
+RicochetHex_T:
+  Skills:
+  - effect:particles{p=spell_mob;color=#A2FF00;amount=1;hS=0.15;vS=0.15} @Origin
+  - effect:particles{p=spell_mob;color=#FFFF00;amount=1;hS=0.15;vS=0.15} @Origin
+  - effect:particles{p=reddust;color=#CCFF00;amount=1;hS=0.15;vS=0.15} @Origin
+  - effect:particles{p=fireworks_spark;color=#004400;amount=1;hS=0.55;vS=0.15} @Origin 0.2
+  
+RicochetHex_E:
+  Skills:
+  - skill{s=RicochetHex_EX} @Trigger
+  - skill{s=RicochetHex_H} @Trigger
+  
+RicochetHex_EX:
+  Conditions:
+  - distanceFromOrigin{d=0to1;trigger=true;a="FALSE"} 
+  Skills:
+  - skill{s=RicochetHexFire}
+  
+RicochetHex_H:
+  Conditions:
+  - distanceFromOrigin{d=0to1;trigger=true;a="TRUE"} 
+  Skills:
+  - effect:lightning
+  - velocity{m=set;x=0;y=3.8;z=0}
+
+  
+GOOP_OnAttackG:
+  Skills:
+  - onAttack{auraName=OnAttacc;duration=40;oH=OnAttacc_T;cancelEvent=false}
+  - delay 50
+  - onAttackG{auraName=OnAttaccG;duration=40;oH=OnAttaccG_T;cancelEvent=false}
+OnAttacc_T:
+  Skills:
+  - command{c="say &d<caster.name> &c@<target.name> &e~<trigger.name> &bOnAttack"}
+  - effect:lightning
+  - velocity{m=set;x=0;y=3.8;z=0}
+  - skill{s=GOOP_Terraprismick} @Forward{f=2.0;y=1.0}
+  - skill{s=GOOP_Terraprismick} @Forward{f=3.0;y=1.0}
+  - skill{s=GOOP_Terraprismick} @Forward{f=4.0;y=1.0}
+OnAttaccG_T:
+  Skills:
+  - command{c="say &d<caster.name> &c@<target.name> &e~<trigger.name> &3OnAttackG"}
+  - effect:lightning
+  - velocity{m=set;x=0;y=3.8;z=0}
+  - skill{s=GOOP_Terraprismick} @Forward{f=2.0;y=1.0}
+  - skill{s=GOOP_Terraprismick} @Forward{f=3.0;y=1.0}
+  - skill{s=GOOP_Terraprismick} @Forward{f=4.0;y=1.0}
+
+
+#  ------------------------------------------------
+#       Smoothie Maker (Containers)
+#  ------------------------------------------------
+
+CJ_Activate:
+  Skills:
+  - settargetscore{objective=Cfruit;value=0} @Self
+  - settargetscore{objective=Cice;value=0} @Self
+  
+  #1 Detect that there is ICE in the ice tray
+  - command{c="goop compare <caster.name> Cfruit 0 10 GC_= 10 oS<&co> goop testinventory <caster.name> c<ICE> v ICE 0 Cice amount"}
+  
+  #2 Detect which fruit to blend
+  - command{c="goop testinventory <caster.name> c<FRUIT> v MELON_SLICE 0 Cfruit 1"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> v CHORUS_FRUIT 0 Cfruit 2"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> v SWEET_BERRIES 0 Cfruit 3"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> v APPLE 0 Cfruit 4"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> m CONSUMABLE GREEN_APPLE Cfruit 4"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> m CONSUMABLE YELLOW_APPLE Cfruit 4"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> v GOLDEN_APPLE 0 Cfruit 5"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> v ENCHANTED_GOLDEN_APPLE 0 Cfruit 6"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> m CONSUMABLE TOMATO Cfruit 7"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> m CONSUMABLE GRAPES Cfruit 8"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> m CONSUMABLE MANGO Cfruit 9"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> m CONSUMABLE GIANT_BLUEBERRY Cfruit 10"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> m CONSUMABLE SUNFRUIT Cfruit 11"}
+  - command{c="goop testinventory <caster.name> c<FRUIT> m CONSUMABLE PRICKLY_PEAR Cfruit 12"}
+  
+  #3 Actually Activate
+  - skill{s=CJ_Blend}
+  
+CJ_Blend:
+  Conditions:
+  
+  # Less than 100 ice? FAIL
+  - score{objective=Cice;v=<50} castinstead CJ_Fail
+  
+  # Less than 1 (thing to blend is not a fruit)? FAIL
+  - score{objective=Cfruit;v=<1} castinstead CJ_Fail
+  Skills:
+ 
+  # Sound / Visual Effects
+  - skill{s=CJ_Success}
+  
+  # Consume Ice
+  - command{c="goop consumeitem <caster.name> v ICE 0 50 C"}
+  
+  # All right what smoothe we makin'
+  - skill{s=CJ_Smoothie_MELON_SLICE}
+  - skill{s=CJ_Smoothie_CHORUS_FRUIT}
+  - skill{s=CJ_Smoothie_SWEET_BERRIES}
+  - skill{s=CJ_Smoothie_APPLE}
+  - skill{s=CJ_Smoothie_GOLDEN_APPLE}
+  - skill{s=CJ_Smoothie_ENCHANTED_GOLDEN_APPLE}
+  - skill{s=CJ_Smoothie_TOMATO}
+  - skill{s=CJ_Smoothie_GRAPES}
+  - skill{s=CJ_Smoothie_MANGO}
+  - skill{s=CJ_Smoothie_GIANT_BLUEBERRY}
+  - skill{s=CJ_Smoothie_SUNFRUIT}
+  - skill{s=CJ_Smoothie_PRICKLY_PEAR}
+  
+CJ_Smoothie_MELON_SLICE:
+  Conditions:
+  - score{objective=Cfruit;v=>0}
+  - score{objective=Cfruit;v=<2}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE WATERMELON_SMOOTHIE 50%"}
+
+CJ_Smoothie_CHORUS_FRUIT:
+  Conditions:
+  - score{objective=Cfruit;v=>1}
+  - score{objective=Cfruit;v=<3}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE CHORUS_SMOOTHIE 50%"}
+
+CJ_Smoothie_SWEET_BERRIES:
+  Conditions:
+  - score{objective=Cfruit;v=>2}
+  - score{objective=Cfruit;v=<4}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE BERRY_SMOOTHIE 20% oS<&co> goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE BERRY_SMOOTHIE +1"}
+
+CJ_Smoothie_APPLE:
+  Conditions:
+  - score{objective=Cfruit;v=>3}
+  - score{objective=Cfruit;v=<5}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE APPLE_SMOOTHIE 50%"}
+
+CJ_Smoothie_GOLDEN_APPLE:
+  Conditions:
+  - score{objective=Cfruit;v=>4}
+  - score{objective=Cfruit;v=<6}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE GOLDEN_APPLE_SMOOTHIE 75%"}
+
+CJ_Smoothie_ENCHANTED_GOLDEN_APPLE:
+  Conditions:
+  - score{objective=Cfruit;v=>5}
+  - score{objective=Cfruit;v=<7}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE ENCHANTED_APPLE_SMOOTHIE 100%"}
+
+CJ_Smoothie_TOMATO:
+  Conditions:
+  - score{objective=Cfruit;v=>6}
+  - score{objective=Cfruit;v=<8}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE TOMATO_SMOOTHIE 50%"}
+
+CJ_Smoothie_GRAPES:
+  Conditions:
+  - score{objective=Cfruit;v=>7}
+  - score{objective=Cfruit;v=<9}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE GRAPE_SMOOTHIE 50%"}
+
+CJ_Smoothie_MANGO:
+  Conditions:
+  - score{objective=Cfruit;v=>8}
+  - score{objective=Cfruit;v=<10}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE MANGO_SMOOTHIE 50%"}
+
+CJ_Smoothie_GIANT_BLUEBERRY:
+  Conditions:
+  - score{objective=Cfruit;v=>9}
+  - score{objective=Cfruit;v=<11}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE MOONBERRY_SMOOTHIE 80%"}
+
+CJ_Smoothie_SUNFRUIT:
+  Conditions:
+  - score{objective=Cfruit;v=>10}
+  - score{objective=Cfruit;v=<12}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE SUNFRUIT_SMOOTHIE 100%"}
+
+CJ_Smoothie_PRICKLY_PEAR:
+  Conditions:
+  - score{objective=Cfruit;v=>11}
+  - score{objective=Cfruit;v=<13}
+  Skills:
+  - command{c="goop nbt setItem <caster.name> c<FRUIT> m CONSUMABLE CACTUS_SMOOTHIE 75%"}
+
+  
+CJ_Fail:
+  Skills:
+  - effect:sound{s=entity.villager.no;volume=1;pitch=0.75}
+  - command{c="goop nbt setMaterial <caster.name> c<CONTOUR> RED_STAINED_GLASS_PANE"}
+  - delay 3
+  - command{c="goop nbt setMaterial <caster.name> c<CONTOUR> LADDER"}
+  - delay 3
+  - command{c="goop nbt setMaterial <caster.name> c<CONTOUR> RED_STAINED_GLASS_PANE"}
+  - delay 3
+  - command{c="goop nbt setMaterial <caster.name> c<CONTOUR> LADDER"}
+  
+CJ_Success:
+  Skills:
+  - effect:sound{s=entity.villager.work_weaponsmith;volume=1;pitch=0.75}
+  - command{c="goop nbt setMaterial <caster.name> c<CONTOUR> ACTIVATOR_RAIL"}
+  - delay 3
+  - command{c="goop nbt setMaterial <caster.name> c<CONTOUR> RAIL"}
+  - delay 3
+  - command{c="goop nbt setMaterial <caster.name> c<CONTOUR> POWERED_RAIL"}
+  - delay 3
+  - command{c="goop nbt setMaterial <caster.name> c<CONTOUR> LADDER"}
+
+#  ------------------------------------------------
+#       Upgrade Station (Containers)
+#  ------------------------------------------------
+
+GOOP_US_Check:
+  Skills:
+  - settargetscore{objective=ulevel;value=0} @Self
+  - settargetscore{objective=cAAA;value=0} @Self
+  - settargetscore{objective=cBBB;value=0} @Self
+  - settargetscore{objective=cCCC;value=0} @Self
+  - settargetscore{objective=cWWW;value=0} @Self
+  - command{c="goop mmoitems upgrade <caster.name> c<WEAPON> +0 false ulevel"}
+  - delay 1
+  
+  # Check that the materials are there
+  - skill{s=GOOP_US_UpgradeReqs} @Self
+  
+  # Check that a valid weapon is there
+  - skill{s=GOOP_US_UpgradeWeap} @Self
+  
+  - delay 3
+  
+  # Proceed with upgrade
+  - skill{s=GOOP_US_UpgradeExec} @Self
+GOOP_US_UpgradeReqs:
+  Skills:
+  - skill{s=GOOP_USUR_Lvl1}
+  - skill{s=GOOP_USUR_Lvl2}
+  - skill{s=GOOP_USUR_Lvl3}
+  
+# Upgrade to Lvl 1: 6x Iron Blocks
+GOOP_USUR_Lvl1:
+  Conditions:
+  
+  # If current upgrade level is 0
+  - score{objective=ulevel;v=0}
+  Skills:
+  
+  - command{c="goop testinventory <caster.name> c<INGREDIENTS> v IRON_BLOCK 0 cAAA amount"}
+  - delay 1
+  - skill{s=GOOP_USUR_Lvl1_S}
+GOOP_USUR_Lvl1_S:
+  Conditions:
+  
+  # Require at least 6 iron blocks
+  - score{objective=cAAA;v=>5}
+  Skills:
+  - skill{s=GOOP_USUR_Accept}
+  
+# Upgrade to Lvl 2: 10x Iron Blocks, 5x Gold Blocks
+GOOP_USUR_Lvl2:
+  Conditions:
+  
+  # If current upgrade level is 1
+  - score{objective=ulevel;v=1}
+  Skills:
+  
+  - command{c="goop testinventory <caster.name> c<INGREDIENTS> v IRON_BLOCK 0 cAAA amount"}
+  - command{c="goop testinventory <caster.name> c<INGREDIENTS> v GOLD_BLOCK 0 cBBB amount"}
+  - delay 1
+  - skill{s=GOOP_USUR_Lvl2_S}
+GOOP_USUR_Lvl2_S:
+  Conditions:
+  
+  # Require at least 10 iron blocks
+  - score{objective=cAAA;v=>9}
+  
+  # Require at least 5 gold blocks
+  - score{objective=cBBB;v=>4}
+  Skills:
+  - skill{s=GOOP_USUR_Accept}
+  
+# Upgrade to Lvl 3: 30x Iron Blocks, 20x Gold Blocks, 2x Diamond Blocks
+GOOP_USUR_Lvl3:
+  Conditions:
+  
+  # If current upgrade level is 2
+  - score{objective=ulevel;v=2}
+  Skills:
+  
+  - command{c="goop testinventory <caster.name> c<INGREDIENTS> v IRON_BLOCK 0 cAAA amount"}
+  - command{c="goop testinventory <caster.name> c<INGREDIENTS> v GOLD_BLOCK 0 cBBB amount"}
+  - command{c="goop testinventory <caster.name> c<INGREDIENTS> v DIAMOND_BLOCK 0 cCCC amount"}
+  - delay 1
+  - skill{s=GOOP_USUR_Lvl3_S}
+GOOP_USUR_Lvl3_S:
+  Conditions:
+  
+  # Require at least 10 iron blocks
+  - score{objective=cAAA;v=>29}
+  
+  # Require at least 5 gold blocks
+  - score{objective=cBBB;v=>19}
+  
+  # Require at least 5 gold blocks
+  - score{objective=cCCC;v=>1}
+  Skills:
+  - skill{s=GOOP_USUR_Accept}
+  
+# Check that the weapon can be upgraded
+GOOP_US_UpgradeWeap:
+  Skills:
+  
+  - command{c="goop testinventory <caster.name> c<WEAPON> m SWORD UPGRADEABLE_SWORD cWWW 1"}
+  - command{c="goop testinventory <caster.name> c<WEAPON> m AXE UPGRADEABLE_AXE cWWW 1"}
+  - command{c="goop testinventory <caster.name> c<WEAPON> m STAFF UPGRADEABLE_STAFF cWWW 1"}
+  - delay 1
+  - skill{s=GOOP_US_UpgradeWeap_S}
+GOOP_US_UpgradeWeap_S:
+  Conditions:
+  
+  # Require at least 10 iron blocks
+  - score{objective=cWWW;v=>0}
+  Skills:
+  - setvariable{var=skill.weap;type=FLOAT;value="4"} @Self
+
+#Requirements are met
+GOOP_USUR_Accept:
+  Skills:
+  - setvariable{var=skill.reqs;type=FLOAT;value="4"} @Self
+GOOP_US_UpgradeExec:
+
+  Conditions:
+  # Requirements must be met
+  - variableisset skill.reqs
+  # Qualifiable weapon must be there
+  - variableisset skill.weap
+  Skills:
+  
+  # Effectuate Upgrade, by one level
+  - command{c="goop mmoitems upgrade <caster.name> c<WEAPON> +1 false"}
+  
+  # Repair fully cuz why not
+  - command{c="goop nbt damage <caster.name> c<WEAPON> 0"}
+  
+  # Change texture, yeah thats cool
+  - command{c="goop nbt cModelData <caster.name> c<WEAPON> 0"}
+  
+  
+  # Consume ingredients
+  - skill{s=GOOP_USRC_Lvl1}
+  - skill{s=GOOP_USRC_Lvl2}
+  - skill{s=GOOP_USRC_Lvl3}
+  
+# Upgrade to Lvl 3: 30x Iron Blocks, 20x Gold Blocks, 2x Diamond Blocks
+GOOP_USRC_Lvl1:
+  Conditions:
+  
+  # If current upgrade level is 0
+  - score{objective=ulevel;v=0}
+  Skills:
+  
+  - command{c="goop consumeitem <caster.name> v IRON_BLOCK 0 6 C"}
+GOOP_USRC_Lvl2:
+  Conditions:
+  
+  # If current upgrade level is 1
+  - score{objective=ulevel;v=1}
+  Skills:
+  
+  - command{c="goop consumeitem <caster.name> v IRON_BLOCK 0 10 C"}
+  - command{c="goop consumeitem <caster.name> v GOLD_BLOCK 0 5 C"}
+GOOP_USRC_Lvl3:
+  Conditions:
+  
+  # If current upgrade level is 3
+  - score{objective=ulevel;v=2}
+  Skills:
+  
+  - command{c="goop consumeitem <caster.name> v IRON_BLOCK 0 30 C"}
+  - command{c="goop consumeitem <caster.name> v GOLD_BLOCK 0 20 C"}
+  - command{c="goop consumeitem <caster.name> v DIAMOND_BLOCK 0 2 C"}
+#  ------------------------------------------------
+#       Corrosive Sludge (GooP NBT)
+#  ------------------------------------------------
+GOOP_Corrode:
+
+  # Minions CANNOT hit players
+  TargetConditions:
+  - entitytype{t=PLAYER}
+  
+  Skills:
+  
+  #
+  # Corrosive sludges deal massive damage to player equipped items
+  #
+  - command{c="goop nbt damage <target.uuid> mainhand,offhand,head,chest,legs,feet +20 true"}
+GOOP_SuperCorrode:
+  
+  Skills:
+  - message{m="&8&l[&4&l!&8&l]&c That fight against the corrosive sludge has severely damaged your equipment!"}
+  
+  #
+  # If a player is actually killed by the corrosive sludge, all their equipment will
+  # be set to basically 0 durability, on the verge of breaking, but not actually breaking.
+  #
+  - command{c="goop nbt damage <target.uuid> mainhand,offhand,head,chest,legs,feet +20000 true"}
+  
+  #
+  # Even more! If the player equipment can be upgraded, getting killed 
+  # by a corrosive sludge downgrades their tools by one level!
+  #
+  - command{c="goop mmoitems upgrade <target.uuid> mainhand,offhand,head,chest,legs,feet -1"}
+#  ------------------------------------------------
+#       Netherite Golem (Custom Structures)
+#  ------------------------------------------------
+GOOP_Stare:
+  Skills:
+  - skill{s=GOOP_Combust} @Target
+  - skill{s=GOOP_No}
+
+GOOP_Combust:
+  TargetConditions:
+  - distance{d=<13}
+  Skills:
+  - setvariable{var=skill.fpcanc;type=FLOAT;value="4"} @Self
+  - potion{type=SLOW;duration=20;level=100;hasParticles=false} @Self
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.1;vS=0.1;forwardOffset=0.3;sideOffset=0.5;yOffset=1.6} @Self
+  - skill{s=GOOP_Flame} @TargetLocation
+  - delay 2
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.1;vS=0.1;forwardOffset=0.3;sideOffset=-0.5;yOffset=1.6} @Self
+  - skill{s=GOOP_Flame} @TargetLocation
+  - delay 2
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.1;vS=0.1;forwardOffset=0.3;sideOffset=0.5;yOffset=1.6} @Self
+  - skill{s=GOOP_Flame} @TargetLocation
+  - delay 2
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.1;vS=0.1;forwardOffset=0.3;sideOffset=-0.5;yOffset=1.6} @Self
+  - skill{s=GOOP_Flame} @TargetLocation
+  - delay 2
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.1;vS=0.1;forwardOffset=0.3;sideOffset=0.5;yOffset=1.6} @Self
+  - skill{s=GOOP_Flame} @TargetLocation
+  - delay 2
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.1;vS=0.1;forwardOffset=0.3;sideOffset=-0.5;yOffset=1.6} @Self
+  - skill{s=GOOP_Flame} @TargetLocation
+  
+GOOP_No:
+  Conditions:
+  - variableisset skill.fpcanc cancel
+  Skills:
+  - gcd{ticks=40} @Self
+  - setstance{stance=calm} @Self
+  
+GOOP_Flame:
+  Skills:
+  #- skill{s=GOOP_Latestart}
+  - skill{s=GOOP_Quickstart}
+  - skill{s=GOOP_FireballTry}
+  
+GOOP_Latestart:
+  TargetConditions:
+  - distance{d=<10}
+  Skills:
+  - setstance{stance=ready} @Self
+GOOP_Quickstart:
+  Conditions:
+  - offgcd
+  Skills:
+  - setstance{stance=ready} @Self
+  
+GOOP_FireballTry:
+  Conditions:
+  - stance ready castinstead GOOP_Fireball
+  Skills:
+  - effect:sound{s=block.fire.extinguish;volume=1.0;pitch=1.7} @SelfLocation
+GOOP_Fireball:
+  Skills:
+  - projectile{onTick=GOOP_Flame_T;oS=GOOP_Flame_S;v=30;i=1;hR=0.1;vR=0.1;mr=17;sfo=0.5;hnp=false;hp=false;g=0;tyo=0.25;sE=false;sB=true}
+GOOP_Flame_T:
+  Skills:
+  - mmodamage{a=3;preventimmunity=true} @EntitiesNearOrigin{r=1;ignore=animals,samefaction}
+  - effect:particles{p=spell;color=#ff0000;a=1;hS=0.1;vS=0.1;yOffset=0.8} @Origin
+  #- effect:particles{p=spell;color=#ff6600;a=1;hS=0.1;vS=0.1;yOffset=0.8} @Origin
+  #- effect:particles{p=spell;color=#ffbb00;a=1;hS=0.1;vS=0.1;yOffset=0.8} @Origin
+  - skill{s=GOOP_Flame_T0}
+  - skill{s=GOOP_Flame_T1}
+  - skill{s=GOOP_Flame_T2}
+  - skill{s=GOOP_Flame_T3}
+  - skill{s=GOOP_Flame_T4}
+GOOP_Flame_T0:
+  Conditions:
+  - distanceFromOrigin{d=0to1;s=true} true
+  Skills:
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.1;vS=0.1;yOffset=0.8} @Origin 0.7
+  - effect:particles{p=smoke;a=2;hS=0.1;vS=0.1;yOffset=0.8} @Origin
+  - effect:particles{p=angry_villager;color=#001300;a=1;hS=0.1;vS=0.1;yOffset=0.6} @Origin 0.3
+GOOP_Flame_T1:
+  Conditions:
+  - distanceFromOrigin{d=1to3;s=true} true
+  Skills:
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.2;vS=0.2;yOffset=0.8} @Origin 0.7
+  - effect:particles{p=smoke;a=2;hS=0.1;vS=0.1;yOffset=0.8} @Origin
+  - effect:particles{p=angry_villager;color=#001300;a=1;hS=0.1;vS=0.1;yOffset=0.6} @Origin 0.3
+GOOP_Flame_T2:
+  Conditions:
+  - distanceFromOrigin{d=3to6;s=true} true
+  Skills:
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.4;vS=0.4;yOffset=0.8} @Origin 0.7
+  - effect:particles{p=smoke;a=2;hS=0.2;vS=0.2;yOffset=0.8} @Origin
+  - effect:particles{p=angry_villager;color=#001300;a=1;hS=0.2;vS=0.2;yOffset=0.6} @Origin 0.3
+GOOP_Flame_T3:
+  Conditions:
+  - distanceFromOrigin{d=6to10;s=true} true
+  Skills:
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.6;vS=0.6;yOffset=0.8} @Origin 0.7
+  - effect:particles{p=smoke;a=2;hS=0.3;vS=0.3;yOffset=0.8} @Origin
+  - effect:particles{p=angry_villager;color=#001300;a=1;hS=0.3;vS=0.3;yOffset=0.6} @Origin 0.3
+GOOP_Flame_T4:
+  Conditions:
+  - distanceFromOrigin{d=10to20;s=true} true
+  Skills:
+  - effect:particles{p=flame;color=#000000;a=1;hS=0.8;vS=0.8;yOffset=0.8} @Origin 0.7
+  - effect:particles{p=smoke;a=2;hS=0.4;vS=0.4;yOffset=0.8} @Origin
+  - effect:particles{p=angry_villager;color=#001300;a=1;hS=0.4;vS=0.4;yOffset=0.6} @Origin 0.3
+GOOP_Flame_S:
+  Skills:
+  - effect:sound{s=entity.blaze.shoot;volume=1.0;pitch=0.7} @SelfLocation
+#  -----------------------
+#   Generic Minion Skills
+#  -----------------------
+
+#
+# Call with skill{s=GooP_MinionStartup} @Self ~onSpawn
+# on a monster summoned with GooPSummonMinion mechanic
+# for the recommended minion setup.
+#
+GooP_MinionStartup:
+  Skills:
+  - setvariable{var=caster.mdmg;type=FLOAT;value="0"}
+  
+  # Calculate hit damage (  Base damage, affected by owner's Summon Damage % bonuses )
+  - GooPSudoOwner{s=GOOP_DamageCalculation;cat=true}
+  
+  # For the AIGoal Selector of following owner, targets the owner.
+  - setowner @GooPOwner
+  - remove{delay=6000}
+  
+  # To trigger gotoowner AIGoal
+  - GooPSudoOwner{s=GOOP_Kick;cat=true}
+
+#
+# The minion will read its owner's latest 'Minion Damage' value
+# and cache it within itself. This way, the owner only gets damage
+# bonuses that were active when the minion was summoned.
+#
+GOOP_DamageCalculation:
+  Skills:
+  - variableMath{var=target.mdmg;equation="<caster.var.dmg>"} @Trigger
+  
+#
+# Minions call this with GooPSudoOwner{s=GOOP_Hit;cat=true} whenever
+# wanting to deal damage, this way their owner gets counted the damage
+# rather than the minion creature.
+#
+GOOP_Hit:
+
+  # Minions CANNOT hit players
+  TargetConditions:
+  - entitytype{t=PLAYER} false
+  - entitytype{t=ARMOR_STAND} false
+  
+  Skills:
+  
+  # Rally to the minion
+  - rallyall{rtt=true}
+  
+  # Deal damage
+  - mmodamage{a="<trigger.var.mdmg>";preventimmunity=true}
+  
+#
+# Same as GOOP_Hit but with no aggro
+#
+GOOP_SneakHit:
+
+  # Minions CANNOT hit players
+  TargetConditions:
+  - entitytype{t=PLAYER} false
+  - entitytype{t=ARMOR_STAND} false
+  
+  Skills:
+  
+  # Deal damage
+  - mmodamage{a="<trigger.var.mdmg>";preventimmunity=true}
+#
+# When called, suppose with skill{s=GOOP_PlzExist} @Mount,
+# will destroy the calling entity of the target did not
+# exist --- if their mount is dead.
+#
+GOOP_PlzExist:
+  Skills:
+  - skill{s=GOOP_PlzExistRet}
+  - skill{s=GOOP_PlzExistRip} @Self
+GOOP_PlzExistRet:
+  TargetConditions:
+  - distance{d=<200}
+  Skills:
+  - setvariable{var=skill.fpcanc;type=FLOAT;value="4"} @Self
+GOOP_PlzExistRip:
+  Conditions:
+  - variableisset skill.fpcanc cancel
+  Skills:
+  - remove
+  
+#
+# For some reason, MythicMobs' Custom AI to follow the owner
+# only kicks in after the minion has been hit once... This
+# ensures that that happens when the minon is summoned.
+#
+GOOP_Kick:
+  Skills:
+  - delay 5
+  - mmodamage{a=1} @Trigger
+
+#  -------------------------------
+#       Terraprisma (Minions)
+#  -------------------------------
+GOOP_TerraprismaSummon:
+  Skills:
+  
+  # Attack Damage of the Minion
+  - setvariable{var=caster.dmg;type=FLOAT;value="1"} @Self{targetcreative=true}
+  - variableMath{var=caster.dmg;equation="12"} @Self{targetcreative=true}
+  
+  # Summon
+  - GooPSummonMinion{lr=65;type=GOOP_Terraprisma;amount=1;w=1} @Forward{f=0.0;y=4.0}
+GOOP_TerraprismaSummonMMOItem:
+  Skills:
+  #
+  #  Pull variables from MMOItem Ability
+  #
+  - setvariable{var=caster.amount;type=FLOAT;value="1"} @Self{targetcreative=true}
+  - variableMath{var=caster.amount;equation="<modifier.amount>"} @Self{targetcreative=true}
+  
+  - setvariable{var=caster.sweight;type=FLOAT;value="1"} @Self{targetcreative=true}
+  - variableMath{var=caster.sweight;equation="<modifier.sweight>"} @Self{targetcreative=true}
+  
+  - setvariable{var=caster.dmg;type=FLOAT;value="1"} @Self{targetcreative=true}
+  - variableMath{var=caster.dmg;equation="<modifier.damage> * 0.01 * (100 + <goop.castermmostat.miscb>)"} @Self{targetcreative=true}
+  
+  # Summon
+  - GooPSummonMinion{lr=15;type=GOOP_Terraprisma;amount="<caster.var.amount>";w="<caster.var.sweight>"} @Forward{f=0.0;y=4.0}
+GOOP_Terraprisma_T:
+  Skills:
+  - skill{s=GOOP_Terraprisma_TC14}
+  - skill{s=GOOP_Terraprisma_TC13}
+  - skill{s=GOOP_Terraprisma_TC12}
+  - skill{s=GOOP_Terraprisma_TC11}
+  - skill{s=GOOP_Terraprisma_TC10}
+  - skill{s=GOOP_Terraprisma_TC9}
+  - skill{s=GOOP_Terraprisma_TC8}
+  - skill{s=GOOP_Terraprisma_TC7}
+  - skill{s=GOOP_Terraprisma_TC6}
+  - skill{s=GOOP_Terraprisma_TC5}
+  - skill{s=GOOP_Terraprisma_TC4}
+  - skill{s=GOOP_Terraprisma_TC3}
+  - skill{s=GOOP_Terraprisma_TC2}
+  - skill{s=GOOP_Terraprisma_TC1}
+  - skill{s=GOOP_Terraprisma_TC0}
+GOOP_Terraprisma_TC0:
+  Conditions:
+  - stance RPFX00
+  Skills:
+  - setstance{stance=RPFX01} @Self
+  - effect:particles{p=spell_mob;color=#FF0000;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC1:
+  Conditions:
+  - stance RPFX01
+  Skills:
+  - setstance{stance=RPFX02} @Self
+  - effect:particles{p=spell_mob;color=#FF5B00;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC2:
+  Conditions:
+  - stance RPFX02
+  Skills:
+  - setstance{stance=RPFX03} @Self
+  - effect:particles{p=spell_mob;color=#FFA500;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC3:
+  Conditions:
+  - stance RPFX03
+  Skills:
+  - setstance{stance=RPFX04} @Self
+  - effect:particles{p=spell_mob;color=#FFFF00;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC4:
+  Conditions:
+  - stance RPFX04
+  Skills:
+  - setstance{stance=RPFX05} @Self
+  - effect:particles{p=spell_mob;color=#A2FF00;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC5:
+  Conditions:
+  - stance RPFX05
+  Skills:
+  - setstance{stance=RPFX06} @Self
+  - effect:particles{p=spell_mob;color=#00FF00;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC6:
+  Conditions:
+  - stance RPFX06
+  Skills:
+  - setstance{stance=RPFX07} @Self
+  - effect:particles{p=spell_mob;color=#00FF89;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC7:
+  Conditions:
+  - stance RPFX07
+  Skills:
+  - setstance{stance=RPFX08} @Self
+  - effect:particles{p=spell_mob;color=#00FFFF;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC8:
+  Conditions:
+  - stance RPFX08
+  Skills:
+  - setstance{stance=RPFX09} @Self
+  - effect:particles{p=spell_mob;color=#00AFFF;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC9:
+  Conditions:
+  - stance RPFX09
+  Skills:
+  - setstance{stance=RPFX10} @Self
+  - effect:particles{p=spell_mob;color=#0054FF;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC10:
+  Conditions:
+  - stance RPFX10
+  Skills:
+  - setstance{stance=RPFX11} @Self
+  - effect:particles{p=spell_mob;color=#0000FF;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC11:
+  Conditions:
+  - stance RPFX11
+  Skills:
+  - setstance{stance=RPFX12} @Self
+  - effect:particles{p=spell_mob;color=#6100FF;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC12:
+  Conditions:
+  - stance RPFX12
+  Skills:
+  - setstance{stance=RPFX13} @Self
+  - effect:particles{p=spell_mob;color=#C400FF;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC13:
+  Conditions:
+  - stance RPFX13
+  Skills:
+  - setstance{stance=RPFX14} @Self
+  - effect:particles{p=spell_mob;color=#FF00FF;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraprisma_TC14:
+  Conditions:
+  - stance RPFX14
+  Skills:
+  - setstance{stance=RPFX00} @Self
+  - effect:particles{p=spell_mob;color=#FF0090;amount=2;speed=0;hS=0.15;vS=0.15;forwardOffset=0.3;sideOffset=0.5;yOffset=1.0}
+GOOP_Terraslash_C0:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#FF0000;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C1:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#FF5B00;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C2:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#FFA500;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C3:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#FFFF00;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C4:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#A2FF00;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C5:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#00FF00;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C6:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#00FF89;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C7:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#00FFFF;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C8:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#00AFFF;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C9:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#0054FF;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C10:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#0000FF;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C11:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#6100FF;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C12:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#C400FF;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C13:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#FF00FF;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+GOOP_Terraslash_C14:
+  Skills:
+  - effect:particleslash{particle=reddust;color=#FF0090;amount=8;r=1.5;h=true;arc=1.7;rot=-8;y=0.5}
+
+GOOP_Terraslash:
+  Cooldown: 0.1
+  Skills:
+  - effect:sound{s=entity.player.attack.sweep;volume=0.7;pitch=1.6}
+  - effect:sound{s=entity.player.breath;volume=0.4;pitch=2}
+  - skill{s=GOOP_Terraprismick} @Forward{f=0.5;y=0.0}
+GOOP_Terraprismick:
+  Skills:
+  - randomskill{s=GOOP_Terraslash_C0,GOOP_Terraslash_C1,GOOP_Terraslash_C2,GOOP_Terraslash_C3,GOOP_Terraslash_C4,GOOP_Terraslash_C5,GOOP_Terraslash_C6,GOOP_Terraslash_C7,GOOP_Terraslash_C8,GOOP_Terraslash_C9,GOOP_Terraslash_C10,GOOP_Terraslash_C11,GOOP_Terraslash_C12,GOOP_Terraslash_C13,GOOP_Terraslash_C14}
+GOOP_TerraprismonProc:
+  TargetConditions:
+  - distance{d=>10}
+  Skills:
+  - effect:sound{s=entity.player.attack.sweep;volume=2.7;pitch=1.2}
+  - skill{s=GOOP_Terraprismon}
+GOOP_Terraprismon:
+  Skills:
+  - missile{onTick=GOOP_Terraprismon_T;onHit=GOOP_Terraprismon_H;v=22;i=1;hR=1;vR=2;hs=false;mr=70;Inertia=0.01;tyo=1.0;hp=false;sE=true;sB=false;hnp=true;ht=true}
+GOOP_Terraprismon_T:
+  Skills:
+  - effect:sound{s=entity.player.attack.sweep;volume=0.7;pitch=1.8}
+  - skill{s=GOOP_Terraprismick} @Origin
+GOOP_Terraprismon_H:
+  Skills:
+  - GooPSudoOwner{s=GOOP_SneakHit;cat=true}
+GOOP_Terraslashing:
+  TargetConditions:
+  - distance{d=<3}
+  - entitytype{t=ARMOR_STAND} false
+  Skills:
+  - gcd{ticks=25} @Self
+  
+  # Particles
+  - skill{s=GOOP_Terraslash}
+  
+  # Deal damage!! Never use damage{a=} mechanic unless you know what you are doing!
+  - GooPSudoOwner{s=GOOP_SneakHit;cat=true}
+GOOP_Terraflee:
+  TargetConditions:
+  - distance{d=>5}
+  Conditions:
+  - offgcd
+  - mounted false
+  Skills:
+  - mount{type=GOOP_Terramount} @Self
+GOOP_Terraheal:
+  TargetConditions:
+  - entitytype{t=PLAYER}
+  Skills:
+  - effect:sound{s=entity.player.splash;volume=1.0;pitch=1.6}
+  - heal{a="8"}
+GOOP_Terradrive:
+  Skills:
+  - skill{s=GOOP_Terratarget} @Target
+  - skill{s=GOOP_Terrano}
+GOOP_Terratarget:
+  TargetConditions:
+  - distance{d=<40}
+  Skills:
+  - setvariable{var=skill.fpcanc;type=FLOAT;value="4"} @Self
+  
+  # Go forthe!
+  - rally{types=GOOP_Terramount;radius=1;ot=true}
+  
+GOOP_Terrano:
+  Conditions:
+  - variableisset skill.fpcanc cancel
+  Skills:
+  
+  # Return
+  - rally{types=GOOP_Terramount;radius=1;ot=true} @GooPOwner

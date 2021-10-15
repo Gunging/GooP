@@ -1,0 +1,10 @@
+NetheriteGolem:
+  Composition:
+  - NETHERITE_BLOCK 0 -2 0
+  - NETHERITE_BLOCK 0 -1 0
+  - CARVED_PUMPKIN 0 0 0||FACING FORWARD
+  Triggers:
+  - COMPLETE
+  Commands:
+  - mm mobs spawn GOOP_NetheriteGolem 1 %world%,%structure-blockcenter-comma%,%structure-forward%,0
+  - goop-break-structure

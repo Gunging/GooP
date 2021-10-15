@@ -9,6 +9,7 @@ SendFailFeedback: false
 BlockErrorFeedback: false
 SaveGameruleChanges: true
 GriefBedrockCommand: false
+ConverterUsesDefense: false
 #VaultLowBalance: "&cYou need $%charge% to use this"
 SummonLeashKillDistance: 60
 

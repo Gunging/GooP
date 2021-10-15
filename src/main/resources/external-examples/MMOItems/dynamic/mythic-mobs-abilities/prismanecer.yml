@@ -1,0 +1,11 @@
+# The internal name of the MM skill.
+mythicmobs-skill-id: GOOP_TerraprismaSummonMMOItem
+
+# Ability name displayed in lore.
+name: Prismanecer
+
+# Ability Modifiers (default values).
+cooldown: 5
+sweight: 1
+damage: 12
+amount: 1

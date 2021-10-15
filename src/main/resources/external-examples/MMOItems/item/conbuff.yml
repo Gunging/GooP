@@ -1,0 +1,53 @@
+GAPPLESMOOTHIE:
+  base:
+    material: ENCHANTED_GOLDEN_APPLE
+    name: §eEnchanted Golden Apple Smoothie
+    critical-strike-chance: 40.0
+SFRUITSMOOTHIE:
+  base:
+    material: MAGMA_CREAM
+    name: §eSunfruit Smoothie
+    ability:
+      ability1:
+        type: HOPE_SHOCKWAVE
+        mode: WHEN_HIT
+        cooldown: 3.0
+        damage: 22.0
+    goop-misc-c: 20.0
+MOONSMOOTHIE:
+  base:
+    material: LAPIS_LAZULI
+    name: §3Moonberry Smoothie
+    magic-damage: 10.0
+CACTUSMOOTHIE:
+  base:
+    material: CACTUS
+    name: §aPrickly Pear Smoothie
+    critical-strike-power: 10.0
+GOPPLESMOOTHIE:
+  base:
+    material: GOLDEN_APPLE
+    name: §6Golden Apple Smoothie
+    physical-damage: 7.0
+    projectile-damage: 4.0
+GRAPESMOOTHIE:
+  base:
+    material: PURPLE_DYE
+    name: §5Rykrosmoothie
+    skill-damage: 6.0
+LEMONADE:
+  base:
+    material: LIME_DYE
+    name: <#DDFFDD>AKC Lemonade
+    projectile-damage: 6.0
+    skill-damage: 6.0
+CLAY_STALLION:
+  base:
+    material: IRON_HORSE_ARMOR
+    name: §7§lClay Stallion
+    attack-damage: 5.0
+    critical-strike-chance: 100.0
+    physical-damage: 80.0
+    damage-reduction: 20.0
+    movement-speed: -1.0
+    armor: 15.0

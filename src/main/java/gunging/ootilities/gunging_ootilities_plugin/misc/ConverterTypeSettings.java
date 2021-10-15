@@ -27,7 +27,6 @@ public class ConverterTypeSettings {
     // What does it apply?
     ListPlaceholder randomTierOnCraft = null;
     ListPlaceholder randomTierOnPickup = null;
-    String nameOnCraft = null, nameOnPickup = null;
 
     // Tier settings
     HashMap<String, ConverterPerTier> perTierSettingsOnCraft = new HashMap<>(), perTierSettingsOnPickup = new HashMap<>();
@@ -53,7 +52,8 @@ public class ConverterTypeSettings {
      * Returns the settings if any are loaded.
      */
     @Nullable
-    public static ConverterTypeSettings PertainingTo(@NotNull ConverterTypeNames ctn) {
+    public static ConverterTypeSettings PertainingTo(@Nullable ConverterTypeNames ctn) {
+        if (ctn == null) { return null; }
 
         // Whatever find
         return loadedSettings.get(ctn);
@@ -74,34 +74,27 @@ public class ConverterTypeSettings {
             randomTierOnCraft = new ListPlaceholder("GooP_Converter_" + target.name(), tierList);
         }
     }
-    public void SetPerTierStats(@NotNull String targetTier, @NotNull ConverterPerTier ptr, boolean asPickup) {
+    public void SetPerTierStats(@Nullable String targetTier, @NotNull ConverterPerTier ptr, boolean asPickup) {
 
         if (asPickup) {
 
+            if (targetTier == null) { nullTierPickup = ptr.interestingTierName; }
+
             // just put i guess
             perTierSettingsOnPickup.put(targetTier, ptr);
+
         } else {
+
+            if (targetTier == null) { nullTier = ptr.interestingTierName; }
 
             // just put i guess
             perTierSettingsOnCraft.put(targetTier, ptr);
         }
     }
 
-    /**
-     * A Placeholder List of tiers to apply.
-     */
-    public void SetName(@NotNull String name, boolean asPickup) {
-
-        if (asPickup) {
-
-            // Creates list
-            nameOnPickup = name;
-        } else {
-
-            // Creates list
-            nameOnCraft = name;
-        }
-    }
+    @Nullable String nullTier = null;
+    @Nullable String nullTierPickup = null;
+    @Nullable public String GetNullTier(boolean asPickup) { return asPickup ? nullTierPickup : nullTier; }
 
     public boolean hasRandomTier(boolean asPickup) {
 
@@ -114,19 +107,6 @@ public class ConverterTypeSettings {
 
             // Creates list
             return randomTierOnCraft != null;
-        }
-    }
-    public boolean hasName(boolean asPickup) {
-
-        // Welp
-        if (asPickup) {
-
-            // Creates list
-            return nameOnPickup != null;
-        } else {
-
-            // Creates list
-            return nameOnCraft != null;
         }
     }
 
@@ -145,7 +125,7 @@ public class ConverterTypeSettings {
     }
 
     @Nullable
-    public ConverterPerTier getPerTierSettings(@NotNull String tier, boolean asPickup) {
+    public ConverterPerTier getPerTierSettings(@Nullable String tier, boolean asPickup) {
 
         if (asPickup) {
 
@@ -156,32 +136,25 @@ public class ConverterTypeSettings {
         }
     }
 
-    public String getName(boolean asPickup) {
-
-        if (asPickup) {
-
-            return nameOnPickup;
-        } else {
-
-            return nameOnCraft;
-        }
-    }
-
     /**
      * Applies things that should be applied before an item is crafted.
+     *
+     * Specifically, non tier-specific settings, because it must be
+     * crafted to finally decide what it will look like, and this
+     * step happens before deciding the tier.
      */
     @NotNull
-    public ItemStack ApplyTo(@NotNull ItemStack iSource, Player parseAS, boolean asPickup) {
+    public ItemStack ApplyTo(@NotNull ItemStack iSource, @Nullable Player parseAS, boolean asPickup) {
 
         // AH
-        ItemStack iResult = iSource;
+        ConverterPerTier cpt2 = getPerTierSettings(null, asPickup);
 
-        // Roll for tier
-        if (hasName(asPickup)) {
+        // Contained?
+        if (cpt2 != null) {
+            //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bPREVIEW\u00a77 Does have Null-Tier Settings");
 
-            // Set Name
-            iSource = OotilityCeption.RenameItem(iSource, getName(asPickup), parseAS, null);
-            if(iSource == null) { iSource = iResult; }
+            // Apply
+            iSource = cpt2.ApplyTo(iSource);
         }
 
         // Return result
@@ -189,38 +162,49 @@ public class ConverterTypeSettings {
     }
 
     /**
-     * Applies such changes that should happen AFTER the item is crafted. Doesnt matter when picking up.
+     * Applies such changes that should happen AFTER the item
+     * is crafted. Doesnt matter when picking up.
+     *
+     * Specifically, tier-specific settings, because it must be
+     * crafted to finally decide what it will look like.
      */
     @NotNull
-    public ItemStack ApplyPostTo(@NotNull ItemStack iSource, Player parseAS, boolean asPickup) {
+    public ItemStack ApplyPostTo(@NotNull ItemStack iSource, @Nullable Player parseAS, boolean asPickup) {
+        //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bAPPLY\u00a77 Post applying onto " + OotilityCeption.GetItemName(iSource));
 
         // AH
         ItemStack iResult = iSource;
 
         // Roll for tier
         if (hasRandomTier(asPickup)) {
+            //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bAPPLY\u00a77 Random tiering detected");
 
             // Get Random Tier
-            String rTier = getRandomTier(asPickup);
+            String preChosenTier = getRandomTier(asPickup);
+
+            //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bAPPLY\u00a77 Random Chance ~ " + preChosenTier);
 
             // If exists
-            if (GooPMMOItems.TierExists(rTier)) {
+            if (GooPMMOItems.TierExists(preChosenTier)) {
+                //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bAPPLY\u00a77 Choosing " + preChosenTier);
 
                 // Apply
-                iSource = GooPMMOItems.SetTier(iSource, rTier, null,null);
+                iSource = GooPMMOItems.SetTier(iSource, preChosenTier, null,null);
                 if (iSource == null) { iSource = iResult; }
 
                 // Has it per tier shit?
-                ConverterPerTier cpt = getPerTierSettings(rTier, asPickup);
+                ConverterPerTier cpt = getPerTierSettings(preChosenTier, asPickup);
 
                 // Contained?
                 if (cpt != null) {
+                    //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bAPPLY\u00a77 Does have Per-Tier Settings");
 
                     // Apply
                     iSource = cpt.ApplyTo(iSource);
                 }
             }
         }
+
 
         // Return result
         return iSource;

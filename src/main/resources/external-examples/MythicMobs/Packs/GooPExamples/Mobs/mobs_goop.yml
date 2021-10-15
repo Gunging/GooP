@@ -1,0 +1,142 @@
+#########################################  " GooP Example " (Mobs)                   ############################################################
+#########################################  Mobs that show off mythicmob mechanics    ############################################################
+#########################################  included in GooP                          ############################################################
+#########################################                          -gunging          ############################################################
+# Corrosive Sludge (GooP NBT)
+GOOP_CorrosiveSludge:
+  Type: SLIME
+  Disguise:
+    Type: ZOMBIE
+  Display: '&6Corrosive Sludge' 
+  Health: 10
+  Damage: 6
+  Armor: 14
+  Options:
+    Silent: true
+    FollowRange: 10
+    MovementSpeed: 0.18
+    ApplyInvisibility: true
+    PreventOtherDrops: true
+    PreventJockeyMounts: true
+    PreventRandomEquipment: true
+  Equipment:
+  - GOOP_CSStep:1
+  
+  Skills:
+  
+  # Heavy durability damage
+  - skill{s=GOOP_Corrode} @Trigger ~onAttack
+  
+  # That did a number on their equipment
+  - skill{s=GOOP_SuperCorrode} @Trigger ~onKillPlayer
+  
+# Netherite Golem (Custom Structures)
+GOOP_NetheriteGolem:
+  Type: IRON_GOLEM
+  Disguise:
+    Type: WITHER_SKELETON
+  Display: 'Netherite Golem' 
+  Faction: Minions
+  Health: 600
+  Damage: 16
+  Armor: 18
+  Options:
+    Silent: true
+    Despawn: false
+    FollowRange: 40
+    MovementSpeed: 0.3
+    ApplyInvisibility: true
+    PreventOtherDrops: true
+    PreventJockeyMounts: true
+    PreventRandomEquipment: true
+  Equipment:
+  - GOOP_NGHead:4
+  - GOOP_NGBodice:3
+  - GOOP_NGLegs:2
+  - GOOP_NGFeet:1
+  Skills:
+  - skill{s=GOOP_Stare} @Self ~onTimer:10
+
+# Terraprisma
+GOOP_Terramount:
+  Type: VEX
+    
+  # Low damage because it is handled elsewhere
+  Damage: 1
+  Health: 2000
+  
+  Display: '&cT&6e&er&ar&bo&9p&5r&ci&6s&em'
+  Faction: Minions
+  
+  Options:
+    Silent: true
+    FollowRange: 70
+    MovementSpeed: 0.3
+    ApplyInvisibility: true
+    PreventOtherDrops: true
+    PreventRandomEquipment: true
+    Invincible: true
+    
+  Skills:
+  - skill{s=GOOP_PlzExist} @Passenger ~onTimer:20
+  - skill{s=GOOP_Terraheal} @Trigger ~onAttack
+GOOP_Terraprisma:
+  Type: POLAR_BEAR
+  Disguise:
+    Type: WITHER_SKELETON
+    
+  # Low damage because it is handled elsewhere
+  Damage: 1
+ 
+  Display: '&cT&6e&er&ar&ba&9p&5r&ci&6s&em&aa'
+  Faction: Minions
+  Options:
+    PreventRandomEquipment: true
+    ApplyInvisibility: true
+    PreventOtherDrops: true
+    MovementSpeed: 0.35
+    FollowRange: 60
+    Silent: true
+  Health: 90
+  AIGoalSelectors:
+  - 0 clear
+  - 1 meleeattack
+  - 2 movetowardstarget
+  #- 4 gotoowner 2
+  AITargetSelectors:
+  - 0 clear
+  - 1 OtherFactionMonsters
+  #- 2 ownerattacker
+  #- 3 ownertarget
+  Equipment:
+  - GOOP_PrismanecerBlade:0
+  Skills:
+  
+  # ---------------------------
+  #     GooP Minion Generics
+  # ---------------------------
+  - skill{s=GooP_MinionStartup} @Self ~onSpawn
+  
+  # For experience gain reasons, this minion doesnt hit directly.
+  # Instead, it sudos its owner to deal damage to its target.
+  - GooPSudoOwner{s=GOOP_Hit;cat=true} @Trigger ~onAttack
+  
+  # ------------------------------
+  #     Unique to this Monster
+  # ------------------------------
+  
+  # Base stance
+  - setstance{stance=RPFX00} @Self ~onSpawn
+  - mount{type=GOOP_Terramount} @Self ~onSpawn
+  
+  # Slashing Attacks
+  - effect:sound{s=entity.player.attack.sweep;volume=1.0;pitch=1.2} @SelfLocation ~onAttack
+  - skill{s=GOOP_Terraslashing} @EntitiesInRadius{r=3;limit=3;sort=NEAREST;ignore=animals,samefaction,players} ~onTimer:7
+  - skill{s=GOOP_Terraflee} @EntitiesInRadius{r=30;limit=1;sort=FURTHEST} ~onTimer:20
+  - skill{s=GOOP_TerraprismonProc} @Target ~onTimer:40
+  
+  # Targetting
+  - skill{s=GOOP_Terradrive} @Self ~onTimer:20
+  
+  # Cute Particles
+  - skill{s=GOOP_Terraprisma_T} @Self ~onTimer:3

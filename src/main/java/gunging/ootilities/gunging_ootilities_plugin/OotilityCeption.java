@@ -643,18 +643,6 @@ public class OotilityCeption {
             default: return false;
         }
     }
-    public static boolean IsDiamond(@NotNull Material iType) {
-        return  (iType == Material.DIAMOND_AXE) ||
-                (iType == Material.DIAMOND_HOE) ||
-                (iType == Material.DIAMOND_SWORD) ||
-                (iType == Material.DIAMOND_SHOVEL) ||
-                (iType == Material.DIAMOND_PICKAXE) ||
-                (iType == Material.DIAMOND_HELMET) ||
-                (iType == Material.DIAMOND_CHESTPLATE) ||
-                (iType == Material.DIAMOND_LEGGINGS) ||
-                (iType == Material.DIAMOND_BOOTS) ||
-                (iType == Material.DIAMOND_HORSE_ARMOR);
-    }
 
     public static boolean IsLeaves(@NotNull Material mat) {
         switch (mat) {
@@ -851,6 +839,33 @@ public class OotilityCeption {
                 (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_AXE)) ||
                 (iType == Material.WOODEN_AXE);
     }
+    public static boolean IsHoe(@NotNull Material iType) {
+
+        return (iType == Material.DIAMOND_HOE) ||
+                (iType == Material.IRON_HOE) ||
+                (iType == Material.GOLDEN_HOE) ||
+                (iType == Material.STONE_HOE) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_HOE)) ||
+                (iType == Material.WOODEN_HOE);
+    }
+    public static boolean IsShovel(@NotNull Material iType) {
+
+        return (iType == Material.DIAMOND_SHOVEL) ||
+                (iType == Material.IRON_SHOVEL) ||
+                (iType == Material.GOLDEN_SHOVEL) ||
+                (iType == Material.STONE_SHOVEL) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_SHOVEL)) ||
+                (iType == Material.WOODEN_SHOVEL);
+    }
+    public static boolean IsPickaxe(@NotNull Material iType) {
+
+        return (iType == Material.DIAMOND_PICKAXE) ||
+                (iType == Material.IRON_PICKAXE) ||
+                (iType == Material.GOLDEN_PICKAXE) ||
+                (iType == Material.STONE_PICKAXE) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_PICKAXE)) ||
+                (iType == Material.WOODEN_PICKAXE);
+    }
 
     // Armor
     public static boolean IsArmor(@NotNull Material iType) {
@@ -888,6 +903,99 @@ public class OotilityCeption {
                 (iType == Material.CHAINMAIL_LEGGINGS) ||
                 (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_LEGGINGS)) ||
                 (iType == Material.LEATHER_LEGGINGS);
+    }
+
+    public static boolean IsNetherite(@NotNull Material iType) {
+        if (GooP_MinecraftVersions.GetMinecraftVersion() < 16) { return false; }
+
+        return (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_SWORD)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_AXE)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_BLOCK)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_BOOTS)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_CHESTPLATE)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_HELMET)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_HOE)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_LEGGINGS)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_PICKAXE)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_SCRAP)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_SHOVEL)) ||
+                (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_INGOT));
+    }
+    public static boolean IsDiamond(@NotNull Material iType) {
+        return (iType == Material.DIAMOND_SHOVEL) ||
+                (iType == Material.DIAMOND_SWORD) ||
+                (iType == Material.DIAMOND_HOE) ||
+                (iType == Material.DIAMOND_HORSE_ARMOR) ||
+                (iType == Material.DIAMOND_LEGGINGS) ||
+                (iType == Material.DIAMOND_HELMET) ||
+                (iType == Material.DIAMOND_CHESTPLATE) ||
+                (iType == Material.DIAMOND_BOOTS) ||
+                (iType == Material.DIAMOND_AXE) ||
+                (iType == Material.DIAMOND_BLOCK) ||
+                (iType == Material.DIAMOND_ORE) ||
+                (iType == Material.DIAMOND_PICKAXE) ||
+                (iType == Material.DIAMOND);
+    }
+    public static boolean IsGold(@NotNull Material iType) {
+        return (iType == Material.GOLDEN_SHOVEL) ||
+                (iType == Material.GOLDEN_SWORD) ||
+                (iType == Material.GOLDEN_HOE) ||
+                (iType == Material.GOLDEN_HORSE_ARMOR) ||
+                (iType == Material.GOLDEN_LEGGINGS) ||
+                (iType == Material.GOLDEN_HELMET) ||
+                (iType == Material.GOLDEN_CHESTPLATE) ||
+                (iType == Material.GOLDEN_BOOTS) ||
+                (iType == Material.GOLDEN_AXE) ||
+                (iType == Material.GOLD_BLOCK) ||
+                (iType == Material.GOLD_ORE) ||
+                (iType == Material.GOLDEN_PICKAXE) ||
+                (iType == Material.GOLD_NUGGET) ||
+                (iType == Material.GOLDEN_APPLE) ||
+                (iType == Material.GOLDEN_CARROT) ||
+                (iType == Material.ENCHANTED_GOLDEN_APPLE) ||
+                (iType == Material.GOLD_INGOT);
+    }
+    public static boolean IsIron(@NotNull Material iType) {
+        return (iType == Material.IRON_SHOVEL) ||
+                (iType == Material.IRON_SWORD) ||
+                (iType == Material.IRON_HOE) ||
+                (iType == Material.IRON_HORSE_ARMOR) ||
+                (iType == Material.IRON_LEGGINGS) ||
+                (iType == Material.IRON_HELMET) ||
+                (iType == Material.IRON_CHESTPLATE) ||
+                (iType == Material.IRON_BOOTS) ||
+                (iType == Material.IRON_AXE) ||
+                (iType == Material.IRON_BLOCK) ||
+                (iType == Material.IRON_ORE) ||
+                (iType == Material.IRON_PICKAXE) ||
+                (iType == Material.IRON_NUGGET) ||
+                (iType == Material.IRON_INGOT);
+    }
+    public static boolean IsStone(@NotNull Material iType) {
+        return (iType == Material.STONE_SHOVEL) ||
+                (iType == Material.STONE_SWORD) ||
+                (iType == Material.STONE_HOE) ||
+                (iType == Material.STONE_AXE) ||
+                (iType == Material.STONE_PICKAXE);
+    }
+    public static boolean IsChainmail(@NotNull Material iType) {
+        return (iType == Material.CHAINMAIL_CHESTPLATE) ||
+                (iType == Material.CHAINMAIL_HELMET) ||
+                (iType == Material.CHAINMAIL_LEGGINGS) ||
+                (iType == Material.CHAINMAIL_BOOTS);
+    }
+    public static boolean IsWooden(@NotNull Material iType) {
+        return (iType == Material.WOODEN_SHOVEL) ||
+                (iType == Material.WOODEN_SWORD) ||
+                (iType == Material.WOODEN_HOE) ||
+                (iType == Material.WOODEN_AXE) ||
+                (iType == Material.WOODEN_PICKAXE);
+    }
+    public static boolean IsLeather(@NotNull Material iType) {
+        return (iType == Material.LEATHER_CHESTPLATE) ||
+                (iType == Material.LEATHER_HELMET) ||
+                (iType == Material.LEATHER_LEGGINGS) ||
+                (iType == Material.LEATHER_BOOTS);
     }
 
     /**
@@ -6279,6 +6387,7 @@ public class OotilityCeption {
 
                     // Failiure
                     return true;
+
                 } else {
 
                     // Is the type valid?
