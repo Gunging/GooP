@@ -25,7 +25,7 @@ public class ConverterTypes {
     public static ArrayList<ConverterTypeNames> convertingTypes = new ArrayList<>();
 
     @Nullable public static String typePrefix = null;
-    @NotNull public static boolean preciseIDConversion = false;
+    public static boolean preciseIDConversion = false;
 
     @NotNull public static String GenerateConverterID(@NotNull Material mat, @Nullable String tier) {
 

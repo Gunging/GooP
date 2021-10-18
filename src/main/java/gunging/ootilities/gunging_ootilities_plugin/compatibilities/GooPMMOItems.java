@@ -1352,7 +1352,7 @@ public class GooPMMOItems {
         double vDamage = 0.0, vSpeed = 0.0, vArmor = 0.0, vArmorT = 0.0, mHealthT = 0.0, mSpeedT = 0.0, mKRes = 0.0, mLuck = 0.0;
 
         // Decide what TYPE this item will be
-        String tName = "";
+        String tName;
 
         // Get vals
         RefSimulator<String> tNameRef = new RefSimulator<>("MISCELLANEOUS");
@@ -1373,8 +1373,8 @@ public class GooPMMOItems {
 
             if (!realTypes.contains(tName)) {
 
-                // Well replace I guess
-                tName = "MISCELLANEOUS";
+                // Well make it funny I guess
+                tName = "SWORD";
             }
         }
 
@@ -2760,6 +2760,9 @@ public class GooPMMOItems {
      * Checks if it is a valid MMOItems Modifier.
      */
     @Nullable public static ItemStack ModifierOperation(@Nullable String rawModifier, @Nullable ItemStack mmo, @Nullable RefSimulator<String> logger) {
+        return ModifierOperation(rawModifier, mmo, true, logger);
+    }
+    @Nullable public static ItemStack ModifierOperation(@Nullable String rawModifier, @Nullable ItemStack mmo, boolean scryAll, @Nullable RefSimulator<String> logger) {
         if (rawModifier == null || mmo == null) {
             OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Unspecified modifier or item");
             return null; }
@@ -2780,7 +2783,7 @@ public class GooPMMOItems {
         boolean clear = rawModifier.equalsIgnoreCase("none");
 
         boolean modifierLocal = template.hasModifier(rawModifier);
-        boolean modifierExists = modifierLocal || MMOItems.plugin.getTemplates().hasModifier(rawModifier);
+        boolean modifierExists = modifierLocal || (scryAll && MMOItems.plugin.getTemplates().hasModifier(rawModifier));
 
         // Ay exist?
         if (!random && !clear && !modifierExists) {
@@ -2797,7 +2800,7 @@ public class GooPMMOItems {
             List<TemplateModifier> modifiers = new ArrayList<>(template.getModifiers().values());
 
             // Add all globally loaded ones
-            modifiers.addAll(MMOItems.plugin.getTemplates().getModifiers());
+            if (scryAll) { modifiers.addAll(MMOItems.plugin.getTemplates().getModifiers()); }
 
             // Ay exist?
             if (modifiers.size() == 0) {

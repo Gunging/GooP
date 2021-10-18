@@ -5463,7 +5463,7 @@ public class OotilityCeption {
             if (vDamage != null) { vDamage.SetValue(6.0); }
         } else
         if (tType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.CROSSBOW)) {
-            if (tName != null) { tName.SetValue("CROSSBOW"); }
+            if (tName != null) { tName.SetValue("BOW"); }
             if (vDamage != null) { vDamage.SetValue(8.0); }
         } else
         if (tType == Material.SHIELD) {

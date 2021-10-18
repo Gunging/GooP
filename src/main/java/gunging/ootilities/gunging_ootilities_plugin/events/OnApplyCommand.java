@@ -59,23 +59,26 @@ public class OnApplyCommand implements Listener {
         // Obtain internals
         RefSimulator<String> miID = new RefSimulator<>(null), miType = new RefSimulator<>(null);
         GooPMMOItems.GetMMOItemInternals(result, miType, miID);
-
         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 Produced\u00a7c " + miType.getValue() + " " + miID.getValue());
 
-        // Is there one of such name already?
-        Type mType = MMOItems.plugin.getTypes().get(miType.getValue());
-        if (mType != null) {
+        // Counter VANILLA conversion
+        if (!GooPMMOItems.VANILLA_MIID.equals(miID.getValue())) {
 
-            // Find loaded MMOItem
-            MMOItem browse = MMOItems.plugin.getMMOItem(mType, miID.getValue());
+            // Is there one of such name already?
+            Type mType = MMOItems.plugin.getTypes().get(miType.getValue());
+            if (mType != null) {
 
-            // Found the appropriate MMOitem?
-            if (browse != null) {
+                // Find loaded MMOItem
+                MMOItem browse = MMOItems.plugin.getMMOItem(mType, miID.getValue());
 
-                //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aDisplaying");
+                // Found the appropriate MMOItem?
+                if (browse != null) {
 
-                // Build for display
-                return browse.newBuilder().build(true);
+                    //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aDisplaying");
+
+                    // Build for display
+                    return browse.newBuilder().build(true);
+                }
             }
         }
 
@@ -118,15 +121,20 @@ public class OnApplyCommand implements Listener {
 
             //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 Identified\u00a7c " + mType.getId() + " " + mID);
 
-            // Find loaded MMOItem
-            MMOItem browse = MMOItems.plugin.getMMOItem(mType, mID);
 
-            // Found the appropriate MMOItem?
-            if (browse != null) {
-                //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aBuilding");
+            // Counter VANILLA conversion
+            if (!GooPMMOItems.VANILLA_MIID.equals(mID)) {
 
-                // Build for display
-                return browse.newBuilder().build();
+                // Find loaded MMOItem
+                MMOItem browse = MMOItems.plugin.getMMOItem(mType, mID);
+
+                // Found the appropriate MMOItem?
+                if (browse != null) {
+                    //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aBuilding");
+
+                    // Build for display
+                    return browse.newBuilder().build();
+                }
             }
         }
         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True nonexisting, \u00a7bCombinating");
@@ -218,19 +226,22 @@ public class OnApplyCommand implements Listener {
         GooPMMOItems.GetMMOItemInternals(result, miType, miID);
         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 Produced\u00a7c " + miType.getValue() + " " + miID.getValue());
 
-        // Is there one of such name already?
-        Type mType = MMOItems.plugin.getTypes().get(miType.getValue());
-        if (mType != null) {
+        if (!GooPMMOItems.VANILLA_MIID.equals(miID.getValue())) {
 
-            // Find loaded MMOItem
-            MMOItem browse = MMOItems.plugin.getMMOItem(mType, miID.getValue());
+            // Is there one of such name already?
+            Type mType = MMOItems.plugin.getTypes().get(miType.getValue());
+            if (mType != null) {
 
-            // Found the appropriate MMOitem?
-            if (browse != null) {
-                //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aBuilding");
+                // Find loaded MMOItem
+                MMOItem browse = MMOItems.plugin.getMMOItem(mType, miID.getValue());
 
-                // Build for display
-                return browse.newBuilder().build();
+                // Found the appropriate MMOitem?
+                if (browse != null) {
+                    //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aBuilding");
+
+                    // Build for display
+                    return browse.newBuilder().build();
+                }
             }
         }
         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True nonexisting, \u00a7bApplying");

@@ -690,6 +690,9 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             case 5:
                                                 Collections.addAll(tabM,"random", "none", "sharp", "lucky", "fiery", "chilling");
                                                 break;
+                                            case 6:
+                                                Collections.addAll(tabM,"(use global modifiers?)", "true", "false");
+                                                break;
                                             default: break;
                                         }
 

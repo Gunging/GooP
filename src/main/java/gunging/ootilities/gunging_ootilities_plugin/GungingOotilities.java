@@ -1719,12 +1719,12 @@ public class GungingOotilities implements CommandExecutor {
                                     //endregion
                                     //region Set Tier
                                     case "modifier":
-                                        //   0       1      2          3       4      5         args.Length
-                                        // /goop mmoitems modifier <player> <slot> <name>
-                                        //   -       0      1          2       3      4         args[n]
+                                        //   0       1      2          3       4      5       6         args.Length
+                                        // /goop mmoitems modifier <player> <slot> <name> [use-global]
+                                        //   -       0      1          2       3      4       5         args[n]
 
                                         // Correct number of args?
-                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "modifier")) if (args.length == 5) {
+                                        if (OotilityCeption.hasPermission(sender, "mmoitems", "modifier")) if (args.length >= 5 && args.length <= 6) {
 
                                             // Gets that player boi
                                             targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
@@ -1737,6 +1737,27 @@ public class GungingOotilities implements CommandExecutor {
 
                                                 // Notify the error
                                                 if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Modifiers", "Target must be an online player!"));
+                                            }
+
+                                            boolean scryAll = true;
+
+                                            // Read that
+                                            if (args.length >= 6) {
+
+                                                // Read value
+                                                if (OotilityCeption.BoolTryParse(args[5])) {
+
+                                                    // Parse
+                                                    scryAll = OotilityCeption.BoolParse(args[5]);
+
+                                                } else {
+
+                                                    // Failure
+                                                    failure = true;
+
+                                                    // Notify the error
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - Modifiers", "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 for 'use-global' instead of \u00a7e" + args[5] + "\u00a77. "));
+                                                }
                                             }
 
                                             if (!failure) {
@@ -1783,7 +1804,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                 if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
 
                                                                     // Snooze
-                                                                    ItemStack resul = GooPMMOItems.ModifierOperation(modifierName, targetItem, logAddition);
+                                                                    ItemStack resul = GooPMMOItems.ModifierOperation(modifierName, targetItem, scryAll, logAddition);
 
                                                                     // Check modifier
                                                                     if (resul == null) {
@@ -1834,7 +1855,7 @@ public class GungingOotilities implements CommandExecutor {
                                             // Notify
                                             if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
                                                 logReturn.add(OotilityCeption.LogFormat("MMOItems - Modifier", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
-                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems modifier <player> <slot> <modifier>");
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems modifier <player> <slot> <modifier> [use-global]");
                                             }
                                         }
                                         break;
@@ -2792,10 +2813,12 @@ public class GungingOotilities implements CommandExecutor {
                                 logReturn.add("\u00a73      * \u00a77Regenerates the MMOItem you are holding, you may specify if you want to keep some stuff though!");
                                 logReturn.add("\u00a73 --> \u00a7eupgrade <player> <slot> [±]<levels>[%] [objective] [±][score][%]");
                                 logReturn.add("\u00a73      * \u00a77Changes the MMOItems upgrade level of an item.");
-                                logReturn.add("\u00a73 --> \u00a7emodifier <player> <slot> <modifier>");
+                                logReturn.add("\u00a73 --> \u00a7emodifier <player> <slot> <modifier> [use-global]");
                                 logReturn.add("\u00a73      * \u00a77Add modifiers to items.");
                                 logReturn.add("\u00a73        \u00a77Use \u00a7brandom\u00a77 keyword to add random,");
                                 logReturn.add("\u00a73        \u00a77or use \u00a7bnone\u00a77 keyword to remove all.");
+                                logReturn.add("\u00a73      * \u00a77Default value of use-global is \u00a7btrue\u00a77 to");
+                                logReturn.add("\u00a73        \u00a77consider the global modifiers in modifiers.yml too.");
                                 if (Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
                                     logReturn.add("\u00a73 --> \u00a7enewShrub <type> [w] [x] [y] [z]");
                                     logReturn.add("\u00a73      * \u00a77Creates a new shrub of type <type>");
