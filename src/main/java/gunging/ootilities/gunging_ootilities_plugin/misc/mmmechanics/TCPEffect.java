@@ -22,12 +22,40 @@ import java.util.HashSet;
  * @author Gunging
  */
 public class TCPEffect extends ParticleEffect {
-    @NotNull public final PlaceholderFloat radius, rotationFraction;
+    @NotNull public final PlaceholderFloat radius, rotation, fOff, sOff, vOff, xOff, yOff, zOff;
+
+    boolean useDegrees;
 
     public TCPEffect(String skill, MythicLineConfig mlc) {
         super(skill, mlc);
+
+        this.fOff =   mlc.getPlaceholderFloat(new String[]{"fOff"}, 0.0F);
+        this.sOff =   mlc.getPlaceholderFloat(new String[]{"sOff"}, 0.0F);
+        this.vOff =   mlc.getPlaceholderFloat(new String[]{"vOff"}, 0.0F);
+        this.xOff =   mlc.getPlaceholderFloat(new String[]{"xOff"}, 0.0F);
+        this.yOff =   mlc.getPlaceholderFloat(new String[]{"yOff"}, 0.0F);
+        this.zOff =   mlc.getPlaceholderFloat(new String[]{"zOff"}, 0.0F);
+
         this.radius = mlc.getPlaceholderFloat(new String[]{"radius", "r"}, 5.0F);
-        this.rotationFraction = mlc.getPlaceholderFloat(new String[]{"rotation", "rot", "rotationfraction", "rf"}, 1F);
+        this.rotation = mlc.getPlaceholderFloat(new String[]{"rotation", "rot"}, 1F);
+
+        this.useDegrees = mlc.getBoolean(new String[]{"useDegrees", "degrees", "ud"}, true);
+    }
+
+    /**
+     * Will convert this to radians if the user is
+     * writing in degrees, otherwise, leaves it
+     * untouched.
+     *
+     * @param e Angle that is in degrees IFF and only if
+     *          the user also set {@link #useDegrees} to
+     *          true.
+     *
+     * @return This angle as radians.
+     */
+    public double toRadians(double e) {
+        if (useDegrees) { e *= Math.PI; e /= 180.0; }
+        return e;
     }
 
     /**
@@ -45,10 +73,10 @@ public class TCPEffect extends ParticleEffect {
         AbstractLocation source = data.getCaster().getLocation();
 
         // Rotate input relatives about the relative forward axis
-        double o = hor;
-        double p = ver;
-        double rf = rotationFraction.get(); if (rf == 0) { rf = 1; }
-        double e = (Math.PI * 2.0D) / rf;
+        double o = hor + sOff.get(data);
+        double p = ver + vOff.get(data);
+        double f = fro + fOff.get(data);
+        double e = toRadians(rotation.get(data));
         double ce = Math.cos(e), se = Math.sin(e);
 
         hor = ((o * ce) - (p * se));
@@ -70,10 +98,16 @@ public class TCPEffect extends ParticleEffect {
         double g_z_dir = g_z / g_magnitude;
 
         // Perform conversions
-        double t_x = (hor * g_x_dir) + (ver * r_y_dir * g_z_dir) + (fro * r_x_dir);
-        double t_y = (ver * r_z_dir * g_x_dir) - (ver * r_x_dir * g_z_dir) + (fro * r_y_dir);
-        double t_z = (hor * g_z_dir) - (ver * r_y_dir * g_x_dir) + (fro * r_z_dir);
-        return (new AbstractVector(t_x, t_y, t_z)).multiply(radius.get());
+        double t_x = (hor * g_x_dir) + (ver * r_y_dir * g_z_dir) + (f * r_x_dir);
+        double t_y = (ver * r_z_dir * g_x_dir) - (ver * r_x_dir * g_z_dir) + (f * r_y_dir);
+        double t_z = (hor * g_z_dir) - (ver * r_y_dir * g_x_dir) + (f * r_z_dir);
+
+        // Add offsets
+        t_x += xOff.get(data);
+        t_y += yOff.get(data);
+        t_z += zOff.get(data);
+
+        return (new AbstractVector(t_x, t_y, t_z)).multiply(radius.get(data));
     }
 
     public HashSet<AbstractEntity> get(SkillMetadata data) {

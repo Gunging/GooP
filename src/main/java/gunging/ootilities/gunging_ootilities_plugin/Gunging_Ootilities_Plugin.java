@@ -80,8 +80,12 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public ArrayList<FileConfigPair> customStructurePairs, containerTemplatesPairs, recipesPairs, ingredientsPairs;
     public HashMap<YamlConfiguration, FileConfigPair> storageRoots = new HashMap<YamlConfiguration, FileConfigPair>();
 
+    static long bootTime = 0;
+    public static long getBootTime() { return bootTime; }
+
     @Override
     public void onLoad() {
+        bootTime = System.currentTimeMillis();
         loading = true;
         theMain = this;
         theOots = new OotilityCeption();
@@ -338,7 +342,17 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //endregion
 
         //region Vault Compatibility Attempt
-        if (getServer().getPluginManager().getPlugin("Vault") != null) { foundVault = true; }
+        try {
+
+            // So
+            GooPVault.CompatibilityCheck();
+            foundVault = true;
+
+        } catch (NoClassDefFoundError e) {
+            // Vr0
+            foundVault = false;
+
+        }
         //endregion
 
         loaded = true;
@@ -365,12 +379,17 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
                 // Welp
                 foundVault = vaultCheck.SetupEconomy(getServer());
+                theOots.CPLog(ChatColor.GRAY + "Vault Result:\u00a73 " + foundVault);
 
             } catch (NoClassDefFoundError e) {
 
                 // Vr0
                 foundVault = false;
+                theOots.CPLog(ChatColor.GRAY + "Vault \u00a7cSnoozed");
             }
+        } else {
+
+            theOots.CPLog(ChatColor.GRAY + "Vault \u00a7cUndetected");
         }
         //endregion
 
@@ -772,7 +791,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { CustomModelDataLink.ReloadCustomModelDataLinks(theOots); }
 
         // Containers supports Appliccable Masks so thay must load first
-        if (foundMMOItems) { AppliccableMask.ReloadMasks(theOots); ConverterTypes.ConverterReload(); }
+        if (foundMMOItems) {
+            AppliccableMask.ReloadMasks(theOots);
+            ConverterTypes.ConverterReload(); }
+
         if (foundMythicMobs) { GooPMythicMobs.ReloadListPlaceholders(theOots); }
 
         // Reload the big ones gg

@@ -5,8 +5,8 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerToMIInventory;
-import gunging.ootilities.gunging_ootilities_plugin.misc.PlusMinusPercent;
-import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
+import gunging.ootilities.gunging_ootilities_plugin.misc.*;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.TargetedItems;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.LuckStat;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.XBow_Loaded_Stat;
 import io.lumine.mythic.lib.api.item.ItemTag;
@@ -38,19 +38,27 @@ import net.Indyuce.mmoitems.stat.data.*;
 import net.Indyuce.mmoitems.stat.data.type.Mergeable;
 import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.*;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.block.Block;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class GooPMMOItems {
 
     public boolean CompatibilityCheck() {
@@ -166,16 +174,24 @@ public class GooPMMOItems {
      *
      * @return A regenerated ItemStack if successful.
      */
-    @Nullable public static ItemStack ReforgeMMOItem(@NotNull ItemStack item, boolean... regenParams) {
+    @Nullable public static ItemStack ReforgeMMOItem(@NotNull ItemStack item, boolean... regenParams) { return ReforgeMMOItem(item, null, regenParams); }
+    @Nullable public static ItemStack ReforgeMMOItem(@NotNull ItemStack item, @Nullable RefSimulator<String> logAddition, boolean... regenParams) {
 
         // Create and use reforger
         MMOItemReforger mod = new MMOItemReforger(item);
 
         // Valid?
-        if (!mod.canReforge()) { return null; }
+        if (!mod.canReforge()) {
+            OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 is \u00a7cnot\u00a77 reforgeable. ");
+            return null; }
 
         // Proc
-        if (!mod.reforge(new ReforgeOptions(regenParams))) { return null; }
+        if (!mod.reforge(new ReforgeOptions(regenParams))) {
+            OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 could \u00a7cnot\u00a77 be reforged. ");
+            return null; }
+
+        // Notify
+        OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 was \u00a7areforged\u00a77. ");
 
         // Output
         return mod.getResult();
@@ -355,7 +371,10 @@ public class GooPMMOItems {
         ArrayList<VolatileMMOItem> vot = new ArrayList<>();
 
         // Get Eq
-        PlayerData p = PlayerData.get(player);
+        PlayerData p;
+        try { p = PlayerData.get(player); } catch (NullPointerException ignored) { return vot; }
+
+        // Yeah, add the equipped
         for (EquippedPlayerItem e : p.getInventory().getEquipped()) {
 
             // Add
@@ -978,7 +997,7 @@ public class GooPMMOItems {
     //endregion
 
     //region Gemstone Stuff
-    public static Integer MMOItemCountGems(ItemStack base, Boolean includeEmpty, RefSimulator<String> logOutput) {
+    @Nullable public static ItemStack MMOItemCountGems(@Nullable ItemStack base, @Nullable Boolean includeEmpty, @NotNull RefSimulator<Integer> numericOutput, @Nullable RefSimulator<String> logOutput) {
 
         // I hope that bitch is not null to begin with
         if (base != null) {
@@ -990,22 +1009,24 @@ public class GooPMMOItems {
             if (tNBT.hasType()) {
 
                 // Add slot heck
-                logOutput.SetValue(null);
-                return CountGemSlots(tNBT, includeEmpty);
+                if (logOutput != null) { logOutput.SetValue(null); }
+                return CountGemSlots(tNBT, includeEmpty, numericOutput);
 
-                // Its a vanilla item. Thus it has no gemslots
+            // Its a vanilla item. Thus it has no gemslots
             } else {
 
-                logOutput.SetValue(null);
-                return 0;
+                OotilityCeption.Log4Success(logOutput, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This vanilla item has no gem stones. ");
+                numericOutput.setValue(0);
+                return null;
             }
 
             // This man passing on a null item wth
         } else {
 
             // Log if appropiate
-            OotilityCeption.Log4Success(logOutput, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant count gem slots of air! Well I guess it has 0.");
-            return 0;
+            OotilityCeption.Log4Success(logOutput, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant count gem slots of air! Well I guess it has 0. ");
+            numericOutput.setValue(0);
+            return null;
         }
 
        // Memmories...
@@ -1038,7 +1059,7 @@ public class GooPMMOItems {
                     if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback){
 
                         // Return a Log Message, for good shit.
-                        logOutput.SetValue("Added a new \u00a73" + gemSlotColour + "\u00a77 gem slot to \u00a73" + OotilityCeption.GetItemName(base));
+                        logOutput.SetValue("Added a new \u00a73" + gemSlotColour + "\u00a77 gem slot to \u00a73" + OotilityCeption.GetItemName(base) + "\u00a77. ");
 
                         // Otherwise, send nothing.
                     } else {
@@ -1061,9 +1082,9 @@ public class GooPMMOItems {
                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback){
 
                             // Return a Log Message, for good shit.
-                            logOutput.SetValue("Cant add \u00a73" + gemSlotColour + "\u00a77 slots to air!");
+                            logOutput.SetValue("Cant add \u00a73" + gemSlotColour + "\u00a77 slots to air! ");
 
-                            // Otherwise, send nothing.
+                        // Otherwise, send nothing.
                         } else {
 
                             // Clear da shit
@@ -1093,7 +1114,7 @@ public class GooPMMOItems {
                             if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
 
                                 // Return a Log Message, for good shit.
-                                logOutput.SetValue("\u00a77To add gems to vanilla items, they must first be converted to MMOItems. \u00a7cFor that to be possible, please create an empty MMOItem with ID (name) '\u00a7eVANILLA\u00a7c' under the type '\u00a7e" + tNBT.getString("MMOITEMS_ITEM_TYPE") + "\u00a7c.' \u00a77(The type that \u00a73" + base.getType().name() + "\u00a77' falls into).");
+                                logOutput.SetValue("\u00a77To add gems to vanilla items, they must first be converted to MMOItems. \u00a7cFor that to be possible, please create an empty MMOItem with ID (name) '\u00a7eVANILLA\u00a7c' under the type '\u00a7e" + tNBT.getString("MMOITEMS_ITEM_TYPE") + "\u00a7c.' \u00a77(The type that \u00a73" + base.getType().name() + "\u00a77' falls into). ");
 
                             // Otherwise, send nothing.
                             } else {
@@ -1109,7 +1130,7 @@ public class GooPMMOItems {
                             if (Gunging_Ootilities_Plugin.sendGooPFailFeedback){
 
                                 // Return a Log Message, for good shit.
-                                logOutput.SetValue("Item Type \u00a7e" + tNBT.getString("MMOITEMS_ITEM_TYPE") + "\u00a77 does not support Gem Slots. Cancelling operation.");
+                                logOutput.SetValue("Item Type \u00a7e" + tNBT.getString("MMOITEMS_ITEM_TYPE") + "\u00a77 does not support Gem Slots. Cancelling operation. ");
 
                             // Otherwise, send nothing.
                             } else {
@@ -1128,7 +1149,7 @@ public class GooPMMOItems {
                             if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback){
 
                                 // Return a Log Message, for good shit.
-                                logOutput.SetValue("Successfuly Converted \u00a73" + OotilityCeption.GetItemName(base) + "\u00a77 into a MMOItem and added an empty \u00a73" + gemSlotColour + "\u00a77 slot.");
+                                logOutput.SetValue("Successfuly Converted \u00a73" + OotilityCeption.GetItemName(base) + "\u00a77 into a MMOItem and added an empty \u00a73" + gemSlotColour + "\u00a77 slot. ");
 
                             // Otherwise, send nothing.
                             } else {
@@ -1203,9 +1224,10 @@ public class GooPMMOItems {
             return null;
         }
     }
-    public static Integer CountGemSlots(NBTItem base, Boolean incEmpty) {
+    @Nullable public static ItemStack CountGemSlots(NBTItem base, @Nullable Boolean incEmpty, @NotNull RefSimulator<Integer> countOutput) {
+        if (incEmpty == null) { incEmpty = false; }
 
-        // Test of existance of such type and IDs
+        // Test of existence of such type and IDs
         try {
 
             // Compatible to Gemstone?
@@ -1221,27 +1243,30 @@ public class GooPMMOItems {
                 if (sockets != null) {
 
                     // Then just add the entry to the existing list
-                    int ret = 0;
-                    if (sockets.getGemstones() != null) { ret += sockets.getGemstones().size(); }
-                    if (sockets.getEmptySlots() != null && incEmpty) { ret += sockets.getEmptySlots().size(); }
-                    return ret;
+                    int ret = sockets.getGemstones().size();
+                    if (incEmpty) { ret += sockets.getEmptySlots().size(); }
+                    countOutput.setValue(ret);
+                    return null;
 
                     // Item has no gem slots at all, straight up 0
                 } else {
 
-                    return 0;
+                    countOutput.setValue(0);
+                    return null;
                 }
 
                 // No. Return a Strucutre Void Block as a result
             } else {
 
-                return 0;
+                countOutput.setValue(0);
+                return null;
             }
 
             // Seems that those Types/IDs did not match wth
         } catch (NullPointerException e) {
 
-            return 0;
+            countOutput.setValue(0);
+            return null;
         }
     }
 
@@ -1507,6 +1532,798 @@ public class GooPMMOItems {
     //endregion
 
     //region Modify MMOItem Attributes
+    @Nullable public static ItemStack StatOps(@Nullable ItemStack iSource, @NotNull ItemStat stat, @Nullable String unidentifiedValue, @Nullable String unparsedRange, @Nullable RefSimulator<Double> finalValue, @Nullable RefSimulator<String> logAddition) {
+
+        // Counter trash, convert non-mmoitems
+        if (OotilityCeption.IsAirNullAllowed(iSource)) { return null; }
+        if (!IsMMOItem(iSource)) { iSource = ConvertVanillaToMMOItem(iSource); }
+        boolean readonly = "read".equals(unidentifiedValue);
+
+        //STAT//OotilityCeption.Log("\u00a77STAT\u00a7c OPS\u00a77 Editing \u00a73" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 into\u00a7e " + unidentifiedValue + "\u00a77 if \u00a7b" + unparsedRange);
+
+        // Get as NBT Item
+        NBTItem iNBT = NBTItem.get(iSource);
+        Type miType = GetMMOItemType(iNBT);
+
+        // Cancel operation
+        if (miType == null) {
+
+            // Mention
+            OotilityCeption.Log4Success(logAddition, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "MMOItem type \u00a7e" + GetMMOItemTypeRaw(iNBT) + "\u00a77 is not loaded. ");
+            return null;
+        }
+
+        // Stat available?
+        if (!miType.getAvailableStats().contains(stat)) {
+
+            // Mention
+            OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "MMOItem type \u00a7e" + GetMMOItemTypeRaw(iNBT) + "\u00a77 does not support stat \u00a73" + stat.getId() + "\u00a77. ");
+            return null;
+        }
+
+        // Open up
+        LiveMMOItem mmo = new LiveMMOItem(iSource);
+
+        // All right what treatment
+        if (stat instanceof DoubleStat) {
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a7c OPS\u00a77 Treating as \u00a7eDOUBLE DATA");
+
+            // The value to put
+            DoubleData endData;
+            double expectedData = 0;
+
+            // Get its data
+            DoubleData current = (DoubleData) mmo.getData(stat);
+            if (current == null) { current = (DoubleData) ((DoubleData) stat.getClearStatData()).cloneData(); }
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Current:\u00a7b " + current.getValue());
+
+            // Does it have a value?
+            if (unidentifiedValue != null && !readonly) {
+
+                // Parse value as number
+                PlusMinusPercent value = PlusMinusPercent.GetPMP(unidentifiedValue, logAddition);
+
+                // Failure
+                if (value == null) {
+                    OotilityCeption.Log4Success(logAddition, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "Expected numeric operation (\u00a7b+4\u00a77, \u00a7b12\u00a77) instead of \u00a7e" + unidentifiedValue + "\u00a77. ");
+
+                    // Kap
+                    return null;
+                }
+
+                // Perform operation
+                expectedData = value.apply(current.getValue());
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Expected:\u00a7b " + expectedData);
+
+            // Just read bro
+            } if (readonly) {
+                expectedData = current.getValue();
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Expected:\u00a7b" + expectedData + "\u00a73 (read-only)");
+            }
+
+            // Is the expected data in range?
+            if (unparsedRange != null) {
+
+                // This thing
+                QuickNumberRange qnr = QuickNumberRange.FromString(unparsedRange);
+
+                // There should have been a range, excuse me.
+                if (qnr == null) {
+                    OotilityCeption.Log4Success(logAddition, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "Expected numeric range (\u00a7b2..10\u00a77, \u00a7b4..\u00a77) instead of \u00a7e" + unparsedRange + "\u00a77. ");
+
+                    // Kap
+                    return null;
+
+                } else if (!qnr.InRange(expectedData)) {
+                    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Operation result \u00a7b" + expectedData + "\u00a77 would not fall in range \u00a7e" + qnr.qrToString() + "\u00a77; \u00a7cCancelling\u00a77. ");
+
+                    // Kap
+                    return null;
+                }
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Expected within \u00a7e" + qnr.qrToString());
+            }
+
+            // Store final value
+            if (finalValue != null) { finalValue.setValue(expectedData); }
+
+            // Edit the data
+            if (!readonly) {
+
+                /*
+                 * Since we are merging (additively), for the final value
+                 * to be true, we will add an External Stat History (EXSH)
+                 * of the difference between the current and desired
+                 */
+                endData = new DoubleData(expectedData - current.getValue());
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Difference:\u00a7b " + endData.getValue());
+
+                // Get SH
+                StatHistory hist = StatHistory.from(mmo, stat);
+
+                // Register
+                hist.registerExternalData(endData);
+                hist.consolidateEXSH();
+
+                // Recalculate
+                mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
+
+                // Notify
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Value \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 changed by \u00a7b" + endData.getValue() + "\u00a77 into \u00a7b" + expectedData + "\u00a77. ");
+
+            // Read only notify
+            } else {
+
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Value \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 was \u00a7b" + expectedData + "\u00a77. ");
+            }
+
+        } else if (stat instanceof BooleanStat) {
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a7c OPS\u00a77 Treating as \u00a7aBOOLEAN DATA");
+
+            // The value to put
+            BooleanData endData = null;
+            boolean clearState = ((BooleanData) stat.getClearStatData()).isEnabled();
+            boolean expectedData = clearState;
+
+            // Get its data
+            BooleanData current = (BooleanData) mmo.getData(stat);
+            if (current == null) { current = new BooleanData(((BooleanData) stat.getClearStatData()).isEnabled()); }
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a7a BOL\u00a77 Current:\u00a7b " + current.isEnabled());
+
+            // Does it have a value?
+            if (unidentifiedValue != null && !readonly) {
+
+                // Flip if toggle
+                if ("toggle".equalsIgnoreCase(unidentifiedValue)) { expectedData = !current.isEnabled(); } else {
+
+                    // Parse value as number
+                    Boolean value = SilentNumbers.BooleanParse(unidentifiedValue);
+
+                    // Failure
+                    if (value == null) {
+                        OotilityCeption.Log4Success(logAddition, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "Expected boolean (\u00a7btrue\u00a77 or \u00a7bfalse\u00a77) or \u00a7btoggle\u00a77 instead of \u00a7e" + unidentifiedValue + "\u00a77. ");
+
+                        // Kap
+                        return null;
+                    }
+
+                    // Perform operation
+                    expectedData = value;
+                }
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7a BOL\u00a77 Expected:\u00a7b" + expectedData);
+
+            } else if (readonly) {
+                expectedData = current.isEnabled();
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7a BOL\u00a77 Expected:\u00a7b" + expectedData + "\u00a73 (read-only)");
+            }
+
+            // Is the expected data in range?
+            if (unparsedRange != null) {
+
+                // This thing
+                Boolean qnr = SilentNumbers.BooleanParse(unparsedRange);
+
+                // There should have been a range, excuse me.
+                if (qnr == null) {
+                    OotilityCeption.Log4Success(logAddition, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "Expected boolean (\u00a7btrue\u00a77 or \u00a7bfalse\u00a77) instead of \u00a7e" + unparsedRange + "\u00a77. ");
+
+                    // Kap
+                    return null;
+
+                } else if (qnr != expectedData) {
+                    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Operation result \u00a7b" + expectedData + "\u00a77 would not be the expected \u00a7e" + qnr + "\u00a77; \u00a7cCancelling\u00a77. ");
+
+                    // Kap
+                    return null;
+                }
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7a BOL\u00a77 Expected matched \u00a7e" + qnr);
+            }
+
+            // Store final value
+            if (finalValue != null) { finalValue.setValue(expectedData ? 1D : 0D); }
+
+            // Make data
+            if (expectedData != clearState) { endData = new BooleanData(expectedData); }
+
+            if (!readonly) {
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7a BOL\u00a77 Result:\u00a7b " + endData);
+
+                // Register
+                if (endData == null) { mmo.removeData(stat); } else { mmo.setData(stat, endData); }
+
+                // Notify
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Set value \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 to \u00a7b" + expectedData + "\u00a77. ");
+
+            } else {
+
+                // Notify
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Value \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 was \u00a7b" + current.isEnabled() + "\u00a77. ");
+            }
+
+        } else if (stat instanceof StringStat) {
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a7c OPS\u00a77 Treating as \u00a7dSTRING DATA");
+
+            // The value to put
+            StringData endData;
+            String expectedData = null;
+
+            // Get its data
+            StringData current = (StringData) mmo.getData(stat);
+            if (current == null) { current = new StringData(((StringData) stat.getClearStatData()).getString()); }
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a73 STR\u00a77 Current:\u00a7b " + current);
+
+            // Does it have a value? Replace those spaces and roll
+            if (unidentifiedValue != null && !readonly) {
+                expectedData = unidentifiedValue.replace("__", " ");
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a73 STR\u00a77 Expected:\u00a7b " + expectedData);
+            } else if (readonly) {
+                expectedData = current.getString();
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a73 STR\u00a77 Expected:\u00a7b " + expectedData + "\u00a73 (read-only)");
+            }
+            //STAT//else { OotilityCeption.Log("\u00a77STAT\u00a73 STR\u00a77 Expected:\u00a7b " + expectedData); }
+
+            // Is the expected data?
+            if (unparsedRange != null) {
+
+                // They must be the same
+                if (!unparsedRange.equals(expectedData)) {
+
+                    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Operation result \u00a7b" + expectedData + "\u00a77 would not be the expected \u00a7e" + unparsedRange + "\u00a77; \u00a7cCancelling\u00a77. ");
+
+                    // Kap
+                    return null;
+                }
+
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a73 STR\u00a77 Expected Matched \u00a7e " + unparsedRange);
+            }
+
+            // Store final value
+            if (finalValue != null) { finalValue.setValue(expectedData != null ? 1D : 0D); }
+            if (expectedData == null) { expectedData = ""; }
+
+            if (!readonly) {
+
+                // What ill be the latest string data?
+                endData = new StringData(expectedData);
+
+                // Get SH
+                StatHistory hist = StatHistory.from(mmo, stat);
+
+                // Register
+                hist.registerExternalData(endData);
+
+                // Recalculate
+                mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
+
+                // Notify
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Set value \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 to \u00a7b" + endData.getString() + "\u00a77. ");
+
+            // Read only notify
+            } else {
+
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Value \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 was \u00a7b" + current.getString() + "\u00a77. ");
+            }
+
+        } else if (stat instanceof StringListStat) {
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a7c OPS\u00a77 Treating as \u00a79STRING LIST DATA");
+
+            // The value to put
+            StringListData endData = null;
+            StringListData currentData = (StringListData) mmo.getData(stat);
+            ArrayList<String> expectedData = currentData == null ? new ArrayList<>() : new ArrayList<>(currentData.getList());
+            ArrayList<String> addedData = new ArrayList<>();
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Current size: \u00a7b " + expectedData.size());
+
+            // What kinda mode is it
+            boolean removeMode = false;
+            boolean clearMode = false;
+            boolean actuallyRemoved = false;
+
+            // Does it have a value? Replace those spaces and roll
+            if (unidentifiedValue != null && !readonly) {
+
+                // Remove mode: Starts with a minus
+                if (unidentifiedValue.startsWith("-")) {
+                    removeMode = true;
+                    unidentifiedValue = unidentifiedValue.substring(1);
+
+                    // Clear Mode
+                    clearMode = "all".equals(unidentifiedValue);
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Clear mode? \u00a73 " + clearMode + "\u00a78 " + unidentifiedValue);
+                }
+
+                // Process spaces
+                unidentifiedValue = unidentifiedValue.replace("__", " ");
+
+                // Perform operation
+                if (removeMode) {
+
+                    // Clearing??? :flushed:
+                    if (clearMode) {
+                        actuallyRemoved = expectedData.size() > 0;
+                        expectedData.clear();
+
+                    } else { actuallyRemoved = expectedData.remove(unidentifiedValue); }
+
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Removing: \u00a7b " + unidentifiedValue + "\u00a78 (Succ?\u00a73 " + actuallyRemoved + "\u00a78)");
+                } else {
+                    expectedData.add(unidentifiedValue);
+                    addedData.add(unidentifiedValue);
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Added: \u00a7b " + unidentifiedValue);
+                }
+
+            } else if (readonly) {
+                removeMode = true;
+                actuallyRemoved = false;
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 (read only)");
+
+            // Not a list operation
+            } else {
+                OotilityCeption.Log4Success(logAddition, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "You must specify a value to use with String List Stats. ");
+
+                // Kap
+                return null;
+            }
+
+            // Is the expected data?
+            if (unparsedRange != null) {
+
+                // This thing
+                QuickNumberRange qnr = QuickNumberRange.FromString(unparsedRange);
+
+                // There should have been a range, excuse me.
+                if (qnr == null) {
+
+                    if (!expectedData.contains(unparsedRange)) {
+
+                        OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "The result would not have \u00a73" + unparsedRange + "\u00a77; \u00a7cCancelling\u00a77. ");
+
+                        // Kap
+                        return null;
+                    }
+
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Final data\u00a7a had\u00a7b " + unparsedRange);
+
+                } else if (!qnr.InRange(expectedData.size())) {
+                    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Operation result would have \u00a7b" + expectedData.size() + "\u00a77 entries, so it would not fall in range \u00a7e" + qnr.qrToString() + "\u00a77; \u00a7cCancelling\u00a77. ");
+
+                    // Kap
+                    return null;
+                }
+
+                //STAT//else { OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Expected List Size\u00a7b " + expectedData.size() + "\u00a77 was in range\u00a7e " + qnr.qrToString()); }
+            }
+
+            // Store final value
+            if (finalValue != null) { finalValue.setValue((double) expectedData.size()); }
+
+            if (!readonly) {
+
+                // Get SH
+                StatHistory hist = StatHistory.from(mmo, stat);
+
+                // Was it additive?
+                if (!removeMode) {
+
+                    /*
+                     * Since we are merging (additively), for the final value
+                     * to be true, we will add an External Stat History (EXSH)
+                     * of the difference between the current and desired
+                     */
+                    endData = new StringListData(addedData);
+
+                    // Register
+                    hist.registerExternalData(endData);
+                    hist.consolidateEXSH();
+
+                    // Update
+                    mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
+
+                    // Did the operation even work?
+                } else if (actuallyRemoved) {
+
+                    // Clearing?? :flushed:
+                    if (clearMode) {
+
+                        // Removing EXSH
+                        hist.clearExternalData();
+
+                        // Removing GEMS
+                        hist.clearGemstones();
+
+                        // Removing MODS
+                        hist.clearModifiersBonus();
+
+                        // Finally, original data
+                        ArrayList<String> lst = new ArrayList<>(((StringListData) hist.getOriginalData()).getList());
+                        for (String str : lst) { ((StringListData) hist.getOriginalData()).remove(str); }
+
+                    } else {
+
+                        boolean foundAndDestroyed = false;
+
+                        /*
+                         * Removing an entry is more tricky, we must actually
+                         * find and destroy it --- EXSH
+                         */
+                        for (StatData slData : hist.getExternalData()) {
+
+                            // Fin
+                            if (foundAndDestroyed) { break; }
+
+                            // Skip this
+                            if (!(slData instanceof StringListData)) { continue; }
+
+                            // Does it have it? No? Skip it then
+                            if (!((StringListData) slData).getList().contains(unidentifiedValue)) { continue; }
+
+                            // Remove via the provided methode
+                            try {
+                                foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+
+                                // That's not good
+                            } catch (Exception ex) {
+                                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "\u00a7cCould not remove \u00a7e" + unidentifiedValue + "\u00a77c from " + stat.getId() + " for unknown reasons.\u00a77 ");
+
+                                // Kap
+                                return null;
+                            }
+                        }
+
+                        /*
+                         * Removing an entry is more tricky, we must actually
+                         * find and destroy it --- GEMS
+                         */
+                        for (UUID gemStone : hist.getAllGemstones()) {
+
+                            // Fin
+                            if (foundAndDestroyed) { break; }
+
+                            // Get that gem's data
+                            StatData slData = hist.getGemstoneData(gemStone);
+
+                            // Skip this
+                            if (!(slData instanceof StringListData)) { continue; }
+
+                            // Does it have it? No? Skip it then
+                            if (!((StringListData) slData).getList().contains(unidentifiedValue)) { continue; }
+
+                            // Remove via the provided methode
+                            try {
+                                foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+
+                                // That's not good
+                            } catch (Exception ex) {
+                                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "\u00a7cCould not remove \u00a7e" + unidentifiedValue + "\u00a77c from " + stat.getId() + " for unknown reasons.\u00a77 ");
+
+                                // Kap
+                                return null;
+                            }
+                        }
+
+                        /*
+                         * Removing an entry is more tricky, we must actually
+                         * find and destroy it --- MODS
+                         */
+                        for (UUID modifier : hist.getAllModifiers()) {
+
+                            // Fin
+                            if (foundAndDestroyed) { break; }
+
+                            // Get that gem's data
+                            StatData slData = hist.getModifiersBonus(modifier);
+
+                            // Skip this
+                            if (!(slData instanceof StringListData)) { continue; }
+
+                            // Does it have it? No? Skip it then
+                            if (!((StringListData) slData).getList().contains(unidentifiedValue)) { continue; }
+
+                            // Remove via the provided methode
+                            try {
+                                foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+
+                                // That's not good
+                            } catch (Exception ex) {
+                                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "\u00a7cCould not remove \u00a7e" + unidentifiedValue + "\u00a77c from " + stat.getId() + " for unknown reasons.\u00a77 ");
+
+                                // Kap
+                                return null;
+                            }
+                        }
+
+                        // Finally, original data
+                        if (!foundAndDestroyed) {
+
+                            // Get that gem's data
+                            StringListData slData = (StringListData) hist.getOriginalData();
+
+                            // Does it have it? No? Skip it then
+                            if (slData.getList().contains(unidentifiedValue)) {
+
+
+                                // Remove via the provided methode
+                                try {
+                                    slData.remove(unidentifiedValue);
+
+                                    // That's not good
+                                } catch (Exception ex) {
+                                    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "\u00a7cCould not remove \u00a7e" + unidentifiedValue + "\u00a77c from " + stat.getId() + " for unknown reasons.\u00a77 ");
+
+                                    // Kap
+                                    return null;
+                                }
+                            }
+                        }
+                    }
+
+                    // Yeah, update
+                    mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
+
+                } else {
+                    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Could not remove \u00a73" + unidentifiedValue + "\u00a77 because it was\u00a7c not in the list\u00a77 initially. ");
+
+                    // Kap
+                    return null;
+                }
+
+                StringListData finalData = (StringListData) mmo.getData(stat);
+                ArrayList<String> finalList = finalData == null ? new ArrayList<>() : new ArrayList<>(finalData.getList());
+
+                //STAT//for (String str : finalList) { OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Final data: \u00a7b " + str); }
+
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Changed list \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 to have \u00a7b" + finalList.size() + "\u00a77 entries. ");
+
+            } else {
+
+                StringListData finalData = (StringListData) mmo.getData(stat);
+                ArrayList<String> finalList = finalData == null ? new ArrayList<>() : new ArrayList<>(finalData.getList());
+
+                //STAT//for (String str : finalList) { OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Final data: \u00a7b " + str); }
+
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "List \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 had \u00a7b" + finalList.size() + "\u00a77 entries. ");
+            }
+
+        } else if (stat == ItemStats.GEM_SOCKETS) {
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a7c OPS\u00a77 Treating as \u00a7fGEM SOCKETS DATA");
+
+            // The value to put
+            GemSocketsData endData = null;
+            GemSocketsData currentData = (GemSocketsData) mmo.getData(stat);
+            ArrayList<String> expectedData = currentData == null ? new ArrayList<>() : new ArrayList<>(currentData.getEmptySlots());
+            ArrayList<String> addedData = new ArrayList<>();
+            //STAT//OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Current size: \u00a7b " + expectedData.size());
+
+            // What kinda mode is it
+            boolean removeMode = false;
+            boolean clearMode = false;
+            boolean actuallyRemoved = false;
+
+            // Does it have a value? Replace those spaces and roll
+            if (unidentifiedValue != null && !readonly) {
+
+                // Remove mode: Starts with a minus
+                if (unidentifiedValue.startsWith("-")) {
+                    removeMode = true;
+                    unidentifiedValue = unidentifiedValue.substring(1);
+
+                    // Clear Mode
+                    clearMode = "all".equals(unidentifiedValue);
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Clear mode? \u00a73 " + clearMode + "\u00a78 " + unidentifiedValue);
+                }
+
+                // Process spaces
+                unidentifiedValue = unidentifiedValue.replace("__", " ");
+
+                // Perform operation
+                if (removeMode) {
+
+                    // Clearing??? :flushed:
+                    if (clearMode) {
+                        actuallyRemoved = expectedData.size() > 0;
+                        expectedData.clear();
+
+                    } else { actuallyRemoved = expectedData.remove(unidentifiedValue); }
+
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Removing: \u00a7b " + unidentifiedValue + "\u00a78 (Succ?\u00a73 " + actuallyRemoved + "\u00a78)");
+                } else {
+                    expectedData.add(unidentifiedValue);
+                    addedData.add(unidentifiedValue);
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Added: \u00a7b " + unidentifiedValue);
+                }
+
+            } else if (readonly) {
+                removeMode = true;
+                actuallyRemoved = false;
+                //STAT//OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 (read only)");
+
+                // Not a list operation
+            } else {
+                OotilityCeption.Log4Success(logAddition, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "You must specify a value to use with String List Stats. ");
+
+                // Kap
+                return null;
+            }
+
+            // Is the expected data?
+            if (unparsedRange != null) {
+
+                // This thing
+                QuickNumberRange qnr = QuickNumberRange.FromString(unparsedRange);
+
+                // There should have been a range, excuse me.
+                if (qnr == null) {
+
+                    if (!expectedData.contains(unparsedRange)) {
+
+                        OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "The result would not have \u00a73" + unparsedRange + "\u00a77; \u00a7cCancelling\u00a77. ");
+
+                        // Kap
+                        return null;
+                    }
+
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Final data\u00a7a had\u00a7b " + unparsedRange);
+
+                } else if (!qnr.InRange(expectedData.size())) {
+                    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Operation result would have \u00a7b" + expectedData.size() + "\u00a77 entries, so it would not fall in range \u00a7e" + qnr.qrToString() + "\u00a77; \u00a7cCancelling\u00a77. ");
+
+                    // Kap
+                    return null;
+                }
+
+                //STAT//else { OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Expected List Size\u00a7b " + expectedData.size() + "\u00a77 was in range\u00a7e " + qnr.qrToString()); }
+            }
+
+            // Store final value
+            if (finalValue != null) { finalValue.setValue((double) expectedData.size()); }
+
+            if (!readonly) {
+
+                // Get SH
+                StatHistory hist = StatHistory.from(mmo, stat);
+
+                // Was it additive?
+                if (!removeMode) {
+
+                    /*
+                     * Since we are merging (additively), for the final value
+                     * to be true, we will add an External Stat History (EXSH)
+                     * of the difference between the current and desired
+                     */
+                    endData = new GemSocketsData(addedData);
+
+                    // Register
+                    hist.registerExternalData(endData);
+
+                    // Update
+                    mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
+
+                    // Did the operation even work?
+                } else if (actuallyRemoved) {
+
+                    // Clearing?? :flushed:
+                    if (clearMode) {
+
+                        // Removing EXSH
+                        hist.clearExternalData();
+
+                        // Removing GEMS
+                        hist.clearGemstones();
+
+                        // Removing MODS
+                        hist.clearModifiersBonus();
+
+                        // Finally, original data
+                        ArrayList<String> lst = new ArrayList<>(((GemSocketsData) hist.getOriginalData()).getEmptySlots());
+                        for (String str : lst) { ((GemSocketsData) hist.getOriginalData()).getEmptySlots().remove(str); }
+
+                    } else {
+
+                        boolean foundAndDestroyed = false;
+
+                        /*
+                         * Removing an entry is more tricky, we must actually
+                         * find and destroy it --- EXSH
+                         */
+                        for (StatData slData : hist.getExternalData()) {
+
+                            // Fin
+                            if (foundAndDestroyed) { break; }
+
+                            // Skip this
+                            if (!(slData instanceof GemSocketsData)) { continue; }
+
+                            // Does it have it? No? Skip it then
+                            foundAndDestroyed = ((GemSocketsData) slData).getEmptySlots().remove(unidentifiedValue);
+                        }
+
+                        /*
+                         * Removing an entry is more tricky, we must actually
+                         * find and destroy it --- GEMS
+                         */
+                        for (UUID gemStone : hist.getAllGemstones()) {
+
+                            // Fin
+                            if (foundAndDestroyed) { break; }
+
+                            // Get that gem's data
+                            StatData slData = hist.getGemstoneData(gemStone);
+
+                            // Skip this
+                            if (!(slData instanceof GemSocketsData)) { continue; }
+
+                            // Does it have it? No? Skip it then
+                            foundAndDestroyed = ((GemSocketsData) slData).getEmptySlots().remove(unidentifiedValue);
+                        }
+
+                        /*
+                         * Removing an entry is more tricky, we must actually
+                         * find and destroy it --- MODS
+                         */
+                        for (UUID modifier : hist.getAllModifiers()) {
+
+                            // Fin
+                            if (foundAndDestroyed) { break; }
+
+                            // Get that gem's data
+                            StatData slData = hist.getModifiersBonus(modifier);
+
+                            // Skip this
+                            if (!(slData instanceof GemSocketsData)) { continue; }
+
+                            // Does it have it? No? Skip it then
+                            foundAndDestroyed = ((GemSocketsData) slData).getEmptySlots().remove(unidentifiedValue);
+                        }
+
+                        // Finally, original data
+                        if (!foundAndDestroyed) {
+
+                            // Get that gem's data
+                            GemSocketsData slData = (GemSocketsData) hist.getOriginalData();
+
+                            // Does it have it? No? Skip it then
+                            slData.getEmptySlots().remove(unidentifiedValue);
+                        }
+                    }
+
+                    // Yeah, update
+                    mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
+
+                } else {
+                    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Could not remove \u00a73" + unidentifiedValue + "\u00a77 because it was\u00a7c not in the list\u00a77 initially. ");
+
+                    // Kap
+                    return null;
+                }
+
+                GemSocketsData finalData = (GemSocketsData) mmo.getData(stat);
+                ArrayList<String> finalList = finalData == null ? new ArrayList<>() : new ArrayList<>(finalData.getEmptySlots());
+
+                //STAT//for (String str : finalList) { OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Final data: \u00a7b " + str); }
+
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Emtpy gem sockets of " + OotilityCeption.GetItemName(iSource) + "\u00a77 changed to a total of \u00a7b" + finalList.size() + "\u00a77. ");
+
+            } else {
+
+                GemSocketsData finalData = (GemSocketsData) mmo.getData(stat);
+                ArrayList<String> finalList = finalData == null ? new ArrayList<>() : new ArrayList<>(finalData.getEmptySlots());
+
+                //STAT//for (String str : finalList) { OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Final data: \u00a7b " + str); }
+
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Emtpy gem sockets of " + OotilityCeption.GetItemName(iSource) + "\u00a77 were a total of \u00a7b" + finalList.size() + "\u00a77. ");
+            }
+        }
+
+        // Yeah that was a good run ngl
+        return mmo.newBuilder().build();
+    }
 
     /**
      * Upgrades a MMOItem to this level
@@ -1520,19 +2337,19 @@ public class GooPMMOItems {
 
         // Neh
         if (OotilityCeption.IsAirNullAllowed(base)) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant upgrade air!");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant upgrade air! ");
             return null; }
 
         // Is MMOItem right
         NBTItem nbt = NBTItem.get(base);
         if (!nbt.hasType()) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Only MMOItems can be upgraded.");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Only MMOItems can be upgraded. ");
             return null; }
 
         // Check volatile
         VolatileMMOItem vol = VolatileFromNBT(nbt);
         if (!vol.hasUpgradeTemplate()) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This MMOItem has no Upgrade Template (its not uprgadeable).");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This MMOItem has no Upgrade Template (\u00a7citem not upgradable\u00a77). ");
             return null; }
 
         // Live
@@ -1543,17 +2360,17 @@ public class GooPMMOItems {
 
         // Respect limit
         boolean limited = false;
-        if (!breakLimit && (result > live.getMaxUpgradeLevel())) { result = live.getMaxUpgradeLevel(); limited = true; }
+        if (!breakLimit && (result > live.getMaxUpgradeLevel()) && live.getMaxUpgradeLevel() > 0) { result = live.getMaxUpgradeLevel(); limited = true; }
 
         live.getUpgradeTemplate().upgradeTo(live, result);
         if (finalLevel != null) { finalLevel.setValue(result); }
 
         if (limited) {
 
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Upgraded to maximum level \u00a7b" + result + "\u00a77 since the upgrade operation would have bypassed it.");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Upgraded " + OotilityCeption.GetItemName(base) + "\u00a77 to maximum level \u00a7b" + result + "\u00a77. ");
         } else {
 
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Upgraded the item to level \u00a7b" + result + "\u00a77 successfully.");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Upgraded " + OotilityCeption.GetItemName(base) + "\u00a77 to level \u00a7b" + result + "\u00a77. ");
         }
 
         // Deal
@@ -1763,7 +2580,7 @@ public class GooPMMOItems {
                 // Log if Appropiate
                 if (result != null) {
 
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified attribute \u00a73" + attrib.name() + "\u00a77 of "+ OotilityCeption.GetItemName(base));
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified attribute \u00a73" + attrib.name() + "\u00a77 of "+ OotilityCeption.GetItemName(base));
 
                 } else {
 
@@ -1783,52 +2600,7 @@ public class GooPMMOItems {
             return null;
         }
     }
-    public static ItemStack SetTier(ItemStack base, String newTier, RefSimulator<String> finalTier, RefSimulator<String> logger) {
 
-        // I hope that bitch is not null to begin with
-        if (!OotilityCeption.IsAirNullAllowed(base)) {
-
-            // Result
-            ItemStack result;
-
-            // Convert if not a MMOItem
-            if (!IsMMOItem(base)) { base = ConvertVanillaToMMOItem(base); }
-
-            // Gettat Target NBT
-            NBTItem tNBT = NBTItem.get(base);
-
-            // Kount
-            int kount = base.getAmount();
-
-            // Get actual values
-            ItemTier actualTier = null;
-            if (MMOItems.plugin.getTiers().has(newTier)) { actualTier = MMOItems.plugin.getTiers().get(newTier);  }
-
-            // Add lore heck
-            result = SetTier(tNBT, actualTier, finalTier);
-
-            // Log if Appropiate
-            if (result != null) {
-
-                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified tier of "+ OotilityCeption.GetItemName(base));
-
-            } else {
-
-                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "\u00a77Failed to modify tier, perhaps \u00a73" + newTier + "\u00a77 is not a loaded tier?");
-            }
-
-            // Set
-            if (!OotilityCeption.IsAirNullAllowed(result)) { result.setAmount(kount); }
-
-            return result;
-
-            // This man passing on a null item wth
-        } else {
-
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant edit tier of air!");
-            return null;
-        }
-    }
     @Nullable public static ItemStack FixStackableness(@Nullable ItemStack base, @Nullable RefSimulator<String> logger) {
 
         // I hope that bitch is not null to begin with
@@ -1848,7 +2620,7 @@ public class GooPMMOItems {
                 try {
 
                     // Re MMOItemize it
-                    MMOItem tMMO = LiveFromNBT(b);
+                    MMOItem tMMO = new LiveMMOItem(b);
 
                     /*
                     // GEt Type
@@ -1942,7 +2714,7 @@ public class GooPMMOItems {
                     }
                     //*/
 
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Updated MMOItem to latest format (so it can stack).");
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Updated MMOItem to latest format (so it can stack). ");
 
                     // Build
                     ItemStack built = tMMO.newBuilder().build();
@@ -1952,7 +2724,7 @@ public class GooPMMOItems {
                     // Seems that those Types/IDs did not match wth
                 } catch (Exception e) {
 
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Could not update MMOItem to latest format");
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Could not update MMOItem to latest format. ");
                     return null;
                 }
 
@@ -1971,27 +2743,27 @@ public class GooPMMOItems {
                             result = GooPMMOItems_Pre6.Regenerate(tNBT);
                         }
 
-                        OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Updated MMOItem to latest format (so it can stack).");
+                        OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Updated MMOItem to latest format (so it can stack). ");
 
                     } catch (Exception ignored) {
 
-                        OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "For reasons unknown, could not fix stackableness of " + OotilityCeption.GetItemName(base) +"!");
+                        OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "For reasons unknown, could not fix stackableness of " + OotilityCeption.GetItemName(base) +"! ");
                         return null;
                     }       //*/
 
             } else {
 
-                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "That is not a MMOItem!");
+                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "That is not a MMOItem! ");
 
                 return null;
             }
 
             // Set
 
-            // This man passing on a null item wth
+        // This man passing on a null item wth
         } else {
 
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant fix stackableness of air!");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Can't fix stackableness of air! ");
             return null;
         }
     }
@@ -2041,11 +2813,11 @@ public class GooPMMOItems {
         //dur//OotilityCeption. Log("Dura As MMOItem: " + OotilityCeption.GetItemName(base) + "\u00a77, holder " + pname + "\u00a77, prevent break \u00a7b" + preventBreaking);
 
         // Gemstone Support is Enabled (Correct MMOItems version)
-        //dur//OotilityCeption. Log("Gem Stuppot Found");
+        //dur//OotilityCeption. Log("Gem Stuppot Found ");
 
         // I hope that bitch is not null to begin with
         if (base != null) {
-            //dur//OotilityCeption. Log("Base Real");
+            //dur//OotilityCeption. Log("Base Real ");
 
             // Result
             ItemStack result = null;
@@ -2053,7 +2825,7 @@ public class GooPMMOItems {
             // Attempt to get durability item
             DurabilityItem durItem = new DurabilityItem(holder, base);
             if (durItem.isValid()) {
-                //dur//OotilityCeption. Log("\u00a7aUses MMOItems dura");
+                //dur//OotilityCeption. Log("\u00a7aUses MMOItems dura ");
 
                 // Get Name
                 String iName = OotilityCeption.GetItemName(base);
@@ -2084,17 +2856,17 @@ public class GooPMMOItems {
 
                 // Get shift
                 int shift = finalDura - currentDura;
-                //dur//OotilityCeption. Log("\u00a77Processed: \u00a7e" + finalDamage + " -> " + finalDura + "\u00a77(\u00a7a" + shift + "\u00a77)");
+                //dur//OotilityCeption. Log("\u00a77Processed: \u00a7e" + finalDamage + " -> " + finalDura + "\u00a77(\u00a7a" + shift + "\u00a77) ");
 
                 // Set result
                 if (reslt != null) { reslt.setValue(finalDamage + 0.0D); }
 
                 // Did it break? Must GooP do something (because MMOItems will generate an exception)?
                 if (finalDura < 0 && holder == null) {
-                    //dur//OotilityCeption. Log("\u00a7cBroke - No Playr");
+                    //dur//OotilityCeption. Log("\u00a7cBroke - No Playr ");
 
                     // Broke
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified durability of \u00a7f" + iName + "\u00a77, it broke though");
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified durability of \u00a7f" + iName + "\u00a77, it broke though. ");
 
                     // Return as air
                     return new ItemStack(Material.DEBUG_STICK);
@@ -2121,7 +2893,7 @@ public class GooPMMOItems {
                     if (OotilityCeption.If(breakable)) {
 
                         // Broke
-                        OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified durability of \u00a7f" + iName + "\u00a77, it broke though");
+                        OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified durability of \u00a7f" + iName + "\u00a77, it broke though. ");
 
                         // Return as air
                         return new ItemStack(Material.DEBUG_STICK);
@@ -2133,7 +2905,7 @@ public class GooPMMOItems {
                 result.setItemMeta(dur);
 
                 // Result
-                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified durability of \u00a7f" + iName);
+                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified durability of \u00a7f" + iName + "\u00a77. ");
 
                 // If false, do the operation vanilla-wise alv
             } else {
@@ -2147,7 +2919,7 @@ public class GooPMMOItems {
             // This man passing on a null item wth
         } else {
 
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant repair of air!");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant repair of air! ");
             return null;
         }
     }
@@ -2400,7 +3172,60 @@ public class GooPMMOItems {
         }
     }
 
+    public static ItemStack SetTier(@Nullable ItemStack base, @Nullable String newTier, @Nullable RefSimulator<String> tierNameRef, @Nullable RefSimulator<String> logger) {
 
+        // I hope that bitch is not null to begin with
+        if (!OotilityCeption.IsAirNullAllowed(base)) {
+
+            // Result
+            ItemStack result;
+
+            // Convert if not a MMOItem
+            if (!IsMMOItem(base)) { base = ConvertVanillaToMMOItem(base); }
+
+            // Get Target NBT
+            NBTItem tNBT = NBTItem.get(base);
+
+            // Kount
+            int kount = base.getAmount();
+
+            // Get actual values
+            ItemTier actualTier = MMOItems.plugin.getTiers().get(newTier);
+
+            // Add lore heck
+            boolean get = true;
+            if (tierNameRef == null) { get = false; tierNameRef = new RefSimulator<>(""); }
+
+            // Set the tier
+            result = SetTier(tNBT, actualTier, tierNameRef, ((actualTier != null) || "none".equals(newTier)));
+
+            // Log if Appropriate
+            if (result != null) {
+
+                if (get)  {
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "The tier of "+ OotilityCeption.GetItemName(base) + "\u00a77 was \u00a7b" + tierNameRef.getValue() + "\u00a77. ");
+
+                } else {
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified tier of "+ OotilityCeption.GetItemName(base) + "\u00a77 to \u00a7b" + tierNameRef.getValue() + "\u00a77. ");
+                }
+
+            } else {
+
+                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Failed to modify tier, perhaps \u00a73" + newTier + "\u00a77 is not a loaded tier? ");
+            }
+
+            // Set
+            if (!OotilityCeption.IsAirNullAllowed(result)) { result.setAmount(kount); }
+
+            return result;
+
+            // This man passing on a null item wth
+        } else {
+
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant edit tier of air! ");
+            return null;
+        }
+    }
     /**
      * Sets the Tier of target Item Stack. Will convert into MMOItem if vanilla, and tier is specified.
      * @param iSource Item Stack you want to know/modify the tier of.
@@ -2408,7 +3233,7 @@ public class GooPMMOItems {
      * @param finalTier Stores the name of the tier the item had at the end of this operation.
      * @return The tier name at the end of the operation, or null if it has no tier.
      */
-    public static ItemStack SetTier(NBTItem iSource, ItemTier newTier, RefSimulator<String> finalTier) {
+    @Nullable public static ItemStack SetTier(@NotNull NBTItem iSource, @Nullable ItemTier newTier, @Nullable RefSimulator<String> finalTier, boolean setTier) {
 
         // Test of existance of such type and IDs
         try {
@@ -2420,29 +3245,39 @@ public class GooPMMOItems {
             // Get Socket Data
             StringData tData = null;
 
-            // Has data?
-            if (mmoitem.hasData(GooPMMOItems.Stat(GooPMMOItemsItemStats.TIER))) {
-
-                // TData is that, swell
-                tData = (StringData) mmoitem.getData(GooPMMOItems.Stat(GooPMMOItemsItemStats.TIER));
-
-                // Store
-                if (finalTier != null) { finalTier.setValue(tData.toString()); }
-
-            // No tier, that sets the return to 'none'
-            } else if (finalTier != null) { finalTier.setValue("none"); }
-
             // Apply if non-null
-            if (newTier != null) {
+            if (setTier) {
 
-                // Create
-                tData = new StringData(newTier.getId());
+                // Create tier yeah
+                if (newTier != null) {
 
-                // Append
-                mmoitem.setData(GooPMMOItems.Stat(GooPMMOItemsItemStats.TIER), tData);
+                    // Create
+                    tData = new StringData(newTier.getId());
 
-                // Store
-                if (finalTier != null) { finalTier.setValue(newTier.getId()); }
+                    // Append
+                    mmoitem.setData(ItemStats.TIER, tData);
+
+                // Removing Tier
+                } else {
+
+                    // Remove
+                    mmoitem.removeData(ItemStats.TIER);
+                }
+            }
+
+            if (finalTier != null) {
+
+                // Has data?
+                if (mmoitem.hasData(ItemStats.TIER)) {
+
+                    // TData is that, swell
+                    tData = (StringData) mmoitem.getData(ItemStats.TIER);
+
+                    // Store
+                    finalTier.setValue(tData.toString());
+
+                // No tier, that sets the return to 'none'
+                } else { finalTier.setValue("none"); }
             }
 
             // Get Finished Product
@@ -2760,34 +3595,48 @@ public class GooPMMOItems {
      * Checks if it is a valid MMOItems Modifier.
      */
     @Nullable public static ItemStack ModifierOperation(@Nullable String rawModifier, @Nullable ItemStack mmo, @Nullable RefSimulator<String> logger) {
-        return ModifierOperation(rawModifier, mmo, true, logger);
+        return ModifierOperation(rawModifier, mmo, true, false, logger);
     }
-    @Nullable public static ItemStack ModifierOperation(@Nullable String rawModifier, @Nullable ItemStack mmo, boolean scryAll, @Nullable RefSimulator<String> logger) {
+    @Nullable public static ItemStack ModifierOperation(@Nullable String rawModifier, @Nullable ItemStack mmo, boolean useGlobl, boolean chances, @Nullable RefSimulator<String> logger) {
         if (rawModifier == null || mmo == null) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Unspecified modifier or item");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Unspecified modifier or item. ");
             return null; }
 
-        // musta be mmo
+        // Convert into MMOItem
         if (!IsMMOItem(mmo)) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item is not a MMOItem.");
-            return null; }
+
+            // Maybe global ones yeah
+            if (useGlobl) {
+                mmo = ConvertVanillaToMMOItem(mmo);
+
+            } else {
+                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This " + OotilityCeption.GetItemName(mmo) + " is not an MMOItem, so it has no modifiers, enable \u00a7buse-global\u00a77 to use this command with this.");
+                return null;
+            }
+        }
 
         MMOItemTemplate template = MMOItems.plugin.getTemplates().getTemplate(NBTItem.get(mmo));
 
         // Sleap
-        if (template == null) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item is a MMOItem but the template is not loaded, was it deleted?");
-            return null; }
+        if (template == null && !useGlobl) {
+
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This " + OotilityCeption.GetItemName(mmo) + " is an MMOItem but the template is not loaded, was it deleted? GooP cannot find its modifiers, enable \u00a7buse-global\u00a77 to use this command with this.");
+            return null;
+        }
+
+        boolean dummyTemplate = (template == null);
+        if (template == null) { template = new MMOItemTemplate(Type.TOOL, "HX_MÑP"); }
 
         boolean random = rawModifier.equalsIgnoreCase("random");
         boolean clear = rawModifier.equalsIgnoreCase("none");
 
-        boolean modifierLocal = template.hasModifier(rawModifier);
-        boolean modifierExists = modifierLocal || (scryAll && MMOItems.plugin.getTemplates().hasModifier(rawModifier));
+        boolean modifierLocal = false;
+        modifierLocal = template.hasModifier(rawModifier);
+        boolean modifierExists = modifierLocal || (useGlobl && MMOItems.plugin.getTemplates().hasModifier(rawModifier));
 
         // Ay exist?
         if (!random && !clear && !modifierExists) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "There is no modifier of name \u00a73" + rawModifier + "\u00a77.");
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "There is no modifier of name \u00a73" + rawModifier + "\u00a77. ");
             return null; }
 
         NBTItem nbt = NBTItem.get(mmo);
@@ -2800,28 +3649,49 @@ public class GooPMMOItems {
             List<TemplateModifier> modifiers = new ArrayList<>(template.getModifiers().values());
 
             // Add all globally loaded ones
-            if (scryAll) { modifiers.addAll(MMOItems.plugin.getTemplates().getModifiers()); }
+            if (useGlobl) { modifiers.addAll(MMOItems.plugin.getTemplates().getModifiers()); }
 
             // Ay exist?
             if (modifiers.size() == 0) {
-                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "MMOItem \u00a7e" + template.getType().getId() + " " + template.getId() + "\u00a77 has no modifiers, cant pick a random one thus.");
+                if (dummyTemplate) {
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "MMOItem \u00a7e" + template.getType().getId() + " " + template.getId() + "\u00a77 has\u00a7c no modifiers\u00a77, cant pick a random one thus. ");
+
+                } else {
+
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "There are\u00a7c no global modifiers\u00a77, cant pick a random one thus. ");
+                }
                 return null;
             }
 
             // Get Modifier
-            TemplateModifier modifier = modifiers.get(OotilityCeption.GetRandomInt(0, modifiers.size() - 1));
-            UUID modUUID = UUID.randomUUID();
+            TemplateModifier modifier = null;
+            if (chances) {
 
-            MMOItemBuilder snoozer = template.newBuilder();
+                // Select based on chances
+                int breaker = 0;
+                while (modifier == null && breaker < 400) { breaker++; Collections.shuffle(modifiers); for (TemplateModifier mod : modifiers) { if (mod.rollChance()) { modifier = mod; break; } } }
+                if (breaker >= 400) {
+
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This " + OotilityCeption.GetItemName(mmo) + "\u00a77 could\u00a7c not roll\u00a77 for any modifier after \u00a7b" + breaker + "\u00a77 iterations, chances must be too low. ");
+                    return null;
+                }
+
+            } else {
+
+                // Get one from the list, same chance all of them
+                modifier = modifiers.get(OotilityCeption.GetRandomInt(0, modifiers.size() - 1));
+            }
+
+            UUID modUUID = UUID.randomUUID();
+            MMOItemBuilder freshBuilder = template.newBuilder();
 
             for (ItemStat stat : modifier.getItemData().keySet()) {
 
                 // Randomize yeah
-                StatData statData = modifier.getItemData().get(stat).randomize(snoozer);
+                StatData statData = modifier.getItemData().get(stat).randomize(freshBuilder);
 
                 // Is this mergeable?
                 if (stat.getClearStatData() instanceof Mergeable) {
-
 
                     // Apply onto Stat History
                     StatHistory hist = StatHistory.from(live, stat);
@@ -2854,7 +3724,7 @@ public class GooPMMOItems {
                 hist.registerModifierBonus(modUUID, modName);
             }
 
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Applied \u00a7b" + modifier.getId() + "\u00a77 to " + OotilityCeption.GetItemName(mmo));
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Applied \u00a7b" + modifier.getId() + "\u00a77 to " + OotilityCeption.GetItemName(mmo) + "\u00a77. ");
 
         } else if (clear) {
 
@@ -2871,14 +3741,14 @@ public class GooPMMOItems {
 
             // Get Modifier
             TemplateModifier modifier = modifierLocal ? template.getModifier(rawModifier) : MMOItems.plugin.getTemplates().getModifier(rawModifier);
-            UUID modUUID = UUID.randomUUID();
 
-            MMOItemBuilder snoozer = template.newBuilder();
+            UUID modUUID = UUID.randomUUID();
+            MMOItemBuilder freshBuilder = template.newBuilder();
 
             for (ItemStat stat : modifier.getItemData().keySet()) {
 
                 // Randomize yeah
-                StatData statData = modifier.getItemData().get(stat).randomize(snoozer);
+                StatData statData = modifier.getItemData().get(stat).randomize(freshBuilder);
 
                 // Is this mergeable?
                 if (stat.getClearStatData() instanceof Mergeable) {
@@ -2920,6 +3790,15 @@ public class GooPMMOItems {
 
         // Yeah that's it
         return live.newBuilder().build();
+    }
+
+    public static ArrayList<String> getGlobalModifierNames() {
+
+        ArrayList<String> ret = new ArrayList<>();
+
+        for (TemplateModifier mod : MMOItems.plugin.getTemplates().getModifiers()) { ret.add(mod.getId()); }
+
+        return ret;
     }
 
     public static final String invalidTypeID = "no u";
@@ -3013,7 +3892,7 @@ public class GooPMMOItems {
                 case RESTORE: return ItemStats.RESTORE_HEALTH;
 
                 default:
-                    Gunging_Ootilities_Plugin.theOots.CPLog("No Update Stat for \u00a7e" + statt.name() + "\u00a77 is defined!");
+                    Gunging_Ootilities_Plugin.theOots.CPLog("No Update Stat for \u00a7e" + statt.name() + "\u00a77 is defined! ");
                     break;
             }
         }
@@ -3292,6 +4171,41 @@ public class GooPMMOItems {
         // Build
         return result.newBuilder().build();
     }
+    /**
+     * Will return null if it fails for any reason.
+     */
+    @Nullable
+    public static ItemStack SetBooleanStatData(@Nullable ItemStack itm, @Nullable String stat, Boolean value) {
+        if (stat == null) { return null; }
+        //STAT//OotilityCeption. Log("   \u00a76*\u00a77 Nonull Stat ");
+        return SetBooleanStatData(itm, Stat(stat), value);
+    }
+    @Nullable
+    public static ItemStack SetBooleanStatData(@Nullable ItemStack itm, @Nullable ItemStat stat, @Nullable Boolean value) {
+        if (itm == null) { return null; }
+        if (!IsMMOItem(itm)) { return null; }
+        if (stat == null) { return null; }
+        if (value == null) { return null; }
+        if (!(stat instanceof BooleanStat)) { return null; }
+        //STAT//OotilityCeption. Log("   \u00a76*\u00a77 Nonull Qualificatons ");
+
+
+        // Create Stat Data
+        NBTItem nbt = NBTItem.get(itm);
+        BooleanData sData = new BooleanData(value);
+
+        // Put
+        MMOItem result = SetStatData(nbt, stat, sData, false);
+
+        // Return
+        if (result == null) {
+            //STAT//OotilityCeption. Log("   \u00a76*\u00a7c Fatal Result Error ");
+            return null;
+        }
+
+        // Build
+        return result.newBuilder().build();
+    }
 
     @NotNull
     public static ItemStack Build(@NotNull NBTItem itm) {
@@ -3301,4 +4215,1564 @@ public class GooPMMOItems {
         return (LiveFromNBT(itm)).newBuilder().build();
     }
     //endregion
+
+    public static void onCommand_GooPMMOItems(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
+        // Has permission?
+        boolean permission = true;
+
+        // What will be said to the caster (caster = sender of command)
+        List<String> logReturn = new ArrayList<>();
+
+        // Check 5 Permission
+        if (sender instanceof Player) {
+            // Solid check for permission
+            permission = sender.hasPermission("gunging_ootilities_plugin.mmoitems");
+        }
+
+        // Got permission?
+        if (permission) {
+            if (args.length >= 2) {
+
+                // Failure
+                boolean failure = false;
+
+                //region Command targets
+                ArrayList<Player> targets = null;
+                Entity asDroppedItem = null;
+                String subsonic = args[1].toLowerCase();
+                int playerIndex = 2;
+                if (subsonic.equals("addgemslot") ||
+                    subsonic.equals("stat") ||
+                    subsonic.equals("countgems")) { playerIndex++; }
+                if (args.length > playerIndex) {
+                    targets = OotilityCeption.GetPlayers(senderLocation, args[playerIndex], null);
+                    asDroppedItem = OotilityCeption.getEntityByUniqueId(args[playerIndex]); }
+                if (!(asDroppedItem instanceof Item)) { asDroppedItem = null; }
+                //endregion
+
+                // Amount of successes
+                RefSimulator<String> refAddition = new RefSimulator<>(null);
+
+                // Help Parameters
+                int argsMinLength, argsMaxLength;
+                String subcommand, usage;
+
+                if (OotilityCeption.hasPermission(sender, "mmoitems", subsonic)) {
+
+                    switch (subsonic) {
+                        //region addGemSlot
+                        case "addgemslot":
+
+                            //   0      1        2          3       4       5     args.Length
+                            // /goop mmoitems addGemSlot <color> <player> <slot>
+                            //   -      0        1          2       3       4     args[n]
+                            argsMinLength = 5;
+                            argsMaxLength = 5;
+                            usage = "/goop mmoitems addGemSlot <color> <player> <slot>";
+                            subcommand = "Add Gem Slot";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Adds gem slots to items.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<color> \u00a77Color of the gem slot to add.");
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+
+                            // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                }
+
+                                if (!failure) {
+
+                                    /*
+                                     * Final-style copy over
+                                     */
+                                    String colour = args[2].replace("_", " ");
+
+                                    // Preparation of Methods
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.MMOItemAddGemSlot(iSource.getValidOriginal(), colour, iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> (iSource.getResult() != null && iSource.getValidOriginal().getType() != Material.STRUCTURE_VOID),
+
+                                            // No scoreboards are involved
+                                            null);
+
+                                    // Register the ItemStacks
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[4], executor.getIncludedStrBuilder());
+
+                                    // Process the stuff
+                                    executor.process();
+
+                                    // Was there any log messages output?
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                }
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        //region Count Gems
+                        case "countgems":
+                            //   0      1        2            3           4       5     [6]     6  [7]      args.Length
+                            // /goop mmoitems countGems <includeSlots> <player> <slot> [qnr] [scoreboard]
+                            //   -      0        1            2           3       4     [5]     5  [6]      args[n]
+                            argsMinLength = 6;
+                            argsMaxLength = 7;
+                            usage = "/goop mmoitems countGems <includeEmpty> <player> <slot> [range] [scoreboard]";
+                            subcommand = "Count Gem Slots";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Counts gemstones in items.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<includeEmpty> \u00a77If empty slots should also count.");
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+                                logReturn.add("\u00a73 - \u00a7e[range] \u00a77Count that succeeds this command.");
+                                logReturn.add("\u00a73 - \u00a7e[scoreboard] \u00a77To store the result of the count.");
+                                logReturn.add("\u00a78You must specify either a range or a scoreboard (or both).");
+
+                            // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                }
+
+                                // Boolean parses?
+                                Boolean includeEmpty = null;
+                                if (!OotilityCeption.BoolTryParse(args[2])) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7atrue\u00a77 or \u00a7cfalse\u00a77 instead of '\u00a73" + args[2] + "\u00a77'"));
+
+                                } else {
+                                    includeEmpty = OotilityCeption.BoolParse(args[2]);
+                                }
+
+                                QuickNumberRange qnr = QuickNumberRange.FromString(args[5]);
+                                String objectiveName = null; @Nullable Objective targetObjective = null;
+                                if (qnr == null) { objectiveName = args[5]; } else if (args.length > 6) { objectiveName = args[6]; }
+                                if (objectiveName != null) {
+
+                                    // Some scoreboards to test
+                                    ScoreboardManager manager = Bukkit.getScoreboardManager();
+                                    Scoreboard targetScoreboard = manager.getMainScoreboard();
+                                    targetObjective = targetScoreboard.getObjective(objectiveName);
+
+
+                                    // Does the scoreboard objective exist?
+                                    if (targetObjective == null) {
+
+                                        // Failure
+                                        failure = true;
+
+                                        // Mention
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard Objective '\u00a73" + objectiveName + "\u00a77' does not exist."));
+                                    }
+                                }
+
+                                if (qnr == null && args.length > 6) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Mention
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected vanilla range format instead of '\u00a73" + args[5] + "\u00a77'"));
+                                }
+
+                                if (!failure) {
+
+                                    // Final initial
+                                    final Boolean finalIncludeEmpty = includeEmpty;
+                                    @Nullable final Objective finalTargetObjective = targetObjective;
+
+                                    // Preparation of Methods
+                                    TargetedItems executor = new TargetedItems(false, false,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.MMOItemCountGems(iSource.getValidOriginal(), finalIncludeEmpty, iSource.getRef_int_a(), iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> {
+                                                boolean iSuccess = true;
+
+                                                if (qnr != null) {
+
+                                                    // Does it meet?
+                                                    iSuccess = qnr.InRange(iSource.getRef_int_a().getValue());
+                                                    if (iSuccess) {
+
+                                                        // Notify
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) {
+                                                            iSource.addToLogAddition("Counted gems of " + OotilityCeption.GetItemName(iSource.getOriginal()) + "\u00a77,\u00a7b " + iSource.getRef_int_a() + "\u00a77 \u00a7awas\u00a77 in the specified range\u00a7e " + qnr.qrToString() + "\u00a77. ");
+                                                        }
+
+                                                    } else {
+
+                                                        // Notify
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
+                                                            iSource.addToLogAddition("Counted gems of " + OotilityCeption.GetItemName(iSource.getOriginal()) + "\u00a77,\u00a7b " + iSource.getRef_int_a() + "\u00a77 was \u00a7cnot\u00a77 in the specified range\u00a7e " + qnr.qrToString() + "\u00a77. ");
+                                                        }
+                                                    }
+                                                }
+
+                                                return iSuccess;
+                                            },
+
+                                            // Store scores
+                                            (iSource, sInfo) -> {
+
+                                                // Increase the output score of this player by this cont.
+                                                if (finalTargetObjective != null) {
+
+                                                    // Initialize as zero
+                                                    sInfo.setInitZero(finalTargetObjective);
+
+                                                    // Add relevant values
+                                                    sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_int_a().getValue(), true, false);
+                                                }
+                                            }
+                                    );
+
+                                    // Register the ItemStacks
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[4], executor.getIncludedStrBuilder());
+
+                                    // Process the stuff
+                                    executor.process();
+
+                                    // Was there any log messages output?
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+
+                                }
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        //region Upgrade
+                        case "upgrade":
+                            //   0       1     2         3       4          5             6           7              8            args.Length
+                            // /goop mmoitems upgrade <player> <slot> [±]<levels>[%] [break max] [objective] [±][score][%]
+                            //   -       0     1         2       3          4             5           6              7            args[n]
+                            argsMinLength = 5;
+                            argsMaxLength = 8;
+                            usage = "/goop mmoitems upgrade <player> <slot> [±]<levels>[%] [break max] [objective] [±][score][%]";
+                            subcommand = "Upgrade";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Upgrades items.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+                                logReturn.add("\u00a73 - \u00a7e[±]<levels>[%] \u00a77Operation on the upgrade level.");
+                                logReturn.add("\u00a73 - \u00a7e[break max] \u00a77Can this command upgrade beyond limit?");
+                                logReturn.add("\u00a73      * \u00a77There is no limit to downgrading (negative levels).");
+                                logReturn.add("\u00a73 - \u00a7e[objective] \u00a77Scoreboard to output the result.");
+                                logReturn.add("\u00a73 - \u00a7e[scoreboard] \u00a77The result that will be written onto the score.");
+                                logReturn.add("\u00a73      * \u00a7blevel\u00a77 keyword to set the score to the result level.");
+
+                                // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                }
+
+                                PlusMinusPercent pmpLevel = PlusMinusPercent.GetPMP(args[4], refAddition);
+                                if (pmpLevel == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Mention it
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected a number or operation for level (like \u00a7b1\u00a77, \u00a7b5,\u00a77 \u00a7bn2\u00a77, or \u00a7b+2\u00a77) instead of \u00a7e" + args[4]));
+                                }
+
+                                boolean breakLimit = false;
+                                if (args.length >= 6) {
+
+                                    if (OotilityCeption.BoolTryParse(args[5])) {
+
+                                        breakLimit = Boolean.parseBoolean(args[5]);
+
+                                    } else {
+                                        // Failure
+                                        failure = true;
+
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[5]));
+                                    }
+                                }
+
+                                Objective targetObjective = null;
+                                PlusMinusPercent score = null;
+                                if (args.length >= 7) {
+                                    ScoreboardManager manager = Bukkit.getScoreboardManager();
+                                    Scoreboard targetScoreboard = manager.getMainScoreboard();
+                                    targetObjective = targetScoreboard.getObjective(args[6]);
+
+                                    if (targetObjective == null) {
+                                        // Failure
+                                        failure = true;
+
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard objective \u00a73" + args[6] + "\u00a77 does not exist."));
+                                    }
+
+                                    if (args.length >= 8) {
+                                        score = PlusMinusPercent.GetPMP(args[7], refAddition);
+
+                                        if (score == null && !(args[7].toLowerCase().equals("level"))) {
+                                            // Failure
+                                            failure = true;
+
+                                            // Mention it
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "The final score '\u00a73" + args[7] + "\u00a77' should be an integer number (maybe with an operation)."));
+                                        }
+                                    }
+                                }
+
+                                if (!failure) {
+
+                                    // Copy of finals
+                                    final boolean finalBreakLimit = breakLimit;
+                                    final Objective finalTargetObjective = targetObjective;
+                                    final PlusMinusPercent finalScore = score;
+
+                                    // Preparation of Methods
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.UpgradeMMOItem(iSource.getValidOriginal(), pmpLevel, finalBreakLimit, iSource.getRef_int_a(), iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> iSource.getResult() != null,
+
+                                            // Store scores
+                                            (iSource, sInfo) -> {
+
+                                                // If the scoreboard is enabled
+                                                if (finalTargetObjective != null) {
+
+                                                    // Score override
+                                                    if (finalScore != null) { sInfo.setFinalScoreboardOpp(finalTargetObjective, finalScore);}
+                                                    else { sInfo.setInitZero(finalTargetObjective); }
+
+                                                    // Addition of Upgrade
+                                                    sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_int_a().getValue(), true, false);
+                                                }
+                                            }
+                                        );
+
+                                    // Register the ItemStacks
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+
+                                    // Process the stuff
+                                    executor.process();
+
+                                    // Was there any log messages output?
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+
+                                }
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        //region Set Tier
+                        case "settier":
+                            //   0       1     2      3       4       5         6       args.Length
+                            // /goop mmoitems tier <player> <slot> <value>
+                            //   -       0     1      2       3       4         5       args[n]
+
+                            // Correct number of args?
+                            argsMinLength = 5;
+                            argsMaxLength = 5;
+                            usage = "/goop mmoitems setTier <player> <slot> <value>";
+                            subcommand = "Set Tier";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Changes the tier of items.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+                                logReturn.add("\u00a73 - \u00a7e<value> \u00a77Tier to set.");
+                                logReturn.add("\u00a73      * \u00a7bnone\u00a77 keyword to remove tier.");
+
+                                // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                }
+
+                                String tier = args[4];  // No way to get it wrong lol
+                                if (!"none".equals(args[4])) {
+
+                                    // Parse true tier
+                                    tier = args[4].toUpperCase();
+                                    if (!GooPMMOItems.TierExists(tier)) {
+                                        // Failure
+                                        failure = true;
+
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Specified Tier \u00a73" + args[4] + "\u00a77 is not loaded."));
+                                    }
+                                }
+
+                                if (!failure) {
+
+                                    // Copy of finals
+                                    final String finalTier = tier;
+
+                                    // Preparation of Methods
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> SetTier(iSource.getValidOriginal(), finalTier, null, iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> iSource.getResult() != null,
+
+                                            null
+                                        );
+
+                                    // Register the ItemStacks
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+
+                                    // Process the stuff
+                                    executor.process();
+
+                                    // Was there any log messages output?
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+
+                                }
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        //region Modifier
+                        case "modifier":
+                            //   0       1      2          3       4      5       6         args.Length
+                            // /goop mmoitems modifier <player> <slot> <name> [use-global]
+                            //   -       0      1          2       3      4       5         args[n]
+
+                            // Correct number of args?
+                            argsMinLength = 5;
+                            argsMaxLength = 7;
+                            usage = "/goop mmoitems modifier <player> <slot> <name> [use-global] [use-chances]";
+                            subcommand = "Modifier";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Changes the modifiers of items.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+                                logReturn.add("\u00a73 - \u00a7e<name> \u00a77Name of the modifier to add.");
+                                logReturn.add("\u00a73      * \u00a7bnone\u00a77 keyword to remove all modifiers.");
+                                logReturn.add("\u00a73      * \u00a7brandom\u00a77 keyword to to add random modifier.");
+                                logReturn.add("\u00a73 - \u00a7e[use-global] \u00a77Should this also consider those in modifiers.yml?");
+                                logReturn.add("\u00a73 - \u00a7e[use-chances] \u00a77Take into account the modifier chances?");
+
+                                // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                }
+
+                                boolean scryAll = true;
+
+                                // Read that
+                                if (args.length >= 6) {
+
+                                    // Read value
+                                    if (OotilityCeption.BoolTryParse(args[5])) {
+
+                                        // Parse
+                                        scryAll = OotilityCeption.BoolParse(args[5]);
+
+                                    } else {
+
+                                        // Failure
+                                        failure = true;
+
+                                        // Notify the error
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 for 'use-global' instead of \u00a7e" + args[5] + "\u00a77. "));
+                                    }
+                                }
+
+                                boolean chances = false;
+
+                                // Read that
+                                if (args.length >= 7) {
+
+                                    // Read value
+                                    if (OotilityCeption.BoolTryParse(args[6])) {
+
+                                        // Parse
+                                        chances = OotilityCeption.BoolParse(args[6]);
+
+                                    } else {
+
+                                        // Failure
+                                        failure = true;
+
+                                        // Notify the error
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 for 'use-chances' instead of \u00a7e" + args[6] + "\u00a77. "));
+                                    }
+                                }
+
+                                if (!failure) {
+
+                                    /*
+                                     *      Copy of Finals
+                                     */
+                                    final boolean finalScryAll = scryAll;
+                                    final boolean finalChances = chances;
+                                    final String modifierName = args[4];
+
+                                    /*
+                                     *      Preparation of Methods and Lambdas
+                                     */
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.ModifierOperation(modifierName, iSource.getValidOriginal(), finalScryAll, finalChances, iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> iSource.getResult() != null,
+
+                                            null
+                                    );
+
+                                    /*
+                                     *      Registration of items
+                                     */
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+
+                                    /*
+                                     *      Processing
+                                     */
+                                    executor.process();
+
+                                    /*
+                                     *      Output Consolidation
+                                     */
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+
+                                }
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+                            break;
+                        //endregion
+                        //region Regenerate
+                        case "regenerate":
+                            //   0       1     2        3       4       5       6           args.Length
+                            // /goop mmoitems regen <player> <slot> [reroll] [keep...]
+                            //   -       0     1        2       3       4       5           args[n]
+
+                            // Correct number of args?
+                            argsMinLength = 4;
+                            argsMaxLength = 16;
+                            usage = "/goop mmoitems regenerate <player> <slot> [reroll] [keep...]";
+                            subcommand = "Regenerate";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 RevID-updates items to fix stacking.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+                                logReturn.add("\u00a73 - \u00a7e[reroll] \u00a77Should reroll item RNG stats?");
+                                logReturn.add("\u00a73 - \u00a7e[keep] \u00a77Item data to keep.");
+                                logReturn.add("\u00a73      *\u00a7b name\u00a77 Keep the display name.");
+                                logReturn.add("\u00a73      *\u00a7b lore\u00a77 Keep lore... refer to MI Docs.");
+                                logReturn.add("\u00a73      *\u00a7b ench\u00a77 Keep enchantments.");
+                                logReturn.add("\u00a73      *\u00a7b upgr\u00a77 Keep upgrades.");
+                                logReturn.add("\u00a73      *\u00a7b gems\u00a77 Keep gemstones.");
+                                logReturn.add("\u00a73      *\u00a7b soul\u00a77 Keep soulbounds.");
+                                logReturn.add("\u00a73      *\u00a7b skin\u00a77 Keep skin.");
+                                logReturn.add("\u00a73      *\u00a7b exsh\u00a77 Keep GooP's added stats.");
+                                logReturn.add("\u00a73      *\u00a7b mods\u00a77 Keep modifiers.");
+                                logReturn.add("\u00a78Specify all the data to keep by listing the keywords.");
+                                logReturn.add("\u00a78ex: \u00a76...<slot> [reroll] ench upgr gems skin exsh mods");
+
+                                // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!")); }
+
+                                boolean reroll = true;
+                                if (args.length >= 5) {
+                                    if (OotilityCeption.BoolTryParse(args[4])) {
+                                        reroll = Boolean.parseBoolean(args[4]);
+                                    } else {
+
+                                        // Failure
+                                        failure = true;
+
+                                        // Notify the error
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[4] + "\u00a77 regarding whether RNG stats should be rerolled."));
+                                    } }
+
+                                boolean name = false,
+                                        lore = false,
+                                        ench = false,
+                                        upgr = false,
+                                        gems = false,
+                                        soul = false,
+                                        exsh = false,
+                                        mods = false,
+                                        ae = false,
+                                        skin = false;
+
+                                if (args.length >= 6) {
+
+                                    for (int i = 5; i < args.length; i++) {
+                                        String str = args[i].toLowerCase();
+                                        if (str.contains("name")) { name = true; }
+                                        if (str.contains("lore")) { lore = true; }
+                                        if (str.contains("ench")) { ench = true; }
+                                        if (str.contains("upgr")) { upgr = true; }
+                                        if (str.contains("gems")) { gems = true; }
+                                        if (str.contains("soul")) { soul = true; }
+                                        if (str.contains("skin")) { skin = true; }
+                                        if (str.contains("ex") && str.contains("sh")) { exsh = true; }
+                                        if (str.contains("mod")) { mods = true; }
+                                        if (str.contains("ae") && str.contains("nc")) { ae = true; } }
+                                }
+
+                                if (!failure) {
+
+
+                                    /*
+                                     *      Copy of Finals
+                                     */
+                                    final boolean finalName = name;
+                                    final boolean finalLore = lore;
+                                    final boolean finalEnch = ench;
+                                    final boolean finalUpgr = upgr;
+                                    final boolean finalGems = gems;
+                                    final boolean finalSkin = skin;
+                                    final boolean finalAe = ae;
+                                    final boolean finalMods = mods;
+                                    final boolean finalReroll = reroll;
+                                    final boolean finalExsh = exsh;
+                                    final boolean finalSoul = soul;
+
+                                    /*
+                                     *      Preparation of Methods and Lambdas
+                                     */
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.ReforgeMMOItem(iSource.getValidOriginal(), iSource.getLogAddition(), finalName, finalLore, finalEnch, finalUpgr, finalGems, finalSoul, finalExsh, finalReroll, finalMods, finalAe, finalSkin),
+
+                                            // When will it succeed
+                                            iSource -> iSource.getResult() != null,
+
+                                            null
+                                    );
+
+                                    /*
+                                     *      Registration of items
+                                     */
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+
+                                    /*
+                                     *      Processing
+                                     */
+                                    executor.process();
+
+                                    /*
+                                     *      Output Consolidation
+                                     */
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                }
+
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+                            break;
+                        //endregion
+                        //region Get Tier
+                        case "gettier":
+                            //   0       1     2      3       4       5             6       7  args.Length
+                            // /goop mmoitems getTier <player> <slot> <value> [objective] [±][score][%]
+                            //   -       0     1      2       3       4             5       6    args[n]
+
+                            // Correct number of args?
+                            argsMinLength = 5;
+                            argsMaxLength = 7;
+                            usage = "/goop mmoitems getTier <player> <slot> <value> [objective] [±][score][%]";
+                            subcommand = "Get Tier";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Detect items by tier.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+                                logReturn.add("\u00a73 - \u00a7e<name> \u00a77Name of the modifier to add.");
+                                logReturn.add("\u00a73 - \u00a7e<value> \u00a77Internal name of the tier to match.");
+                                logReturn.add("\u00a73      * \u00a7bnone\u00a77 detect an item with no tier.");
+                                logReturn.add("\u00a73 - \u00a7e[objective] \u00a77Scoreboard objective to output.");
+                                logReturn.add("\u00a73 - \u00a7e[±][score][%] \u00a77Score operation if success.");
+
+                            // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                }
+
+                                String tier = args[4].toUpperCase();  // No way to get it wrong lol
+                                if (args[4].equals("none")) {
+                                    tier = args[4];
+
+                                } else if (!GooPMMOItems.TierExists(tier)) {
+                                    // Failure
+                                    failure = true;
+
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Specified Tier \u00a73" + args[4] + "\u00a77 is not loaded. If trying to detect the item not having any tier, use the \u00a7bnone\u00a77 keyword."));
+                                }
+
+                                // Some scoreboards to test
+                                Objective targetObjective = null;
+                                PlusMinusPercent score = null;
+                                if (args.length >= 7) {
+                                    ScoreboardManager manager = Bukkit.getScoreboardManager();
+                                    Scoreboard targetScoreboard = manager.getMainScoreboard();
+                                    targetObjective = targetScoreboard.getObjective(args[5]);
+
+                                    if (targetObjective == null) {
+                                        // Failure
+                                        failure = true;
+
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                                    }
+
+                                    score = PlusMinusPercent.GetPMP(args[6], refAddition);
+                                    if (score == null) {
+                                        // Failure
+                                        failure = true;
+
+                                        // Mention it
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "The final score '\u00a73" + args[6] + "\u00a77' should be an integer number (maybe with an operation)."));
+                                    }
+                                }
+
+                                if (!failure) {
+
+                                    /*
+                                     *      Copy of Finals
+                                     */
+                                    final String finalTier = tier;
+                                    final boolean useObjective = (targetObjective != null);
+                                    final PlusMinusPercent finalScore = score;
+                                    final Objective finalTargetObjective = targetObjective;
+
+                                    /*
+                                     *      Preparation of Methods and Lambdas
+                                     */
+                                    TargetedItems executor = new TargetedItems(false, false,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.SetTier(iSource.getValidOriginal(), null, iSource.getRef_str_a(), iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> {
+
+                                                // If the result
+                                                if (iSource.getResult() == null) { return false; }
+
+                                                // If they equal
+                                                return finalTier.equals(iSource.getRef_str_a().getValue());
+                                            },
+
+                                            // Handle score if
+                                            (iSource, sInfo) -> {
+
+                                                // Anything to consider
+                                                if (useObjective) {
+
+                                                    sInfo.setFinalScoreboardOpp(finalTargetObjective, finalScore);
+                                                }
+                                            }
+                                    );
+
+                                    /*
+                                     *      Registration of items
+                                     */
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+
+                                    /*
+                                     *      Processing
+                                     */
+                                    executor.process();
+
+                                    /*
+                                     *      Output Consolidation
+                                     */
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+
+                                }
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+                            break;
+                        //endregion
+                        //region New Shrub
+                        case "newshrub":
+                            //   0      1        2       3     4   5   6   7     args.Length
+                            // /goop mmoitems newShrub <type> [w] [x] [y] [z]
+                            //   -      0        1       2     3   4   5   6     args[n]
+
+                            // Correct number of args?
+                            argsMinLength = 3;
+                            argsMaxLength = 7;
+                            usage = "/goop mmoitems newShrub <type> [w] [x] [y] [z]";
+                            subcommand = "New Shrub";
+
+                            if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
+
+                                // Notify fuCk
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
+                                }
+
+                            // Help form?
+                            } else if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Create a new shrub.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<type> \u00a77Type of shrub");
+                                logReturn.add("\u00a73 - \u00a7e[w] \u00a77World name");
+                                logReturn.add("\u00a73 - \u00a7e[x] \u00a77X Position");
+                                logReturn.add("\u00a73 - \u00a7e[y] \u00a77Y Position");
+                                logReturn.add("\u00a73 - \u00a7e[z] \u00a77Z Position");
+
+                                // Correct number of args?
+                                } else if (args.length == argsMinLength || args.length == argsMaxLength) {
+
+                                // Gets that location boi
+                                Location targetLocation = null;
+                                if (args.length == 3) {
+                                    if (sender instanceof Player) {
+
+                                        // Just target location I guess?
+                                        Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
+
+                                        // If exists
+                                        if (bLock == null) {
+
+                                            // Invalid location
+                                            failure = true;
+
+                                            // Mention
+                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand,"You are not looking at any block!"));
+
+                                            // I suppose its not air, right?
+                                        } else if (!OotilityCeption.IsAir(bLock.getType())) {
+
+                                            // Git Target Location
+                                            targetLocation = bLock.getLocation();
+
+                                            // Nvm it is air.
+                                        } else {
+
+                                            // Invalid location
+                                            failure = true;
+
+                                            // Mention
+                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand,"You are not looking at any block!"));
+
+                                        }
+
+                                    } else {
+                                        // Vro need coords
+                                        failure = true;
+
+                                        // Say
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "When making shrubs from the console, you must specify co-ordinates and a world!"));
+                                    }
+
+                                    // Build Location from args, later, if they parse.
+                                }
+
+                                // Is type loaded?
+                                RefSimulator<String> logAddition = new RefSimulator<>("");
+                                if (!GooPE_Shrubs.IsShrubTypeLoaded(args[2], logAddition)) {
+
+                                    // Not loaded - fail
+                                    failure = true;
+
+                                    // Comment
+                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, logAddition.GetValue())); }
+                                }
+
+                                // Parse location?
+                                if (args.length == 7) {
+
+                                    // Relativity
+                                    Player rel = null;
+                                    if (sender instanceof Player) { rel = (Player)sender;}
+
+                                    // Get
+                                    targetLocation = OotilityCeption.ValidLocation(rel, args[3], args[4], args[5], args[6], logAddition);
+
+                                    // Ret
+                                    if (targetLocation == null) { failure = true; }
+
+                                    // Add Log
+                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, logAddition.GetValue())); }
+                                }
+
+                                // Byce syntax
+                                if (!failure) {
+
+                                    // Exec
+                                    GooPE_Shrubs.CreateShrubInstanceAt(args[2], targetLocation, logAddition);
+
+                                    // Notify
+                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, logAddition.GetValue())); }
+                                }
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length <= argsMaxLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        //region Stat
+                        case "stat":
+                            //   0      1       2    3       4        5         6         [7]     [8]  7       [9] 8       args.Length
+                            // /goop mmoitems stat <stat> <player> <slot> [±]<value>[%] [range] [objective] [±][score][%]
+                            //   -      0       1    2       3       4          5         [6]     [7]  6       [8] 7       args[n]
+
+                            // Correct number of args?
+                            argsMinLength = 6;
+                            argsMaxLength = 9;
+                            usage = "/goop mmoitems stat <stat> <player> <slot> [±]<value>[%] [range] [objective] [±][score][%]";
+                            subcommand = "Stat";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Edit MMOItem stat values.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<stat> \u00a77MMOItem Stat to Edit");
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+                                logReturn.add("\u00a73 - \u00a7e[±]<value>[%] \u00a77Operation to perform on the stat.");
+                                logReturn.add("\u00a73      *\u00a7e boolean\u00a77 Either \u00a7btrue\u00a77, \u00a7bfalse\u00a77, or \u00a7btoggle\u00a77.");
+                                logReturn.add("\u00a73      *\u00a7e text\u00a77 This can be any text value,\u00a7b __\u00a77 as spaces.");
+                                logReturn.add("\u00a73      *\u00a7e text list\u00a77 Precede text with \u00a7b-\u00a77 to remove.");
+                                logReturn.add("\u00a73      *\u00a7b read\u00a77 Keyword to read the value only.");
+                                logReturn.add("\u00a73 - \u00a7e[range] \u00a77Range that allows this command to succeed.");
+                                logReturn.add("\u00a73      *\u00a7e boolean\u00a77 Supports \u00a7btrue\u00a77 or \u00a7bfalse\u00a77.");
+                                logReturn.add("\u00a73      *\u00a7e text\u00a77 Must match this exactly.");
+                                logReturn.add("\u00a73      *\u00a7e text list\u00a77 List size must fall in range (if number range).");
+                                logReturn.add("\u00a73      *\u00a7e text list\u00a77 List must contain this entry.");
+                                logReturn.add("\u00a73 - \u00a7e[objective] \u00a77Scoreboard objective to output.");
+                                logReturn.add("\u00a73 - \u00a7e[±][score][%] \u00a77Score operation if success.");
+                                logReturn.add("\u00a73      *\u00a77 Only works with numeric stats.");
+                                logReturn.add("\u00a73      *\u00a7b read\u00a77 keyword to store result of operation. Numeric");
+                                logReturn.add("\u00a77        stats only. Multiplies by \u00a7b100\u00a77 to preserve decimals.");
+
+                                // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
+                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                }
+
+                                // Attempt to get
+                                final ItemStat stat = Stat(args[2]);
+                                if (stat == null) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback)
+                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Stat\u00a73 " + args[2] + "\u00a77 does not exist."));
+                                }
+
+                                // Value will be identified.... later...
+                                final String unidentifiedValue = args[5];
+
+                                // Enough args to have something to test idk
+                                Objective targetObjective = null;
+                                PlusMinusPercent scoreOperation = null;
+                                String unparsedRange = null;
+                                boolean readValue = true;
+
+                                String objectiveName = null;
+                                String objectiveOpp = null;
+
+                                // Is it range or default-read objective?
+                                if (args.length == 7) {
+                                    objectiveName = args[6];
+                                    targetObjective = OotilityCeption.GetObjective(objectiveName);
+
+                                    // Because this is unknown, it cannot fail yet.
+                                    if (targetObjective == null) { unparsedRange = args[6]; }
+                                }
+
+                                // Must be scored objective
+                                if (args.length == 8) {
+
+                                    // Will fail if null
+                                    objectiveName = args[6];
+                                    targetObjective = OotilityCeption.GetObjective(objectiveName);
+
+                                    // Will fail if nonsense
+                                    objectiveOpp = args[7];
+                                    readValue = objectiveOpp.equals("read");
+                                    if (!readValue) { scoreOperation = PlusMinusPercent.GetPMP(objectiveOpp, refAddition); }
+                                }
+
+                                // Both range and objective
+                                if (args.length == 9) {
+                                    unparsedRange = args[6];
+
+                                    // Will fail if null
+                                    objectiveName = args[7];
+                                    targetObjective = OotilityCeption.GetObjective(objectiveName);
+
+                                    // Will fail if nonsense
+                                    objectiveOpp = args[8];
+                                    readValue = objectiveOpp.equals("read");
+                                    if (!readValue) { scoreOperation = PlusMinusPercent.GetPMP(objectiveOpp, refAddition); }
+                                }
+
+                                // Fail due to nonsense score params
+                                if (args.length >= 8) {
+                                    if (targetObjective == null) {
+
+                                        // Failure
+                                        failure = true;
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard objective \u00a73" + objectiveName + "\u00a77 does not exist. ")); }
+                                    }
+
+                                    if (!readValue && scoreOperation == null) {
+
+                                        // Failure
+                                        failure = true;
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard operation \u00a73" + objectiveOpp + "\u00a77 is not in the correct format (\u00a7b+4\u00a77, \u00a7b10\u00a77, \u00a7b-20%\u00a77...) nor the \u00a7bread\u00a77 keyword: " + refAddition.getValue())); }
+                                    }
+                                }
+
+                                // For every player
+                                if (!failure) {
+
+                                    /*
+                                     *      Copy of Finals
+                                     */
+                                    final String finalUnparsedRange = unparsedRange;
+                                    final boolean useObjective = (targetObjective != null);
+                                    final PlusMinusPercent finalScoreOperation = scoreOperation;
+                                    final Objective finalTargetObjective = targetObjective;
+
+                                    /*
+                                     *      Preparation of Methods and Lambdas
+                                     */
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.StatOps(iSource.getValidOriginal(), stat, unidentifiedValue, finalUnparsedRange, iSource.getRef_dob_a(), iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> iSource.getResult() != null,
+
+                                            // Handle score if
+                                            (iSource, sInfo) -> {
+
+                                                // If the scoreboard stuff is even active
+                                                if (useObjective) {
+
+                                                    // Is there a PMP set?
+                                                    if (finalScoreOperation != null) {
+
+                                                        // Override them all
+                                                        sInfo.setFinalScoreboardOpp(finalTargetObjective, finalScoreOperation);
+                                                    } else {
+
+                                                        // Initialize at zero
+                                                        sInfo.setInitZero(finalTargetObjective);
+
+                                                        // Add the individual stat values
+                                                        sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_dob_a().getValue() * 100, true, false);
+                                                    }
+                                                }
+                                            }
+                                    );
+
+                                    /*
+                                     *      Registration of items
+                                     */
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[4], executor.getIncludedStrBuilder());
+
+                                    /*
+                                     *      Processing
+                                     */
+                                    executor.process();
+
+                                    /*
+                                     *      Output Consolidation
+                                     */
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+
+                                }
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+                            break;
+                        //endregion
+                        //region List Shrub Types
+                        case "listshrubtypes":
+                            //   0      1           2       args.Length
+                            // /goop mmoitems listShrubTypes
+                            //   -      0           1       args[n]
+
+                            // Correct number of args?
+                            argsMaxLength = 2;
+                            usage = "/goop mmoitems listShrubTypes";
+                            subcommand = "List Shrub Types";
+                            
+                            if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
+
+                                // Notify fuCk
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
+                                }
+
+                                // Help form?
+                            } else if (args.length <= argsMaxLength) {
+
+                                // Exec
+                                ArrayList<String> lShrubs = GooPE_Shrubs.getLoadedShrubTypes();
+
+                                if (lShrubs.size() < 1) {
+                                    GooPE_Shrubs.ReloadShrubNames();
+                                    lShrubs = GooPE_Shrubs.getLoadedShrubTypes();
+                                }
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                if (lShrubs.size() == 0) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a77Would list all loaded shrub types if there were any."));
+                                } else {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a77All loaded shrub types:"));
+                                    for (String struct : lShrubs) { logReturn.add("\u00a73 - \u00a77" + struct); }
+                                }
+
+
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        //region Fix Stacks
+                        case "fixstacks":
+                            //   0      1        2          3       args.Length
+                            // /goop mmoitems fixstacks [player]
+                            //   -      0        1          2       args[n]
+                            argsMaxLength = 3;
+                            usage = "/goop mmoitems fixstacks [player]";
+                            subcommand = "Fix Stacks";
+
+                            // Help form?
+                            if (args.length <= argsMaxLength) {
+
+                                // Get Target (if included)
+                                if (args.length == 3 && OotilityCeption.hasPermission(sender, "mmoitems", "fixstacks.others")) {
+
+                                    // Git if online
+                                    targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                                    
+                                } else if (sender instanceof Player) {
+
+                                    // Git if exist
+                                    targets = new ArrayList<>();
+                                    targets.add((Player) sender);
+
+                                } else {
+                                    failure = true;
+
+                                    // Not contained, and from console
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
+                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a77This cannot be called from the console without specifying a player."));
+                                    }
+                                }
+                                
+                                if (targets == null || targets.size() < 1) {
+
+                                    // Fail
+                                    failure = true;
+
+                                    // Not contained, and from console
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
+                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a77Must specify an online player."));
+                                    }
+                                }
+                                
+                                if (!failure) {
+
+
+                                    /*
+                                     *      Copy of Finals
+                                     */
+
+                                    /*
+                                     *      Preparation of Methods and Lambdas
+                                     */
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.FixStackableness(iSource.getValidOriginal(), iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> iSource.getResult() != null,
+
+                                            // Handle score if
+                                            null
+                                    );
+
+                                    /*
+                                     *      Registration of items
+                                     */
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, "*", executor.getIncludedStrBuilder());
+
+                                    /*
+                                     *      Processing
+                                     */
+                                    executor.notSuccessible().process();
+
+                                    /*
+                                     *      Output Consolidation
+                                     */
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                }
+                                
+                            // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+                            
+                            break;
+                        //endregion
+                        //region Reload Shrub Types
+                        case "reloadshrubtypes":
+                            //   0      1           2       args.Length
+                            // /goop mmoitems reloadShrubTypes
+                            //   -      0           1       args[n]
+
+                            // Correct number of args?
+                            argsMaxLength = 2;
+                            usage = "/goop mmoitems reloadShrubTypes";
+                            subcommand = "Reload Shrub Types";
+
+                            if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
+
+                                // Notify fuCk
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
+                                }
+
+                                // Help form?
+                            } else if (args.length <= argsMaxLength) {
+
+                                // Exec
+                                GooPE_Shrubs.ReloadShrubTypes();
+                                logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Reloaded MMOItem Shrub Types."));
+
+                                // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        default:
+                            // I have no memory of that shit
+                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems", "'\u00a73" + args[1] + "\u00a77' is not a valid MMOItems action! do \u00a7e/goop mmoitems\u00a77 for the list of actions."));
+                            break;
+                    }
+
+                } else {
+
+                    // Tell him lmao
+                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("\u00a7cLack of permission to proceed."));
+                }
+
+            } else if (args.length == 1) {
+                logReturn.add("\u00a7e______________________________________________");
+                logReturn.add("\u00a73GooP-MMOItems, \u00a77Related to the third party plugin.");
+                logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems {action}");
+                logReturn.add("\u00a73 - \u00a7e{action} \u00a77What actions to perform:");
+                logReturn.add("\u00a73 --> \u00a7eaddGemSlot\u00a77,\u00a7e countGems\u00a77,\u00a7e getTier\u00a77,\u00a7e setTier");
+                logReturn.add("\u00a73 --> \u00a7estat\u00a77,\u00a7e regenerate\u00a77,\u00a7e upgrade\u00a77,\u00a7e modifier");
+                logReturn.add("\u00a73 --> \u00a7efixStacks [player]");
+                logReturn.add("\u00a73      * \u00a77Updates MMOItems to the newest format, so that they stack.");
+                if (Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
+                    logReturn.add("\u00a73 --> \u00a7enewShrub <type> [w] [x] [y] [z]");
+                    logReturn.add("\u00a73      * \u00a77Creates a new shrub of type <type>");
+                    logReturn.add("\u00a73 --> \u00a7elistShrubTypes");
+                    logReturn.add("\u00a73      * \u00a77Lists the loaded shrub types");
+                    logReturn.add("\u00a73 --> \u00a7ereloadShrubTypes");
+                    logReturn.add("\u00a73      * \u00a77Reloads shrub types config");
+                }
+                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Target slot in player's inventory.");
+                logReturn.add("\u00a73 --> \u00a77Possible slots: \u00a7bhead\u00a73, \u00a7bchest\u00a73, \u00a7blegs\u00a73, \u00a7bfeet\u00a73, \u00a7bmainhand\u00a73, \u00a7boffhand\u00a73, and any number \u00a7b0\u00a73-\u00a7b35\u00a73.");
+
+            } else {
+                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                    logReturn.add(OotilityCeption.LogFormat("MMOItems", "Incorrect usage. For info: \u00a7e/goop mmoitems"));
+                    logReturn.add("\u00a73Usage: \u00a7e/goop mmoitems {action}");
+                }
+            }
+
+        // No perms
+        } else {
+
+            // Tell him lmao
+            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou don't have permission to use mmoitems-related commands!"));
+        }
+
+        //Set Log Return Urn Value
+        logReturnUrn.SetValue(logReturn);
+    }
 }

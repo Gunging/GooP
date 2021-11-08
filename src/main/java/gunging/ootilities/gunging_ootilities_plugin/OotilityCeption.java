@@ -12,6 +12,7 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.Goo
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionEntities;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
+import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerSlotTypes;
 import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerTemplateGooP;
 import gunging.ootilities.gunging_ootilities_plugin.containers.PersonalContainerGooP;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
@@ -5504,6 +5505,7 @@ public class OotilityCeption {
     public static Location New(Location toCopy) { return new Location(toCopy.getWorld(), toCopy.getX(), toCopy.getY(), toCopy.getZ()); }
     //endregion
 
+    //region Chainbuilder
     /**
      * Will add the separator and the append to the end of this string builder.
      *
@@ -5529,6 +5531,11 @@ public class OotilityCeption {
         }
     }
 
+    public static boolean IsChainedKey(@Nullable String str) {
+
+        return str == null ? false : ("oS:".equalsIgnoreCase(str) || "oS=".equals(str));
+    }
+
     /**
      * Include as a list of slots
      */
@@ -5542,6 +5549,7 @@ public class OotilityCeption {
     }
 
     public static final String comma = ",";
+    //endregion
 
     //region Command Sending
     public static void SendUnparsedConsoleCommand(String command) {
@@ -7056,7 +7064,7 @@ public class OotilityCeption {
 
         return ratt;
     }
-    public static ArrayList<ItemStackSlot> GetInventorySlots(String arg, Player elaborator, RefSimulator<String> logger) {
+    @NotNull public static ArrayList<ItemStackSlot> GetInventorySlots(@NotNull String arg, @NotNull Player elaborator, @Nullable RefSimulator<String> logger) {
         // Will begin with the value to return
         ArrayList<ItemStackSlot> slott = new ArrayList<>();
         String[] slots = new String[] { arg };
@@ -7133,8 +7141,8 @@ public class OotilityCeption {
 
         return GetInvenItem(target, tSlot);
     }
-    public static ItemStackLocation GetInvenItem(Player target, ItemStackSlot tSlot) { return GetInvenItem(target, tSlot, null); }
-    public static ItemStackLocation GetInvenItem(Player target, ItemStackSlot tSlot, String shulkerBoxNameFilter) {
+    @Nullable public static ItemStackLocation GetInvenItem(@NotNull  Player target, @NotNull ItemStackSlot tSlot) { return GetInvenItem(target, tSlot, null); }
+    public static ItemStackLocation GetInvenItem(@NotNull Player target, @NotNull  ItemStackSlot tSlot, String shulkerBoxNameFilter) {
 
         // ItemStack to return
         ItemStack ret = null;
@@ -7145,14 +7153,21 @@ public class OotilityCeption {
         Integer majorSlot;
         boolean succ = true;
 
+        //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Requesting\u00a7b " + tSlot.getLocation().toString() + " #" + slott + "\u00a77 from \u00a7e" + target.getName());
+
         // This function does not accept 'ANY'
-        if (slott == null) { return null; }
+        if (slott == null) {
+            //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Any Reject");
+            return null; }
 
         // Does not accept ranges
-        if (!tSlot.getUpperRange().equals(slott)) { return null; }
+        if (!slott.equals(tSlot.getUpperRange())) {
+            //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Range Reject \u00a7e" + tSlot.getUpperRange());
+            return null; }
 
         switch (tSlot.getLocation()) {
             case INVENTORY:
+                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Inventory SLT");
                 // Is it one of the 36 slots?
                 if (slott >= 0 && slott < 36) { ret = target.getInventory().getItem(slott); }
 
@@ -7178,43 +7193,86 @@ public class OotilityCeption {
                 else if (slott == 100) { ret = target.getInventory().getBoots(); }
 
                 // Must have found smthn
-                if (ret == null) { return null; }
+                if (ret == null) {
+                    //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Slot Not Found");
+                    return null; }
+
+                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Retrieved " + OotilityCeption.GetItemName(ret));
 
                 // Build ISL
                 ratt = new ItemStackLocation(ret, target.getInventory(), slott, SearchLocation.INVENTORY, null);
                 break;
             case ENDERCHEST:
+                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Enderchest SLT");
 
                 // Get from Enderchest, if within range
                 if (slott >= 0 && slott < 27) { ret = target.getEnderChest().getItem(slott); }
 
                 // Must have found smthn
-                if (ret == null) { return null; }
+                if (ret == null) {
+                    //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Slot Not Found");
+                    return null; }
+
+                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Retrieved " + OotilityCeption.GetItemName(ret));
 
                 // Build ISL
                 ratt = new ItemStackLocation(ret, target.getEnderChest(), slott, SearchLocation.ENDERCHEST, null);
                 break;
 
             case OBSERVED_CONTAINER:
+                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 C Observed SLT");
 
                 // Pass on to ContainerTemplateGooP
                 return ContainerTemplateGooP.GetObservedStationItemStack(target.getUniqueId(), slott, null);
 
             case PERSONAL_CONTAINER:
+                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Personal Container SLT");
 
                 // Slot must specify personal
                 if (tSlot.GetPersonalContainer() != null) {
+                    //SINV//Log("\u00a78SLGET\u00a73 PRS\u00a77 At\u00a7f " + tSlot.GetPersonalContainer().getParentTemplate().getInternalName());
 
                     // Get from Enderchest, if within range
-                    if (slott >= 0 && slott < tSlot.GetPersonalContainer().getParentTemplate().getTotalSlotCount()) { ret = tSlot.GetPersonalContainer().GetInventoryItem(target.getUniqueId(), slott); }
+                    if (slott >= 0 && slott < tSlot.GetPersonalContainer().getParentTemplate().getTotalSlotCount()) {
+                        ret = tSlot.GetPersonalContainer().GetInventoryItem(target.getUniqueId(), slott);
+
+                        //SINV//Log("\u00a78SLGET\u00a73 PRS\u00a77 Retrieved " + OotilityCeption.GetItemName(ret));
+                    } else {
+
+                        //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Index Out of Range");
+                        return null;
+                    }
 
                     // Must have found smthn
-                    if (ret == null) { return null; }
+                    if (ret == null) {
+                        //SINV//Log("\u00a78SLGET\u00a73 PRS\u00a77 Searching display slots instaed...");
 
-                    // Build ISL
-                    ratt = new ItemStackLocation(ret, tSlot.GetPersonalContainer(), target.getUniqueId(), slott, SearchLocation.PERSONAL_CONTAINER, null);
+                        // Attempt to get display (only works if under the range)
+                        ret = tSlot.GetPersonalContainer().GetInOpen(target.getUniqueId(), slott);
+
+                        // Attempt to get display (only works if under the range)
+                        if (ret == null) { ret = tSlot.GetPersonalContainer().getParentTemplate().getDefaultContent(slott); }
+
+                        if (ret == null) {
+
+                            //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Item Not Found");
+                            return null;
+
+                        } else {
+
+                            // Build ISL
+                            ratt = new ItemStackLocation(ret, tSlot.GetPersonalContainer(), target.getUniqueId(), slott, SearchLocation.PERSONAL_CONTAINER, null);
+                            ratt.setContainerDisplay(tSlot.GetPersonalContainer().getParentTemplate().getSlotAt(slott).getSlotType() != ContainerSlotTypes.STORAGE);
+                        }
+
+                    } else {
+
+                        // Build ISL
+                        ratt = new ItemStackLocation(ret, tSlot.GetPersonalContainer(), target.getUniqueId(), slott, SearchLocation.PERSONAL_CONTAINER, null);
+                    }
 
                 } else {
+                    //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Invalid Personal Container");
 
                     // Uh nope
                     return null;
@@ -7365,6 +7423,7 @@ public class OotilityCeption {
 
                     // Build ISL
                     ratt = new ItemStackLocation(trueRet, boxx.getInventory(), slott, SearchLocation.SHULKER_OBSERVED_CONTAINER, os);
+                    ratt.setContainerDisplay(os.isContainerDisplay());
 
                 } else {
 
@@ -7388,10 +7447,33 @@ public class OotilityCeption {
 
                     // Get from Enderchest, if within range
                     if (majorSlot >= 0 && majorSlot < tSlot.GetPersonalContainer().getParentTemplate().getTotalSlotCount()) {
-                        ret = tSlot.GetPersonalContainer().GetInventoryItem(target.getUniqueId(), majorSlot); }
+
+                        return null;
+                    }
+
+                    // Yeah that
+                    ret = tSlot.GetPersonalContainer().GetInventoryItem(target.getUniqueId(), majorSlot);
+                    boolean disp = false;
 
                     // Must have found smthn
-                    if (ret == null) { return null; }
+                    if (ret == null) {
+
+                        // Attempt open first
+                        ret = tSlot.GetPersonalContainer().GetInOpen(target.getUniqueId(), majorSlot);
+
+                        // Attempt to get display (only works if under the range)
+                        if (ret == null) { ret = tSlot.GetPersonalContainer().getParentTemplate().getDefaultContent(majorSlot); }
+
+                        if (ret == null) {
+
+                            return null;
+
+                        } else {
+
+                            // Build ISL
+                            disp = tSlot.GetPersonalContainer().getParentTemplate().getSlotAt(majorSlot).getSlotType() != ContainerSlotTypes.STORAGE;
+                        }
+                    }
                     //SLT//OotilityCeption.Log("\u00a76[\u00a78SPC\u00a76]\u00a77 Item found: \u00a7e" + OotilityCeption.GetItemName(ret));
 
                     // Is it a shulker boxx?
@@ -7416,6 +7498,7 @@ public class OotilityCeption {
 
                         // Build ISL
                         ratt = new ItemStackLocation(trueRet, boxx.getInventory(), slott, SearchLocation.SHULKER_PERSONAL_CONTAINER, new ItemStackLocation(ret, tSlot.GetPersonalContainer(), target.getUniqueId(), slott, SearchLocation.PERSONAL_CONTAINER, null));
+                        ratt.setContainerDisplay(disp);
 
                     } else {
 

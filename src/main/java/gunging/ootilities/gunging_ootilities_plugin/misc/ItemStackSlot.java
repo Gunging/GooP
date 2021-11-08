@@ -253,8 +253,8 @@ public class ItemStackSlot {
             ret.add(this);
         }
 
-        //SLOT//OotilityCeption. Log(("\u00a7f--------------- \u00a77Pre Parent Sweep:");
-        //SLOT//for (ItemStackSlot vsvss : ret) { OotilityCeption. Log("  \u00a7f> \u00a7b#" + vsvss.getSlot() + "\u00a77 " + vsvss.getLocation().toString()); }
+        //SLOT//OotilityCeption.Log("\u00a7f--------------- \u00a77Pre Parent Sweep:");
+        //SLOT//for (ItemStackSlot vsvss : ret) { OotilityCeption.Log("  \u00a7f> \u00a7b#" + vsvss.getSlot() + "\u00a77 " + vsvss.getLocation().toString()); }
 
         ArrayList<ItemStackSlot> parentedSweep = new ArrayList<>();
         // Does this have a parent?
@@ -264,7 +264,7 @@ public class ItemStackSlot {
             //Gunging_Ootilities_Plugin.theOots.C PLog("Parent Elaboration: \u00a7b" + ret.size() + "<" + elaboratedParent.size() + "\u00a77; \u00a7e" + slot + "-" + getUpperRange() + "\u00a76<\u00a7e" + getParentSlot().getSlot() + "-" + getParentSlot().getUpperRange());
             ArrayList<ItemStackSlot> elaboratedParent = getParentSlot().Elaborate(forObservedContainer);
 
-            //SLOT//OotilityCeption. Log(("\u00a7f>>>>>>>>>>>>>>> \u00a77Parent Sweep \u00a78<<<<<<<<<<<<<<<");
+            //SLOT//OotilityCeption.Log("\u00a7f>>>>>>>>>>>>>>> \u00a77Parent Sweep \u00a78<<<<<<<<<<<<<<<");
             // Careful evaluation
             if (forObservedContainer != null) {
                  // Time to do the parent sweep yeet
@@ -272,7 +272,7 @@ public class ItemStackSlot {
 
                     // Get target
                     ItemStackLocation oSource = OotilityCeption.GetInvenItem(forObservedContainer, oParent);
-                    //SLOT//OotilityCeption. Log((" \u00a78>\u00a7f> \u00a77Examining \u00a73#" + oParent.getSlot() + "\u00a78 " + oParent.getLocation() + "\u00a77 of \u00a7e" + forObservedContainer.getName());
+                    //SLOT//OotilityCeption.Log(" \u00a78>\u00a7f> \u00a77Examining \u00a73#" + oParent.getSlot() + "\u00a78 " + oParent.getLocation() + "\u00a77 of \u00a7e" + forObservedContainer.getName());
                     //Gunging_Ootilities_Plugin.theOots.C PLog("Observing Parent \u00a7b#" + oParent.getSlot());
 
                     // If existed
@@ -282,11 +282,11 @@ public class ItemStackSlot {
                         // If there actually was a shilker box in there
                         if (!OotilityCeption.IsAirNullAllowed(oSource.getItem())) {
                             //Gunging_Ootilities_Plugin.theOots.C PLog("\u00a7o NonAIR");
-                            //SLOT//OotilityCeption. Log((" \u00a78>\u00a7a> \u00a77Found " + OotilityCeption.GetItemName(oSource.getItem()));
+                            //SLOT//OotilityCeption.Log(" \u00a78>\u00a7a> \u00a77Found " + OotilityCeption.GetItemName(oSource.getItem()));
 
                             // If Shulker
                             if (OotilityCeption.IsShulkerBox(oSource.getItem().getType())) {
-                                //SLOT//OotilityCeption. Log((" \u00a78>\u00a7a> \u00a77Identified as Shulker Box. Elaborating fr...");
+                                //SLOT//OotilityCeption.Log(" \u00a78>\u00a7a> \u00a77Identified as Shulker Box. Elaborating fr...");
                                 // Gunging_Ootilities_Plugin.theOots.C PLog("\u00a7a\u00a7o Shulker Box");
 
                                 // Alr lets re-do it all
@@ -299,17 +299,17 @@ public class ItemStackSlot {
                                     parentedSweep.add(gen);
                                 }
                             } else {
-                                //SLOT//OotilityCeption. Log((" \u00a78>\u00a7c> \u00a77Not a Shulker BOx ");
+                                //SLOT//OotilityCeption.Log(" \u00a78>\u00a7c> \u00a77Not a Shulker BOx ");
                             }
                         } else {
-                            //SLOT//OotilityCeption. Log((" \u00a78>\u00a7c> \u00a77Not an Item ");
+                            //SLOT//OotilityCeption.Log(" \u00a78>\u00a7c> \u00a77Not an Item ");
                         }
                     }
                 }
 
             // If no player is provided, will give the raw full arrays.
             } else {
-                //SLOT//OotilityCeption. Log((" \u00a78>\u00a7f>\u00a7e> \u00a77\u00a77lFull Sweep ");
+                //SLOT//OotilityCeption.Log(" \u00a78>\u00a7f>\u00a7e> \u00a77\u00a77lFull Sweep ");
 
                 // Time to do the FULL parent sweep yoot
                 for (ItemStackSlot oParent : elaboratedParent) {
@@ -323,8 +323,8 @@ public class ItemStackSlot {
                 }
             }
 
-            //SLOT//OotilityCeption. Log(("\u00a78--------------- \u00a77Post Parent Sweep:");
-            //SLOT//for (ItemStackSlot vsvss : parentedSweep) { OotilityCeption. Log("  \u00a78> \u00a7b#" + vsvss.getSlot() + "\u00a77 " + vsvss.getLocation().toString() + "\u00a78< \u00a73#" + vsvss.getParentSlot().getSlot() + "\u00a78 " + vsvss.getParentSlot().getLocation() ); }
+            //SLOT//OotilityCeption.Log("\u00a78--------------- \u00a77Post Parent Sweep:");
+            //SLOT//for (ItemStackSlot vsvss : parentedSweep) { OotilityCeption.Log("  \u00a78> \u00a7b#" + vsvss.getSlot() + "\u00a77 " + vsvss.getLocation().toString() + "\u00a78< \u00a73#" + vsvss.getParentSlot().getSlot() + "\u00a78 " + vsvss.getParentSlot().getLocation() ); }
 
             // Return the sweep result
             return parentedSweep;

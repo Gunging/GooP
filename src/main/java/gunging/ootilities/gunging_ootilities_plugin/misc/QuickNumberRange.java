@@ -2,6 +2,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc;
 
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import org.bukkit.ChatColor;
+import org.jetbrains.annotations.Nullable;
 
 public class QuickNumberRange {
 
@@ -28,8 +29,9 @@ public class QuickNumberRange {
      *      Obviously, [m] is the minimum, and [M] the maximum; And supports them not being specified.
      * @return NULL if incorrect format
      */
-    public static QuickNumberRange FromString(String fromString) {
+    @Nullable public static QuickNumberRange FromString(@Nullable String fromString) {
         //OotilityCeption. Log("Getting Range From \u00a79" + fromString);
+        if (fromString == null) { return null; }
 
         // Number itself? So its basically an EXACTLY this value, I'll allow it.
         if (OotilityCeption.DoubleTryParse(fromString)) {
@@ -194,7 +196,7 @@ public class QuickNumberRange {
     public String qrToString() {
 
         // Simple?
-        if (isSimple()) { return "\u00a7b" + getMaximumInclusive(); }
+        if (isSimple()) { return String.valueOf(getMaximumInclusive()); }
 
         // Get
         String minn = "-∞"; String maxn = "∞";
@@ -202,6 +204,6 @@ public class QuickNumberRange {
         if (hasMax()) { maxn = String.valueOf(getMaximumInclusive()); }
 
         // Build
-        return "\u00a7b" + minn + "\u00a77-\u00a7b" + maxn;
+        return minn + "—" + maxn;
     }
 }

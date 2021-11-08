@@ -69,10 +69,10 @@ public class PlusMinusPercent {
     public static PlusMinusPercent GetPMP(String arg, RefSimulator<String> logger) {
         OotilityCeption oots = new OotilityCeption();
 
-        Boolean relativity = false;
-        Boolean multiplicativity = false;
-        Double positivity = 1.0;
-        Double value = 0.0;
+        boolean relativity = false;
+        boolean multiplicativity = false;
+        double positivity = 1.0;
+        double value = 0.0;
 
         String unsignedArg = arg;
 
@@ -113,7 +113,7 @@ public class PlusMinusPercent {
         StringBuilder str = new StringBuilder("");
 
         // Relative?
-        if (getRelative() && !getMultiplyInstead()) {
+        if (getRelative()) {
 
             // n or no prefix?
             if (getValue() < 0) { str.append('-'); } else { str.append('+'); }

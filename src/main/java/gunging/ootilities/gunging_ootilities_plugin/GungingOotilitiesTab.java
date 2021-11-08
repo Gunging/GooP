@@ -127,7 +127,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                 //OST//for (int a = 0; a < args.length; a++) {  OotilityCeption.Log("\u00a78[\u00a7b" + (a) + "\u00a78]\u00a73- \u00a77" + args[a]); }
 
                 // Find the last onSuccess
-                String croppedCommand = null;   // Starts at args.length-2 so that it doesnt count stuff ending in oS: as a chained command, this begins after the space.
+                String croppedCommand = null;   // Starts at args.length-2 so that it doesnt count stuff ending in oS= as a chained command, this begins after the space.
                 boolean sp = args[args.length-1].length() == 0;
                 for (int i = args.length - 2; i >= 0; i--) {
 
@@ -136,7 +136,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                     //OST//OotilityCeption.Log("\u00a78Arg \u00a7e#" + i + "\u00a77 " + obs);
 
                     // Is it onSuccess?
-                    if (obs.equalsIgnoreCase("oS:")) {
+                    if (OotilityCeption.IsChainedKey(obs)) {
                         //OST//OotilityCeption.Log("\u00a7b    + \u00a77Identified as chaining arg");
 
                         // Will get all args after thay
@@ -564,6 +564,10 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                         switch (args.length) {
                             case 2:
+                                tabM.add("sff");
+                                tabM.add("ssf");
+                                tabM.add("sf");
+                                tabM.add("sendFeedback");
                                 tabM.add("sendSuccessFeedback");
                                 tabM.add("sendFailFeedback");
                                 tabM.add("blockErrorFeedback");
@@ -645,7 +649,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                         switch (args.length) {
                                             case 3:
-                                                Collections.addAll(tabM, "true", "false");
+                                                Collections.addAll(tabM, "true", "false", "(also-count-empty?)");
                                                 break;
                                             case 4:
                                                 tabM = null;
@@ -654,6 +658,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand");
                                                 break;
                                             case 6:
+                                                Collections.addAll(tabM, "2..6", "1..", "4..", "..30");
+                                            case 7:
                                                 scoreboardManager = Bukkit.getScoreboardManager();
                                                 scoreboard = scoreboardManager.getMainScoreboard();
 
@@ -688,10 +694,14 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
                                                 break;
                                             case 5:
-                                                Collections.addAll(tabM,"random", "none", "sharp", "lucky", "fiery", "chilling");
+                                                Collections.addAll(tabM,"random", "none");
+                                                tabM.addAll(GooPMMOItems.getGlobalModifierNames());
                                                 break;
                                             case 6:
-                                                Collections.addAll(tabM,"(use global modifiers?)", "true", "false");
+                                                Collections.addAll(tabM,"true", "false", "(use-global-modifiers?)");
+                                                break;
+                                            case 7:
+                                                Collections.addAll(tabM,"true", "false", "(use-modifier-chances?)");
                                                 break;
                                             default: break;
                                         }
@@ -713,13 +723,22 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
                                                 break;
                                             case 6:
-                                                Collections.addAll(tabM, "+5", "n3", "-8", "+30%", "140%", "-10%");
+                                                Collections.addAll(tabM, "read", "+5", "n3", "-8", "+30%", "140%", "-10%", "true", "false", "toggle", "Rogue", "-Cleric", "-all");
                                                 break;
                                             case 7:
+                                                Collections.addAll(tabM, "2..3", "10..", "..-3", "Uncolored", "true", "false", "Rogue", "3..");
                                                 scoreboardManager = Bukkit.getScoreboardManager();
                                                 scoreboard = scoreboardManager.getMainScoreboard();
                                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                                 break;
+                                            case 8:
+                                                scoreboardManager = Bukkit.getScoreboardManager();
+                                                scoreboard = scoreboardManager.getMainScoreboard();
+                                                for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
+                                                Collections.addAll(tabM, "read", "+5", "n3", "-8", "+30%", "140%", "-10%");
+                                                break;
+                                            case 9:
+                                            Collections.addAll(tabM, "read", "+5", "n3", "-8", "+30%", "140%", "-10%");
                                             default: break;
                                         }
 
@@ -738,6 +757,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 break;
                                             case 5:
                                                 tabM.addAll(GooPMMOItems.GetTierNames());
+                                                tabM.add("none");
                                                 break;
                                             default: break;
                                         }
@@ -756,24 +776,39 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
                                                 break;
                                             case 5:
-                                                Collections.addAll(tabM, "true", "false");
+                                                Collections.addAll(tabM, "true", "false", "(reroll-rng-stats?)");
                                                 break;
-                                            case 6:
-                                            case 7:
-                                            case 8:
-                                            case 9:
-                                            case 10:
-                                            case 11:
-                                            case 12:
-                                                Collections.addAll(tabM, "keepName", "keepLore", "keepEnchantments", "keepUpgrades", "keepGemstones", "keepSoulbound", "keepExternalSH", "keepModifiers", "keepSkins", "skin", "mod", "name", "lore", "ench", "upgr", "gems", "soul", "exsh", "aenc");
+                                            default:
+                                                boolean name = false, lore = false, ench = false, upgr = false, gems = false, soul = false, exsh = false, mods = false, skin = false;
+                                                for (int i = 5; i < args.length; i++) {
+                                                    String str = args[i].toLowerCase();
+                                                    if (str.contains("name")) { name = true; }
+                                                    if (str.contains("lore")) { lore = true; }
+                                                    if (str.contains("ench")) { ench = true; }
+                                                    if (str.contains("upgr")) { upgr = true; }
+                                                    if (str.contains("gems")) { gems = true; }
+                                                    if (str.contains("soul")) { soul = true; }
+                                                    if (str.contains("skin")) { skin = true; }
+                                                    if (str.contains("ex") && str.contains("sh")) { exsh = true; }
+                                                    if (str.contains("mod")) { mods = true; }
+                                                }
+
+                                                if (!name) { Collections.addAll(tabM, "name", "keepName"); }
+                                                if (!lore) { Collections.addAll(tabM, "lore", "keepLore"); }
+                                                if (!ench) { Collections.addAll(tabM, "ench", "keepEnchantments"); }
+                                                if (!upgr) { Collections.addAll(tabM, "upgr", "keepUpgrades"); }
+                                                if (!gems) { Collections.addAll(tabM, "gems", "keepGems"); }
+                                                if (!soul) { Collections.addAll(tabM, "soul", "keepSoulbound"); }
+                                                if (!exsh) { Collections.addAll(tabM, "exsh", "keepExternalSH"); }
+                                                if (!mods) { Collections.addAll(tabM, "mods", "keepModifiers"); }
+                                                if (!skin) { Collections.addAll(tabM, "skin", "keepSkin"); }
                                                 break;
-                                            default: break;
                                         }
                                         break;
                                     case "upgrade":
-                                        //   0       1     2         3       4          5             6             7               args.Length
-                                        // /goop mmoitems upgrade <player> <slot> [±]<levels>[%] [objective] [±][objective][%]
-                                        //   -       0     1         2       3          4             5             6               args[n]
+                                        //   0       1     2         3       4          5             6           7              8            args.Length
+                                        // /goop mmoitems upgrade <player> <slot> [±]<levels>[%] [break max] [objective] [±][score][%]
+                                        //   -       0     1         2       3          4             5           6              7            args[n]
 
                                         switch (args.length) {
                                             case 3:
@@ -786,7 +821,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 Collections.addAll(tabM, "1", "2", "3", "n2", "-1", "+4");
                                                 break;
                                             case 6:
-                                                Collections.addAll(tabM, "true", "false");
+                                                Collections.addAll(tabM, "true", "false", "(break-max-upgrades?)");
                                                 break;
                                             case 7:
                                                 scoreboardManager = Bukkit.getScoreboardManager();
@@ -795,7 +830,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                                 break;
                                             case 8:
-                                                Collections.addAll(tabM, "-1", "0", "1", "8", "-12");
+                                                Collections.addAll(tabM,"level", "0", "+1", "8", "-12", "n3");
                                                 break;
                                             default: break;
                                         }
@@ -2919,7 +2954,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
                                                 break;
                                             case 6:
-                                                Collections.addAll(tabM, "1", "2", "3", "4", "5", "6", "+5", "n3", "-8", "+30%", "140%", "-10%");
+                                                Collections.addAll(tabM, "amount", "1", "2", "3", "4", "5", "6", "+5", "n3", "-8", "+30%", "140%", "-10%");
                                                 break;
                                             default: break;
                                         }
@@ -3013,13 +3048,13 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = GooPUnlockables.GetKnownGoals();
                                             break;
                                         case 5:
-                                            Collections.addAll(tabM, "true", "+5", "n3", "-8", "+30%", "140%", "-10%", "2.5", "3.2");
+                                            Collections.addAll(tabM, "(value)", "true", "+5", "n3", "-8", "+30%", "140%", "-10%", "2.5", "3.2");
                                             break;
                                         case 6:
-                                            Collections.addAll(tabM, "true", "false");
+                                            Collections.addAll(tabM, "(override-timer?)", "true", "false");
                                             break;
                                         case 7:
-                                            Collections.addAll(tabM, "20s", "120s", "5m" ,"72h", "180d", "1y");
+                                            Collections.addAll(tabM, "(timer)", "20s", "120s", "5m" ,"72h", "180d", "1y");
                                             break;
                                         default: break;
                                     }

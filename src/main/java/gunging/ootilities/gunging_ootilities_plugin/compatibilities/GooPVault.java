@@ -1,16 +1,18 @@
 package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 
-import gunging.ootilities.gunging_ootilities_plugin.GungingOotilities;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
-import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.misc.PlusMinusPercent;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 public class GooPVault {
+
+    public static void CompatibilityCheck() { Economy snooze = null; }
 
     public static Economy econ = null;
     public Economy getEcon() { return econ; }
@@ -19,12 +21,19 @@ public class GooPVault {
     public boolean SetupEconomy(Server srv) {
 
         // Fail by missing vault
-        if (srv.getPluginManager().getPlugin("Vault") == null) { return false; }
-        if (!srv.getPluginManager().getPlugin("Vault").isEnabled()) { return false; }
+        Plugin vault = srv.getPluginManager().getPlugin("Vault");
+        if (vault == null) {
+            Gunging_Ootilities_Plugin.theOots.CPLog(ChatColor.GRAY + "Interrupted -\u00a7c Unloaded");
+            return false; }
+        if (!vault.isEnabled()) {
+            Gunging_Ootilities_Plugin.theOots.CPLog(ChatColor.GRAY + "Interrupted -\u00a7c Disabled");
+            return false; }
 
         // Fail due to invalid economy registration
         RegisteredServiceProvider<Economy> rsp = srv.getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) { return false; }
+        if (rsp == null) {
+            Gunging_Ootilities_Plugin.theOots.CPLog(ChatColor.GRAY + "Interrupted -\u00a7c Unregistered");
+            return false; }
 
         //Final
         econ = rsp.getProvider();

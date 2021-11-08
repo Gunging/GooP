@@ -10,20 +10,21 @@ import io.lumine.xikage.mythicmobs.skills.ITargetedLocationSkill;
 import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
 import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderFloat;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Random;
 
 public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySkill, ITargetedLocationSkill {
-    @NotNull final PlaceholderFloat arcFraction;
-    final boolean horizontal;
+    @NotNull final PlaceholderFloat arc, points;
+    final boolean horizontal, randomPoints;
 
     public ParticleSlashEffect(String skill, MythicLineConfig mlc) {
         super(skill, mlc);
-        this.arcFraction = mlc.getPlaceholderFloat(new String[]{"arc", "a"}, 6F);
+        this.arc = mlc.getPlaceholderFloat(new String[]{"arc", "a"}, 6F);
+        this.points = mlc.getPlaceholderFloat(new String[]{"points", "p"}, 12F);
         this.horizontal = mlc.getBoolean(new String[]{"horizontal", "h", "isHorizontal", "ih"}, true);
+        this.randomPoints = mlc.getBoolean(new String[]{"randomPoints", "rP"}, true);
 
         //MM//OotilityCeption.Log("\u00a78PSlash\u00a7a L\u00a77 Loaded Particle Slash, Horizontal?\u00a7b" + horizontal);
     }
@@ -48,12 +49,25 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
         // Calculate some
         Random random = new Random(System.nanoTime());
         int amount = this.amount.get(data);
-        double arc = ((2.0D * 3.141592653589793D) / arcFraction.get(data));
+        double circumference = toRadians(this.arc.get(data));
+        double pointsTotal = Math.ceil(this.points.get(data));
+        double fraction = circumference / pointsTotal;
+        double b = fraction * 0.5;
 
-        for(int i = 0; i < amount; ++i) {
+        for(double i = 0; i < pointsTotal; i++) {
 
             // Get a random location along the arc
-            double rnd = (random.nextDouble() - 0.5D) * arc;
+            double rnd;
+
+            // Funny random arc stuff
+            if (randomPoints) {
+                rnd = (random.nextDouble() - 0.5D) * circumference;
+
+            // Chad even distribution
+            } else {
+                rnd = b + i * fraction;
+            }
+
             double x = Math.sin(rnd); double y = x;
             double z = Math.cos(rnd);
             if (horizontal) { y = 0; } else { x = 0; }

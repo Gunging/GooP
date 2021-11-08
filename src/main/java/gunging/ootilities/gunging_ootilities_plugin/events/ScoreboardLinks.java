@@ -89,6 +89,9 @@ public class ScoreboardLinks implements Listener {
         // Who was the true damager?
         Entity trueDamager = event.getDamager();
 
+        // How tf is this event being sent then? Nonliving entities can suffer no damage.
+        if (!(event.getEntity() instanceof LivingEntity)) { return; }
+
         //region Get True Damager
         if (event.getDamager() instanceof Projectile) {
 

@@ -12,6 +12,7 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.FileConfigPair;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ListPlaceholder;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.*;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplaceholders.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
@@ -30,6 +31,8 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import io.lumine.xikage.mythicmobs.skills.Skill;
 import io.lumine.xikage.mythicmobs.skills.SkillTrigger;
 import io.lumine.xikage.mythicmobs.skills.placeholders.Placeholder;
+import io.lumine.xikage.mythicmobs.skills.placeholders.PlaceholderManager;
+import io.lumine.xikage.mythicmobs.util.jnbt.CompoundTag;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -45,428 +48,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class GooPMythicMobs implements Listener {
-
-    public GooPMythicMobs() { }
-
-    @SuppressWarnings("unused")
+    public GooPMythicMobs() {}
     public void CompatibilityCheck() { MythicMob mbb = null; }
-
-    public static ArrayList<String> GetMythicMobTypes() {
-
-        ArrayList<String> ret = new ArrayList<>();
-
-        for (MythicMob mb : MythicMobs.inst().getMobManager().getMobTypes()) { ret.add(mb.getInternalName()); }
-
-        return ret;
-    }
-
-    public static void ReloadListPlaceholders(OotilityCeption oots) {
-
-        // If there were no parsing errors
-        if (Gunging_Ootilities_Plugin.theMain.listPlaceholderPair != null) {
-
-            // Clear lists
-            ListPlaceholder.loadedListPlaceholders = new HashMap<>();
-
-            // Read the file yeet
-            FileConfigPair ofgPair = Gunging_Ootilities_Plugin.theMain.listPlaceholderPair;
-            YamlConfiguration ofgStorage = ofgPair.getStorage();
-
-            // Log da shit
-            for(Map.Entry<String, Object> val : (ofgStorage.getValues(false)).entrySet()){
-
-                // Get LPH Name
-                String tName = val.getKey();
-
-                // If not yet registered
-                if (ListPlaceholder.Get(tName) == null) {
-
-                    // Get Absolute List
-                    List<String> rawList = ofgStorage.getStringList(tName);
-
-                    // If long enough
-                    if (rawList.size() > 0) {
-
-                        // Create
-                        ListPlaceholder nLPH = new ListPlaceholder(tName, new ArrayList<>(rawList));
-
-                        // Load
-                        ListPlaceholder.Load(nLPH);
-
-                    } else {
-
-                        // Notify
-                        oots.CLog(OotilityCeption.LogFormat("List Placeholders","Error when loading LPH '\u00a73" + tName + "\u00a77': This list is empty"));
-                    }
-
-                } else {
-
-                    // Notify
-                    oots.CLog(OotilityCeption.LogFormat("List Placeholders","Error when loading LPH '\u00a73" + tName + "\u00a77': There is already an LPH with that name!"));
-                }
-            }
-        }
-    }
-
-    public static void RegisterPlaceholders(boolean withMMOItems) {
-
-        // Register OnApply Placeholder
-        MythicMobs.inst().getPlaceholderManager().register("goop.slot", Placeholder.meta((metadata, arg) -> {
-
-            // If valid
-            if (arg == null) { return "{missing slot name}"; }
-
-            // For now, only <goop.slot.provided> is valid
-            if (arg.toLowerCase().equals("provided")) {
-
-                if (GungingOotilities.providedSlot.containsKey(metadata.getCaster().getEntity().getUniqueId())) {
-
-                    return String.valueOf(GungingOotilities.providedSlot.get(metadata.getCaster().getEntity().getUniqueId()));
-
-                } else { return "Invalid Entity"; }
-
-            } else { return "Invalid Slot"; }
-            // Ok
-        }));
-
-        // Register Bow Draw Placeholder
-        MythicMobs.inst().getPlaceholderManager().register("goop.bowdraw", Placeholder.meta((metadata, arg) -> {
-
-            // If valid
-            if (arg == null) { return "{missing caster/trigger arg}"; }
-
-            // <goop.bowdraw.caster> To get last amount of bow drawin the caster did
-            if (arg.toLowerCase().equals("caster")) {
-
-                // Get or default
-                Float f = XBow_Rockets.bowDrawForce.get(metadata.getCaster().getEntity().getUniqueId());
-                if (f == null) { f = 0F; }
-
-                return OotilityCeption.RemoveDecimalZeros(String.valueOf(f));
-
-                // <goop.bowdraw.trigger> To get last amount of bow drawing the trigger did
-            } else if (arg.toLowerCase().equals("trigger")) {
-
-                if (XBow_Rockets.bowDrawForce.containsKey(metadata.getTrigger().getUniqueId())) {
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(XBow_Rockets.bowDrawForce.get(metadata.getCaster().getEntity().getUniqueId())));
-
-                } else { return "00"; }
-
-            } else { return "000"; }
-        }));
-
-        // List placeholders
-        MythicMobs.inst().getPlaceholderManager().register("goop.ordered", Placeholder.meta((metadata, arg) -> {
-
-            // If valid
-            if (arg == null) { return "{missing list name}"; }
-
-            // Strip ordered index
-            int lastDot = arg.lastIndexOf('.');
-            int orderedIndex = 0;
-
-            // If there was a dot
-            if (lastDot > 0 && arg.length() > (lastDot + 1)) {
-
-                // Crop
-                String postdot = arg.substring(lastDot + 1);
-
-                // Does it parse
-                if (OotilityCeption.IntTryParse(postdot)) {
-
-                    // Store ordered index
-                    orderedIndex = OotilityCeption.ParseInt(postdot);
-
-                    // Crop
-                    arg = arg.substring(0, lastDot);
-                }
-            }
-
-            // Get List
-            ListPlaceholder lph = ListPlaceholder.Get(arg);
-
-            // Did it exist?
-            if (lph != null) {
-
-                // Well return the next balue-yo!
-                return lph.NextListItem(orderedIndex);
-
-            } else {
-
-                // Invalid list
-                return "Invalid List of Name '" + arg + "'";
-            }
-
-        }));
-
-        // List placeholders
-        MythicMobs.inst().getPlaceholderManager().register("goop.random", Placeholder.meta((metadata, arg) -> {
-
-            // If valid
-            if (arg == null) { return "{missing list name}"; }
-
-            // Get List
-            ListPlaceholder lph = ListPlaceholder.Get(arg);
-
-            // Did it exist?
-            if (lph != null) {
-
-                // Well return the next balue-yo!
-                return lph.RandomListItem();
-
-            } else {
-
-                // Invalid list
-                return "Invalid List of Name '" + arg + "'";
-            }
-
-
-        }));
-
-        // List placeholders
-        MythicMobs.inst().getPlaceholderManager().register("goop.font", Placeholder.meta((metadata, arg) -> {
-
-            // If valid
-            if (arg == null) { return "{missing font code}"; }
-
-            // Get Code
-            String code = GooP_FontUtils.CodeFrom(arg);
-
-            // Wasit?
-            if (code != null) { return code; }
-            else { return "{invalid code}"; }
-        }));
-
-        // List placeholders
-        MythicMobs.inst().getPlaceholderManager().register("goop.dynamic", Placeholder.meta((metadata, arg) -> {
-
-            // If valid
-            if (arg == null) { return "{missing dynamic code}"; }
-
-            // Get From Caster
-            String value = ValueFromDynamic(metadata.getCaster().getEntity().getUniqueId(), arg);
-            if (value == null) { value = ""; }
-
-            // Return thay
-            return value;
-
-        }));
-
-        // List placeholders
-        MythicMobs.inst().getPlaceholderManager().register("goop.owner", Placeholder.meta((metadata, arg) -> {
-
-            // Attempt to get owner
-            Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
-            if (tPlayer == null) { return "null"; }
-
-            // Return their ID easy alv
-            if (arg == null) { return tPlayer.getUniqueId().toString(); }
-
-            // Get From Caster
-            switch (arg) {
-                case "name": return tPlayer.getName();
-                case "distance": return String.valueOf(tPlayer.getLocation().distance(metadata.getCaster().getEntity().getBukkitEntity().getLocation()));
-                case "x": return String.valueOf(tPlayer.getLocation().getX());
-                case "y": return String.valueOf(tPlayer.getLocation().getY());
-                case "z": return String.valueOf(tPlayer.getLocation().getZ());
-                case "w": return String.valueOf(tPlayer.getLocation().getWorld());
-                case "health": return (tPlayer instanceof LivingEntity) ? String.valueOf(((LivingEntity) tPlayer).getHealth()) : "0";
-                case "max_health": return (tPlayer instanceof LivingEntity) ? String.valueOf(((LivingEntity) tPlayer).getAttribute(Attribute.GENERIC_MAX_HEALTH)) : "0";
-            }
-
-            // Return thay
-            return tPlayer.getUniqueId().toString();
-
-        }));
-
-        MythicMobs.inst().getPlaceholderManager().register("goop.ownerpapi", Placeholder.meta((metadata, arg) -> {
-            // If valid
-            if (arg == null) { return "{missing placeholder name}"; }
-            if (!Gunging_Ootilities_Plugin.foundPlaceholderAPI) { return "00.000"; }
-
-            // Get Player
-            Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
-
-            if (tPlayer != null) {
-
-                // Not a player
-                if (tPlayer instanceof Player) {
-
-                    // A value to return
-                    return OotilityCeption.RemoveDecimalZeros(GooPPlaceholderAPI.Parse((Player) tPlayer, "%" + arg + "%"));
-
-                    // Zero I guess
-                } else { return "000"; }
-
-            } else { return "0000"; }
-
-        }));
-
-        // Ok so iof mmoitems loaded
-        if (withMMOItems) {
-
-            //region Register Cummulative Placeholders
-            MythicMobs.inst().getPlaceholderManager().register("goop.castermmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mmostat name}"; }
-
-                // Get Player
-                Player tPlayer = Bukkit.getPlayer(metadata.getCaster().getEntity().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // A value to return
-                    Double result = GooPMMOLib.CDoubleStat(tPlayer, arg);
-
-                    // Adjust
-                    if (result == null) { return "00"; }
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                } else { return "0000"; }
-
-            }));
-
-            MythicMobs.inst().getPlaceholderManager().register("goop.ownermmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mmostat name}"; }
-
-                // Get Player
-                Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // Not a player
-                    if (tPlayer instanceof Player) {
-
-                        // A value to return
-                        Double result = GooPMMOLib.CDoubleStat((Player) tPlayer, arg);
-
-                        // Adjust
-                        if (result == null) { return "00"; }
-
-                        return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                    // Zero I guess
-                    } else { return "000"; }
-
-                } else { return "0000"; }
-
-            }));
-
-            MythicMobs.inst().getPlaceholderManager().register("goop.triggermmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mmostat name}"; }
-
-                // Get Player
-                Player tPlayer = Bukkit.getPlayer(metadata.getTrigger().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // A value to return
-                    Double result = GooPMMOLib.CDoubleStat(tPlayer, arg);
-
-                    // Adjust
-                    if (result == null) { return "00"; }
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                } else { return "0.¿000"; }
-
-            }));
-            //endregion
-        }
-
-        // With McMMO?
-        if (Gunging_Ootilities_Plugin.foundMCMMO) {
-
-            MythicMobs.inst().getPlaceholderManager().register("goop.castermcmmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mcmmostat name}"; }
-
-                // Get Player
-                Player tPlayer = Bukkit.getPlayer(metadata.getCaster().getEntity().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // A value to return
-                    Double result = GooPMCMMO.MCMMODoubleStat(tPlayer, arg);
-
-                    // Adjust
-                    if (result == null) { return "00"; }
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                } else { return "0000"; }
-
-            }));
-
-            MythicMobs.inst().getPlaceholderManager().register("goop.ownermcmmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mcmmostat name}"; }
-
-                // Get Player
-                Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    if (tPlayer instanceof Player) {
-
-                        // A value to return
-                        Double result = GooPMCMMO.MCMMODoubleStat((Player) tPlayer, arg);
-
-                        // Adjust
-                        if (result == null) { return "00"; }
-
-                        return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                    } else { return "000"; }
-
-                } else { return "0000"; }
-
-            }));
-
-            MythicMobs.inst().getPlaceholderManager().register("goop.triggermcmmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mcmmostat name}"; }
-
-                // Get Player
-                Player tPlayer = Bukkit.getPlayer(metadata.getTrigger().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // A value to return
-                    Double result = GooPMCMMO.MCMMODoubleStat(tPlayer, arg);
-
-                    // Adjust
-                    if (result == null) { return "00"; }
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                } else { return "0000"; }
-
-            }));
-        }
-    }
-
-    /**
-     * @param name Name of the mythic item in files
-     * @return The mythic item of this name if it exists
-     */
-    @Nullable public static ItemStack getMythicItem(@Nullable String name) {
-        if (name == null) { return null; }
-
-        // All right
-        Optional<MythicItem> hasMythicItem = MythicMobs.inst().getItemManager().getItem(name);
-
-        // Cancel present
-        if (!hasMythicItem.isPresent()) { return null; }
-
-        // Yeah just that I guess
-        return ((BukkitItemStack)((MythicItem)hasMythicItem.get()).generateItemStack(1)).build();
-    }
 
     @EventHandler
     public void OnRegisterCustomMechanics(MythicMechanicLoadEvent event) {
@@ -582,6 +167,340 @@ public class GooPMythicMobs implements Listener {
             default: break;
         }
     }
+    @EventHandler
+    public void OnMMReload(MythicReloadedEvent event) {
+
+        // Re-register I guess
+        RegisterPlaceholders(Gunging_Ootilities_Plugin.foundMMOItems);
+    }
+
+    public static ArrayList<String> GetMythicMobTypes() {
+
+        ArrayList<String> ret = new ArrayList<>();
+
+        for (MythicMob mb : MythicMobs.inst().getMobManager().getMobTypes()) { ret.add(mb.getInternalName()); }
+
+        return ret;
+    }
+    public static void ReloadListPlaceholders(OotilityCeption oots) {
+
+        // If there were no parsing errors
+        if (Gunging_Ootilities_Plugin.theMain.listPlaceholderPair != null) {
+
+            // Clear lists
+            ListPlaceholder.loadedListPlaceholders = new HashMap<>();
+
+            // Read the file yeet
+            FileConfigPair ofgPair = Gunging_Ootilities_Plugin.theMain.listPlaceholderPair;
+            YamlConfiguration ofgStorage = ofgPair.getStorage();
+
+            // Log da shit
+            for(Map.Entry<String, Object> val : (ofgStorage.getValues(false)).entrySet()){
+
+                // Get LPH Name
+                String tName = val.getKey();
+
+                // If not yet registered
+                if (ListPlaceholder.Get(tName) == null) {
+
+                    // Get Absolute List
+                    List<String> rawList = ofgStorage.getStringList(tName);
+
+                    // If long enough
+                    if (rawList.size() > 0) {
+
+                        // Create
+                        ListPlaceholder nLPH = new ListPlaceholder(tName, new ArrayList<>(rawList));
+
+                        // Load
+                        ListPlaceholder.Load(nLPH);
+
+                    } else {
+
+                        // Notify
+                        oots.CLog(OotilityCeption.LogFormat("List Placeholders","Error when loading LPH '\u00a73" + tName + "\u00a77': This list is empty"));
+                    }
+
+                } else {
+
+                    // Notify
+                    oots.CLog(OotilityCeption.LogFormat("List Placeholders","Error when loading LPH '\u00a73" + tName + "\u00a77': There is already an LPH with that name!"));
+                }
+            }
+        }
+    }
+    public static void RegisterPlaceholders(boolean withMMOItems) {
+        PlaceholderManager phm = MythicMobs.inst().getPlaceholderManager();
+
+        // Register OnApply Placeholder
+        phm.register("goop.slot", MMPHSlot.getInst());
+
+        // Register Bow Draw Placeholder
+        phm.register("goop.bowdraw", MMPHBowdraw.getInst());
+
+        // List placeholders
+        phm.register("goop.ordered", MMPHOrdered.getInst());
+
+        // List placeholders
+        phm.register("goop.random", MMPHRandom.getInst());
+
+        // Projectile oriented ones
+        phm.register("goop.projectile", MMPHProjectile.getInst());
+
+        // List placeholders
+        phm.register("goop.font", Placeholder.meta((metadata, arg) -> {
+
+            // If valid
+            if (arg == null) { return "{missing font code}"; }
+
+            // Get Code
+            String code = GooP_FontUtils.CodeFrom(arg);
+
+            // Wasit?
+            if (code != null) { return code; }
+            else { return "{invalid code}"; }
+        }));
+
+        // List placeholders
+        phm.register("goop.dynamic", Placeholder.meta((metadata, arg) -> {
+
+            // If valid
+            if (arg == null) { return "{missing dynamic code}"; }
+
+            // Get From Caster
+            String value = ValueFromDynamic(metadata.getCaster().getEntity().getUniqueId(), arg);
+            if (value == null) { value = ""; }
+
+            // Return thay
+            return value;
+
+        }));
+
+        // List placeholders
+        phm.register("goop.owner", Placeholder.meta((metadata, arg) -> {
+
+            // Attempt to get owner
+            Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
+            if (tPlayer == null) { return "null"; }
+
+            // Return their ID easy alv
+            if (arg == null) { return tPlayer.getUniqueId().toString(); }
+
+            // Get From Caster
+            switch (arg) {
+                case "name": return tPlayer.getName();
+                case "distance": return String.valueOf(tPlayer.getLocation().distance(metadata.getCaster().getEntity().getBukkitEntity().getLocation()));
+                case "x": return String.valueOf(tPlayer.getLocation().getX());
+                case "y": return String.valueOf(tPlayer.getLocation().getY());
+                case "z": return String.valueOf(tPlayer.getLocation().getZ());
+                case "w": return String.valueOf(tPlayer.getLocation().getWorld());
+                case "health": return (tPlayer instanceof LivingEntity) ? String.valueOf(((LivingEntity) tPlayer).getHealth()) : "0";
+                case "max_health": return (tPlayer instanceof LivingEntity) ? String.valueOf(((LivingEntity) tPlayer).getAttribute(Attribute.GENERIC_MAX_HEALTH)) : "0";
+            }
+
+            // Return thay
+            return tPlayer.getUniqueId().toString();
+
+        }));
+
+        phm.register("goop.ownerpapi", Placeholder.meta((metadata, arg) -> {
+            // If valid
+            if (arg == null) { return "{missing placeholder name}"; }
+            if (!Gunging_Ootilities_Plugin.foundPlaceholderAPI) { return "00.000"; }
+
+            // Get Player
+            Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
+
+            if (tPlayer != null) {
+
+                // Not a player
+                if (tPlayer instanceof Player) {
+
+                    // A value to return
+                    return OotilityCeption.RemoveDecimalZeros(GooPPlaceholderAPI.Parse((Player) tPlayer, "%" + arg + "%"));
+
+                    // Zero I guess
+                } else { return "000"; }
+
+            } else { return "0000"; }
+
+        }));
+
+        // Ok so iof mmoitems loaded
+        if (withMMOItems) {
+
+            //region Register Cummulative Placeholders
+            phm.register("goop.castermmostat", Placeholder.meta((metadata, arg) -> {
+                // If valid
+                if (arg == null) { return "{missing mmostat name}"; }
+
+                // Get Player
+                Player tPlayer = Bukkit.getPlayer(metadata.getCaster().getEntity().getUniqueId());
+
+                if (tPlayer != null) {
+
+                    // A value to return
+                    Double result = GooPMMOLib.CDoubleStat(tPlayer, arg);
+
+                    // Adjust
+                    if (result == null) { return "00"; }
+
+                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
+
+                } else { return "0000"; }
+
+            }));
+
+            phm.register("goop.ownermmostat", Placeholder.meta((metadata, arg) -> {
+                // If valid
+                if (arg == null) { return "{missing mmostat name}"; }
+
+                // Get Player
+                Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
+
+                if (tPlayer != null) {
+
+                    // Not a player
+                    if (tPlayer instanceof Player) {
+
+                        // A value to return
+                        Double result = GooPMMOLib.CDoubleStat((Player) tPlayer, arg);
+
+                        // Adjust
+                        if (result == null) { return "00"; }
+
+                        return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
+
+                        // Zero I guess
+                    } else { return "000"; }
+
+                } else { return "0000"; }
+
+            }));
+
+            phm.register("goop.triggermmostat", Placeholder.meta((metadata, arg) -> {
+                // If valid
+                if (arg == null) { return "{missing mmostat name}"; }
+
+                // Get Player
+                Player tPlayer = Bukkit.getPlayer(metadata.getTrigger().getUniqueId());
+
+                if (tPlayer != null) {
+
+                    // A value to return
+                    Double result = GooPMMOLib.CDoubleStat(tPlayer, arg);
+
+                    // Adjust
+                    if (result == null) { return "00"; }
+
+                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
+
+                } else { return "0.000"; }
+
+            }));
+            //endregion
+        }
+
+        // With McMMO?
+        if (Gunging_Ootilities_Plugin.foundMCMMO) {
+
+            phm.register("goop.castermcmmostat", Placeholder.meta((metadata, arg) -> {
+                // If valid
+                if (arg == null) { return "{missing mcmmostat name}"; }
+
+                // Get Player
+                Player tPlayer = Bukkit.getPlayer(metadata.getCaster().getEntity().getUniqueId());
+
+                if (tPlayer != null) {
+
+                    // A value to return
+                    Double result = GooPMCMMO.MCMMODoubleStat(tPlayer, arg);
+
+                    // Adjust
+                    if (result == null) { return "00"; }
+
+                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
+
+                } else { return "0000"; }
+
+            }));
+
+            phm.register("goop.ownermcmmostat", Placeholder.meta((metadata, arg) -> {
+                // If valid
+                if (arg == null) { return "{missing mcmmostat name}"; }
+
+                // Get Player
+                Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
+
+                if (tPlayer != null) {
+
+                    if (tPlayer instanceof Player) {
+
+                        // A value to return
+                        Double result = GooPMCMMO.MCMMODoubleStat((Player) tPlayer, arg);
+
+                        // Adjust
+                        if (result == null) { return "00"; }
+
+                        return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
+
+                    } else { return "000"; }
+
+                } else { return "0000"; }
+
+            }));
+
+            phm.register("goop.triggermcmmostat", Placeholder.meta((metadata, arg) -> {
+                // If valid
+                if (arg == null) { return "{missing mcmmostat name}"; }
+
+                // Get Player
+                Player tPlayer = Bukkit.getPlayer(metadata.getTrigger().getUniqueId());
+
+                if (tPlayer != null) {
+
+                    // A value to return
+                    Double result = GooPMCMMO.MCMMODoubleStat(tPlayer, arg);
+
+                    // Adjust
+                    if (result == null) { return "00"; }
+
+                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
+
+                } else { return "0000"; }
+
+            }));
+        }
+    }
+
+    /**
+     * @param name Name of the mythic item in files
+     * @return The mythic item of this name if it exists
+     */
+    @Nullable public static ItemStack getMythicItem(@Nullable String name) {
+        if (name == null) { return null; }
+
+        // All right
+        Optional<MythicItem> hasMythicItem = MythicMobs.inst().getItemManager().getItem(name);
+
+        // Cancel present
+        if (!hasMythicItem.isPresent()) { return null; }
+
+        // Yeah just that I guess
+        return ((BukkitItemStack)((MythicItem)hasMythicItem.get()).generateItemStack(1)).build();
+    }
+    @NotNull public static final String MYTHIC_TYPE = "MYTHIC_TYPE";
+    public static boolean isMythicItem(@Nullable ItemStack stack) {
+
+        // If exists
+        if (stack == null) { return false; }
+
+        // Un parse it
+        CompoundTag ct = MythicMobs.inst().getVolatileCodeHandler().getItemHandler().getNBTData(stack);
+
+        // Yo is that a mythic item?
+        return ct.containsKey(MYTHIC_TYPE);
+    }
 
     // By caster and by code
     static HashMap<UUID, HashMap<String, String>> dynamicCodes = new HashMap<>();
@@ -602,8 +521,7 @@ public class GooPMythicMobs implements Listener {
      * Gets a value sored by a code, per UUID of caster of skill.
      * @return NULL if no value is registered.
      */
-    @Nullable
-    public static String ValueFromDynamic(@NotNull UUID pertaint, @Nullable String code) {
+    @Nullable public static String ValueFromDynamic(@NotNull UUID pertaint, @Nullable String code) {
         // Get Thay Array
         HashMap<String, String> codes = dynamicCodes.get(pertaint);
 
@@ -617,19 +535,10 @@ public class GooPMythicMobs implements Listener {
         // Nope
         return null;
     }
-
-    @EventHandler
-    public void OnMMReload(MythicReloadedEvent event) {
-
-        // Re-register I guess
-        RegisterPlaceholders(Gunging_Ootilities_Plugin.foundMMOItems);
-    }
-
     /**
      * Returns the Entity if it was successfuly spawned.
      */
-    @Nullable
-    public static Entity SpawnMythicMob(@Nullable String name, @Nullable Location location) {
+    @Nullable public static Entity SpawnMythicMob(@Nullable String name, @Nullable Location location) {
         if (name == null) { return null; }
         if (location == null) { return null; }
 
@@ -657,7 +566,6 @@ public class GooPMythicMobs implements Listener {
             return null;
         }
     }
-
     public static boolean IsMythicMobLoaded(String name) {
 
         // Try
@@ -666,7 +574,6 @@ public class GooPMythicMobs implements Listener {
         // Try
         return mobtest != null;
     }
-
     public static Boolean IsMythicMobOfInternalID(Entity targetEntity, String mythicmobName, RefSimulator<String> logger) {
 
         // CHeck that it is a mythicmob to begin with
@@ -699,13 +606,11 @@ public class GooPMythicMobs implements Listener {
             return false;
         }
     }
-
     public static Boolean IsMythicMob(Entity targetEntity) {
 
         // Solid yes or no
         return MythicMobs.inst().getAPIHelper().isMythicMob(targetEntity);
     }
-
     public static Boolean GraveyardsRespawnSkill(String skillName, Location loc, Player pl) {
         Optional mSkillFk = MythicMobs.inst().getSkillManager().getSkill(skillName);
 
@@ -746,7 +651,6 @@ public class GooPMythicMobs implements Listener {
             return false;
         }
     }
-
     public static boolean SkillExists(String skillName) {
         // If null no
         if (skillName == null) { return false; }
@@ -776,7 +680,6 @@ public class GooPMythicMobs implements Listener {
             return false;
         }
     }
-
     public static Skill GetSkill(String skillName) {
 
         if (SkillExists(skillName)) {

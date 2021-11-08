@@ -247,6 +247,35 @@ public class GooPPlaceholderAPI extends PlaceholderExpansion {
         } else if (identifier.equals("weekday")) {
 
             return OptimizedTimeFormat.GetWeekday();
+
+        // %goop_time%
+        } else if (identifier.startsWith("time_")) {
+
+            // If valid
+            String identifier2 = identifier.substring("time_".length());
+
+            switch (identifier2) {
+
+                // %goop_time_abs%
+                case "abs":
+                    return String.valueOf(System.currentTimeMillis());
+
+                // %goop_time_s%
+                case "s":
+                    return String.valueOf((System.currentTimeMillis() - Gunging_Ootilities_Plugin.getBootTime()) / 1000.0);
+
+                // %goop_time_m%
+                case "m":
+                    return String.valueOf((System.currentTimeMillis() - Gunging_Ootilities_Plugin.getBootTime()) / 60000.0);
+
+                // %goop_time_h%
+                case "h":
+                    return String.valueOf((System.currentTimeMillis() - Gunging_Ootilities_Plugin.getBootTime()) / 3600000.0);
+
+                // %goop_time_ms%
+                default:
+                    return String.valueOf(System.currentTimeMillis() - Gunging_Ootilities_Plugin.getBootTime());
+            }
         }
 
         // was provided

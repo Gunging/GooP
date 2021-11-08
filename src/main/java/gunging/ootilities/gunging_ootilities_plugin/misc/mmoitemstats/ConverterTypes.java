@@ -3,6 +3,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ConverterPerTier;
@@ -12,6 +13,7 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +28,7 @@ public class ConverterTypes {
 
     @Nullable public static String typePrefix = null;
     public static boolean preciseIDConversion = false;
+    public static boolean blockMythicMobs = false;
 
     @NotNull public static String GenerateConverterID(@NotNull Material mat, @Nullable String tier) {
 
@@ -39,8 +42,8 @@ public class ConverterTypes {
         else if (OotilityCeption.IsDiamond(mat)) { material = "_" + "DIAMOND"; }
         else if (OotilityCeption.IsGold(mat)) { material = "_" + "GOLDEN"; }
         else if (OotilityCeption.IsIron(mat)) { material = "_" + "IRON"; }
-        else if (OotilityCeption.IsLeather(mat)) { material = "_" + "NETHERITE"; }
-        else if (OotilityCeption.IsChainmail(mat)) { material = "_" + "LEATHER"; }
+        else if (OotilityCeption.IsLeather(mat)) { material = "_" + "LEATHER"; }
+        else if (OotilityCeption.IsChainmail(mat)) { material = "_" + "CHAINMAIL"; }
         else if (OotilityCeption.IsStone(mat)) { material = "_" + "STONE"; }
         else if (OotilityCeption.IsWooden(mat)) { material = "_" + "WOODEN"; }
 
@@ -75,6 +78,7 @@ public class ConverterTypes {
 
             typePrefix = ofgStorage.getString("MMOItems_Type_Prefix", null);
             preciseIDConversion = ofgStorage.getBoolean("Differentiate_Items", false);
+            blockMythicMobs = !(ofgStorage.getBoolean("Allow_MythicItems", true));
 
             // Compile Converter Types
             List<String> conv = ofgStorage.getStringList("Convert_Into_MMOItems");
@@ -325,9 +329,14 @@ public class ConverterTypes {
 
                 // Not recognized
             } catch (IllegalArgumentException ex) {
-                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback && !str.equals("CONVERT_INTO_MMOITEMS")) {
+                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
 
-                    Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("Converting Type '\u00a73" + str + "\u00a77' not recognized. Ignored"));
+                    if (!str.equals("MMOITEMS_TYPE_PREFIX") &&
+                        !str.equals("DIFFERENTIATE_ITEMS") &&
+                        !str.equals("ALLOW_MYTHICITEMS") &&
+                        !str.equals("CONVERT_INTO_MMOITEMS")) {
+
+                        Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("Converting Type '\u00a73" + str + "\u00a77' not recognized. Ignored")); }
                 }
             }
         }
@@ -336,10 +345,16 @@ public class ConverterTypes {
         return ret;
     }
 
-    public static boolean IsConvertable(@NotNull Material type) {
-        return IsConvertable(type, null);
+    public static boolean IsConvertable(@NotNull ItemStack stack) {
+        return IsConvertable(stack, null);
     }
-    public static boolean IsConvertable(@NotNull Material type, @Nullable RefSimulator<ConverterTypeNames> appliesto) {
+    public static boolean IsConvertable(@NotNull ItemStack stack, @Nullable RefSimulator<ConverterTypeNames> appliesto) {
+
+        // Block MM
+        if (Gunging_Ootilities_Plugin.foundMythicMobs && blockMythicMobs) { if (GooPMythicMobs.isMythicItem(stack)) { return false; } }
+
+        // Usual working
+        Material type = stack.getType();
 
         // Evaluate each type
         for (ConverterTypeNames conv : convertingTypes) {

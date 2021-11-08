@@ -207,7 +207,6 @@ public class OnApplyCommand implements Listener {
 
             // Roll for tier
             if (set.hasRandomTier(asPickup)) {
-                /*RLD*/OotilityCeption.Log("\u00a78CONVERTER \u00a7bAPPLY\u00a77 Random tiering detected");
 
                 // Get Random Tier
                 preChosenTier = set.getRandomTier(asPickup);
@@ -698,7 +697,7 @@ public class OnApplyCommand implements Listener {
             RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
 
             // If the item picked up is marked as convertible
-            if (ConverterTypes.IsConvertable(event.getItem().getItemStack().getType(), convName)) {
+            if (ConverterTypes.IsConvertable(event.getItem().getItemStack(), convName)) {
 
                 // If it is not a MMOItem
                 if (!GooPMMOItems.IsMMOItem(event.getItem().getItemStack())) {
@@ -750,7 +749,7 @@ public class OnApplyCommand implements Listener {
                 craftPrep.put(player.getUniqueId(), eventResultItem.clone());
 
                 ConverterTypeSettings set = null;
-                if (ConverterTypes.IsConvertable(eventResultItem.getType(), convName)) { set = ConverterTypeSettings.PertainingTo(convName.getValue()); }
+                if (ConverterTypes.IsConvertable(eventResultItem, convName)) { set = ConverterTypeSettings.PertainingTo(convName.getValue()); }
 
                 // Build that shit
                 ItemStack result = FullSmith(eventResultItem, set, event.getInventory().getInputEquipment().getType(), player);
@@ -779,7 +778,7 @@ public class OnApplyCommand implements Listener {
             } else
 
             // If the item picked up is marked as convertible
-            if (ConverterTypes.IsConvertable(eventResultItem.getType(), convName)) {
+            if (ConverterTypes.IsConvertable(eventResultItem, convName)) {
 
                 //SMH//OotilityCeption.Log("\u00a78Smith \u00a7cSNOOZE\u00a77 Snoozing...");
 
@@ -829,7 +828,7 @@ public class OnApplyCommand implements Listener {
             RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
 
             // If the item picked up is marked as convertible
-            if (ConverterTypes.IsConvertable(originalResult.getType(), convName)) {
+            if (ConverterTypes.IsConvertable(originalResult, convName)) {
 
                 //SMH//OotilityCeption.Log("\u00a78Smith \u00a76EV\u00a77 Convertible Result");
 
@@ -958,7 +957,7 @@ public class OnApplyCommand implements Listener {
             RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
 
             // If the item picked up is marked as convertible
-            if (ConverterTypes.IsConvertable(event.getInventory().getResult().getType(), convName)) {
+            if (ConverterTypes.IsConvertable(event.getInventory().getResult(), convName)) {
 
                 // If it is not a MMOItem
                 if (!GooPMMOItems.IsMMOItem(event.getInventory().getResult())) {
@@ -1007,7 +1006,7 @@ public class OnApplyCommand implements Listener {
             RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
 
             // If the item picked up is marked as convertible
-            if (ConverterTypes.IsConvertable(originalResult.getType(), convName)) {
+            if (ConverterTypes.IsConvertable(originalResult, convName)) {
 
                 // If it is not a MMOItem
                 if (!GooPMMOItems.IsMMOItem(originalResult)) {

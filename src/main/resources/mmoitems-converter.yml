@@ -65,6 +65,20 @@ MMOItems_Type_Prefix: ""
 #
 Differentiate_Items: false
 
+# ---------------------------- Allow_MythicItems
+#   Should Mythic Items go through the converter (and become MMOItems)?
+#
+#   Set to 'false' to ignore Mythic Items. They must have
+#   their type appended to be detectable though:
+#
+#   GOOP_MYTHIC_ITEM:
+#     Id: chainmail_boots
+#     Display: '&8The Shroomsteps'
+#     Options:
+#       AppendType: true
+#
+Allow_MythicItems: true
+
 #####
 ##### You may specify a few conversion settings, and when to apply ( OnCraft / OnPickup )
 #####

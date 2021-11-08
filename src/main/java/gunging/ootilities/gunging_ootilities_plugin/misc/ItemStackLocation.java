@@ -1,6 +1,5 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc;
 
-import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerTemplateGooP;
 import gunging.ootilities.gunging_ootilities_plugin.containers.PersonalContainerGooP;
@@ -8,12 +7,11 @@ import gunging.ootilities.gunging_ootilities_plugin.containers.PhysicalContainer
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Item;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -24,8 +22,8 @@ public class ItemStackLocation {
 
     // Its grand residence
     RefSimulator<Inventory> iLocation = new RefSimulator<>(null);
-    RefSimulator<PersonalContainerGooP> pLocation = new RefSimulator<>(null);
-    RefSimulator<PhysicalContainerInstanceGooP> physLocation = new RefSimulator<>(null);
+    RefSimulator<PersonalContainerGooP> personalLocation = new RefSimulator<>(null);
+    RefSimulator<PhysicalContainerInstanceGooP> physicalLocation = new RefSimulator<>(null);
 
     // Its Slot
     Integer slot = null;
@@ -33,6 +31,10 @@ public class ItemStackLocation {
 
     // Owner
     UUID owner = null;
+
+    boolean containerDisplay = false;
+    public boolean isContainerDisplay() { return containerDisplay; }
+    public void setContainerDisplay(boolean val) { containerDisplay = val; }
 
     // Quickly where it is
     SearchLocation locationName = null;
@@ -47,7 +49,7 @@ public class ItemStackLocation {
     }
     public ItemStackLocation(ItemStack source, PersonalContainerGooP inven, UUID ownerUUID, int slt, SearchLocation place, ItemStackLocation parent) {
         iSource = new RefSimulator<>(source);
-        pLocation = new RefSimulator<>(inven);
+        personalLocation = new RefSimulator<>(inven);
         owner = ownerUUID;
         slot = slt;
         locationName = place;
@@ -55,7 +57,7 @@ public class ItemStackLocation {
     }
     public ItemStackLocation(ItemStack source, PhysicalContainerInstanceGooP inven, int slt, SearchLocation place, ItemStackLocation parent) {
         iSource = new RefSimulator<>(source);
-        physLocation = new RefSimulator<>(inven);
+        physicalLocation = new RefSimulator<>(inven);
         slot = slt;
         locationName = place;
         parentStack = parent;
@@ -87,7 +89,7 @@ public class ItemStackLocation {
         // Replace ig
         ReplaceItem(overcopy);
     }
-    public void ReplaceItem(ItemStack newItem) {
+    public void ReplaceItem(@Nullable ItemStack newItem) {
 
         // Nonullify
         ItemStack overcopy = new ItemStack(Material.AIR);
@@ -131,15 +133,32 @@ public class ItemStackLocation {
             case OBSERVED_CONTAINER:
             case PERSONAL_CONTAINER:
                 // Only PHYSICAL saves changes.
-                if (physLocation.getValue() != null) {
+                if (physicalLocation.getValue() != null) {
 
-                    // Must set and save it if not the default
-                    physLocation.getValue().SetAndSaveInventoryItem(slot, overcopy, null, true);
+                    if (isContainerDisplay()) {
 
-                } else if (pLocation.getValue() != null) {
+                        // Stations behave like normal inventories, actually
+                        physicalLocation.getValue().SetInOpen(slot, overcopy, true);
 
-                    // Must set and save it
-                    pLocation.getValue().SetAndSaveInventoryItem(owner, slot, overcopy, null, true, false);
+                    } else {
+
+                        // Must set and save it if not the default
+                        physicalLocation.getValue().SetAndSaveInventoryItem(slot, overcopy, null, true);
+                    }
+
+                } else if (personalLocation.getValue() != null) {
+
+                    if (isContainerDisplay()) {
+
+                        // Stations behave like normal inventories, actually
+                        personalLocation.getValue().SetInOpen(owner, slot, overcopy, true, false);
+
+                    } else {
+
+                        // Must set and save it
+                        personalLocation.getValue().SetAndSaveInventoryItem(owner, slot, overcopy, null, true, false);
+
+                    }
 
                 } else {
 

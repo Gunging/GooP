@@ -205,7 +205,7 @@ public class ConverterPerTier {
                 } else {
 
                     // Get String List Data
-                    StatData stringListData = stringListStatData.get(stt);
+                    StringListData stringListData = stringListStatData.get(stt);
 
                     // Valid?
                     if (stringListData != null) {
@@ -215,7 +215,7 @@ public class ConverterPerTier {
                         StatData trueList = stringListData;
                         if (stt.getClearStatData() instanceof GemSocketsData) {
 
-                            trueList = new GemSocketsData(((StringListData) stringListData).getList());
+                            trueList = new GemSocketsData(stringListData.getList());
                         }
 
                         // Get History
