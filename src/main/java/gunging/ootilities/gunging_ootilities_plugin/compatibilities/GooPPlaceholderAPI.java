@@ -25,6 +25,9 @@ public class GooPPlaceholderAPI extends PlaceholderExpansion {
 
     // Vro parse dat shit
     public static String Parse(Player plyr, String strng) {
+        return Parse((OfflinePlayer) plyr, strng);
+    }
+    public static String Parse(OfflinePlayer plyr, String strng) {
 
         // Parse and return
         return PlaceholderAPI.setPlaceholders(plyr, strng);
@@ -228,7 +231,7 @@ public class GooPPlaceholderAPI extends PlaceholderExpansion {
             return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
 
         // %goop_mmostat_[stat]%
-        } else if (identifier.startsWith("mmostat_") && (Gunging_Ootilities_Plugin.foundMMOItems || Gunging_Ootilities_Plugin.foundMCMMO)) {
+        } else if (identifier.startsWith("mmostat_") && (Gunging_Ootilities_Plugin.foundMMOItems || Gunging_Ootilities_Plugin.foundMMOCore)) {
 
             if (!player.isOnline()) { return null; }
 

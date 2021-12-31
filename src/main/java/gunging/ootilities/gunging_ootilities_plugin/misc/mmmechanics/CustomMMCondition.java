@@ -1,5 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
+import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.skills.SkillCondition;
 import io.lumine.xikage.mythicmobs.skills.conditions.ConditionAction;
@@ -20,6 +21,8 @@ public class CustomMMCondition extends SkillCondition {
         if (action.startsWith("\"")) { action = action.substring(1); }
         if (action.endsWith("\"")) { action = action.substring(0, action.length() - 1); }
 
+        //CND//OotilityCeption.Log("\u00a78ACT\u00a7e ORIGINAL\u00a77 Action:\u00a7f " + ACTION.toString());
+        //CND//OotilityCeption.Log("\u00a78ACT\u00a7e ORIGINAL\u00a77 Action Var:\u00a7f " + (actionVar == null ? null : actionVar.get()));
         //CND//OotilityCeption.Log("\u00a78ACT\u00a76 RAW\u00a77 " + action);
 
         this.ACTION = ConditionAction.REQUIRED;

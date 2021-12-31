@@ -12,10 +12,16 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.Goo
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionEntities;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
-import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerSlotTypes;
-import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerTemplateGooP;
-import gunging.ootilities.gunging_ootilities_plugin.containers.PersonalContainerGooP;
+import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISLObservedContainer;
+import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISLPersonalContainer;
+import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISSObservedContainer;
+import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISSPersonalContainer;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Personal;
+import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerSlotTypes;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCTemplate;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCPersonal;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.*;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +40,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -47,7 +54,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Stream;
@@ -63,10 +69,10 @@ public class OotilityCeption {
         if (Gunging_Ootilities_Plugin.devLogging){
 
             // Is Specified?
-            if (Gunging_Ootilities_Plugin.devLogga != null) {
+            if (Gunging_Ootilities_Plugin.devPlayer != null) {
 
                 // Send 2 Both
-                Gunging_Ootilities_Plugin.theOots.DLog(Gunging_Ootilities_Plugin.devLogga, arg);
+                Gunging_Ootilities_Plugin.theOots.DLog(Gunging_Ootilities_Plugin.devPlayer, arg);
 
             } else {
 
@@ -109,6 +115,35 @@ public class OotilityCeption {
         }
     }
 
+    /**
+     * You know what this does. Fantastic javadoc.
+     *
+     * @param logger Log
+     * @param state Log?
+     * @param message Message
+     * @param replaces Message Rep.
+     */
+    public static void Log4Success(@Nullable RefSimulator<String> logger, @Nullable Boolean state, @Nullable String message, @NotNull String... replaces) {
+
+        // Anything to log?
+        if (logger == null) { return; }
+        if (state == null) { return; }
+        if (message == null || !state) { logger.SetValue(null); return; }
+
+        // Parse message
+        for(int i = 0; i < replaces.length; ++i) {
+            String rep = replaces[i];
+            if (rep == null) {
+                rep = "";
+            }
+
+            message = message.replace("{" + i + "}", rep);
+        }
+
+        // Debug Message
+        logger.SetValue(message);
+    }
+
     public static String LogFormat(String message) {
         return "\u00a73[\u00a7eGooP\u00a73] \u00a77" + message;
     }
@@ -122,12 +157,13 @@ public class OotilityCeption {
     /**
      * Sends a list of messages to that player 1 tick after this is called.
      *
-     * Latest Concurrency ID: 11
+     * Latest Concurrency ID: 12
      * @param player Player who to send those messages
      * @param message Message to add to the list
      * @param concurrencyID Only the first message of each ID will be sent - a method called 1000 times in a frame will end up producing only 1 message next frame.
      */
-    public static void SendMessageNextTick(Player player, String message, int concurrencyID) {
+    public static void SendMessageNextTick(@Nullable Player player, @Nullable String message, int concurrencyID) {
+        if (player == null || message == null || message.isEmpty()) { return; }
 
         // Make sure we're not dealing with nulls
         nextMessages.computeIfAbsent(player, k -> new ArrayList<>());
@@ -360,7 +396,15 @@ public class OotilityCeption {
      */
     @Contract("!null -> !null; null -> null")
     @Nullable
-    public static String GetItemName(@Nullable ItemStack tItem) {
+    public static String GetItemName(@Nullable ItemStack tItem) { return GetItemName(tItem, false); }
+    /**
+     * Gets the Display Name of that item. If it has no display name, then the material name.
+     *
+     * @return null if the item is null
+     */
+    @Contract("!null -> !null; null -> null")
+    @Nullable
+    public static String GetItemName(@Nullable ItemStack tItem, boolean appendAmount) {
 
         // Require non-null
         if (tItem != null) {
@@ -370,6 +414,7 @@ public class OotilityCeption {
 
                 // What should be obvious
                 String ret = "";
+
                 if (tItem.getItemMeta().hasDisplayName()) {
                     ret = tItem.getItemMeta().getDisplayName();
 
@@ -378,6 +423,8 @@ public class OotilityCeption {
 
                 // Well it may be like empty or smthn
                 if (ret.length() == 0) { ret = "\u00a77\u00a7f" + TitleCaseConversion(tItem.getType().name().replace("_", " ")); }
+
+                if (appendAmount) { ret = "\u00a7f" + tItem.getAmount() + "x" + ret; }
 
                 // Return that
                 return ret;
@@ -430,13 +477,16 @@ public class OotilityCeption {
     }
     @NotNull
     public static String ParseAsGoop(@NotNull Player asPlayer, @NotNull String cmd) {
+        return ParseAsGoop((OfflinePlayer) asPlayer, cmd);
+    }
+    public static String ParseAsGoop(@NotNull OfflinePlayer asPlayer, @NotNull String cmd) {
         cmd = cmd.replace("%player%", asPlayer.getName());
         cmd = cmd.replace("%player_name%", asPlayer.getName());
         cmd = cmd.replace("%player_uuid%", asPlayer.getUniqueId().toString());
-        cmd = cmd.replace("%player_world%", asPlayer.getLocation().getWorld().getName());
-        cmd = cmd.replace("%player_x%", String.valueOf(asPlayer.getLocation().getX()));
-        cmd = cmd.replace("%player_y%", String.valueOf(asPlayer.getLocation().getY()));
-        cmd = cmd.replace("%player_z%", String.valueOf(asPlayer.getLocation().getZ()));
+        cmd = cmd.replace("%player_world%", asPlayer.getPlayer().getLocation().getWorld().getName());
+        cmd = cmd.replace("%player_x%", String.valueOf(asPlayer.getPlayer().getLocation().getX()));
+        cmd = cmd.replace("%player_y%", String.valueOf(asPlayer.getPlayer().getLocation().getY()));
+        cmd = cmd.replace("%player_z%", String.valueOf(asPlayer.getPlayer().getLocation().getZ()));
 
         int lastIndex = 0;
         while (cmd.contains("%player_score_")) {
@@ -468,7 +518,7 @@ public class OotilityCeption {
                     // All right strip befre
                     String before = cmd.substring(0, score);
                     String after = objective.substring(perc + 1);
-                    int pScore = GetPlayerScore(obj, asPlayer);
+                    int pScore = GetPlayerScore(obj, asPlayer.getPlayer());
 
                     // There
                     cmd = before + RemoveDecimalZeros(String.valueOf(pScore)) + after;
@@ -476,7 +526,7 @@ public class OotilityCeption {
             }
         }
 
-        return ParseAsEntity(asPlayer, cmd);
+        return ParseAsEntity(asPlayer.getPlayer(), cmd);
     }
     @NotNull
     public static String ParseAsEntity(@NotNull Entity asEntity,@NotNull  String cmd) {
@@ -609,6 +659,30 @@ public class OotilityCeption {
         return true;
     }
 
+
+    @NotNull
+    public static ArrayList<String> chop(@NotNull String longString, int paragraphWide, @NotNull String colorPrefix) {
+        ArrayList<String> ret = new ArrayList();
+        boolean skip = false;
+
+        while(longString.length() > paragraphWide) {
+            skip = true;
+            int idx = longString.lastIndexOf(" ", paragraphWide + 1);
+            if (idx < 0) { idx = longString.length(); }
+            ret.add(colorPrefix + longString.substring(0, idx));
+            longString = longString.substring(idx + 1);
+            if (longString.length() <= paragraphWide) {
+                ret.add(colorPrefix + longString);
+            }
+        }
+
+        if (!skip) {
+            ret.add(colorPrefix + longString);
+        }
+
+        return ret;
+    }
+
     //region Type Identifying
     public static ArrayList<Material> matArmor = new ArrayList<>();
     public static void BuildIdentifyingArrays() {
@@ -661,10 +735,7 @@ public class OotilityCeption {
      * Will only check that this type is AIR. If you are examining an ItemStack, keep in mind that the AMOUNT could be ZERO (And I personally think that is air, idk about you).
      */
     public static boolean IsAir(@NotNull Material target) {
-        return (target == Material.AIR) ||
-                (target == Material.CAVE_AIR) ||
-                (target == Material.VOID_AIR) ||
-                (target == Material.LEGACY_AIR);
+        return target.isEmpty() || !target.isItem();
     }
     /**
      * Will return TRUE if iTarget is either NULL, Count is 0, or IsAir()
@@ -1331,8 +1402,24 @@ public class OotilityCeption {
         // Bitch is null
         return null;
     }
-    @Nullable
-    public static ItemStack EnchantmentOperation(@Nullable ItemStack iSource,@Nullable  Enchantment tEnchant,@Nullable  PlusMinusPercent operation,@Nullable  RefSimulator<Integer> result,@Nullable  RefSimulator<String> logger) {
+    @Nullable public static ItemStack EnchantmentOperation(@Nullable ItemStack iSource, @NotNull ArrayList<Enchantment> tEnchant, @Nullable  PlusMinusPercent operation, @Nullable RefSimulator<Integer> result, @Nullable  RefSimulator<String> logger) {
+        if (iSource == null || operation == null || result == null) { return null; }
+        boolean success = false;
+
+        // Attempt to add every enchantment
+        for (Enchantment tEnch : tEnchant) {
+
+            // Attempt
+            ItemStack tSource = EnchantmentOperation(iSource, tEnch, operation, result, logger);
+
+            // Accept
+            if (tSource != null) { iSource = tSource; success = true; }
+        }
+
+        // If any returned non-null, thats your success.
+        return success ? iSource : null;
+    }
+    @Nullable public static ItemStack EnchantmentOperation(@Nullable ItemStack iSource,@Nullable  Enchantment tEnchant,@Nullable  PlusMinusPercent operation,@Nullable  RefSimulator<Integer> result,@Nullable  RefSimulator<String> logger) {
 
         if (iSource != null && operation != null && tEnchant != null) {
 
@@ -1367,7 +1454,7 @@ public class OotilityCeption {
                 }
 
                 // Export Result
-                if (result != null) { result.setValue(finalValue); }
+                if (result != null) { if (result.getValue() == null) { result.setValue(0); } result.setValue(result.getValue() + finalValue); }
 
                 // Log
                 Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfuly set \u00a73" + GetItemName(iSource) + "\u00a77 enchantment \u00a73" + tEnchant.getName() + "\u00a77 level to \u00a73" + finalValue);
@@ -1380,7 +1467,7 @@ public class OotilityCeption {
         // Bitch is null
         return null;
     }
-    //endregion
+    //endregion22
 
     //region HEX-1.16 support thing, and Name Encryption
     @NotNull
@@ -1800,10 +1887,10 @@ public class OotilityCeption {
      *
      * */
     @NotNull
-    public static String RerenameNameVarialbes(@Nullable Player whom, @NotNull NameVariableOperation nvOperation, @Nullable String iSource, @Nullable Block blockForPlaceholders, @Nullable ItemStack itemForPlaceholders) {
+    public static String RerenameNameVarialbes(@Nullable Entity whom, @NotNull NameVariableOperation nvOperation, @Nullable String iSource, @Nullable Block blockForPlaceholders, @Nullable ItemStack itemForPlaceholders) {
         return RerenameNameVarialbes(whom, nvOperation, iSource, blockForPlaceholders, itemForPlaceholders, true);
     }
-    public static String RerenameNameVarialbes(@Nullable Player whom, @NotNull NameVariableOperation nvOperation, @Nullable String iSource, @Nullable Block blockForPlaceholders, @Nullable ItemStack itemForPlaceholders, boolean nameAsReplace) {
+    public static String RerenameNameVarialbes(@Nullable Entity whom, @NotNull NameVariableOperation nvOperation, @Nullable String iSource, @Nullable Block blockForPlaceholders, @Nullable ItemStack itemForPlaceholders, boolean nameAsReplace) {
         if (iSource == null) { iSource = ""; } else { iSource = iSource.replace("&", "<~and>"); }
 
         // Boolean to know if even tyring to do all this craze
@@ -2636,7 +2723,7 @@ public class OotilityCeption {
      * Basically expects a name and an equals sign. If this is not the case, it returns null.
      */
     @Nullable
-    static String EncodedNameVariable(@Nullable Player p, @NotNull String source, @Nullable String colorInformation, @Nullable RefSimulator<NameVariable> variableOutput, @Nullable Block asBlock, @Nullable ItemStack asItem) {
+    static String EncodedNameVariable(@Nullable Entity p, @NotNull String source, @Nullable String colorInformation, @Nullable RefSimulator<NameVariable> variableOutput, @Nullable Block asBlock, @Nullable ItemStack asItem) {
         if (colorInformation == null) { colorInformation = ""; }
 
         // Get Name Variable
@@ -2707,7 +2794,7 @@ public class OotilityCeption {
      * Parses and Encodes placeholders to be used within names.
      */
     @NotNull
-    static String EncodedNamePlaceholdersParse(@Nullable Player p, @NotNull String source, @Nullable Block asBlock, @Nullable ItemStack asItem) {
+    static String EncodedNamePlaceholdersParse(@Nullable Entity p, @NotNull String source, @Nullable Block asBlock, @Nullable ItemStack asItem) {
 
         // Does it have colons bruh
         if (source.contains("%")) {
@@ -2738,7 +2825,7 @@ public class OotilityCeption {
                     String percents = "%" + str + "%";
 
                     // All right, lets see if this can call itself a placeholder
-                    code = ParseConsoleCommand(percents, p, p, asBlock, asItem);
+                    code = ParseConsoleCommand(percents, p, asBlock, asItem);
                     //NEK*/Log("   \u00a7a=> \u00a77Sent \u00a77" + percents);
                     //NEK*/Log("   \u00a72=> \u00a77Rcvd \u00a77" + code);
 
@@ -3261,6 +3348,69 @@ public class OotilityCeption {
     //endregion
 
     //region Lore and NBT Manipulation
+
+    /**
+     *
+     * This will go through every lore line of an item
+     * and parse its placeholders. Will not really save
+     * MI internals, <b>strictly vanilla process.</b>
+     * <br><br>
+     * Since this function is used by GooP Containers,
+     * the name must not be edited as it may cause
+     * conflicts when detecting default items?
+     *
+     * @return The ItemStack with lore parsed yes
+     */
+    @Contract("!null -> !null")
+    @Nullable public static ItemStack ParseLore(@Nullable ItemStack iSource, @NotNull Player player) {
+
+        // Parse as Player
+        return ParseLore(iSource, player, player, player.getLocation().getBlock(), player.getInventory().getItemInMainHand());
+    }
+    /**
+     *
+     * This will go through every lore line of an item
+     * and parse its placeholders. Will not really save
+     * MI internals, <b>strictly vanilla process.</b>
+     * <br><br>
+     * Since this function is used by GooP Containers,
+     * the name must not be edited as it may cause
+     * conflicts when detecting default items?
+     *
+     * @return The ItemStack with lore parsed yes
+     */
+    @Contract("!null -> !null")
+    @Nullable public static ItemStack ParseLore(@Nullable ItemStack iSource, @Nullable Entity ent, @Nullable Player player, @Nullable Block bkk, @Nullable ItemStack itm) {
+
+        // Contract
+        if (iSource == null) { return null; }
+        if (!iSource.hasItemMeta()) { return iSource; }
+
+        ItemMeta iMeta = iSource.getItemMeta();
+
+        // Name parsing (enable with care, untested but might mess up containers' anti-dupe engine)
+        //String originalName = OotilityCeption.GetItemName(iSource);
+        //iMeta.setDisplayName(ParseConsoleCommand(originalName, ent, player, bkk, itm));
+
+        // Same for lore
+        ArrayList<String> iLore = iMeta.hasLore() ? new ArrayList<>(iMeta.getLore()) : new ArrayList<>();
+        ArrayList<String> fLore = new ArrayList<>();
+        for (String iLr : iLore) {
+
+            // Parse I suppose
+            fLore.add(ParseConsoleCommand(iLr, ent, player, bkk, itm)); }
+
+        // Set lore I suppose
+        iMeta.setLore(fLore);
+
+        // Yes
+        ItemStack iCopy = iSource.clone();
+        iCopy.setItemMeta(iMeta);
+
+        // Yeah
+        return iCopy;
+    }
+
     public static Integer BakeIndex4Add(Integer original, int maxValue) {
         // If the original is null, it means the max value
         if (original == null) {
@@ -3344,11 +3494,15 @@ public class OotilityCeption {
         }
     }
     @Nullable
+    @Contract("!null,_,_,_->!null;null,_,_,_->null")
     public static ItemStack RenameItem(@Nullable ItemStack iSource,@NotNull String tName,@Nullable  RefSimulator<String> logger) {
         return RenameItem(iSource, ParseColour(tName), null, logger);
     }
     @Nullable
+    @Contract("!null,_,_,_->!null;null,_,_,_->null")
     public static ItemStack RenameItem(@Nullable ItemStack iSource,@NotNull String tName, @Nullable Player parseAs, @Nullable  RefSimulator<String> logger) { return RenameItem(iSource, new NameVariableOperation(tName), parseAs, logger); }
+
+    @Contract("!null,_,_,_->!null;null,_,_,_->null")
     public static ItemStack RenameItem(@Nullable ItemStack iSource,@NotNull NameVariableOperation tName, @Nullable Player parseAs, @Nullable  RefSimulator<String> logger) {
 
         // Check that iSource exists
@@ -3373,7 +3527,7 @@ public class OotilityCeption {
                 OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Sucessfully renamed item to " + tProcessed);
 
                 // Reutrn thay
-                return  iSource;
+                return iSource;
 
                 // Well that is air
             } else {
@@ -3394,7 +3548,7 @@ public class OotilityCeption {
     public static ItemStack AppendLoreLine(@Nullable ItemStack iSource, @NotNull String tLoreLine, @Nullable  Integer index, @Nullable RefSimulator<String> logger) {
         return AppendLoreLine(iSource, tLoreLine, null, index, logger);
     }
-    public static ItemStack AppendLoreLine(@Nullable ItemStack iSource, @NotNull String tLoreLine, @Nullable Player parseAs, @Nullable  Integer index, @Nullable RefSimulator<String> logger) {
+    public static ItemStack AppendLoreLine(@Nullable ItemStack iSource, @NotNull String tLoreLine, @Nullable Entity parseAs, @Nullable  Integer index, @Nullable RefSimulator<String> logger) {
 
         // Check that iSource exists
         if (iSource != null) {
@@ -3452,7 +3606,7 @@ public class OotilityCeption {
         return AppendLoreLineVanilla(sSource, tLoreLine, null, index, logger);
     }
     @Nullable
-    public static ItemStack AppendLoreLineVanilla(@Nullable ItemStack sSource, @NotNull String tLoreLine, @Nullable Player parseAs, @Nullable  Integer index,@Nullable  RefSimulator<String> logger) {
+    public static ItemStack AppendLoreLineVanilla(@Nullable ItemStack sSource, @NotNull String tLoreLine, @Nullable Entity parseAs, @Nullable  Integer index,@Nullable  RefSimulator<String> logger) {
 
         // Dont modify the original bruh
         ItemStack iSource = new ItemStack(sSource);
@@ -4169,7 +4323,8 @@ public class OotilityCeption {
      * @param mmoitemsDurabilityComp player to say 'your MMOItem broke!' if it is a MMOItem
      * @param preventBreaking If the operation would break the item, it will set at 1 remaining durabilit left
      * @param logger Stores a string saying what went wrong, if something did.
-     * @return DEBUG_STICK ItemStack if the item broke.
+     *
+     * @return If it broke withour prevent breaking, the count will be set to zero.
      */
     @Nullable
     public static ItemStack SetDurability(@Nullable ItemStack iSource, @Nullable Player mmoitemsDurabilityComp, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> result, boolean preventBreaking, @Nullable RefSimulator<String> logger) {
@@ -4224,6 +4379,57 @@ public class OotilityCeption {
     }
 
     /**
+     * @param iSource Item to edit
+     * @param mat Material to set
+     *
+     * @return Same item, different material. Fails if the material is invalid for items
+     */
+    @Nullable public static ItemStack SetMaterial(@Nullable ItemStack iSource, @Nullable Material mat, @Nullable RefSimulator<String> logger) {
+        if (iSource == null) {
+            Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant change the material of non-existent items.");
+            return null; }
+        if (mat == null || mat.isEmpty() || !mat.isItem()) {
+            Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant change the material to non-existence / invalid items.");
+            return null; }
+
+        ItemStack ret = iSource.clone();
+        ret.setType(mat);
+        Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Transmutated " + GetItemName(iSource) + "\u00a77 into \u00a73" + mat.toString() + "\u00a77.");
+
+        return ret;
+    }
+
+    /**
+     * @param iSource Item to edit
+     * @param mat Material to set
+     *
+     * @return Same item, different material. Fails if the material is invalid for items
+     */
+    @NotNull public static ItemStack SetItem(@Nullable ItemStack iSource, @Nullable ItemStack iFinal, @NotNull PlusMinusPercent pValue, @Nullable RefSimulator<String> logger) {
+        if (iFinal == null) { iFinal = new ItemStack(Material.AIR); }
+
+        // Get Current Item (For amount calculations)
+        int amount = 0;
+        int original = 0;
+
+        // If non-null or non-air
+        if (!OotilityCeption.IsAirNullAllowed(iSource)) { amount = iSource.getAmount(); original = amount; }
+
+        // Apply PCP Operation
+        amount = OotilityCeption.RoundToInt(pValue.apply((double) amount));
+
+        // Set amount
+        ItemStack ret = iFinal.clone();
+        ret.setAmount(amount);
+
+        // Log
+        if (iSource != null) { Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Transmutated \u00a7f" + original + "x" + GetItemName(iSource) + "\u00a77 into \u00a7f" + amount + "x" + GetItemName(iFinal) + "\u00a77. "); }
+        else { Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Put \u00a7f" + amount + "x" + GetItemName(iFinal) + "\u00a77. "); }
+
+        return ret;
+    }
+
+    /**
      * Performs an operation on the durability of an item. If it succeeded on setting the durability, it will return the modified ItemStack.
      * <p>Will target MMOItems durability if applicable.</p> Does not bypass Unbreakable attribute.
      * <p></p>
@@ -4256,7 +4462,8 @@ public class OotilityCeption {
      * @param result Stores numerically the final damage the item has
      * @param preventBreaking If the operation would break the item, it will set at 1 remaining durabilit left
      * @param logger Stores a string saying what went wrong, if something did.
-     * @return DEBUG_STICK ItemStack if the item broke.
+     *
+     * @return If it broke withour prevent breaking, the count will be set to zero.
      */
     @Nullable
     public static ItemStack SetDurabilityVanilla(@Nullable ItemStack iSource, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> result, boolean preventBreaking, @Nullable RefSimulator<String> logger) {
@@ -4288,7 +4495,10 @@ public class OotilityCeption {
                     if (fValue > iSource.getType().getMaxDurability()) {
 
                         Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified durability of \u00a7f" + iName + "\u00a77, it broke though");
-                        return new ItemStack(Material.DEBUG_STICK);
+
+                        ItemStack broken = iSource.clone();
+                        broken.setAmount(0);
+                        return broken;
                     }
 
                     // Repair Accordingly
@@ -4577,7 +4787,9 @@ public class OotilityCeption {
     /**
      * Returns an UUID from thay string, or null if it is not in UUID format.
      */
-    public static UUID UUIDFromString(String anything) {
+    @Contract("null -> null")
+    @Nullable public static UUID UUIDFromString(@Nullable String anything) {
+        if (anything == null) { return null; }
 
         // Correct Format?
         if (anything.matches("[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")) {
@@ -5552,38 +5764,41 @@ public class OotilityCeption {
     //endregion
 
     //region Command Sending
-    public static void SendUnparsedConsoleCommand(String command) {
+    public static void SendUnparsedConsoleCommand(@NotNull String command) {
         // Create a command sender
         ConsoleCommandSender konsole = Bukkit.getServer().getConsoleSender();
 
         SendConsoleCommand(command, konsole);
     }
-    public static void SendConsoleCommand(String command, Entity asEntity) {
+    public static void SendConsoleCommand(@NotNull String command, @Nullable Entity asEntity) {
         SendConsoleCommand(command, asEntity, null, null);
     }
-    public static void SendConsoleCommand(String command, Player asPlayer) {
+    public static void SendConsoleCommand(@NotNull String command, @Nullable Player asPlayer) {
         if(asPlayer != null) { command = ProcessGooPRelativityOfCommand(command, asPlayer.getLocation()); }
         SendConsoleCommand(command, asPlayer, asPlayer, null);
     }
-    public static void SendConsoleCommand(String command, Block asBlock) {
+    public static void SendConsoleCommand(@NotNull String command, @Nullable Block asBlock) {
         SendConsoleCommand(command, null, null, asBlock);
     }
-    public static void SendConsoleCommand(String command, Entity asEntity, Block withBlock) {
+    public static void SendConsoleCommand(@NotNull String command, @Nullable Entity asEntity, @Nullable Block withBlock) {
         SendConsoleCommand(command, asEntity, null, withBlock);
     }
-    public static void SendConsoleCommand(String command, @Nullable Player asPlayer, Block withBlock) {
+    public static void SendConsoleCommand(@NotNull String command, @Nullable Player asPlayer, @Nullable Block withBlock) {
         SendConsoleCommand(command, asPlayer, asPlayer, withBlock);
     }
-    public static void SendConsoleCommand(String command, Entity asEntity, @Nullable Player asPlayer, Block asBlock) {
+    public static void SendConsoleCommand(@NotNull String command, @Nullable Entity asEntity, @Nullable Player asPlayer, @Nullable Block asBlock) {
         SendConsoleCommand(command, asEntity, asPlayer, asBlock, null);
     }
-    public static void SendConsoleCommand(String command, Entity asEntity,  @Nullable Player asPlayer, Block asBlock, ItemStack asItem) {
+    public static void SendConsoleCommand(@NotNull String command, @Nullable Entity asEntity,  @Nullable Player asPlayer, @Nullable Block asBlock, @Nullable ItemStack asItem) {
+        SendConsoleCommand(command, asEntity, (OfflinePlayer) asPlayer, asBlock, asItem);
+    }
+    public static void SendConsoleCommand(@NotNull String command, @Nullable Entity asEntity, @Nullable OfflinePlayer asPlayer, @Nullable Block asBlock, @Nullable ItemStack asItem) {
         // Create a command sender
         ConsoleCommandSender konsole = Bukkit.getServer().getConsoleSender();
 
         SendAndParseConsoleCommand(asPlayer, command, konsole, asEntity, asPlayer, asBlock, asItem);
     }
-    public static void SendConsoleCommand(String command, ConsoleCommandSender konsole) {
+    public static void SendConsoleCommand(@NotNull String command, @Nullable ConsoleCommandSender konsole) {
         SendAndParseConsoleCommand(command, konsole, null, null, null);
     }
 
@@ -5698,7 +5913,18 @@ public class OotilityCeption {
     public static String ParseConsoleCommand(String cmd, Entity asEntity, Player asPlayer, Block asBlock) {
         return ParseConsoleCommand(cmd, asEntity, asPlayer, asBlock, null);
     }
-    public static String ParseConsoleCommand(String cmd, Entity asEntity, Player asPlayer, Block asBlock, ItemStack asItem) {
+    /**
+     * Will actually only do the parsing, as if you were sending a command to the console, but not send it.
+     * Perses GooP and PAPI placeholders.
+     */
+    @NotNull public static String ParseConsoleCommand(@NotNull String cmd, Entity asEntity, Block asBlock, ItemStack asItem) {
+        Player asPlayer = asEntity instanceof Player ? (Player) asEntity : null;
+        return ParseConsoleCommand(cmd, asEntity, asPlayer, asBlock, asItem);
+    }
+    @NotNull public static String ParseConsoleCommand(@NotNull String cmd, @Nullable Entity asEntity, @Nullable Player asPlayer, @Nullable Block asBlock, @Nullable ItemStack asItem) {
+        return ParseConsoleCommand(cmd, asEntity, (OfflinePlayer) asPlayer, asBlock, asItem);
+    }
+    @NotNull public static String ParseConsoleCommand(@NotNull String cmd, @Nullable Entity asEntity, @Nullable OfflinePlayer asPlayer, @Nullable Block asBlock, @Nullable ItemStack asItem) {
 
         // Parse as PAPI
         if (asPlayer != null) {
@@ -5749,10 +5975,13 @@ public class OotilityCeption {
         Bukkit.dispatchCommand(konsole, cmd.replace("<$pc>", "%").replace("<$nd>", "&"));
 
     }
-    public static void SendAndParseConsoleCommand(Player asChainResult, String cmd, CommandSender konsole, Entity asEntity, Player asPlayer, Block asBlock) {
+    public static void SendAndParseConsoleCommand(@Nullable Player asChainResult, @NotNull String cmd, @Nullable CommandSender konsole, @Nullable Entity asEntity, @Nullable Player asPlayer, @Nullable Block asBlock) {
         SendAndParseConsoleCommand(asChainResult, cmd, konsole, asEntity, asPlayer, asBlock, null);
     }
-    public static void SendAndParseConsoleCommand(Player asChainResult, String cmd, CommandSender konsole, Entity asEntity, Player asPlayer, Block asBlock, ItemStack asItem) {
+    public static void SendAndParseConsoleCommand(@Nullable Player asChainResult, @NotNull String cmd, @Nullable CommandSender konsole, @Nullable Entity asEntity, @Nullable Player asPlayer, @Nullable Block asBlock, @Nullable ItemStack asItem) {
+        SendAndParseConsoleCommand((OfflinePlayer) asChainResult, cmd, konsole, asEntity, (OfflinePlayer) asPlayer, asBlock, asItem);
+    }
+    public static void SendAndParseConsoleCommand(@Nullable OfflinePlayer asChainResult, @NotNull String cmd, @Nullable CommandSender konsole, @Nullable Entity asEntity, @Nullable OfflinePlayer asPlayer, @Nullable Block asBlock, @Nullable ItemStack asItem) {
         // Parse
         cmd = ParseConsoleCommand(cmd, asEntity, asPlayer, asBlock, asItem);
 
@@ -6192,7 +6421,7 @@ public class OotilityCeption {
      * @param allowOffline Wether to actually go for offline players
      * @return NULL if the player has never played before, or if they are not online and you are not allowing offlines.
      */
-    public static OfflinePlayer GetPlayer(String name, boolean allowOffline) {
+    @Nullable public static OfflinePlayer GetPlayer(@Nullable String name, boolean allowOffline) {
 
         // Retruning value
         Player py = null;
@@ -6684,418 +6913,146 @@ public class OotilityCeption {
     //endregion
 
     //region Inventory Evaluation
-    public static ItemStackSlot GetInventorySlot(String zlot) {
-        int ret = -1;
-
-        // Yo guap where's it at
-        ItemStackSlot ratt = null;
-        SearchLocation loc = SearchLocation.INVENTORY;
-        SearchLocation sideLocation = SearchLocation.SHULKER_INVENTORY;
-        PersonalContainerGooP exContainer = null;
-        boolean hasDot = zlot.contains(".");
-
-        // Is the slot a number (Must not be shulker box)
-        if (IntTryParse(zlot) && !hasDot) {
-
-            // Get that number, straight up
-            ret = ParseInt(zlot);
-
-            //SLT//Log("\u00a78Slot \u00a7bNormal\u00a77 Parsed as slot \u00a7b#" + ret);
-            return new ItemStackSlot(loc, ret, null);
-
-        // Maybe its a word
-        } else {
-            boolean success = false;
-            switch (zlot) {
-                case "head":
-                    ret = 103;
-                    success = true;
-                    break;
-                case "chest":
-                    ret = 102;
-                    success = true;
-                    break;
-                case "legs":
-                    ret = 101;
-                    success = true;
-                    break;
-                case "feet":
-                    ret = 100;
-                    success = true;
-                    break;
-                case "mainhand":
-                    ret = -7;
-                    success = true;
-                    break;
-                case "offhand":
-                    ret = -106;
-                    success = true;
-                    break;
-                case "cursor":
-                    ret = -107;
-                    success = true;
-                    break;
-                case "any":
-
-                    //SLT//Log("\u00a78Slot \u00a7bKeywrd\u00a77 Parsed as slot \u00a7bany");
-                    return new ItemStackSlot(loc, null, null);
-                default: break;
-            }
-
-            // Return if early success
-            if (success) {
-                //SLT//Log("\u00a78Slot \u00a7bKeywrd\u00a77 Parsed as slot \u00a7b#" + ret + "\u00a78 (" + zlot + ")");
-                return new ItemStackSlot(loc, ret, null); }
-        }
-
-        //Gunging_Ootilities_Plugin.theOots.C Log("-------------------------------");
-        //Gunging_Ootilities_Plugin.theOots.C Log("Evaluating <\u00a7e" + zlot + "\u00a77>");
-
-        // Hasn't been found? Must be an advanced slot
-        // c23: Observed Container
-        // ec23: Enderchest
-        // 23.4: Slot 4 of Shulker box at slot 23
-        // ec23.*; Any slot of Shulker Box at enderchest 23
-        // 5-12; All slots inclusive 5 to 12
-        // * Any Inventory Slot
-        // ec* Any Enderchest Slot
-        // c* Any observed container slot
-        // c*.* Any observed container slot within shulkers
-        // c*.3-5 Slots 3 to 5 in shulkers in obsrved container slot
-        // |ENDERCRATE|3 Slot 3 in the Personal Container ENDERCRATE
-        // c<COOLBORDER> Stands for all slots with placeholder COOLBORDER in the obsrved container
-        // |ENDERCRATE|<ENDERTOP> Stands for all slots in personal container ENDERCRATE associated with placeholder ENDERTOP
-        boolean acceptsPlaceholders = false;
-        String source = "";
-
-        // What does it start with? Enderchest?
-        if (zlot.startsWith("ec")) {
-
-            // Enderchest Identified
-            loc = SearchLocation.ENDERCHEST;
-            sideLocation = SearchLocation.SHULKER_ENDERCHEST;
-            zlot = zlot.substring(2);
-            source = "ec";
-
-            //SLT//Log("\u00a78Slot \u00a7aEnderchest\u00a77 Identified enderchest, slot \u00a7e" + zlot);
-
-        } else if (zlot.startsWith("c")) {
-
-            // Enderchest Identified
-            loc = SearchLocation.OBSERVED_CONTAINER;
-            sideLocation = SearchLocation.SHULKER_OBSERVED_CONTAINER;
-            zlot = zlot.substring(1);
-            acceptsPlaceholders = true;
-            source = "c";
-
-            //SLT//Log("\u00a78Slot \u00a7aObserved\u00a77 Identified observed container, slot \u00a7e" + zlot);
-
-        } else if (zlot.startsWith("|")) {
-
-            // Enderchest Identified
-            loc = SearchLocation.PERSONAL_CONTAINER;
-            sideLocation = SearchLocation.SHULKER_PERSONAL_CONTAINER;
-
-            // Get String
-            String exRemoved = zlot.substring(1);
-            String exName = null;
-
-            //SLT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Identifiying container...");
-            if (exRemoved.contains("|")) {
-
-                // Parse
-                exName = exRemoved.substring(0, exRemoved.indexOf("|"));
-                //SLT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Determined As \u00a7e" + exName);
-
-                // Get
-                exContainer = ContainerTemplateGooP.perTemplatePersonalContainers.get(exName);
-
-                // Retrun if null
-                if (exContainer == null) {
-                    //SLT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Not Loaded");
-                return null; }
-
-            } else {
-
-                // Invalid
-                //SLT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Missing Container End");
-                return null;
-            }
-
-            // Strip the name
-            zlot = zlot.substring(exName.length() + 2);
-            //SLT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Identified \u00a76" + exName + "\u00a77, slot \u00a7e" + zlot);
-            acceptsPlaceholders = true;
-
-            source = "|" + exName + "|";
-        }
-
-        // Does it have a dot?
-        if (hasDot) {
-            //SLT//Log("\u00a78Slot \u00a7dShulker\u00a77 Interpreting as shulker slot");
-            // Split
-            String[] dotSplit = zlot.replace('.','Ñ').split("Ñ");
-
-            // Sintax Error?
-            if (dotSplit.length != 2) {
-
-                // Sintax Error
-                //SLT//Log("\u00a78Slot \u00a7dShulker\u00a7c Unparseable slot \u00a78(Dot does not split in two)");
-                return null;
-
-            } else {
-
-                // Shulker Boxxer
-                ItemStackSlot shulk = GetInventorySlot(source + dotSplit[0]);
-
-                // If success
-                if (shulk != null) {
-
-                    // Set the personal container o.o
-                    if (exContainer != null) {
-                        //SLT//Log("\u00a78Slot \u00a76Personal Shulker\u00a77 Personal container attached \u00a7e" + exContainer.getParentTemplate().getInternalName());
-                        shulk.SetPersonalContainer(exContainer); }
-
-                    // Get Target Index
-                    String dime = dotSplit[1];
-                    // Is it any?
-                    if (dime.contains("*")) {
-                        //SLT//Log("\u00a78Slot \u00a7dShulker Any\u00a7b any \u00a77slot try");
-
-                        // Only one correct thing
-                        if (dime.equals("*")) {
-                            //SLT//Log("\u00a78Slot \u00a7dShulker Any\u00a7b any \u00a77slot identified");
-
-                            // Shulk
-                            ratt = new ItemStackSlot(sideLocation, null, shulk);
-
-                        } else {
-
-                            // Sintax Error
-                            //SLT//Log("\u00a78Slot \u00a7dShulker Any\u00a7c Invalid");
-                            return null;
-                        }
-
-                    // Is it a placeholder?
-                    } else if (acceptsPlaceholders && dime.startsWith("<") && dime.endsWith(">")) {
-
-                        //Parse
-                        String exName = dime.substring(1, dime.length() - 1);
-                        //SLT//Log("\u00a78Slot \u00a7dShulker Placeholder\u00a79 placeholder \u00a77slot, \u00a7e" + exName);
-
-                        // I guess it works, anything could be a placeholder
-                        ratt = new ItemStackSlot(sideLocation, null, shulk);
-                        ratt.SetGooPContainersPlaceholder(exName);
-
-                    // Otherwise valid integer
-                    } else {
-
-                        if (dime.contains("-")) {
-                            //SLT//Log("\u00a78Slot \u00a7dShulker Range\u00a73 range \u00a77identified...");
-
-                            // Split
-                            String[] dashSplit = dime.split("-");
-
-                            // Defined length
-                            if (dashSplit.length != 2) {
-
-                                // Sintax Error
-                                //SLT//Log("\u00a78Slot \u00a7dShulker Range\u00a7c Invalid Range \u00a78(No two split gen)");
-                                return null;
-
-                            // Correct Length
-                            } else {
-
-                                // Does it parse?
-                                if (OotilityCeption.IntTryParse(dashSplit[0])) {
-
-                                    // Parse?
-                                    if (OotilityCeption.IntTryParse(dashSplit[1])) {
-
-                                        // Actually parse
-                                        Integer min = ParseInt(dashSplit[0]);
-                                        int max = ParseInt(dashSplit[1]);
-
-                                        // Build
-                                        ratt = new ItemStackSlot(sideLocation, min, shulk);
-                                        ratt.SetUpperRange(max);
-                                        //SLT//Log("\u00a78Slot \u00a7dShulker Range\u00a77 Generated as \u00a7e" + min + " trhu " + max);
-
-                                    } else {
-
-                                        // Syntax Error
-                                        //SLT//Log("\u00a78Slot \u00a7dShulker Range\u00a7c Unparsable high bound \u00a76" + dashSplit[1]);
-                                        return null;
-                                    }
-
-                                } else {
-
-                                    // Syntax Error
-                                    //SLT//Log("\u00a78Slot \u00a7dShulker Range\u00a7c Unparsable low bound \u00a76" + dashSplit[0]);
-                                    return null;
-                                }
-                            }
-
-                        } else if (OotilityCeption.IntTryParse(dime)) {
-                            //SLT//Log("\u00a78Slot \u00a7dShulker\u00a77 Simple numeric slot identified \u00a7e" + ParseInt(dime));
-
-                            // Parsing Success
-                            ratt = new ItemStackSlot(sideLocation, ParseInt(dime), shulk);
-
-                        } else {
-
-                            // Sintax Error
-                            //SLT//Log("\u00a78Slot \u00a7dShulker\u00a7c Could not parse slot \u00a76" + dime);
-                            return null;
-                        }
-
-                    }
-
-                // If parent slot not found
-                } else {
-
-                    // Sintax Error
-                    //SLT//Log("\u00a78Slot \u00a7dShulker\u00a77 Parent slot was invalid");
-                    return null;
-                }
-            }
-
-        // No so it should parse naturally
-        } else {
-
-            // Is it any?
-            if (zlot.contains("*")) {
-                //SLT//Log("\u00a78Slot \u00a7bAny\u00a77 slot try");
-
-                // Only one thing
-                if (zlot.equals("*")) {
-                    //SLT//Log("\u00a78Slot \u00a7bAny \u00a77slot identified");
-
-                    // Any Slot within EnderChest
-                    ratt = new ItemStackSlot(loc, null, null);
-
-                } else {
-
-                    // Sintax Error
-                    //SLT//Log("\u00a78Slot \u00a7bAny\u00a7c Invalid");
-                    return null;
-                }
-
-            // Is it a placeholder?
-            } else if (acceptsPlaceholders && zlot.startsWith("<") && zlot.endsWith(">")) {
-
-                    //Parse
-                    String exName = zlot.substring(1, zlot.length() - 1);
-                    //SLT//Log("\u00a78Slot \u00a79Placeholder \u00a77slot, \u00a7e" + exName);
-
-                    // I guess it works, anything could be a placeholder
-                    ratt = new ItemStackSlot(loc, null, null);
-                    ratt.SetGooPContainersPlaceholder(exName);
-
-            // Otherwise valid integer
-            } else {
-
-                // If contained?
-                if (zlot.contains("-")) {
-                    //SLT//Log("\u00a78Slot \u00a73Range \u00a77identified...");
-
-                    // Split
-                    String[] dashSplit = zlot.split("-");
-
-                    // Defined length
-                    if (dashSplit.length != 2) {
-
-                        // Sintax Error
-                        //SLT//Log("\u00a78Slot \u00a73Range\u00a7c Invalid Range \u00a78(No two split gen)");
-                        return null;
-
-                    // Correct Length
-                    } else {
-
-                        // Does it parse?
-                        if (OotilityCeption.IntTryParse(dashSplit[0])) {
-
-                            // Parse?
-                            if (OotilityCeption.IntTryParse(dashSplit[1])) {
-
-                                // Actually parse
-                                Integer min = ParseInt(dashSplit[0]);
-                                int max = ParseInt(dashSplit[1]);
-
-                                // Build
-                                ratt = new ItemStackSlot(loc, min, null);
-                                ratt.SetUpperRange(max);
-                                //SLT//Log("\u00a78Slot \u00a73Range\u00a77 Generated as \u00a7e" + min + " trhu " + max);
-
-                            } else {
-
-                                // Syntax Error
-                                //SLT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable high bound \u00a76" + dashSplit[1]);
-                                return null;
-                            }
-
-                        } else {
-
-                            // Syntax Error
-                            //SLT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + dashSplit[0]);
-                            return null;
-                        }
-                    }
-
-                } else if (OotilityCeption.IntTryParse(zlot)) {
-                    //SLT//Log("\u00a78Slot \u00a7eSlot\u00a77 Simple numeric slot identified \u00a7e" + ParseInt(zlot));
-
-                    // Parsing Success
-                    ratt = new ItemStackSlot(loc, ParseInt(zlot), null);
-
-                } else {
-
-                    // Sintax Error
-                    //SLT//Log("\u00a78Slot \u00a7eSlot\u00a7c Could not parse slot \u00a76" + zlot);
-                    return null;
-                }
-            }
-        }
-
-        // Does it target the observed container
-        if (exContainer != null) {
-            //SLT//Log("\u00a78Slot \u00a76Personal\u00a77 Personal container attached \u00a7e" + exContainer.getParentTemplate().getInternalName());
-            ratt.SetPersonalContainer(exContainer); }
-
-        return ratt;
+    /**
+     * For ease of use (in a for loop or something) theres a continuous mapping of numbers
+     * to player inventory slots (since armor jumps to the negative hundreds) such that this
+     * method handles it accordingly.
+     *
+     * @param player Player who holds an inventory
+     * @param slot Slot of the item you want
+     *
+     * @return The item this player holds in this slot
+     */
+    @Contract("null,_->null;_,null->null")
+    @Nullable public static ItemStack getItemFromPlayerInventory(@Nullable Player player, @Nullable Integer slot) {
+
+        // Ah yes
+        if (player == null || slot == null) { return null; }
+
+        // Find item
+        ItemStack ret = null;
+
+        // Is it one of the 36 slots?
+        if (slot >= 0 && slot < 36) { ret = player.getInventory().getItem(slot); }
+
+        // Is it the cursor?
+        else if (slot == -107) { ret = player.getOpenInventory().getCursor(); }
+
+        // Is it the mainhand?
+        else if (slot == -7) { ret = player.getInventory().getItemInMainHand(); }
+
+        // Is it the offhand?
+        else if (slot == -106) { ret = player.getInventory().getItemInOffHand(); }
+
+        // Is it the Helmet?
+        else if (slot == 103) { ret = player.getInventory().getHelmet(); }
+
+        // Is it the Chest?
+        else if (slot == 102) { ret = player.getInventory().getChestplate(); }
+
+        // Is it the Legs?
+        else if (slot == 101) { ret = player.getInventory().getLeggings(); }
+
+        // Is it the Boots?
+        else if (slot == 100) { ret = player.getInventory().getBoots(); }
+
+        // Must have found something
+        return ret;
     }
-    @NotNull public static ArrayList<ItemStackSlot> GetInventorySlots(@NotNull String arg, @NotNull Player elaborator, @Nullable RefSimulator<String> logger) {
-        // Will begin with the value to return
-        ArrayList<ItemStackSlot> slott = new ArrayList<>();
-        String[] slots = new String[] { arg };
+    /**
+     * For ease of use (in a for loop or something) theres a continuous mapping of numbers
+     * to player inventory slots (since armor jumps to the negative hundreds) such that this
+     * method handles it accordingly.
+     *
+     * @param player Player who holds an inventory
+     * @param slot Slot of the item you want to edit
+     * @param item Item you wish to put in that slot
+     */
+    @Contract("null,_,_->null;_,null,_->null")
+    public static void setItemFromPlayerInventory(@Nullable Player player, @Nullable Integer slot, @Nullable ItemStack item) {
+        if (player == null || slot == null) { return; }
+
+        // Fetch Inventory
+        PlayerInventory inventory = player.getInventory();
+
+        // Is it the mainhand?
+        if (slot == -7) { inventory.setItemInMainHand(item); }
+
+        // Is it the cursor?
+        else if (slot == -107) { player.setItemOnCursor(item); }
+
+        // Is it the offhand?
+        else if (slot == -106) { inventory.setItemInOffHand(item); }
+
+        // Is it the Helmet?
+        else if (slot == 103) { inventory.setHelmet(item); }
+
+        // Is it the Chest?
+        else if (slot == 102) { inventory.setChestplate(item); }
+
+        // Is it the Legs?
+        else if (slot == 101) { inventory.setLeggings(item); }
+
+        // Is it the Boots?
+        else if (slot == 100) { inventory.setBoots(item); }
+
+        // Must be a normal slot
+        else if (slot >= 0 && slot < 36) { inventory.setItem(slot, item); }
+    }
+
+    /**
+     * @param arg The argument that encodes for any number of inventory slots.
+     * @param elaborator The player who is elaborating, for better information.
+     * @param logger If anything would fail, this carries information on why.
+     *
+     * @return All the inventory slots represented by this string.
+     */
+    @NotNull public static ArrayList<ItemStackSlot> getInventorySlots(@Nullable String arg, @Nullable Player elaborator, @Nullable RefSimulator<String> logger) {
+
+        // The list to return
+        ArrayList<ItemStackSlot> ret = new ArrayList<>();
+        if (arg == null) { return ret; }
+
+        // Identify each separate slot
+        ArrayList<String> slots = new ArrayList<>();
+        if (arg.contains(",")) { for (String str : arg.split(",")) { slots.add(str); } } else { slots.add(arg); }
+
+        // Those who made no sense
         StringBuilder invalids = new StringBuilder();
-        if (arg.contains(",")) { slots = arg.split(","); }
-        for (String sl : slots) {
-            //SLOT//OotilityCeption.Log("Parsing Slot \u00a7f" + sl);
+
+        /*
+         * Evaluate each of them, then elaborate
+         */
+        for (String slot : slots) {
+            //SLOT//OotilityCeption.Log("Parsing Slot \u00a7f" + slot);
 
             // Does it parse?
-            ItemStackSlot oSlot = OotilityCeption.GetInventorySlot(sl);
+            ItemStackSlot itemStackSlot = OotilityCeption.getInventorySlot(slot);
 
             // Gather
-            if (oSlot != null) {
+            if (itemStackSlot != null) {
 
-                ArrayList<ItemStackSlot> snooze = oSlot.Elaborate(elaborator);
+                // Yeah
+                itemStackSlot.setElaborator(elaborator);
+
+                // Get all within encoded
+                ArrayList<? extends ItemStackSlot> elaborated = itemStackSlot.elaborate();
 
                 // Unelaboratable
-                if (snooze.size() == 0) {
+                if (elaborated.size() == 0) {
 
                     // Include in invalids
-                    invalids.append("\u00a77, \u00a7b").append(sl);
+                    invalids.append("\u00a77, \u00a7b").append(slot);
                 }
 
                 // Thats the one
-                slott.addAll(snooze);
+                ret.addAll(elaborated);
 
             } else {
                 //SLOT//OotilityCeption.Log("\u00a78\u00a7oInvalid");
 
                 // Include in invalids
-                invalids.append("\u00a77, \u00a73").append(sl);
+                invalids.append("\u00a77, \u00a73").append(slot);
             }
         }
 
@@ -7107,1124 +7064,539 @@ public class OotilityCeption {
         } else if (logger != null) { logger.setValue(null); }
 
         // Return
-        return slott;
+        return ret;
+    }
+    /**
+     * @param arg String that encodes for a single range of slots.
+     *
+     * @return If this slot represented a slot correctly, that slot.
+     */
+    @Contract("null->null") @Nullable public static ItemStackSlot getInventorySlot(@Nullable String arg) {
+        if (arg == null) { return null; }
+
+        // Yo guap where's it at
+        @NotNull RefSimulator<Integer> slot = new RefSimulator<>(null);
+        @NotNull RefSimulator<Integer> range = new RefSimulator<>(null);
+
+        /*
+         * Shulker boxes are treated differently, as everything before
+         * is ignored and cut off, sent to be parsed as a parent slot.
+         */
+        int targetShulker = arg.indexOf(".");
+        if (targetShulker > 0) {
+
+            // Obtain parent slot
+            String parentArg = arg.substring(0, targetShulker);
+            ItemStackSlot parent = getInventorySlot(parentArg);
+
+            // Failure?
+            if (parent == null) { return null; }
+
+            // Whats the actual range here
+            if (!getSlotRange(arg, slot, range, false)) { return null; }
+
+            /*
+             * Shulker box constraints: The values must be between zero and 27
+             */
+            if (slot.getValue() != null && slot.getValue() < 0) { slot.setValue(0); }
+            if (slot.getValue() != null && slot.getValue() > 26) { slot.setValue(26); }
+            if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
+            if (range.getValue() != null && range.getValue() > 26) { range.setValue(26); }
+
+            // Very well, we may now just create a shulker slot
+            return new ISSShulker(parent.getShulkerLocation(), slot.getValue(), range.GetValue(), parent);
+        }
+
+        /*
+         * Identify the prefix, and thus identify the range
+         */
+        SearchLocation location = SearchLocation.INVENTORY;
+        if (arg.startsWith("ec")) {
+
+            // If it could not get the correct slots from the specified range
+            if (!getSlotRange(arg.substring(2), slot, range, false)) { return null; }
+
+            /*
+             * Enderchest constraints: The values must be between zero and 27
+             */
+            if (slot.getValue() != null && slot.getValue() < 0) { slot.setValue(0); }
+            if (slot.getValue() != null && slot.getValue() > 26) { slot.setValue(26); }
+            if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
+            if (range.getValue() != null && range.getValue() > 26) { range.setValue(26); }
+
+            //SLOT//Log("\u00a78Slot \u00a7aEnderchest\u00a77 Identified enderchest, slot \u00a7e" + slot.getValue());
+
+            // Enderchestslot it is
+            return new ISSEnderchest(slot.getValue(), range.getValue());
+
+        // Not enderches, is it observed container?
+        } else if (arg.startsWith("c") && !arg.startsWith("cursor") && !arg.startsWith("chest")) {
+
+            // If it could not get the correct slots from the specified range
+            if (!getSlotRange(arg.substring(1), slot, range, true)) { return null; }
+
+            /*
+             * Identify the alias, in case it succeeded by this reason.
+             */
+            int aliasBegin = arg.indexOf("<");
+            int aliasEnd = arg.indexOf(">");
+            String alias = null;
+            if (aliasBegin > 0 && aliasEnd > aliasBegin) { alias = arg.substring(aliasBegin + 1, aliasEnd); }
+
+            /*
+             * Observed Container constraints: The values must be between zero and 53
+             */
+            if (slot.getValue() != null && slot.getValue() < 0) { slot.setValue(0); }
+            if (slot.getValue() != null && slot.getValue() > 53) { slot.setValue(53); }
+            if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
+            if (range.getValue() != null && range.getValue() > 53) { range.setValue(53); }
+
+            //SLOT//Log("\u00a78Slot \u00a7aObserved\u00a77 Identified observed container, slot \u00a7e" + slot.getValue());
+
+            // Enderchestslot it is
+            return new ISSObservedContainer(slot.getValue(), range.getValue(), alias);
+
+        // Not an observed container, is it personal container?
+        } else if (arg.startsWith("|")) {
+            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Identifiying container...");
+
+            // Get String
+            int barEnd = arg.indexOf("|", 2);
+            if (barEnd < 1) {
+                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Missing Container End");
+                return null; }
+
+            // Find that personal Container
+            String personalName = arg.substring(1, barEnd);
+            GOOPCPersonal personal = GCL_Personal.getByInternalName(personalName);
+            if (personal == null) {
+                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Not Loaded \u00a7e" + personalName);
+                return null; }
+            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Container \u00a76" + personal.getTemplate().getInternalName());
+
+            // If it could not get the correct slots from the specified range
+            if (!getSlotRange(arg.substring(barEnd + 1), slot, range, true)) {
+                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c No range");
+                return null; }
+
+            /*
+             * Identify the alias, in case it succeeded by this reason.
+             */
+            int aliasBegin = arg.indexOf("<");
+            int aliasEnd = arg.indexOf(">");
+            String alias = null;
+            if (aliasBegin > 0 && aliasEnd > aliasBegin) {
+                alias = arg.substring(aliasBegin + 1, aliasEnd);
+                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Alias \u00a7a" + alias);
+            }
+
+            /*
+             * Personal Container constraints: The values must be between zero and 53...
+             *
+             * Except we do know the template for this container! We can actually check
+             * the maximum size of it right here.
+             */
+            if (slot.getValue() != null && slot.getValue() < 0) { slot.setValue(0); }
+            if (slot.getValue() != null && slot.getValue() >= personal.getTemplate().getTotalSlotCount()) {
+                slot.setValue(personal.getTemplate().getTotalSlotCount() - 1); }
+            if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
+            if (range.getValue() != null && range.getValue() >= personal.getTemplate().getTotalSlotCount()) {
+                range.setValue(personal.getTemplate().getTotalSlotCount() - 1); }
+            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Slot \u00a7b" + slot.getValue() + "\u00a77, Range \u00a73" + range.getValue());
+
+            // Enderchestslot it is
+            return new ISSPersonalContainer(slot.getValue(), range.getValue(), personal, alias);
+
+        // None of the prefix matched, must be targetting the normal inventory
+        } else {
+
+            switch (arg) {
+
+                // Targetting the four armor slots
+                case "armor":
+
+                    // All armor slots, it is
+                    return new ISSInventory(100, 103);
+
+                // Targetting both hands, maybe?
+                case "held":
+                case "hands":
+
+                    // Both hand slots, it is
+                    return new ISSInventory(-106, -7);
+
+                // Anything else, probably a number, or maybe any other keyword
+                default:
+
+                    // If it could not get the correct slots from the specified range
+                    if (!getSlotRange(arg, slot, range, false)) { return null; }
+
+                    /*
+                     * Inventory constraints: The values must be between zero and 36
+                     *
+                     * However, we also accept -107, -106, -7, and 100 through 103
+                     */
+                    if (slot.getValue() != null
+                            && slot.getValue() != -107
+                            && slot.getValue() != -106
+                            && slot.getValue() != -7
+                            && slot.getValue() != 100
+                            && slot.getValue() != 101
+                            && slot.getValue() != 102
+                            && slot.getValue() != 103) {
+
+                        if (slot.getValue() < 0) { slot.setValue(0); }
+                        if (slot.getValue() > 36) { slot.setValue(35); }
+                    }
+                    if (range.getValue() != null
+                            && range.getValue() != -107
+                            && range.getValue() != -106
+                            && range.getValue() != -7
+                            && range.getValue() != 100
+                            && range.getValue() != 101
+                            && range.getValue() != 102
+                            && range.getValue() != 103) {
+
+                        if (range.getValue() < 0) { range.setValue(0); }
+                        if (range.getValue() > 35) { range.setValue(35); }
+                    }
+
+                    //SLOT//Log("\u00a78Slot \u00a73Inventory\u00a77 Identified inventory, slot \u00a7e" + slot.getValue());
+
+                    // Inventory slot it is
+                    return new ISSInventory(slot.getValue(), range.getValue());
+            }
+        }
+    }
+    /**
+     * Identifies the range of slots queried.
+     *
+     * @param arg The encoded range, must have no prefix, but it can
+     *            have shulker information.
+     *
+     * @param slot The lower bound of the range
+     * @param range The upper bound of the range
+     *
+     * @param allowAliases Will allow this command to not fail, if an alias is detected.
+     *
+     * @return If this string encoded for a valid slot.
+     */
+    public static boolean getSlotRange(@Nullable String arg, @NotNull RefSimulator<Integer> slot, @NotNull RefSimulator<Integer> range, boolean allowAliases) {
+
+        // Use the stuff after the dots
+        if (arg == null) { return false; }
+        if (arg.contains(".")) { arg = arg.substring(arg.indexOf("." + 1)); }
+        if (arg.equals("*")) { slot.setValue(null); range.setValue(null); return true; }
+        if (arg.startsWith("<") && arg.endsWith(">")) { return allowAliases; }
+
+        // Solid, does it have a range?
+        if (arg.contains("-")) {
+            //SLOT//Log("\u00a78Slot \u00a73Range \u00a77identified...");
+
+            // Split
+            String[] dashSplit = arg.split("-");
+
+            // Sintax Error
+            if (dashSplit.length != 2) {
+                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Invalid Range \u00a78(No two split gen)");
+                return false; }
+
+            Integer slotDef = getKeywordSlot(dashSplit[0]);
+            Integer rangeDef = getKeywordSlot(dashSplit[1]);
+
+            // Syntax Error
+            if (slotDef == null) {
+                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + dashSplit[0]);
+                return false; }
+
+            // Syntax Error
+            if (rangeDef == null) {
+                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable high bound \u00a76" + dashSplit[1]);
+                return false; }
+
+            // Flip so that the lesser is always before
+            if (slotDef > rangeDef) {
+                int temporalDef = rangeDef;
+                rangeDef = slotDef;
+                slotDef = temporalDef; }
+
+            // Actually parse
+            slot.setValue(slotDef);
+            range.setValue(rangeDef);
+
+            //SLOT//Log("\u00a78Slot \u00a73Range\u00a77 Generated as \u00a7e" + slotDef + " trhu " + rangeDef);
+            return true;
+
+        // It must be a number in itself
+        }
+
+        // It must be a number, itself
+        Integer slotDef = getKeywordSlot(arg);
+
+        // Syntax Error
+        if (slotDef == null) {
+            //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + arg);
+            return false; }
+
+        // Success
+        slot.setValue(slotDef);
+        range.setValue(null);
+        return true;
+    }
+    /**
+     * @param keyword Keyword that targets a single slot, or a number yeah I guess.
+     *
+     * @return This, parsed as a number, in terms of inventory slots.
+     */
+    @Nullable public static Integer getKeywordSlot(@Nullable String keyword) {
+        if (keyword == null) { return null; }
+
+        // If its an integer number already, parse it alv.
+        if (IntTryParse(keyword)) { return ParseInt(keyword); }
+
+        switch (keyword) {
+            case "cursor": return -107;
+            case "mainhand":
+            case "hand": return -7;
+            case "offhand": return -106;
+            case "helmet":
+            case "head": return 103;
+            case "chestplate":
+            case "chest": return 102;
+            case "leggings":
+            case "legs": return 101;
+            case "boots":
+            case "feet": return 100;
+            default: return null;
+        }
     }
 
-    public static ItemStackLocation GetInvenItem(Player target, Integer slott, boolean continuousFormat) {
-        ItemStackSlot tSlot = new ItemStackSlot(SearchLocation.INVENTORY, slott, null);
+    static ArrayList<String> slotKeywords = null;
+    @NotNull public static ArrayList<String> getSlotKeywords() {
+        if (slotKeywords != null) { return slotKeywords; }
 
-        // Bake slott
+        slotKeywords = new ArrayList<>();
+        slotKeywords.add("cursor");
+        slotKeywords.add("mainhand");
+        slotKeywords.add("hand");
+        slotKeywords.add("offhand");
+        slotKeywords.add("helmet");
+        slotKeywords.add("head");
+        slotKeywords.add("chestplate");
+        slotKeywords.add("chest");
+        slotKeywords.add("leggings");
+        slotKeywords.add("legs");
+        slotKeywords.add("boots");
+        slotKeywords.add("feet");
+
+        slotKeywords.add("hands");
+        slotKeywords.add("armor");
+        slotKeywords.add("*");
+        slotKeywords.add("any");
+
+
+        return slotKeywords;
+    }
+
+    /**
+     * @param player The player whose inventory you want to see
+     * @param inventorySlot Inventory slot number, from 0 through 35; Or any of the special slots.
+     *
+     * @param continuousFormat The special slots jump around from -107 to 104, but they are only 7 total.
+     *                         In the continuous format, I have bound these seven special slots to the first
+     *                         seven negative numbers, such that a for-loop allows iterating through them
+     *                         easily by just starting it at -7:        <br>
+     *                         -7 <code>cursor</code>           <br>
+     *                         -6 <code>mainhand</code>         <br>
+     *                         -5 <code>offhand</code>          <br>
+     *                         -4 <code>head</code>             <br>
+     *                         -3 <code>chest</code>            <br>
+     *                         -2 <code>legs</code>             <br>
+     *                         -1 <code>feet</code>             <br><br>
+     *
+     *                         As a plus, to avoid couting the mainhand twice when iterating through the entire
+     *                         inventory from -7 to 35, the slot corresponding to the mainhand will be excluded
+     *                         if its targetted using its positive number form.
+     *
+     * @return If found, the item found at this player's inventory slot
+     */
+    @Contract("null,_,_->null;_,null,_->null") @Nullable public static ISLInventory getItemFromPlayer(@Nullable Player player, @Nullable Integer inventorySlot, boolean continuousFormat) {
+        if (player == null || inventorySlot == null) { return null; }
+
+        // Build the target slot
+        ISSInventory targetSlot;
+
+        // Identify its true index
         if (continuousFormat) {
 
             // Cancel if the slot equals the held.
-            if (slott >= 0 && (slott == target.getInventory().getHeldItemSlot())) { return null; }
+            if (inventorySlot >= 0 && (inventorySlot == player.getInventory().getHeldItemSlot())) { return null; }
 
-            int trueSlot = slott;
+            /*
+             * Identify the true slot, that is not in
+             * continuous format.
+             */
+            int trueSlot = inventorySlot;
+
             // Is it the cursor?
-            if (slott == -7) { trueSlot = -107; }
+            if (inventorySlot == -7) { trueSlot = -107; }
             // Is it the mainhand?
-            if (slott == -6) { trueSlot = target.getInventory().getHeldItemSlot(); }
+            if (inventorySlot == -6) { trueSlot = player.getInventory().getHeldItemSlot(); }
             // Is it the offhand?
-            if (slott == -5) { trueSlot = -106; }
+            if (inventorySlot == -5) { trueSlot = -106; }
             // Is it the Helmet?
-            if (slott == -4) { trueSlot = 103; }
+            if (inventorySlot == -4) { trueSlot = 103; }
             // Is it the Chest?
-            if (slott == -3) { trueSlot = 102; }
+            if (inventorySlot == -3) { trueSlot = 102; }
             // Is it the Legs?
-            if (slott == -2) { trueSlot = 101; }
+            if (inventorySlot == -2) { trueSlot = 101; }
             // Is it the Boots?
-            if (slott == -1) { trueSlot = 100; }
+            if (inventorySlot == -1) { trueSlot = 100; }
 
             // Bake
-            tSlot = new ItemStackSlot(SearchLocation.INVENTORY, trueSlot, null);
+            targetSlot = new ISSInventory(trueSlot, null);
+
+        // Not continuous format, you must already know its the actual targetted index
+        } else {
+
+            // That shall it become
+            targetSlot = new ISSInventory(inventorySlot, null);
         }
 
-        return GetInvenItem(target, tSlot);
+        return (ISLInventory) getItemFromPlayer(player, targetSlot);
     }
-    @Nullable public static ItemStackLocation GetInvenItem(@NotNull  Player target, @NotNull ItemStackSlot tSlot) { return GetInvenItem(target, tSlot, null); }
-    public static ItemStackLocation GetInvenItem(@NotNull Player target, @NotNull  ItemStackSlot tSlot, String shulkerBoxNameFilter) {
-
-        // ItemStack to return
-        ItemStack ret = null;
-        ItemStackLocation ratt = null;
-
-        // Easy Access Params
-        Integer slott = tSlot.getSlot();
-        Integer majorSlot;
-        boolean succ = true;
-
-        //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Requesting\u00a7b " + tSlot.getLocation().toString() + " #" + slott + "\u00a77 from \u00a7e" + target.getName());
-
-        // This function does not accept 'ANY'
-        if (slott == null) {
-            //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Any Reject");
-            return null; }
-
-        // Does not accept ranges
-        if (!slott.equals(tSlot.getUpperRange())) {
-            //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Range Reject \u00a7e" + tSlot.getUpperRange());
-            return null; }
-
-        switch (tSlot.getLocation()) {
-            case INVENTORY:
-                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Inventory SLT");
-                // Is it one of the 36 slots?
-                if (slott >= 0 && slott < 36) { ret = target.getInventory().getItem(slott); }
-
-                // Is it the cursor?
-                else if (slott == -107) { ret = target.getOpenInventory().getCursor(); }
-
-                // Is it the mainhand?
-                else if (slott == -7) { ret = target.getInventory().getItemInMainHand(); }
-
-                // Is it the offhand?
-                else if (slott == -106) { ret = target.getInventory().getItemInOffHand(); }
-
-                // Is it the Helmet?
-                else if (slott == 103) { ret = target.getInventory().getHelmet(); }
-
-                // Is it the Chest?
-                else if (slott == 102) { ret = target.getInventory().getChestplate(); }
-
-                // Is it the Legs?
-                else if (slott == 101) { ret = target.getInventory().getLeggings(); }
-
-                // Is it the Boots?
-                else if (slott == 100) { ret = target.getInventory().getBoots(); }
-
-                // Must have found smthn
-                if (ret == null) {
-                    //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Slot Not Found");
-                    return null; }
-
-                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Retrieved " + OotilityCeption.GetItemName(ret));
-
-                // Build ISL
-                ratt = new ItemStackLocation(ret, target.getInventory(), slott, SearchLocation.INVENTORY, null);
-                break;
-            case ENDERCHEST:
-                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Enderchest SLT");
-
-                // Get from Enderchest, if within range
-                if (slott >= 0 && slott < 27) { ret = target.getEnderChest().getItem(slott); }
-
-                // Must have found smthn
-                if (ret == null) {
-                    //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Slot Not Found");
-                    return null; }
-
-                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Retrieved " + OotilityCeption.GetItemName(ret));
-
-                // Build ISL
-                ratt = new ItemStackLocation(ret, target.getEnderChest(), slott, SearchLocation.ENDERCHEST, null);
-                break;
-
-            case OBSERVED_CONTAINER:
-                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 C Observed SLT");
-
-                // Pass on to ContainerTemplateGooP
-                return ContainerTemplateGooP.GetObservedStationItemStack(target.getUniqueId(), slott, null);
-
-            case PERSONAL_CONTAINER:
-                //SINV//Log("\u00a78SLGET\u00a79 QR\u00a77 Personal Container SLT");
-
-                // Slot must specify personal
-                if (tSlot.GetPersonalContainer() != null) {
-                    //SINV//Log("\u00a78SLGET\u00a73 PRS\u00a77 At\u00a7f " + tSlot.GetPersonalContainer().getParentTemplate().getInternalName());
-
-                    // Get from Enderchest, if within range
-                    if (slott >= 0 && slott < tSlot.GetPersonalContainer().getParentTemplate().getTotalSlotCount()) {
-                        ret = tSlot.GetPersonalContainer().GetInventoryItem(target.getUniqueId(), slott);
-
-                        //SINV//Log("\u00a78SLGET\u00a73 PRS\u00a77 Retrieved " + OotilityCeption.GetItemName(ret));
-                    } else {
-
-                        //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Index Out of Range");
-                        return null;
-                    }
-
-                    // Must have found smthn
-                    if (ret == null) {
-                        //SINV//Log("\u00a78SLGET\u00a73 PRS\u00a77 Searching display slots instaed...");
-
-                        // Attempt to get display (only works if under the range)
-                        ret = tSlot.GetPersonalContainer().GetInOpen(target.getUniqueId(), slott);
-
-                        // Attempt to get display (only works if under the range)
-                        if (ret == null) { ret = tSlot.GetPersonalContainer().getParentTemplate().getDefaultContent(slott); }
-
-                        if (ret == null) {
-
-                            //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Item Not Found");
-                            return null;
-
-                        } else {
-
-                            // Build ISL
-                            ratt = new ItemStackLocation(ret, tSlot.GetPersonalContainer(), target.getUniqueId(), slott, SearchLocation.PERSONAL_CONTAINER, null);
-                            ratt.setContainerDisplay(tSlot.GetPersonalContainer().getParentTemplate().getSlotAt(slott).getSlotType() != ContainerSlotTypes.STORAGE);
-                        }
-
-                    } else {
-
-                        // Build ISL
-                        ratt = new ItemStackLocation(ret, tSlot.GetPersonalContainer(), target.getUniqueId(), slott, SearchLocation.PERSONAL_CONTAINER, null);
-                    }
-
-                } else {
-                    //SINV//Log("\u00a78SLGET\u00a79 QR\u00a7c Invalid Personal Container");
-
-                    // Uh nope
-                    return null;
-                }
-                break;
-
-            case SHULKER_INVENTORY:
-                // Must have a parent
-                if (tSlot.getParentSlot() == null) { return null; }
-
-                // Get Major Slot Information
-                majorSlot = tSlot.getParentSlot().getSlot();
-
-                // This function does not accept 'ANY'
-                if (majorSlot == null) { return null; }
-
-                // Is it one of the 36 slots?
-                if (majorSlot >= 0 && majorSlot < 36) { ret = target.getInventory().getItem(majorSlot); }
-
-                // Is it the mainhand?
-                else if (majorSlot == -7) { ret = target.getInventory().getItemInMainHand(); }
-
-                // Is it the offhand?
-                else if (majorSlot == -106) { ret = target.getInventory().getItemInOffHand(); }
-
-                // Is it the Helmet?
-                else if (majorSlot == 103) { ret = target.getInventory().getHelmet(); }
-
-                // Is it the Chest?
-                else if (majorSlot == 102) { ret = target.getInventory().getChestplate(); }
-
-                // Is it the Legs?
-                else if (majorSlot == 101) { ret = target.getInventory().getLeggings(); }
-
-                // Is it the Boots?
-                else if (majorSlot == 100) { ret = target.getInventory().getBoots(); }
-
-                // Must have found smthn
-                if (ret == null) { return null; }
-
-                // Is it a shulker boxx?
-                if (shulkerBoxNameFilter != null) { succ = OotilityCeption.ParseColour(OotilityCeption.GetItemName(ret)).equals(OotilityCeption.ParseColour(shulkerBoxNameFilter)); }
-                if (IsShulkerBox(ret.getType()) && succ) {
-
-                    // Get Meta
-                    BlockStateMeta bsm = (BlockStateMeta) ret.getItemMeta();
-                    ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                    // Clear
-                    ItemStack trueRet = null;
-
-                    // Is it one of the 27 slots?
-                    if (slott >= 0 && slott < 27) { trueRet = boxx.getInventory().getItem(slott); }
-
-                    // Must have found smthn
-                    if (trueRet == null) { return null; }
-
-                    // Build ISL
-                    ratt = new ItemStackLocation(trueRet, boxx.getInventory(), slott, SearchLocation.SHULKER_INVENTORY, new ItemStackLocation(ret, target.getInventory(), majorSlot, SearchLocation.INVENTORY, null));
-
-                } else {
-
-                    // Nope.
-                    return null;
-                }
-                break;
-
-
-            case SHULKER_ENDERCHEST:
-                // Must have a parent
-                if (tSlot.getParentSlot() == null) { return null; }
-
-                // Get Major Slot Information
-                majorSlot = tSlot.getParentSlot().getSlot();
-
-                // This function does not accept 'ANY'
-                if (majorSlot == null) { return null; }
-
-                // Is it one of the 36 slots?
-                if (majorSlot >= 0 && majorSlot < 27) { ret = target.getEnderChest().getItem(majorSlot); }
-
-                // Must have found smthn
-                if (ret == null) { return null; }
-
-                // Is it a shulker boxx?
-                if (shulkerBoxNameFilter != null) { succ = OotilityCeption.ParseColour(OotilityCeption.GetItemName(ret)).equals(OotilityCeption.ParseColour(shulkerBoxNameFilter)); }
-                if (IsShulkerBox(ret.getType()) && succ) {
-
-                    // Get Meta
-                    BlockStateMeta bsm = (BlockStateMeta) ret.getItemMeta();
-                    ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                    // Clear
-                    ItemStack trueRet = null;
-
-                    // Is it one of the 36 slots?
-                    if (slott >= 0 && slott < 27) { trueRet = boxx.getInventory().getItem(slott); }
-
-                    // Must have found smthn
-                    if (trueRet == null) { return null; }
-
-                    // Build ISL
-                    ratt = new ItemStackLocation(trueRet, boxx.getInventory(), slott, SearchLocation.SHULKER_ENDERCHEST, new ItemStackLocation(ret, target.getEnderChest(), majorSlot, SearchLocation.ENDERCHEST, null));
-
-                } else {
-
-                    // Nope.
-                    return null;
-                }
-                break;
-
-
-            case SHULKER_OBSERVED_CONTAINER:
-                // Must have a parent
-                if (tSlot.getParentSlot() == null) { return null; }
-
-                // Get Major Slot Information
-                majorSlot = tSlot.getParentSlot().getSlot();
-
-                // Pass on to ContainerTemplateGooP
-                ItemStackLocation os = ContainerTemplateGooP.GetObservedStationItemStack(target.getUniqueId(), majorSlot, null);
-
-                // Must have found something
-                if (os == null) { return null; }
-
-                // Get Item Stack
-                ret = os.getItem();
-
-                // Must have found smthn
-                if (ret == null) { return null; }
-
-                // Is it a shulker boxx?
-                if (shulkerBoxNameFilter != null) { succ = OotilityCeption.ParseColour(OotilityCeption.GetItemName(ret)).equals(OotilityCeption.ParseColour(shulkerBoxNameFilter)); }
-                if (IsShulkerBox(ret.getType()) && succ) {
-
-                    // Get Meta
-                    BlockStateMeta bsm = (BlockStateMeta) ret.getItemMeta();
-                    ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                    // Clear
-                    ItemStack trueRet = null;
-
-                    // Is it one of the 36 slots?
-                    if (slott >= 0 && slott < 27) { trueRet = boxx.getInventory().getItem(slott); }
-
-                    // Must have found smthn
-                    if (trueRet == null) { return null; }
-
-                    // Build ISL
-                    ratt = new ItemStackLocation(trueRet, boxx.getInventory(), slott, SearchLocation.SHULKER_OBSERVED_CONTAINER, os);
-                    ratt.setContainerDisplay(os.isContainerDisplay());
-
-                } else {
-
-                    // Nope.
-                    return null;
-                }
-                break;
-
-            case SHULKER_PERSONAL_CONTAINER:
-
-                // Must have a parent
-                if (tSlot.getParentSlot() == null) { return null; }
-
-                // Get Major Slot Information
-                majorSlot = tSlot.getParentSlot().getSlot();
-                //SLT//OotilityCeption.Log("\u00a76[\u00a78SPC\u00a76]\u00a77 Parent found: \u00a7e" + majorSlot);
-
-                // Slot must specify personal
-                if (tSlot.GetPersonalContainer() != null) {
-                    //SLT//OotilityCeption.Log("\u00a76[\u00a78SPC\u00a76]\u00a77 Container found: \u00a7e" + tSlot.GetPersonalContainer().getParentTemplate().getInternalName());
-
-                    // Get from Enderchest, if within range
-                    if (majorSlot >= 0 && majorSlot < tSlot.GetPersonalContainer().getParentTemplate().getTotalSlotCount()) {
-
-                        return null;
-                    }
-
-                    // Yeah that
-                    ret = tSlot.GetPersonalContainer().GetInventoryItem(target.getUniqueId(), majorSlot);
-                    boolean disp = false;
-
-                    // Must have found smthn
-                    if (ret == null) {
-
-                        // Attempt open first
-                        ret = tSlot.GetPersonalContainer().GetInOpen(target.getUniqueId(), majorSlot);
-
-                        // Attempt to get display (only works if under the range)
-                        if (ret == null) { ret = tSlot.GetPersonalContainer().getParentTemplate().getDefaultContent(majorSlot); }
-
-                        if (ret == null) {
-
-                            return null;
-
-                        } else {
-
-                            // Build ISL
-                            disp = tSlot.GetPersonalContainer().getParentTemplate().getSlotAt(majorSlot).getSlotType() != ContainerSlotTypes.STORAGE;
-                        }
-                    }
-                    //SLT//OotilityCeption.Log("\u00a76[\u00a78SPC\u00a76]\u00a77 Item found: \u00a7e" + OotilityCeption.GetItemName(ret));
-
-                    // Is it a shulker boxx?
-                    if (shulkerBoxNameFilter != null) { succ = OotilityCeption.ParseColour(OotilityCeption.GetItemName(ret)).equals(OotilityCeption.ParseColour(shulkerBoxNameFilter)); }
-
-                    if (IsShulkerBox(ret.getType()) && succ) {
-                        //SLT//OotilityCeption.Log("\u00a76[\u00a78SPC\u00a76]\u00a77 Shulker Box Identified, getting slot \u00a7e" + slott);
-
-                        // Get Meta
-                        BlockStateMeta bsm = (BlockStateMeta) ret.getItemMeta();
-                        ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                        // Clear
-                        ItemStack trueRet = null;
-
-                        // Is it one of the 27 slots?
-                        if (slott >= 0 && slott < 27) { trueRet = boxx.getInventory().getItem(slott); }
-
-                        // Must have found smthn
-                        if (trueRet == null) { return null; }
-                        //SLT//OotilityCeption.Log("\u00a76[\u00a78SPC\u00a76]\u00a77 True Item found: \u00a7e" + OotilityCeption.GetItemName(trueRet));
-
-                        // Build ISL
-                        ratt = new ItemStackLocation(trueRet, boxx.getInventory(), slott, SearchLocation.SHULKER_PERSONAL_CONTAINER, new ItemStackLocation(ret, tSlot.GetPersonalContainer(), target.getUniqueId(), slott, SearchLocation.PERSONAL_CONTAINER, null));
-                        ratt.setContainerDisplay(disp);
-
-                    } else {
-
-                        // Nope.
-                        return null;
-                    }
-
-                } else {
-                    //SLOT//OotilityCeption. Log(("Parent Slot had no Personal Container");
-                    // Uh nope
-                    return null;
-                }
-                break;
-        }
-        return ratt;
+    /**
+     * @param target The player to check inventories of.
+     * @param slot Single-target slot that you want to resolve.
+     *
+     * @return If found, the item targetted by this slot, through this player.
+     */
+    @Contract("null,_->null;_,null->null") @Nullable public static ItemStackLocation getItemFromPlayer(@Nullable OfflinePlayer target, @Nullable ItemStackSlot slot) {
+        if (target == null || slot == null) { return null; }
+
+        // All right get that ItemStackLocation
+        slot.setElaborator(target);
+        return slot.getItem(target);
     }
-    public static void SetInvenItem(Player target, ItemStackSlot tSlot, ItemStack stacc) {
-
-        // Easy Access Params
-        Integer slott = tSlot.getSlot();
-        Integer majorSlot;
-
-        // 5 Shulkers
-        ItemStack shulk = null;
-
-        // This function does not accept 'ANY'
-        if (slott == null) { return; }
-
-        // Does not accept ranges
-        if (!tSlot.getUpperRange().equals(slott)) { return; }
-
-        switch (tSlot.getLocation()) {
-            case INVENTORY:
-                // Is it one of the 36 slots?
-                if (slott >= 0 && slott < 36) { target.getInventory().setItem(slott, stacc); }
-
-                // Is it the mainhand?
-                else if (slott == -7) { target.getInventory().setItemInMainHand(stacc); }
-
-                // Is it the offhand?
-                else if (slott == -106) { target.getInventory().setItemInOffHand(stacc); }
-
-                // Is it the Helmet?
-                else if (slott == 103) { target.getInventory().setHelmet(stacc); }
-
-                // Is it the Chest?
-                else if (slott == 102) { target.getInventory().setChestplate(stacc); }
-
-                // Is it the Legs?
-                else if (slott == 101) { target.getInventory().setLeggings(stacc); }
-
-                // Is it the Boots?
-                else if (slott == 100) { target.getInventory().setBoots(stacc); } else { return; }
-                break;
-
-            case ENDERCHEST:
-
-                // Get from Enderchest, if within range
-                if (slott >= 0 && slott < 27) { target.getEnderChest().setItem(slott, stacc); } else { return; }
-                break;
-
-            case OBSERVED_CONTAINER:
-
-                // Pass on to ContainerTemplateGooP
-                ContainerTemplateGooP.SetObservedStationItemStack(target.getUniqueId(), slott, stacc, null);
-                return;
-
-            case PERSONAL_CONTAINER:
-
-                // Slot must specify personal
-                if (tSlot.GetPersonalContainer() != null) {
-
-                    // Get from Enderchest, if within range
-                    if (slott >= 0 && slott < tSlot.GetPersonalContainer().getParentTemplate().getTotalSlotCount()) { tSlot.GetPersonalContainer().SetAndSaveInventoryItem(target.getUniqueId(), slott, stacc, null); }
-
-                } else {
-
-                    // Uh nope
-                    return;
-                }
-                break;
-
-            case SHULKER_INVENTORY:
-                // Must have a parent
-                if (tSlot.getParentSlot() == null) { return; }
-
-                // Get Major Slot Information
-                majorSlot = tSlot.getParentSlot().getSlot();
-
-                // This function does not accept 'ANY'
-                if (majorSlot == null) { return; }
-
-                // Is it one of the 36 slots?
-                if (majorSlot >= 0 && majorSlot < 36) { shulk = target.getInventory().getItem(majorSlot); }
-
-                // Is it the mainhand?
-                else if (majorSlot == -7) { shulk = target.getInventory().getItemInMainHand(); }
-
-                // Is it the offhand?
-                else if (majorSlot == -106) { shulk = target.getInventory().getItemInOffHand(); }
-
-                // Is it the Helmet?
-                else if (majorSlot == 103) { shulk = target.getInventory().getHelmet(); }
-
-                // Is it the Chest?
-                else if (majorSlot == 102) { shulk = target.getInventory().getChestplate(); }
-
-                // Is it the Legs?
-                else if (majorSlot == 101) { shulk = target.getInventory().getLeggings(); }
-
-                // Is it the Boots?
-                else if (majorSlot == 100) { shulk = target.getInventory().getBoots(); }
-
-                // Must have found smthn
-                if (shulk == null) { return; }
-
-                // Is it a shulker boxx?
-                if (IsShulkerBox(shulk.getType())) {
-
-                    // Get Meta
-                    BlockStateMeta bsm = (BlockStateMeta) shulk.getItemMeta();
-                    ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                    // Is it one of the 27 slots?
-                    if (slott >= 0 && slott < 27) { boxx.getInventory().setItem(slott, stacc); bsm.setBlockState(boxx); shulk.setItemMeta(bsm); } else { return; }
-
-                } else {
-
-                    // Nope.
-                    return;
-                }
-                break;
-
-
-            case SHULKER_ENDERCHEST:
-                // Must have a parent
-                if (tSlot.getParentSlot() == null) { return; }
-
-                // Get Major Slot Information
-                majorSlot = tSlot.getParentSlot().getSlot();
-
-                // This function does not accept 'ANY'
-                if (majorSlot == null) { return; }
-
-                // Is it one of the 36 slots?
-                if (majorSlot >= 0 && majorSlot < 27) { shulk = target.getEnderChest().getItem(majorSlot); }
-
-                // Must have found smthn
-                if (shulk == null) { return; }
-
-                // Is it a shulker boxx?
-                if (IsShulkerBox(shulk.getType())) {
-
-                    // Get Meta
-                    BlockStateMeta bsm = (BlockStateMeta) shulk.getItemMeta();
-                    ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                    // Clear
-                    ItemStack trueRet = null;
-
-                    // Is it one of the 36 slots?
-                    if (slott >= 0 && slott < 27) { boxx.getInventory().setItem(slott, stacc); bsm.setBlockState(boxx); shulk.setItemMeta(bsm); } else { return; }
-
-                } else {
-
-                    // Nope.
-                    return;
-                }
-                break;
-
-
-            case SHULKER_OBSERVED_CONTAINER:
-                // Must have a parent
-                if (tSlot.getParentSlot() == null) { return; }
-
-                // Get Major Slot Information
-                majorSlot = tSlot.getParentSlot().getSlot();
-
-                // Pass on to ContainerTemplateGooP
-                ItemStackLocation os = ContainerTemplateGooP.GetObservedStationItemStack(target.getUniqueId(), majorSlot, null);
-
-                // Must have found something
-                if (os == null) { return; }
-
-                // Get Item Stack
-                shulk = os.getItem();
-
-                // Must have found smthn
-                if (shulk == null) { return; }
-
-                // Is it a shulker boxx?
-                if (IsShulkerBox(shulk.getType())) {
-
-                    // Get Meta
-                    BlockStateMeta bsm = (BlockStateMeta) shulk.getItemMeta();
-                    ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                    // Clear
-                    ItemStack trueRet = null;
-
-                    // Is it one of the 36 slots?
-                    if (slott >= 0 && slott < 27) { trueRet = boxx.getInventory().getItem(slott); bsm.setBlockState(boxx); shulk.setItemMeta(bsm); } else { return; }
-
-                } else {
-
-                    // Nope.
-                    return;
-                }
-                break;
-
-            case SHULKER_PERSONAL_CONTAINER:
-                // Must have a parent
-                if (tSlot.getParentSlot() == null) { return; }
-
-                // Get Major Slot Information
-                majorSlot = tSlot.getParentSlot().getSlot();
-
-                // Slot must specify personal
-                if (tSlot.GetPersonalContainer() != null) {
-
-                    // Get from Enderchest, if within range
-                    if (majorSlot >= 0 && majorSlot < tSlot.GetPersonalContainer().getParentTemplate().getTotalSlotCount()) { shulk = tSlot.GetPersonalContainer().GetInventoryItem(target.getUniqueId(), majorSlot); }
-
-                    // Must have found smthn
-                    if (shulk == null) { return; }
-
-                    // Is it a shulker boxx?
-                    if (IsShulkerBox(shulk.getType())) {
-
-                        // Get Meta
-                        BlockStateMeta bsm = (BlockStateMeta) shulk.getItemMeta();
-                        ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                        // Is it one of the 27 slots?
-                        if (slott >= 0 && slott < 27) { boxx.getInventory().setItem(slott, stacc); bsm.setBlockState(boxx); shulk.setItemMeta(bsm); } else { return; }
-
-                    } else {
-
-                        // Nope.
-                        return;
-                    }
-
-                } else {
-
-                    return;
-                }
-                break;
-        }
+    /**
+     * @param target The player to check inventories of.
+     * @param slot Single-target slot that you want to resolve.
+     * @param shulkerBoxNameFilter If it happens to be a shulker box slot,
+     *                             this will be set as its filter.
+     *
+     * @return If found, the item targetted by this slot, through this player.
+     */
+    @Contract("null,_,_->null;_,null,_->null") @Nullable public static ItemStackLocation getItemFromPlayer(@Nullable OfflinePlayer target, @Nullable ItemStackSlot slot, @Nullable String shulkerBoxNameFilter) {
+
+        // All right get that ItemStackLocation
+        ItemStackLocation location = getItemFromPlayer(target, slot);
+
+        // Thats what you wanted to know, wasn't it?
+        if (location instanceof ISLShulker) { ((ISLShulker) location).setShulkerBoxNameFilter(shulkerBoxNameFilter); }
+        return location;
     }
 
-    public static ArrayList<ItemStackLocation> InventoryMatching(Player target, String nbtKey, String dataPrime, String dataDime, RefSimulator<Integer> totalFound, String shulkerNameFilter, RefSimulator<String> logger, SearchLocation... locations) {
+    /**
+     * Sets the item in this player's slot. Fails silently
+     * if anything goes wrong.
+     *
+     * @param player The target player
+     * @param slot The target slot
+     * @param item The item to set.
+     */
+    @Contract("null,_,_->null;_,null,_->null") public static void setItemFromPlayer(@Nullable Player player, @Nullable ItemStackSlot slot, @Nullable ItemStack item) {
+        if (player == null || slot == null) { return; }
+
+        // Get location
+        ItemStackLocation location = getItemFromPlayer(player, slot);
+        if (location == null) { return; }
+
+        // Replace item
+        location.setItem(item);
+    }
+
+    /**
+     * Goes through all the specified locations, and finds
+     * items that match this NBTFilter.
+     *
+     * @param player The player whose inventories will be scourged.
+     * @param filter The NBTFilter of items to match.
+     * @param count The total number of items of this type found.
+     * @param shulkerNameFilter Exclude shulker boxes not named like this.
+     * @param logger Any fail mesages idk.
+     * @param locations The item locations to search.
+     *
+     * @return All the items in all those locations that matched.
+     */
+    @NotNull public static ArrayList<ItemStackLocation> getMatchingItems(@NotNull Player player, @NotNull NBTFilter filter, @Nullable RefSimulator<Integer> count, @Nullable String shulkerNameFilter, @Nullable RefSimulator<String> logger, @NotNull SearchLocation... locations) {
+
+        // Count total found
+        int totalAmount = 0;
 
         // Create Ret
         ArrayList<ItemStackLocation> ret = new ArrayList<>();
-        int totalAmount = 0;
-
-        // Search inventories first before shilker
-        ArrayList<SearchLocation> primarySweepPlaces = new ArrayList<>();
-        ArrayList<SearchLocation> secondarySweepPlaces = new ArrayList<>();
 
         // Cook some booleans for efficiency
         boolean invShulk = false, ecShulk = false, perShulk = false, obsShulk = false;
-        boolean invShulkC = false, ecShulkC = false, perShulkC = false, obsShulkC = false;
         for (SearchLocation loc : locations) {
 
             // Identify which shulkers we must watch out for
             switch (loc) {
                 case SHULKER_INVENTORY:
                     invShulk = true;
-                    secondarySweepPlaces.add(loc);
                     break;
                 case SHULKER_ENDERCHEST:
                     ecShulk = true;
-                    secondarySweepPlaces.add(loc);
                     break;
                 case SHULKER_OBSERVED_CONTAINER:
                     obsShulk = true;
-                    secondarySweepPlaces.add(loc);
                     break;
                 case SHULKER_PERSONAL_CONTAINER:
                     perShulk = true;
-                    secondarySweepPlaces.add(loc);
                     break;
+            }
+        }
+
+        /*
+         * Will now examine every search location, and add up
+         * the found slots from each.
+         */
+        for (SearchLocation location : locations) {
+
+            // Fill these using the stack locations
+            ArrayList<? extends ItemStackLocation> matches;
+            RefSimulator<Integer> localCount = new RefSimulator<>(null);
+
+            switch (location) {
                 case INVENTORY:
-                    primarySweepPlaces.add(loc);
+                    matches = (new ISLInventory()).getAllMatching(player, filter, localCount, logger);
+                    break;
+                case SHULKER_INVENTORY:
+                    matches = (new ISLInventory().getShulker(0)).getAllMatching(player, filter, localCount, logger);
                     break;
                 case ENDERCHEST:
-                    primarySweepPlaces.add(loc);
-                    break;
-                case OBSERVED_CONTAINER:
-                    primarySweepPlaces.add(loc);
-                break;
-                case PERSONAL_CONTAINER:
-                    primarySweepPlaces.add(loc);
-                break;
-            }
-        }
-
-        // Enable Shulker-Only Search
-        for (SearchLocation loc : secondarySweepPlaces) {
-            switch (loc) {
-                case SHULKER_INVENTORY:
-
-                    // If not contained
-                    if (!primarySweepPlaces.contains(SearchLocation.INVENTORY)) {
-
-                        // Inclide and Constrain
-                        primarySweepPlaces.add(SearchLocation.INVENTORY);
-                        invShulkC = true;
-                    }
+                    matches = (new ISLEnderchest()).getAllMatching(player, filter, localCount, logger);
                     break;
                 case SHULKER_ENDERCHEST:
-
-                    // If not contained
-                    if (!primarySweepPlaces.contains(SearchLocation.ENDERCHEST)) {
-
-                        // Inclide and Constrain
-                        primarySweepPlaces.add(SearchLocation.ENDERCHEST);
-                        ecShulkC = true;
-                    }
-                    break;
-                case SHULKER_OBSERVED_CONTAINER:
-
-                    // If not contained
-                    if (!primarySweepPlaces.contains(SearchLocation.OBSERVED_CONTAINER)) {
-
-                        // Inclide and Constrain
-                        primarySweepPlaces.add(SearchLocation.OBSERVED_CONTAINER);
-                        obsShulkC = true;
-                    }
-                    break;
-                case SHULKER_PERSONAL_CONTAINER:
-
-                    // If not contained
-                    if (!primarySweepPlaces.contains(SearchLocation.PERSONAL_CONTAINER)) {
-
-                        // Inclide and Constrain
-                        primarySweepPlaces.add(SearchLocation.PERSONAL_CONTAINER);
-                        perShulkC = true;
-                    }
-                    break;
-            }
-        }
-
-        // Store shilker box spaces
-        ArrayList<ItemStackLocation> invShulkerBoxes = new ArrayList<>();
-        ArrayList<ItemStackLocation> ecShulkerBoxes = new ArrayList<>();
-        ArrayList<ItemStackLocation> perShulkerBoxes = new ArrayList<>();
-        ArrayList<ItemStackLocation> obsShulkerBoxes = new ArrayList<>();
-
-        // All Locations that must be observed
-        for (SearchLocation loc : primarySweepPlaces) {
-
-            // Method differs from location to location
-            switch (loc) {
-                case INVENTORY:
-                    // Inspect whole inventory
-                    for (int sl = -7; sl < 36; sl++) {
-
-                        // Temporary Item Stack for evaluation
-                        ItemStack targetItem = null;
-                        ItemStackLocation tISource = null;
-
-                        // Get item in continuous format
-                        tISource = OotilityCeption.GetInvenItem(target, sl, true);
-
-                        // If found
-                        if (tISource != null) { targetItem = tISource.getItem(); }
-
-                        // If there was actually something
-                        if (targetItem != null) {
-
-                            // If searchiong in here
-                            if (!invShulkC) {
-
-                                // Did it match?
-                                if (OotilityCeption.MatchesItemNBTtestString(targetItem, nbtKey, dataPrime, dataDime, logger)) {
-
-                                    // Add to Relevant ITems
-                                    ret.add(tISource);
-
-                                    // Increase Amount if defined
-                                    totalAmount += targetItem.getAmount();
-                                }
-                            }
-
-                            // Is it a shulker box thoi?
-                            if (invShulk) {
-
-                                // If it is a shulker box
-                                if (IsShulkerBox(targetItem.getType())) {
-
-                                    // Matches filter?
-                                    boolean nameSuccess = true;
-                                    if (shulkerNameFilter != null) { nameSuccess = OotilityCeption.ParseColour(OotilityCeption.GetItemName(targetItem)).equals(OotilityCeption.ParseColour(shulkerNameFilter)); }
-                                    if (nameSuccess) {
-
-                                        // Identify it
-                                        invShulkerBoxes.add(tISource);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case ENDERCHEST:
-                    // Inspect whole inventory
-                    for (int sl = 0; sl < 27; sl++) {
-
-                        // Temporary Item Stack for evaluation
-                        ItemStack targetItem = null;
-                        ItemStackLocation tISource = null;
-
-                        // Get item in continuous format
-                        tISource = OotilityCeption.GetInvenItem(target, new ItemStackSlot(SearchLocation.ENDERCHEST, sl, null));
-
-                        // If found
-                        if (tISource != null) { targetItem = tISource.getItem(); }
-
-                        // If there was actually something
-                        if (targetItem != null) {
-
-                            // If searching in here
-                            if (!ecShulkC) {
-
-                                // Did it match?
-                                if (OotilityCeption.MatchesItemNBTtestString(targetItem, nbtKey, dataPrime, dataDime, logger)) {
-
-                                    // Add to Relevant ITems
-                                    ret.add(tISource);
-
-                                    // Increase Amount if defined
-                                    totalAmount += targetItem.getAmount();
-                                }
-                            }
-
-                            // Is it a shulker box thoi?
-                            if (ecShulk) {
-
-                                // If it is a shulker box
-                                if (IsShulkerBox(targetItem.getType())) {
-
-                                    // Matches filter?
-                                    boolean nameSuccess = true;
-                                    if (shulkerNameFilter != null) { nameSuccess = OotilityCeption.ParseColour(OotilityCeption.GetItemName(targetItem)).equals(OotilityCeption.ParseColour(shulkerNameFilter)); }
-                                    if (nameSuccess) {
-
-                                        // Identify it
-                                        ecShulkerBoxes.add(tISource);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case PERSONAL_CONTAINER:
-                    // For every container loaded wth
-                    for (PersonalContainerGooP persCont : ContainerTemplateGooP.loadedPersonalContainers) {
-
-                        // Get Size of Container
-                        int size = persCont.getParentTemplate().getTotalSlotCount();
-
-                        // Inspect whole inventory
-                        for (int sl = 0; sl < size; sl++) {
-
-                            // If for storage
-                            if (persCont.getParentTemplate().IsStorageSlot(sl)) {
-
-                                // Temporary Item Stack for evaluation
-                                ItemStack targetItem = null;
-
-                                // Get item in continuous format
-                                targetItem = persCont.GetInventoryItem(target.getUniqueId(), sl);
-
-                                // If there was actually something
-                                if (targetItem != null) {
-
-                                    // If searching in here
-                                    if (!perShulkC) {
-
-                                        // Did it match?
-                                        if (OotilityCeption.MatchesItemNBTtestString(targetItem, nbtKey, dataPrime, dataDime, logger)) {
-
-                                            // Add to Relevant ITems
-                                            ret.add(new ItemStackLocation(targetItem, persCont, target.getUniqueId(), sl, SearchLocation.PERSONAL_CONTAINER, null));
-
-                                            // Increase Amount if defined
-                                            totalAmount += targetItem.getAmount();
-                                        }
-                                    }
-
-                                    // Is it a shulker box thoi?
-                                    if (perShulk) {
-
-                                        // If it is a shulker box
-                                        if (IsShulkerBox(targetItem.getType())) {
-
-                                            // Matches filter?
-                                            boolean nameSuccess = true;
-                                            if (shulkerNameFilter != null) { nameSuccess = OotilityCeption.ParseColour(OotilityCeption.GetItemName(targetItem)).equals(OotilityCeption.ParseColour(shulkerNameFilter)); }
-                                            if (nameSuccess) {
-
-                                                // Identify it
-                                                perShulkerBoxes.add(new ItemStackLocation(targetItem, persCont, target.getUniqueId(), sl, SearchLocation.PERSONAL_CONTAINER, null));
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    matches = (new ISLEnderchest().getShulker(0)).getAllMatching(player, filter, localCount, logger);
                     break;
                 case OBSERVED_CONTAINER:
-                    // Get Size of Container
-                    int size = ContainerTemplateGooP.GetObservedStationSize(target.getUniqueId(), null);
-
-                    // Inspect whole inventory
-                    for (int sl = 0; sl < size; sl++) {
-
-                        // Temporary Item Stack for evaluation
-                        ItemStack targetItem = null;
-                        ItemStackLocation tISource = null;
-
-                        // Get item in continuous format
-                        tISource = ContainerTemplateGooP.GetObservedStationItemStack(target.getUniqueId(), sl, null);
-
-                        // If found
-                        if (tISource != null) { targetItem = tISource.getItem(); }
-
-                        // If there was actually something
-                        if (targetItem != null) {
-
-                            // If searching in here
-                            if (!obsShulkC) {
-
-                                // Did it match?
-                                if (OotilityCeption.MatchesItemNBTtestString(targetItem, nbtKey, dataPrime, dataDime, logger)) {
-
-                                    // Add to Relevant ITems
-                                    ret.add(tISource);
-
-                                    // Increase Amount if defined
-                                    totalAmount += targetItem.getAmount();
-                                }
-                            }
-
-                            // Is it a shulker box thoi?
-                            if (obsShulk) {
-
-                                // If it is a shulker box
-                                if (IsShulkerBox(targetItem.getType())) {
-
-                                    // Matches filter?
-                                    boolean nameSuccess = true;
-                                    if (shulkerNameFilter != null) { nameSuccess = OotilityCeption.ParseColour(OotilityCeption.GetItemName(targetItem)).equals(OotilityCeption.ParseColour(shulkerNameFilter)); }
-                                    if (nameSuccess) {
-
-                                        // Identify it
-                                        obsShulkerBoxes.add(tISource);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-            }
-        }
-
-        // Secondary Locations
-        for (SearchLocation loc : secondarySweepPlaces) {
-
-            // Method differs from location to location
-            switch (loc) {
-                case SHULKER_INVENTORY:
-                    // Every found shulker box
-                    for (ItemStackLocation shulk : invShulkerBoxes) {
-
-                        // Inspect whole inventory
-                        for (int sl = 0; sl < 27; sl++) {
-
-                            // Temporary Item Stack for evaluation
-                            ItemStack targetItem = null;
-                            ItemStackLocation tISource = null;
-
-                            // Get Meta
-                            BlockStateMeta bsm = (BlockStateMeta) shulk.getItem().getItemMeta();
-                            ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                            // Get item in continuous format
-                            tISource = new ItemStackLocation(boxx.getInventory().getItem(sl), boxx.getInventory(), sl, SearchLocation.SHULKER_INVENTORY, shulk);
-
-                            // If found
-                            if (tISource != null) { targetItem = tISource.getItem(); }
-
-                            // If there was actually something
-                            if (targetItem != null) {
-
-                                // Did it match?
-                                if (OotilityCeption.MatchesItemNBTtestString(targetItem, nbtKey, dataPrime, dataDime, logger)) {
-
-                                    // Add to Relevant ITems
-                                    ret.add(tISource);
-
-                                    // Increase Amount if defined
-                                    totalAmount += targetItem.getAmount();
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case SHULKER_ENDERCHEST:
-                    // Every found shulker box
-                    for (ItemStackLocation shulk : ecShulkerBoxes) {
-
-                        // Inspect whole inventory
-                        for (int sl = 0; sl < 27; sl++) {
-
-                            // Temporary Item Stack for evaluation
-                            ItemStack targetItem = null;
-                            ItemStackLocation tISource = null;
-
-                            // Get Meta
-                            BlockStateMeta bsm = (BlockStateMeta) shulk.getItem().getItemMeta();
-                            ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                            // Get item in continuous format
-                            tISource = new ItemStackLocation(boxx.getInventory().getItem(sl), boxx.getInventory(), sl, SearchLocation.SHULKER_ENDERCHEST, shulk);
-
-                            // If found
-                            if (tISource != null) { targetItem = tISource.getItem(); }
-
-                            // If there was actually something
-                            if (targetItem != null) {
-
-                                // Did it match?
-                                if (OotilityCeption.MatchesItemNBTtestString(targetItem, nbtKey, dataPrime, dataDime, logger)) {
-
-                                    // Add to Relevant ITems
-                                    ret.add(tISource);
-
-                                    // Increase Amount if defined
-                                    totalAmount += targetItem.getAmount();
-                                }
-                            }
-                        }
-                    }
+                    matches = (new ISLObservedContainer()).getAllMatching(player, filter, localCount, logger);
                     break;
                 case SHULKER_OBSERVED_CONTAINER:
-                    // Every found shulker box
-                    for (ItemStackLocation shulk : obsShulkerBoxes) {
-
-                        // Inspect whole inventory
-                        for (int sl = 0; sl < 27; sl++) {
-
-                            // Temporary Item Stack for evaluation
-                            ItemStack targetItem = null;
-                            ItemStackLocation tISource = null;
-
-                            // Get Meta
-                            BlockStateMeta bsm = (BlockStateMeta) shulk.getItem().getItemMeta();
-                            ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                            // Get item in continuous format
-                            tISource = new ItemStackLocation(boxx.getInventory().getItem(sl), boxx.getInventory(), sl, SearchLocation.SHULKER_OBSERVED_CONTAINER, shulk);
-
-                            // If found
-                            if (tISource != null) { targetItem = tISource.getItem(); }
-
-                            // If there was actually something
-                            if (targetItem != null) {
-
-                                // Did it match?
-                                if (OotilityCeption.MatchesItemNBTtestString(targetItem, nbtKey, dataPrime, dataDime, logger)) {
-
-                                    // Add to Relevant ITems
-                                    ret.add(tISource);
-
-                                    // Increase Amount if defined
-                                    totalAmount += targetItem.getAmount();
-                                }
-                            }
-                        }
-                    }
+                    matches = (new ISLObservedContainer().getShulker(0)).getAllMatching(player, filter, localCount, logger);
+                    break;
+                case PERSONAL_CONTAINER:
+                    matches = (new ISLPersonalContainer()).getAllMatching(player, filter, localCount, logger);
                     break;
                 case SHULKER_PERSONAL_CONTAINER:
-                    // Every found shulker box
-                    for (ItemStackLocation shulk : perShulkerBoxes) {
-
-                        // Inspect whole inventory
-                        for (int sl = 0; sl < 27; sl++) {
-
-                            // Temporary Item Stack for evaluation
-                            ItemStack targetItem = null;
-                            ItemStackLocation tISource = null;
-
-                            // Get Meta
-                            BlockStateMeta bsm = (BlockStateMeta) shulk.getItem().getItemMeta();
-                            ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
-
-                            // Get item in continuous format
-                            tISource = new ItemStackLocation(boxx.getInventory().getItem(sl), boxx.getInventory(), sl, SearchLocation.SHULKER_PERSONAL_CONTAINER, shulk);
-
-                            // If found
-                            if (tISource != null) { targetItem = tISource.getItem(); }
-
-                            // If there was actually something
-                            if (targetItem != null) {
-
-                                // Did it match?
-                                if (OotilityCeption.MatchesItemNBTtestString(targetItem, nbtKey, dataPrime, dataDime, logger)) {
-
-                                    // Add to Relevant ITems
-                                    ret.add(tISource);
-
-                                    // Increase Amount if defined
-                                    totalAmount += targetItem.getAmount();
-                                }
-                            }
-                        }
-                    }
+                    matches = (new ISLPersonalContainer().getShulker(0)).getAllMatching(player, filter, localCount, logger);
                     break;
             }
         }
 
         // Return total found
-        if (totalFound != null) { totalFound.setValue(totalAmount); }
+        if (count != null) { count.setValue(totalAmount); }
 
         // Return ret
         return ret;

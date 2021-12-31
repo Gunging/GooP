@@ -37,7 +37,7 @@ public class TCPEffect extends ParticleEffect {
         this.zOff =   mlc.getPlaceholderFloat(new String[]{"zOff"}, 0.0F);
 
         this.radius = mlc.getPlaceholderFloat(new String[]{"radius", "r"}, 5.0F);
-        this.rotation = mlc.getPlaceholderFloat(new String[]{"rotation", "rot"}, 1F);
+        this.rotation = mlc.getPlaceholderFloat(new String[]{"rotation", "rot"}, 0F);
 
         this.useDegrees = mlc.getBoolean(new String[]{"useDegrees", "degrees", "ud"}, true);
     }
@@ -72,10 +72,12 @@ public class TCPEffect extends ParticleEffect {
     public AbstractVector transform(@NotNull SkillMetadata data, @NotNull AbstractLocation target, double hor, double ver, double fro) {
         AbstractLocation source = data.getCaster().getLocation();
 
+        double r = radius.get(data);
+
         // Rotate input relatives about the relative forward axis
-        double o = hor + sOff.get(data);
-        double p = ver + vOff.get(data);
-        double f = fro + fOff.get(data);
+        double o = hor + (sOff.get(data) / r);
+        double p = ver + (vOff.get(data) / r);
+        double f = fro + (fOff.get(data) / r);
         double e = toRadians(rotation.get(data));
         double ce = Math.cos(e), se = Math.sin(e);
 
@@ -103,9 +105,9 @@ public class TCPEffect extends ParticleEffect {
         double t_z = (hor * g_z_dir) - (ver * r_y_dir * g_x_dir) + (f * r_z_dir);
 
         // Add offsets
-        t_x += xOff.get(data);
-        t_y += yOff.get(data);
-        t_z += zOff.get(data);
+        t_x += (xOff.get(data) / r);
+        t_y += (yOff.get(data) / r);
+        t_z += (zOff.get(data) / r);
 
         return (new AbstractVector(t_x, t_y, t_z)).multiply(radius.get(data));
     }

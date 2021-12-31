@@ -1,8 +1,8 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.goop;
 
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
-import gunging.ootilities.gunging_ootilities_plugin.misc.ItemStackLocation;
-import gunging.ootilities.gunging_ootilities_plugin.misc.ItemStackSlot;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackLocation;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackSlot;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Entity;
@@ -35,13 +35,25 @@ public class TargetedItem {
         return null;
     }
 
+    @Nullable public Player getPlayer() {
+
+        // Find entity
+        switch (type) {
+            case PLAYER: return player_player;
+            case DROPPED: return null;
+        }
+
+        // Cursed
+        return null;
+    }
+
     /**
      * Overwrites the contents of this place yes.
      */
     public void ApplyChanges() {
         switch (type) {
             case PLAYER:
-                player_loc.ReplaceItem(getResult());
+                player_loc.setItem(getResult());
                 break;
             case DROPPED:
                 OotilityCeption.SetDroppedItemItemStack(dropped_item, getResult());

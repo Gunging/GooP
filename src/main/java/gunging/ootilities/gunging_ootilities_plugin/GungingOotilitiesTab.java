@@ -4,14 +4,18 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPE_Shrubs
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
-import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerTemplateGooP;
-import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerTypes;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Personal;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Physical;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Station;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Templates;
+import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerTypes;
+import gunging.ootilities.gunging_ootilities_plugin.containers.options.KindRestriction;
 import gunging.ootilities.gunging_ootilities_plugin.containers.restriction.RestrictedBehaviour;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructure;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructureTriggers;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructures;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.AppliccableMask;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Material;
@@ -30,7 +34,6 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -472,7 +475,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                         switch (args.length){
                             case 2: tabM = null; break;
-                            case 3: Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "any"); break;
+                            case 3: tabM.addAll(OotilityCeption.getSlotKeywords()); break;
                             case 4:
                                 Collections.addAll(tabM, OotilityCeption.itemNBTcharKeys);
                                 if (!Gunging_Ootilities_Plugin.foundMMOItems) { tabM.remove("m"); }
@@ -636,7 +639,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM = null;
                                                 break;
                                             case 5:
-                                                Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand");
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             default: break;
                                         }
@@ -655,7 +658,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM = null;
                                                 break;
                                             case 5:
-                                                Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand");
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             case 6:
                                                 Collections.addAll(tabM, "2..6", "1..", "4..", "..30");
@@ -691,7 +694,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM = null;
                                                 break;
                                             case 4:
-                                                Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             case 5:
                                                 Collections.addAll(tabM,"random", "none");
@@ -720,7 +723,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM = null;
                                                 break;
                                             case 5:
-                                                Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             case 6:
                                                 Collections.addAll(tabM, "read", "+5", "n3", "-8", "+30%", "140%", "-10%", "true", "false", "toggle", "Rogue", "-Cleric", "-all");
@@ -753,7 +756,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM = null;
                                                 break;
                                             case 4:
-                                                Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             case 5:
                                                 tabM.addAll(GooPMMOItems.GetTierNames());
@@ -773,7 +776,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM = null;
                                                 break;
                                             case 4:
-                                                Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             case 5:
                                                 Collections.addAll(tabM, "true", "false", "(reroll-rng-stats?)");
@@ -815,7 +818,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM = null;
                                                 break;
                                             case 4:
-                                                Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             case 5:
                                                 Collections.addAll(tabM, "1", "2", "3", "n2", "-1", "+4");
@@ -845,7 +848,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM = null;
                                                 break;
                                             case 4:
-                                                Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             case 5:
                                                 tabM.addAll(GooPMMOItems.GetTierNames());
@@ -980,7 +983,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 5:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         default: break;
                                     }
@@ -1063,7 +1066,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 5:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         case 6:
                                             Collections.addAll(tabM, "true", "false", "&4F&ci&6l&el&a t&bh&9e&5 w&4o&cr&6l&ed&a w&bi&9t&5h&4 c&co&6l&eo&ar&b!&9!&5!", "&7Property of " + sender.getName(), "&8Gunging was here.", "&7Tier: ");
@@ -1085,7 +1088,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 4:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         case 5:
                                             Collections.addAll(tabM, "Caladbold, Arc of Rainbows", "Dyrnwyn, Bearer of Flames", "&6&lJoyeuse, &eHerald of Victory", "Sord", "Meowmere", "@prefix=&9&l⊱&b✧&9&l⊰@@s= &f&l@@name=Polaris@@desc=, &7Soul Energy taken Form @@prefix@");
@@ -1104,7 +1107,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 4:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         case 5:
                                             Collections.addAll(tabM, "PAPI", "name=Porituiri Shovel", "prefix=&3ᗕ&9࿅;suffix=&9࿅&3ᗒ", "signature=&8Gunging was here");
@@ -1125,7 +1128,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 5:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         case 6:
                                             Collections.addAll(tabM, "true", "false");
@@ -1154,7 +1157,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 4:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         case 5:
                                             Collections.addAll(tabM, "+5", "n3", "-8", "+30%", "140%", "-10%");
@@ -1188,7 +1191,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 4:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         case 5:
                                             for (Enchantment enchantment : Enchantment.values()) {
@@ -1218,7 +1221,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 4:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         case 5:
                                             tabM = vanillaMaterialsTab;
@@ -1236,7 +1239,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 4:
-                                            Collections.addAll(tabM, "head", "chest", "legs", "feet", "mainhand", "offhand", "0", "1", "8", "35");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
                                             break;
                                         case 5:
                                             Collections.addAll(tabM, OotilityCeption.itemNBTcharKeys); tabM.remove("e");
@@ -2188,7 +2191,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                             tabM.add("access");
                             tabM.add("config");
 
-                        } else if (args.length > 2) {
+                        } else {
 
                             switch (args[1].toLowerCase()) {
                                 //region open
@@ -2200,8 +2203,8 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                     switch (args.length) {
                                         case 3:
-                                            tabM = ContainerTemplateGooP.getLoadedPersonalTemplates();
-                                            tabM.addAll(ContainerTemplateGooP.getLoadedStationTemplates());
+                                            tabM.addAll(GCL_Personal.getByInternalName().keySet());
+                                            tabM.addAll(GCL_Station.getByInternalName().keySet());
                                             break;
                                         case 4:
                                             tabM = null;
@@ -2223,7 +2226,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                     switch (args.length) {
                                         case 3:
-                                            tabM = ContainerTemplateGooP.getLoadedPersonalTemplates();
+                                            tabM.addAll(GCL_Personal.getByInternalName().keySet());
                                             break;
                                         case 4:
                                             tabM = null;
@@ -2258,7 +2261,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                     switch (args.length) {
                                         case 3:
-                                            tabM = ContainerTemplateGooP.getLoadedPhysicalTemplates();
+                                            tabM.addAll(GCL_Physical.getByInternalName().keySet());
                                             tabM.add("open_only");
                                             break;
                                         case 4:
@@ -2343,6 +2346,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         tabM.add("masks");
                                         tabM.add("edgeMaterial");
                                         tabM.add("restrictions");
+                                        tabM.add("view");
 
                                     } else {
 
@@ -2380,7 +2384,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 switch (args.length) {
                                                     case 4:
                                                         // Adds all loaded structures
-                                                        tabM.addAll(ContainerTemplateGooP.getLoadedContainerTemplates());
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
 
                                                         break;
                                                     case 5:
@@ -2400,7 +2404,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 switch (args.length) {
                                                     case 4:
                                                         // Adds all loaded structures
-                                                        tabM.addAll(ContainerTemplateGooP.getLoadedContainerTemplates());
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
 
                                                         break;
                                                     case 5:
@@ -2423,7 +2427,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 switch (args.length) {
                                                     case 4:
                                                         // Adds all loaded structures
-                                                        tabM.addAll(ContainerTemplateGooP.getLoadedContainerTemplates());
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
 
                                                         break;
                                                     case 5:
@@ -2446,7 +2450,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 switch (args.length) {
                                                     case 4:
                                                         // Adds all loaded structures
-                                                        tabM.addAll(ContainerTemplateGooP.getLoadedContainerTemplates());
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
 
                                                         break;
                                                     case 5:
@@ -2456,9 +2460,15 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                         Collections.addAll(tabM, "type", "id", "(Leave blanc to remove masks)");
                                                         break;
                                                     case 7:
-                                                        if (args[5].toLowerCase().equals("type")) { tabM.addAll(AppliccableMask.GetLoadedMaskNames()); }
-                                                        else if (args[5].toLowerCase().equals("id")) { Collections.addAll(tabM, "<MMOItem ID to allow to be placed>"); }
-                                                        else { tabM = new ArrayList<String>();}
+                                                        if (args[5].toLowerCase().equals("type")) {
+                                                            tabM.addAll(ApplicableMask.getLoadedMaskNames());
+                                                            if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM.addAll(GooPMMOItems.GetMMOItem_TypeNames()); }
+                                                        }
+                                                        else if (args[5].toLowerCase().equals("id")) {
+                                                            Collections.addAll(tabM, "<MMOItem ID to allow to be placed>");
+                                                            for (KindRestriction kr : KindRestriction.values()) { tabM.add(kr.toString()); }
+                                                        }
+                                                        else { tabM = new ArrayList<>();}
                                                         break;
                                                     default:  break;
                                                 }
@@ -2467,16 +2477,13 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             //endregion
                                             //region Contents
                                             case "contents":
+                                            case "view":
                                                 //   0      1          2     3              4           args.Length
                                                 // /goop containers config contents <container name>
                                                 //   -      0          1     2              3           args[n]
 
-                                                switch (args.length) {
-                                                    case 4:
-                                                        // Adds all loaded structures
-                                                        tabM.addAll(ContainerTemplateGooP.getLoadedContainerTemplates());
-                                                        break;
-                                                    default:  break;
+                                                if (args.length == 4) {// Adds all loaded structures
+                                                    tabM.addAll(GCL_Templates.getByInternalName().keySet());
                                                 }
 
                                                 break;
@@ -2492,21 +2499,16 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 switch (args.length) {
                                                     case 4:
                                                         // Adds all loaded structures
-                                                        tabM.addAll(ContainerTemplateGooP.getLoadedContainerTemplates());
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
 
                                                         break;
                                                     case 5:
                                                         Collections.addAll(tabM, "0", "1", "2", "3", "5", "36", "53", "slots", "onClose", "onOpen");
                                                         break;
                                                     case 6:
-                                                        if (OotilityCeption.IntTryParse(args[4])) {
-                                                            Collections.addAll(tabM, "onStore", "onTake");
-
-                                                        } else {
-                                                            Collections.addAll(tabM, "minecraft:give %player% stone 5", "minecraft:effect give %player% strength 2 20", "(Leave blanc to remove command)");
-                                                        }
+                                                        Collections.addAll(tabM, "onStore", "onTake");
                                                     case 7:
-                                                        Collections.addAll(tabM, "goop nbt setMaterial %player% %provided-slot% nether_star", "minecraft:effect give %player% strength 2 20", "(Leave blanc to remove command)");
+                                                        Collections.addAll(tabM, "(Leave blanc to remove command)", "clear", "remove.1", "remove.2", "goop nbt setMaterial %player% %provided-slot% nether_star", "minecraft:effect give %player% strength 2 20");
                                                         break;
                                                     default:  break;
                                                 }
@@ -2531,7 +2533,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 switch (args.length) {
                                                     case 4:
                                                         // Adds all loaded structures
-                                                        tabM.addAll(ContainerTemplateGooP.getLoadedContainerTemplates());
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
 
                                                         break;
                                                     case 5:
@@ -2552,7 +2554,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 switch (args.length) {
                                                     case 4:
                                                         // Adds all loaded structures
-                                                        tabM.addAll(ContainerTemplateGooP.getLoadedContainerTemplates());
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
 
                                                         break;
                                                     case 5:

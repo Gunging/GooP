@@ -97,7 +97,7 @@ public class JSONPlacerUtils implements Listener {
                                 //TST//OotilityCeption. Log("\u00a7dStep 1: \u00a77Identified as JSON Block");
 
                                 // Is they in creative?
-                                boolean breakingPoint;
+                                boolean breakingPoint = false;
 
                                 // If in creative
                                 if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
@@ -127,7 +127,7 @@ public class JSONPlacerUtils implements Listener {
                                     }
 
                                     // Not in creative, 4 clicks per second enoughh
-                                } else {
+                                } else if (Gunging_Ootilities_Plugin.spamPunchingJSON) {
                                     // Get or Create
                                     BlockHitRememberances bhr = BlockHitRememberances.GetOrCreate(event.getPlayer(), event.getClickedBlock());
 

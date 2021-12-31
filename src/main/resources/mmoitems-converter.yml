@@ -65,6 +65,13 @@ MMOItems_Type_Prefix: ""
 #
 Differentiate_Items: false
 
+# (When differentiating items)
+# Which of these to transfer when smithing diamond gear into netherite?
+Smithing:
+  Enchantments: true
+  Upgrades: true
+  Gems: true
+
 # ---------------------------- Allow_MythicItems
 #   Should Mythic Items go through the converter (and become MMOItems)?
 #

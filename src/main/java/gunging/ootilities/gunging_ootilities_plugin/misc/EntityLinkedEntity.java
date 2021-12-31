@@ -35,12 +35,12 @@ public class EntityLinkedEntity extends LinkedEntity {
 
         if (getReceiverValidity() != null) {
             getReceiverValidity().CheckTimer();
-            /*DMG*/OotilityCeption.Log("Validity? \u00a7b- \u00a7e" + getReceiverValidity().IsUnlocked());
+            ////OotilityCeption.Log("Validity? \u00a7b- \u00a7e" + getReceiverValidity().IsUnlocked());
             return getReceiverValidity().IsUnlocked();
         }
 
         // Always valid i guess
-        /*DMG*/OotilityCeption.Log("No Unlockable \u00a7b- \u00a7aValid");
+        ////OotilityCeption.Log("No Unlockable \u00a7b- \u00a7aValid");
         return true;
     }
 

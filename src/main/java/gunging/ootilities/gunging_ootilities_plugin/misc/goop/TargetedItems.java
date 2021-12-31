@@ -2,8 +2,8 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.goop;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
-import gunging.ootilities.gunging_ootilities_plugin.misc.ItemStackLocation;
-import gunging.ootilities.gunging_ootilities_plugin.misc.ItemStackSlot;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackLocation;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackSlot;
 import gunging.ootilities.gunging_ootilities_plugin.misc.PlusMinusPercent;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
 import org.bukkit.command.CommandSender;
@@ -99,7 +99,7 @@ public class TargetedItems {
         for (Player player : registeredPlayers.keySet()) {
             ArrayList<ItemStackSlot> slots = registeredPlayers.get(player);
             for (ItemStackSlot slot : slots) {
-                ItemStackLocation loc = OotilityCeption.GetInvenItem(player, slot);
+                ItemStackLocation loc = OotilityCeption.getItemFromPlayer(player, slot);
                 if (loc == null) { continue; }
                 iSources.add(new TargetedItem(player, slot, loc)); } }
 
@@ -264,7 +264,7 @@ public class TargetedItems {
 
         //Lets get that inven slot
         RefSimulator<String> slotFailure = new RefSimulator<>("");
-        ArrayList<ItemStackSlot> inventorySlots = OotilityCeption.GetInventorySlots(slots, player, slotFailure);
+        ArrayList<ItemStackSlot> inventorySlots = OotilityCeption.getInventorySlots(slots, player, slotFailure);
 
         // Log
         if (ffp != null && slotFailure.getValue() != null) { ffp.append(slotFailure.getValue()); }

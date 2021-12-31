@@ -18,5 +18,12 @@ public enum GooPVersionEntities {
     HOGLIN,             // 1.16
     PIGLIN,             // 1.16
     STRIDER,            // 1.16
-    ZOGLIN              // 1.16
+    ZOGLIN,             // 1.16
+
+    AXOLOTL,            // 1.17
+    GLOW_ITEM_FRAME,    // 1.17
+    GLOW_SQUID,         // 1.17
+    GOAT,               // 1.17
+    MARKER              // 1.17
+
 }

@@ -10,6 +10,14 @@ public enum GooPVersionMaterials {
 
     ANCIENT_DEBRIS,             //1.16
 
+    AXOLOTL_SPAWN_EGG,                      //1.17
+    AMETHYST_SHARD,                         //1.17
+    AXOLOTL_BUCKET,                         //1.17
+    AZALEA,                                 //1.17
+    AZALEA_LEAVES,                          //1.17
+    AMETHYST_BLOCK,                         //1.17
+    AMETHYST_CLUSTER,                       //1.17
+
     // B
     BAMBOO,
     BAMBOO_SAPLING,
@@ -34,6 +42,17 @@ public enum GooPVersionMaterials {
     BLACKSTONE_SLAB,            //1.16
     BLACKSTONE_STAIRS,          //1.16
     BLACKSTONE_WALL,            //1.16
+
+    BUDDING_AMETHYST,           //1.17
+    BIG_DRIPLEAF,               //1.17
+    BUNDLE,                     //1.17
+    BIG_DRIPLEAF_STEM,          //1.17
+    BLACK_CANDLE_CAKE,          //1.17
+    BLUE_CANDLE,                //1.17
+    BROWN_CANDLE,               //1.17
+    BLACK_CANDLE,               //1.17
+    BLUE_CANDLE_CAKE,           //1.17
+    BROWN_CANDLE_CAKE,          //1.17
 
     // C
     CACTUS_GREEN,
@@ -71,6 +90,29 @@ public enum GooPVersionMaterials {
     CRIMSON_WALL_SIGN,                      //1.16
     CRYING_OBSIDIAN,                        //1.16
 
+    CANDLE,                             //1.17
+    COPPER_INGOT,                       //1.17
+    CUT_COPPER,                         //1.17
+    CUT_COPPER_STAIRS,                  //1.17
+    COPPER_BLOCK,                       //1.17
+    COPPER_ORE,                         //1.17
+    CALCITE,                            //1.17
+    COBBLED_DEEPSLATE,                  //1.17
+    CUT_COPPER_SLAB,                    //1.17
+    CRACKED_DEEPSLATE_BRICKS,           //1.17
+    CRACKED_DEEPSLATE_TILES,            //1.17
+    COBBLED_DEEPSLATE_WALL,             //1.17
+    COBBLED_DEEPSLATE_STAIRS,           //1.17
+    COBBLED_DEEPSLATE_SLAB,             //1.17
+    CUT_RED_SANDSTONE,                  //1.17
+    CHISELED_DEEPSLATE,                 //1.17
+    CYAN_CANDLE_CAKE,                   //1.17
+    CAVE_VINES,                         //1.17
+    CAVE_VINES_PLANT,                   //1.17
+    CYAN_CANDLE,                        //1.17
+    CANDLE_CAKE,                        //1.17
+
+
     //D
     DANDELION_YELLOW,
     DARK_OAK_SIGN,
@@ -80,15 +122,43 @@ public enum GooPVersionMaterials {
 
     DIORITE_WALL,
 
+    DIRT_PATH,                      //1.17
+    DEEPSLATE_COPPER_ORE,           //1.17
+    DEEPSLATE_GOLD_ORE,             //1.17
+    DEEPSLATE_REDSTONE_ORE,         //1.17
+    DEEPSLATE_EMERALD_ORE,          //1.17
+    DEEPSLATE_LAPIS_ORE,            //1.17
+    DEEPSLATE_DIAMOND_ORE,          //1.17
+    DEEPSLATE,                      //1.17
+    DEEPSLATE_COAL_ORE,             //1.17
+    DEEPSLATE_IRON_ORE,             //1.17
+    DRIPSTONE_BLOCK,                //1.17
+    DEEPSLATE_TILES,                //1.17
+    DEEPSLATE_BRICKS,               //1.17
+    DEEPSLATE_BRICK_WALL,           //1.17
+    DEEPSLATE_TILE_WALL,            //1.17
+    DEEPSLATE_BRICK_STAIRS,         //1.17
+    DEEPSLATE_TILE_STAIRS,          //1.17
+    DEEPSLATE_BRICK_SLAB,           //1.17
+    DEEPSLATE_TILE_SLAB,            //1.17
+
     //E
     END_STONE_BRICK_SLAB,
     END_STONE_BRICK_STAIRS,
     END_STONE_BRICK_WALL,
 
+    EXPOSED_CUT_COPPER_STAIRS,      //1.17
+    EXPOSED_CUT_COPPER,             //1.17
+    EXPOSED_COPPER,                 //1.17
+    EXPOSED_CUT_COPPER_SLAB,        //1.17
+
     //F
     FLETCHING_TABLE,
     FLOWER_BANNER_PATTERN,
     FOX_SPAWN_EGG,
+
+    FLOWERING_AZALEA_LEAVES,        //1.17
+    FLOWERING_AZALEA,               //1.17
 
     //G
     GLOBE_BANNER_PATTERN,
@@ -101,11 +171,28 @@ public enum GooPVersionMaterials {
 
     GILDED_BLACKSTONE,      //1.16
 
+    GLOW_LICHEN,                //1.17
+    GLOW_INK_SAC,               //1.17
+    GLOW_SQUID_SPAWN_EGG,       //1.17
+    GOAT_SPAWN_EGG,             //1.17
+    GLOW_ITEM_FRAME,            //1.17
+    GLOW_BERRIES,               //1.17
+    GRAY_CANDLE,                //1.17
+    GREEN_CANDLE,               //1.17
+    GRAY_CANDLE_CAKE,           //1.17
+    GREEN_CANDLE_CAKE,          //1.17
+    GRASS_PATH,                 //1.17-
+
     //H
     HONEYCOMB,              //1.15
     HONEYCOMB_BLOCK,        //1.15
     HONEY_BLOCK,            //1.15
     HONEY_BOTTLE,           //1.15
+
+    HANGING_ROOTS,          //1.17
+
+    //I
+    INFESTED_DEEPSLATE,     //1.17
 
     //J
     JIGSAW,
@@ -121,6 +208,17 @@ public enum GooPVersionMaterials {
 
     LODESTONE,              //1.16
 
+    LIGHT,                          //1.17
+    LIGHT_GRAY_CANDLE,              //1.17
+    LIME_CANDLE,                    //1.17
+    LIGHTNING_ROD,                  //1.17
+    LIGHT_BLUE_CANDLE,              //1.17
+    LARGE_AMETHYST_BUD,             //1.17
+    LAVA_CAULDRON,                  //1.17
+    LIGHT_BLUE_CANDLE_CAKE,         //1.17
+    LIME_CANDLE_CAKE,               //1.17
+    LIGHT_GRAY_CANDLE_CAKE,         //1.17
+
     //M
     MOJANG_BANNER_PATTERN,
     MOSSY_COBBLESTONE_SLAB,
@@ -131,6 +229,14 @@ public enum GooPVersionMaterials {
     MOSSY_STONE_BRICK_WALL,
 
     MUSIC_DISC_PIGSTEP,     //1.16
+
+    MOSS_CARPET,                //1.17
+    MOSS_BLOCK,                 //1.17
+    MAGENTA_CANDLE,             //1.17
+    MEDIUM_AMETHYST_BUD,        //1.17
+    MAGENTA_CANDLE_CAKE,        //1.17
+
+    MUSIC_DISC_OTHERSIDE,       //1.18
 
     //N
     NETHER_BRICK_WALL,
@@ -153,6 +259,13 @@ public enum GooPVersionMaterials {
     //O
     OAK_SIGN,
     OAK_WALL_SIGN,
+
+    OXIDIZED_CUT_COPPER_STAIRS,             //1.17
+    OXIDIZED_CUT_COPPER,                    //1.17
+    OXIDIZED_COPPER,                        //1.17
+    OXIDIZED_CUT_COPPER_SLAB,               //1.17
+    ORANGE_CANDLE,                          //1.17
+    ORANGE_CANDLE_CAKE,                     //1.17
 
     //P
     PANDA_SPAWN_EGG,
@@ -190,6 +303,21 @@ public enum GooPVersionMaterials {
     STRIDER_SPAWN_EGG,                      //1.16
     WARPED_FUNGUS_ON_A_STICK,               //1.16
 
+    POLISHED_DEEPSLATE,                     //1.17
+    POLISHED_DEEPSLATE_WALL,                //1.17
+    POLISHED_DEEPSLATE_STAIRS,              //1.17
+    POLISHED_DEEPSLATE_SLAB,                //1.17
+    PURPLE_CANDLE_CAKE,                     //1.17
+    POWDER_SNOW,                            //1.17
+    POTTED_AZALEA_BUSH,                     //1.17
+    POTTED_FLOWERING_AZALEA_BUSH,           //1.17
+    POWDER_SNOW_BUCKET,                     //1.17
+    PINK_CANDLE,                            //1.17
+    POINTED_DRIPSTONE,                      //1.17
+    PURPLE_CANDLE,                          //1.17
+    POWDER_SNOW_CAULDRON,                   //1.17
+    PINK_CANDLE_CAKE,                       //1.17
+
     //Q
     QUARTZ_BRICKS,                          //1.16
 
@@ -204,6 +332,16 @@ public enum GooPVersionMaterials {
     ROSE_RED,
 
     RESPAWN_ANCHOR,                          //1.16
+
+    ROOTED_DIRT,                        //1.17
+    RAW_IRON_BLOCK,                     //1.17
+    RAW_COPPER_BLOCK,                   //1.17
+    RAW_GOLD_BLOCK,                     //1.17
+    RAW_IRON,                           //1.17
+    RAW_COPPER,                         //1.17
+    RAW_GOLD,                           //1.17
+    RED_CANDLE,                         //1.17
+    RED_CANDLE_CAKE,                    //1.17
 
     //S
     SANDSTONE_WALL,
@@ -244,12 +382,22 @@ public enum GooPVersionMaterials {
     STRIPPED_WARPED_HYPHAE,                     //1.16
     STRIPPED_WARPED_STEM,                       //1.16
 
+    SMALL_DRIPLEAF,                 //1.17
+    SMOOTH_BASALT,                  //1.17
+    SPORE_BLOSSOM,                  //1.17
+    SPYGLASS,                       //1.17
+    SCULK_SENSOR,                   //1.17
+    SMALL_AMETHYST_BUD,             //1.17
+
     //T
     TRADER_LLAMA_SPAWN_EGG,
 
     TARGET,                                     //1.16
     TWISTING_VINES,                             //1.16
     TWISTING_VINES_PLANT,                       //1.16
+
+    TUFF,                       //1.17
+    TINTED_GLASS,               //1.17
 
     //W
     WALL_SIGN,
@@ -277,6 +425,33 @@ public enum GooPVersionMaterials {
     WEEPING_VINES,              //1.16
     WEEPING_VINES_PLANT,        //1.16
 
+    WEATHERED_CUT_COPPER_SLAB,              //1.17
+    WAXED_COPPER_BLOCK,                     //1.17
+    WAXED_EXPOSED_COPPER,                   //1.17
+    WAXED_WEATHERED_COPPER,                 //1.17
+    WAXED_OXIDIZED_COPPER,                  //1.17
+    WAXED_CUT_COPPER,                       //1.17
+    WAXED_EXPOSED_CUT_COPPER,               //1.17
+    WAXED_WEATHERED_CUT_COPPER,             //1.17
+    WAXED_OXIDIZED_CUT_COPPER,              //1.17
+    WAXED_CUT_COPPER_STAIRS,                //1.17
+    WAXED_EXPOSED_CUT_COPPER_STAIRS,        //1.17
+    WAXED_WEATHERED_CUT_COPPER_STAIRS,      //1.17
+    WAXED_OXIDIZED_CUT_COPPER_STAIRS,       //1.17
+    WAXED_CUT_COPPER_SLAB,                  //1.17
+    WAXED_EXPOSED_CUT_COPPER_SLAB,          //1.17
+    WAXED_WEATHERED_CUT_COPPER_SLAB,        //1.17
+    WAXED_OXIDIZED_CUT_COPPER_SLAB,         //1.17
+    WEATHERED_CUT_COPPER_STAIRS,            //1.17
+    WEATHERED_CUT_COPPER,                   //1.17
+    WEATHERED_COPPER,                       //1.17
+    WHITE_CANDLE,                           //1.17
+    WHITE_CANDLE_CAKE,                      //1.17
+    WATER_CAULDRON,                         //1.17
+
     //Y
     YELLOW_DYE,
+
+    YELLOW_CANDLE,                          //1.17
+    YELLOW_CANDLE_CAKE,                     //1.17
 }

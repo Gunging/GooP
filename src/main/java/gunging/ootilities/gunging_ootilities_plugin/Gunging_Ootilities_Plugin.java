@@ -2,13 +2,15 @@ package gunging.ootilities.gunging_ootilities_plugin;
 
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.*;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
-import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerTemplateGooP;
-import gunging.ootilities.gunging_ootilities_plugin.containers.ContainersListener;
-import gunging.ootilities.gunging_ootilities_plugin.containers.ContainersProtCommands;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCListener;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCCommands;
+import gunging.ootilities.gunging_ootilities_plugin.containers.interaction.ContainersInteractionHandler;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructures;
 import gunging.ootilities.gunging_ootilities_plugin.events.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.AppliccableMask;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,6 +23,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,9 +41,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static Boolean saveGamerulesConfig = false;
     public static Boolean griefBreaksBedrock = false;
     public static Boolean anvilRenameEnabled = false;
+    public static boolean spamPunchingJSON = false;
     public static boolean useMMOLibDefenseConvert = false;
-    public static Boolean devLogging = false;
-    public static Player devLogga = null;
+    public static Boolean devLogging = true;
+    public static Player devPlayer = null;
     public static Double nameRangeExclusionMin = null;
     public static Double nameRangeExclusionMax = null;
     public static Integer placeholderReadableness = null;
@@ -76,13 +80,14 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static OotilityCeption theOots;
 
     // Persistent Data
-    public FileConfigPair optiFineGlintPair, mySQLHostInfo, customModelDataLinkPair, goopUnlockables, applicableMasksPair, mmoitemsConverterPair, globalContainerContents, listPlaceholderPair, fontsPair;
+    public FileConfigPair optiFineGlintPair, translationsPair, mySQLHostInfo, customModelDataLinkPair, goopUnlockables, applicableMasksPair, mmoitemsConverterPair, globalContainerContents, listPlaceholderPair, fontsPair;
     public ArrayList<FileConfigPair> customStructurePairs, containerTemplatesPairs, recipesPairs, ingredientsPairs;
-    public HashMap<YamlConfiguration, FileConfigPair> storageRoots = new HashMap<YamlConfiguration, FileConfigPair>();
+    public HashMap<YamlConfiguration, FileConfigPair> storageRoots = new HashMap<>();
 
     static long bootTime = 0;
     public static long getBootTime() { return bootTime; }
 
+    @SuppressWarnings("InstantiationOfUtilityClass")
     @Override
     public void onLoad() {
         bootTime = System.currentTimeMillis();
@@ -93,9 +98,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         // Singleton
         OotilityCeption.Fill_xSupression();
 
-        // Is it baper?
-        EntityDeathEvent baper = new EntityDeathEvent(null, null);
-        if (baper instanceof Cancellable) { asPaperSpigot = true; }
+        // Is it Paper Spigot?
+        @SuppressWarnings("ConstantConditions") EntityDeathEvent paperSpigot = new EntityDeathEvent(null, null);
+        //noinspection ConstantConditions
+        if (paperSpigot instanceof Cancellable) { asPaperSpigot = true; }
 
         // Ready all materials!
         GooP_MinecraftVersions.InitializeMaterials();
@@ -105,7 +111,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             // Sweet, it is there
             GooPP_CustomStructures premiumCSCheck = new GooPP_CustomStructures();
 
-            // Welp
+            // Well
             premiumCSCheck.CompatibilityCheck();
             CustomStructures.Enable();
 
@@ -117,9 +123,9 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             // Sweet, it is there
             GooPP_Containers premiumCNCheck = new GooPP_Containers();
 
-            // Welp
+            // Well
             premiumCNCheck.CompatibilityCheck();
-            ContainerTemplateGooP.Enable();
+            GOOPCManager.enable();
 
         } catch (NoClassDefFoundError ignored) { }
         //endregion
@@ -133,9 +139,9 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
             try {
                 // Sweet, it is there
-                GooPWorldGuard flagRegisterer = new GooPWorldGuard();
+                new GooPWorldGuard();
 
-                // Welp
+                // Well
                 GooPWorldGuard.LoadNRegisterFlags();
                 foundWorldGuard = true;
 
@@ -183,9 +189,9 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //region GriefPrevention Compatibility Attempt
         try {
             // Sweet, it is there
-            GooPGriefPrevention gprv = new GooPGriefPrevention();
+            new GooPGriefPrevention();
 
-            // Subscribed the hecc off it
+            // Anyway
             foundGriefPrevention = true;
 
         } catch (Throwable e) {
@@ -198,9 +204,9 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //region Towny Compatibility Attempt
         try {
             // Sweet, it is there
-            GooPTowny gprv = new GooPTowny();
+            new GooPTowny();
 
-            // Subscribed the hecc off it
+            // Yeah
             foundTowny = true;
 
         } catch (Throwable e) {
@@ -360,49 +366,55 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public boolean HasLoaded() { return loaded; }
     public boolean IsLoading() { return loading; }
 
-    @Override
-    public void onEnable() {
+    /**
+     * @param name Plugin name
+     *
+     * @return If this is enabled
+     */
+    public boolean isPluginEnabled(@NotNull String name) {
 
-        //region Reenable or Redisable plugins in case they crashed in their OnEnable
+        // If existing and enabled
+        Plugin plugin =getServer().getPluginManager().getPlugin(name);
+        if (plugin == null) { return false; }
+        return plugin.isEnabled();
+    }
 
-        if (foundWorldGuard) { foundWorldGuard = getServer().getPluginManager().getPlugin("WorldGuard").isEnabled(); }
-        if (foundMythicMobs) { foundMythicMobs = getServer().getPluginManager().getPlugin("MythicMobs").isEnabled(); }
-        if (foundMCMMO) { foundMCMMO = getServer().getPluginManager().getPlugin("mcMMO").isEnabled(); }
-        if (foundMMOItems) { foundMMOItems = getServer().getPluginManager().getPlugin("MMOItems").isEnabled(); }
-        if (foundMMOCore) { foundMMOCore = getServer().getPluginManager().getPlugin("MMOCore").isEnabled(); }
-        if (foundPlaceholderAPI) { foundPlaceholderAPI = getServer().getPluginManager().getPlugin("PlaceholderAPI").isEnabled(); }
-        if (foundGraveyards) { foundGraveyards = getServer().getPluginManager().getPlugin("Graveyards").isEnabled(); }
+    @Override public void onEnable() {
+
+        //region Re-enable or Re-disable plugins in case they crashed in their OnEnable
+        if (foundWorldGuard) { foundWorldGuard = isPluginEnabled("WorldGuard"); }
+        if (foundMythicMobs) { foundMythicMobs = isPluginEnabled("MythicMobs"); }
+        if (foundMCMMO) { foundMCMMO = isPluginEnabled("mcMMO"); }
+        if (foundMMOItems) { foundMMOItems = isPluginEnabled("MMOItems"); }
+        if (foundMMOCore) { foundMMOCore = isPluginEnabled("MMOCore"); }
+        if (foundPlaceholderAPI) { foundPlaceholderAPI = isPluginEnabled("PlaceholderAPI"); }
+        if (foundGraveyards) { foundGraveyards = isPluginEnabled("Graveyards"); }
         if (foundVault) {
             try {
                 // Sweet, it is there
                 GooPVault vaultCheck = new GooPVault();
 
-                // Welp
+                // Well
                 foundVault = vaultCheck.SetupEconomy(getServer());
-                theOots.CPLog(ChatColor.GRAY + "Vault Result:\u00a73 " + foundVault);
 
             } catch (NoClassDefFoundError e) {
 
                 // Vr0
                 foundVault = false;
-                theOots.CPLog(ChatColor.GRAY + "Vault \u00a7cSnoozed");
             }
-        } else {
-
-            theOots.CPLog(ChatColor.GRAY + "Vault \u00a7cUndetected");
         }
         //endregion
 
         // Startup pre warms
         GooP_MinecraftVersions.GetMinecraftVersion();
-        ContainerTemplateGooP.DefineEdgeMaterial();
+        ContainersInteractionHandler.registerHandlers();
 
         // Register Events
         getServer().getPluginManager().registerEvents(new DeathPrevent(), theMain);
         getServer().getPluginManager().registerEvents(new CustomStructures(), theMain);
         getServer().getPluginManager().registerEvents(new ScoreboardLinks(), theMain);
         getServer().getPluginManager().registerEvents(new XBow_Rockets(), theMain);
-        getServer().getPluginManager().registerEvents(new ContainersListener(), theMain);
+        getServer().getPluginManager().registerEvents(new GOOPCListener(), theMain);
         getServer().getPluginManager().registerEvents(new GooP_FontUtils(), theMain);
         getServer().getPluginManager().registerEvents(new SummonerClassUtils(), theMain);
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { getServer().getPluginManager().registerEvents(new JSONPlacerUtils(), theMain); }
@@ -414,20 +426,26 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         // Schedule insync
         Bukkit.getScheduler().scheduleSyncRepeatingTask(getPlugin(), ((Runnable) new SummonerClassUtils()), 40, 200);
 
-        // Listen 4 Commands
+        //noinspection ConstantConditions
         getCommand("gungingootilities").setExecutor(new GungingOotilities());
+        //noinspection ConstantConditions
         getCommand("gungingootilities").setTabCompleter(new GungingOotilitiesTab());
 
-        getCommand("gremove").setExecutor(new ContainersProtCommands());
-        getCommand("gpublic").setExecutor(new ContainersProtCommands());
-        getCommand("gprivate").setExecutor(new ContainersProtCommands());
-        getCommand("gmodify").setExecutor(new ContainersProtCommands());
-        getCommand("ginfo").setExecutor(new ContainersProtCommands());
+        //noinspection ConstantConditions
+        getCommand("gremove").setExecutor(new GOOPCCommands());
+        //noinspection ConstantConditions
+        getCommand("gpublic").setExecutor(new GOOPCCommands());
+        //noinspection ConstantConditions
+        getCommand("gprivate").setExecutor(new GOOPCCommands());
+        //noinspection ConstantConditions
+        getCommand("gmodify").setExecutor(new GOOPCCommands());
+        //noinspection ConstantConditions
+        getCommand("ginfo").setExecutor(new GOOPCCommands());
 
         // Load the commands tab
         GungingOotilitiesTab.Start();
 
-        //region Announce compatibilites
+        //region Announce compatibilities
 
         theOots.CPLog("Checking for Premium Modules...");
         if (CustomStructures.IsPremiumEnabled()) {
@@ -435,7 +453,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         } else {
             theOots.CPLog(ChatColor.GOLD + "Premium Custom Structures not found\u00a77.");
         }
-        if (ContainerTemplateGooP.IsPremiumEnabled()) {
+        if (GOOPCManager.isPremiumEnabled()) {
             theOots.CPLog(ChatColor.YELLOW + "Premium Containers found\u00a77.");
         } else {
             theOots.CPLog(ChatColor.GOLD + "Premium Containers not found\u00a77.");
@@ -541,6 +559,19 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         // Finish
         theOots.CPLog(ChatColor.GREEN + "Initialization Complete. Success.");
+
+        // The delayed startup is currently only used for MMOItems, unnecessary to launch it without
+        if (!foundMMOItems) { return; }
+
+        // Funny delayed startup
+        (new BukkitRunnable() {
+            public void run() {
+
+                // Basically Save
+                GooPMMOItems.ReloadMiscStatLore();
+            }
+
+        }).runTaskLaterAsynchronously(Gunging_Ootilities_Plugin.theMain, 2L);
     }
 
     public void Reload(boolean reloadInstances) {
@@ -553,6 +584,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         ///String sFirstValue = getConfig().getStringList("SampleTArray").get(0);
         String nameRangeExclusionMinRaw = null, nameRangeExclusionMaxRaw = null, placeholderReadablenessRaw = null;
         useMMOLibDefenseConvert = getConfig().getBoolean("ConverterUsesDefense", false);
+        spamPunchingJSON = getConfig().getBoolean("JSONFurnitureSpamPunchingBreak", true);
         if (getConfig().contains("SendSuccessFeedback"))
             sendGooPSuccessFeedback = getConfig().getBoolean("SendSuccessFeedback");
         if (getConfig().contains("SummonLeashKillDistance"))
@@ -684,7 +716,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         getConfig().set(path, value);
     }
     public void UpdateConfigInteger(String path, Integer value) {
-        // If the path isnt contained, it will be created, but lets log the change.
+        // If the path isn't contained, it will be created, but lets log the change.
         if (!getConfig().contains(path)) {
             theOots.CPLog("New \u00a7aconfig.yml\u00a77 path '\u00a73" + path + "\u00a77' requested. \u00a76This should only happen to outdated configs.");
         }
@@ -693,6 +725,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     }
 
     public void SetupPersistentData(boolean reloadInstances) {
+
+        //region Translations
+        translationsPair = GetConfigAt(null, "plugin-messages.yml", true, false);
+        if (translationsPair != null) { storageRoots.put(translationsPair.getStorage(), translationsPair); }
+        //endregion
 
         //region OptiFine Glints
         optiFineGlintPair = GetConfigAt(null, "opti-fine-glints.yml", true, false);
@@ -733,16 +770,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         //region Containers
         containerTemplatesPairs = GetConfigsAt("container-templates");
-        FileConfigPair containersLegacyStorage = GetConfigAt(null, "container-templates.yml", false, true);
+        containerTemplatesPairs.add(GetConfigAt(null, "container-templates.yml", false, true)); // Backward Compatibility.
         for (FileConfigPair fcP : containerTemplatesPairs) { storageRoots.put(fcP.getStorage(), fcP); }
-        if (containersLegacyStorage != null) { storageRoots.put(containersLegacyStorage.getStorage(), containersLegacyStorage); containerTemplatesPairs.add(containersLegacyStorage); }
 
-        if (reloadInstances) {
-
-            // Update those formats
-            ContainerTemplateGooP.updatePhysicalFormats(GetConfigsAt("container-instances/physical"));
-            ContainerTemplateGooP.updatePersonalFormats(GetConfigsAt("container-instances/personal"));
-        }
+        GOOPCManager.updatePhysicalFormats(GetConfigsAt("container-instances/physical")); // Backward Compatibility
+        GOOPCManager.updatePersonalFormats(GetConfigsAt("container-instances/personal")); // Backward Compatibility
         //endregion
 
         //region Recipes & Ingredients
@@ -778,10 +810,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         //region Unlockables
         goopUnlockables = GetConfigAt("persistent-data", "unlockdata.yml", false, true);
-        if (goopUnlockables != null) { storageRoots.put(goopUnlockables.getStorage(), goopUnlockables); }
+        storageRoots.put(goopUnlockables.getStorage(), goopUnlockables);
         //endregion
 
         //region Reload what must be reloaded
+        GTranslationManager.reloadTranslations();
         OptiFineGlint.ReloadGlints(theOots);
         GooP_FontUtils.ReloadFonts(theOots);
         GooPUnlockables.Reload(theOots);
@@ -792,14 +825,14 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         // Containers supports Appliccable Masks so thay must load first
         if (foundMMOItems) {
-            AppliccableMask.ReloadMasks(theOots);
+            ApplicableMask.reloadMasks();
             ConverterTypes.ConverterReload(); }
 
         if (foundMythicMobs) { GooPMythicMobs.ReloadListPlaceholders(theOots); }
 
         // Reload the big ones gg
         CustomStructures.ReloadStructures(theOots);
-        ContainerTemplateGooP.ReloadContainerTemplates(theOots, reloadInstances);
+        GOOPCManager.reloadContainers();
         //endregion
     }
 
@@ -872,7 +905,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
             } else return csPair;
 
-            // If no latest version exists
+        // If no latest version exists
         } else {
 
             // Then this is the latest
@@ -892,6 +925,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
      *
      * @return {@link NotNull} unless there was a <b>parsing error reading the file</b>.
      */
+    @Contract("_,_,_,true->!null")
     @Nullable public FileConfigPair GetConfigAt(@Nullable String parentPath, @NotNull String name, boolean exampleResource, boolean expectInvalid) {
         // Make parent location (if exists)
         File parentDir = getDataFolder();
@@ -1058,7 +1092,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         shutDown = true;
 
         // Boom saving time
-        ContainerTemplateGooP.SaveAll();
+        GOOPCManager.saveAllContents();
         GooPUnlockables.SaveAll();
 
         // Destroy minions

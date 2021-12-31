@@ -32,10 +32,10 @@ public class GooPUnlockables {
     public boolean IsUnlocked() { return unlocked != 0.0; }
     public boolean IsLoaded() { return isLoaded; }
     void SetUnlock() {
-        /*DBG*/OotilityCeption.Log("\u00a77Goal \u00a7f" + getGoalname() + " for \u00a73" + getAssociatee().toString() + "\u00a77 now \u00a7aunlocked");
+        //DBG//OotilityCeption.Log("\u00a77Goal \u00a7f" + getGoalname() + " for \u00a73" + getAssociatee().toString() + "\u00a77 now \u00a7aunlocked");
         SetUnlock(1.0D); }
     void SetLock() {
-        /*DBG*/OotilityCeption.Log("\u00a77Goal \u00a7f" + getGoalname() + " for \u00a73" + getAssociatee().toString() + "\u00a77 now \u00a7clocked");
+        //DBG//OotilityCeption.Log("\u00a77Goal \u00a7f" + getGoalname() + " for \u00a73" + getAssociatee().toString() + "\u00a77 now \u00a7clocked");
         unlocked = 0.0; }
     /**
      * Rather than as a boolean of Locked/Unlocked, this is considered
@@ -45,7 +45,7 @@ public class GooPUnlockables {
      */
     public void SetUnlock(double u) {
         if (u == 0) { u = 0.0001D; }
-        /*DBG*/OotilityCeption.Log("\u00a77Goal \u00a7f" + getGoalname() + "  for \u00a73" + getAssociatee().toString() + "\u00a77 now \u00a7aunlocked\u00a77 at \u00a7b" + u);
+        //DBG//OotilityCeption.Log("\u00a77Goal \u00a7f" + getGoalname() + "  for \u00a73" + getAssociatee().toString() + "\u00a77 now \u00a7aunlocked\u00a77 at \u00a7b" + u);
         unlocked = u; }
     /**
      * Rather than as a boolean of Locked/Unlocked, this is considered
@@ -59,10 +59,10 @@ public class GooPUnlockables {
      */
     public void CheckTimer() {
 
-        // TImed?
+        // Timed?
         if (isTimed()) {
 
-            /*DMG*/OotilityCeption.Log("\u00a76TM\u00a77 Timed, remaining: \u00a7b" + RemainingSeconds());
+            //DMG//OotilityCeption.Log("\u00a76TM\u00a77 Timed, remaining: \u00a7b" + RemainingSeconds());
 
             // Check
             if (RemainingSeconds() < 0) {
@@ -73,7 +73,7 @@ public class GooPUnlockables {
                 // Remove
                 SetTimed(null);
 
-                /*DMG*/OotilityCeption.Log("\u00a76TM\u00a77 Time ran out, \u00a7cLocked");
+                //DMG//OotilityCeption.Log("\u00a76TM\u00a77 Time ran out, \u00a7cLocked");
             }
         }
     }
@@ -333,7 +333,7 @@ public class GooPUnlockables {
 
             // Null if locked = It does not save in files
             } else { res = null; }
-            /*DBG*/OotilityCeption.Log("\u00a77Saved goal \u00a73" + uck.getGoalname() + "\u00a77 for \u00a7e" + uck.getAssociatee() + "\u00a77 as \u00a7b" + res);
+            //DBG//OotilityCeption.Log("\u00a77Saved goal \u00a73" + uck.getGoalname() + "\u00a77 for \u00a7e" + uck.getAssociatee() + "\u00a77 as \u00a7b" + res);
 
             // Set Location in File
             ofgStorage.set(uck.getGoalname() + "." + uck.getAssociatee().toString(), res);
@@ -366,7 +366,7 @@ public class GooPUnlockables {
 
                 // Get Goal Name
                 String tName = val.getKey();
-                /*DBG*/OotilityCeption.Log("Looking at \u00a73" + tName);
+                //DBG//OotilityCeption.Log("Looking at \u00a73" + tName);
 
                 // Get them UUIDs
                 ArrayList<String> thisseUUIDs = new ArrayList<>();
@@ -381,7 +381,7 @@ public class GooPUnlockables {
                     for(Map.Entry<String, Object> bal : (ofgSection.getValues(false)).entrySet()) {
 
                         // Log
-                        /*DBG*/OotilityCeption.Log("\u00a7b + \u00a77" + bal.getKey());
+                        //DBG//OotilityCeption.Log("\u00a7b + \u00a77" + bal.getKey());
 
                         // Add I guess?
                         thisseUUIDs.add(bal.getKey());
@@ -440,7 +440,7 @@ public class GooPUnlockables {
                         uck.Load();
 
                         // Notifiy
-                        /*DBG*/OotilityCeption.Log("Loaded \u00a7e" + tName + " " + unlocc + " \u00a73" + uiddd.toString());
+                        //DBG//OotilityCeption.Log("Loaded \u00a7e" + tName + " " + unlocc + " \u00a73" + uiddd.toString());
                     }
                 }
             }

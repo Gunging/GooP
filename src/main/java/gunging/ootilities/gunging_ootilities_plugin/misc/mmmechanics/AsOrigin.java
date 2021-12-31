@@ -51,17 +51,17 @@ public class AsOrigin extends SkillMechanic implements IMetaSkill {
         if (metaskill == null) {
             //MM//OotilityCeption.Log("\u00a7c--- \u00a77Meta Skill not Found \u00a7c---");
             return false; }
+        //MM//OotilityCeption.Log("\u00a7b--- \u00a77Skill \u00a7f" + metaskill.getInternalName() + " \u00a7b---");
 
+        HashSet<AbstractLocation> locationTargets = new HashSet<>();
+        if (data.getLocationTargets() != null) { locationTargets = new HashSet<>(data.getLocationTargets()); }
 
-        HashSet<AbstractLocation> locations = new HashSet<>();
-        if (data.getEntityTargets() != null) { locations = new HashSet<>(data.getLocationTargets()); }
-
-        //MM//OotilityCeption.Log("\u00a73--- \u00a77Original Locatons \u00a73---");
-        for (AbstractLocation t : locations) {
+        //MM//OotilityCeption.Log("\u00a73--- \u00a77Original Targets \u00a73---");
+        for (AbstractLocation t : locationTargets) {
             if (t == null) { continue; }
 
             // For every target
-            //MM//OotilityCeption.Log("\u00a73 >>> \u00a77Running at\u00a7b " + t.getWorld() + " " + t.getX() + " " + t.getY() + " " + t.getZ());
+            //MM//OotilityCeption.Log("\u00a73 >>> \u00a77Running for\u00a7b " + t.getWorld() + " " + t.getX() + " " + t.getY() + " " + t.getZ());
 
             // Copy data and replace caster
             final SkillMetadata clonedData = data.deepClone();
@@ -95,11 +95,11 @@ public class AsOrigin extends SkillMechanic implements IMetaSkill {
             }
         }
 
-        HashSet<AbstractEntity> targets = new HashSet<>();
-        if (data.getEntityTargets() != null) { targets = new HashSet<>(data.getEntityTargets()); }
+        HashSet<AbstractEntity> entityTargets = new HashSet<>();
+        if (data.getEntityTargets() != null) { entityTargets = new HashSet<>(data.getEntityTargets()); }
 
         //MM//OotilityCeption.Log("\u00a73--- \u00a77Original Targets \u00a73---");
-        for (AbstractEntity t : targets) {
+        for (AbstractEntity t : entityTargets) {
             if (t == null) { continue; }
 
             // For every target

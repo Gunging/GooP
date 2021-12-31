@@ -4,7 +4,7 @@ import com.google.common.collect.Multimap;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.*;
-import gunging.ootilities.gunging_ootilities_plugin.containers.ContainerToMIInventory;
+import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.ContainerToMIInventory;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.TargetedItems;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.LuckStat;
@@ -178,23 +178,34 @@ public class GooPMMOItems {
     @Nullable public static ItemStack ReforgeMMOItem(@NotNull ItemStack item, @Nullable RefSimulator<String> logAddition, boolean... regenParams) {
 
         // Create and use reforger
-        MMOItemReforger mod = new MMOItemReforger(item);
+        /*CURRENT-MMOITEMS*/MMOItemReforger mod = new MMOItemReforger(item);
 
         // Valid?
-        if (!mod.canReforge()) {
-            OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 is \u00a7cnot\u00a77 reforgeable. ");
-            return null; }
+        /*CURRENT-MMOITEMS*/if (!mod.canReforge()) {
+        /*CURRENT-MMOITEMS*/    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 is \u00a7cnot\u00a77 reforgeable. ");
+        /*CURRENT-MMOITEMS*/    return null; }
 
         // Proc
-        if (!mod.reforge(new ReforgeOptions(regenParams))) {
-            OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 could \u00a7cnot\u00a77 be reforged. ");
-            return null; }
+        /*CURRENT-MMOITEMS*/if (!mod.reforge(new ReforgeOptions(regenParams))) {
+        /*CURRENT-MMOITEMS*/    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 could \u00a7cnot\u00a77 be reforged. ");
+        /*CURRENT-MMOITEMS*/    return null; }
 
         // Notify
-        OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 was \u00a7areforged\u00a77. ");
+        /*CURRENT-MMOITEMS*/OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 was \u00a7areforged\u00a77. ");
 
         // Output
-        return mod.getResult();
+        /*CURRENT-MMOITEMS*/return mod.getResult();
+
+        //YE-OLDEN-MMO//if (!IsMMOItem(item)) { return null; }
+        //YE-OLDEN-MMO//MMOItemReforger mod = new MMOItemReforger(NBTItem.get(item));
+
+        //  0       ,       1   ,       2   ,       3   ,       4   ,       5   ,       6   ,       7    ,      8   ,       9,      10
+        //finalName , finalLore , finalEnch , finalUpgr , finalGems , finalSoul , finalExsh , finalReroll, finalMods, finalAe, finalSkin
+        //YE-OLDEN-MMO//boolean keptOne = false; for (int i = 0; i < 6; i++) { if (regenParams[i]) { keptOne = true; break; } }
+        //YE-OLDEN-MMO//ReforgeOptions revisions = new ReforgeOptions(regenParams[0], regenParams[1], regenParams[2], regenParams[3], regenParams[4], regenParams[5], regenParams[6], !keptOne);
+        //YE-OLDEN-MMO//if (regenParams[7]) { mod.reforge((Player) null, revisions); } else { mod.update((Player) null, revisions); }
+
+        //YE-OLDEN-MMO//if (!mod.hasChanges()) { return null; } else { return mod.toStack(); }
     }
 
     /**
@@ -263,7 +274,7 @@ public class GooPMMOItems {
     public static ItemStat CONTAINER;
     public static ItemStat ONKILL_COMMAND;
     public static ItemStat ONHIT_COMMAND;
-    //region public static ItemStat MISC;
+
     public static HashMap<String, ItemStat> MISC = new HashMap<>();
     static Material[] miscMats = new Material[]{Material.PUFFERFISH_BUCKET, Material.TROPICAL_FISH_BUCKET, Material.SALMON_BUCKET, Material.COD_BUCKET, Material.WATER_BUCKET, Material.MILK_BUCKET, Material.LAVA_BUCKET, Material.BUCKET};
     static String[] miscOrder = new String[]{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
@@ -294,11 +305,23 @@ public class GooPMMOItems {
         Material mMat = miscMats[currentMat];
         currentMat++; if (currentMat >= miscMats.length) { currentMat = 0; }
 
-        ItemStat MISCC = new DoubleStat(name, mMat, "Extra Stat \u00a7l" + terminology, new String[]{"Doesnt do anything by itself.", "\u00a7a", "You can retrieve it in mythic", "skills though, using these:", "\u00a7e<goop.castermmostat.misc" + terminology.toLowerCase() + ">", "\u00a7e<goop.triggermmostat.misc" + terminology.toLowerCase() + ">"}, new String[]{"!consumable", "!miscellaneous", "all"});
+        ItemStat MISCC = new DoubleStat(name, mMat, "Extra Stat \u00a7l" + terminology, new String[]{"Doesnt do anything by itself.", "\u00a7a", "You can retrieve it in mythic", "skills though, using these:", "\u00a7e<goop.castermmostat.misc" + terminology.toLowerCase() + ">", "\u00a7e<goop.triggermmostat.misc" + terminology.toLowerCase() + ">", "", "or use in PlaceholderAPI with", "\u00a73%mmoitems_stat_goop_misc_" + terminology.toLowerCase() + "%", "", ""}, new String[]{"!consumable", "!miscellaneous", "all"});
         RegisterStat(name, MISCC);
         MISC.put(terminology, MISCC);
     }
-    //endregion
+
+    public static void ReloadMiscStatLore() {
+
+        // Yes
+        for (ItemStat misc : MISC.values()) {
+
+            // Get its translation
+            String translation = MMOItems.plugin.getLanguage().getStatFormat(misc.getPath());
+
+            // Last lore line
+            misc.getLore()[misc.getLore().length - 1] = translation;
+        }
+    }
 
     public static void RegisterCustomStats(int miscAmount) {
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) {
@@ -308,7 +331,7 @@ public class GooPMMOItems {
         LUCK = new LuckStat();
         RegisterStat(LUCK);
 
-        HAT = new BooleanStat("GOOP_HAT", Material.CHAINMAIL_HELMET, "Hat / Helmet", new String[]{"This item will automatically equip", "in the head slot if:", "\u00a7a + \u00a77It is Shift+LeftClicked in inventory", "\u00a7a + \u00a77It is placed on the helmet slot.", "", "This will not:", "\u00a7c - \u00a77Prevent blocks from being placed (disable interactions for this)", "\u00a7c - \u00a77Equip it to the head if the item is right-clicked while held."}, new String[]{"armor", "miscellaneous", "consumable"});
+        HAT = new BooleanStat("GOOP_HAT", Material.CHAINMAIL_HELMET, "Hat / Helmet", new String[]{"This item will automatically equip", "in the head slot if:", "\u00a7a + \u00a77It is Shift+LeftClicked in inventory", "\u00a7a + \u00a77It is placed on the helmet slot.", "", "This will not:", "\u00a7c - \u00a77Prevent blocks from being placed (disable interactions for this)", "\u00a7c - \u00a77Equip it to the head if the item is right-clicked while held."}, new String[]{"all"});
         RegisterStat(HAT);
 
         for (int m = 1; m <= miscAmount; m++) { RegisterMiscStat(); }
@@ -349,7 +372,7 @@ public class GooPMMOItems {
         RegisterStat(CONTAINER);
 
         REVARIABLE = new StringStat("GOOP_REVARIABLE", Material.NAME_TAG, "Revariable", new String[]{"When a player puts this in the second", "anvil slot, and renames the item in", "the first anvil slot, this variable will", "be rewritten by the renaming operation.", "", "\u00a7cCase sensitive\u00a77, no spaces, preferably alphanumeric.", "", "\u00a7cNot working with MMOItems anymore :c"}, new String[]{"miscellaneous", "consumable"});
-        RegisterStat(REVARIABLE);
+        //RegisterStat(REVARIABLE);
     }
 
     public static void RegisterStat(@Deprecated String legacyID, @NotNull ItemStat statt) { RegisterStat(statt); }
@@ -1943,7 +1966,10 @@ public class GooPMMOItems {
 
                         // Finally, original data
                         ArrayList<String> lst = new ArrayList<>(((StringListData) hist.getOriginalData()).getList());
-                        for (String str : lst) { ((StringListData) hist.getOriginalData()).remove(str); }
+                        for (String str : lst) {
+                            /*CURRENT-MMOITEMS*/((StringListData) hist.getOriginalData()).remove(unidentifiedValue);
+                            //YE-OLDEN-MMO//((StringListData) hist.getOriginalData()).getList().remove(unidentifiedValue);
+                        }
 
                     } else {
 
@@ -1966,7 +1992,8 @@ public class GooPMMOItems {
 
                             // Remove via the provided methode
                             try {
-                                foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+                                /*CURRENT-MMOITEMS*/foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+                                //YE-OLDEN-MMO//foundAndDestroyed = ((StringListData) slData).getList().remove(unidentifiedValue);
 
                                 // That's not good
                             } catch (Exception ex) {
@@ -1997,7 +2024,8 @@ public class GooPMMOItems {
 
                             // Remove via the provided methode
                             try {
-                                foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+                                /*CURRENT-MMOITEMS*/foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+                                //YE-OLDEN-MMO//foundAndDestroyed = ((StringListData) slData).getList().remove(unidentifiedValue);
 
                                 // That's not good
                             } catch (Exception ex) {
@@ -2028,7 +2056,8 @@ public class GooPMMOItems {
 
                             // Remove via the provided methode
                             try {
-                                foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+                                /*CURRENT-MMOITEMS*/foundAndDestroyed = ((StringListData) slData).remove(unidentifiedValue);
+                                //YE-OLDEN-MMO//foundAndDestroyed = ((StringListData) slData).getList().remove(unidentifiedValue);
 
                                 // That's not good
                             } catch (Exception ex) {
@@ -2051,7 +2080,8 @@ public class GooPMMOItems {
 
                                 // Remove via the provided methode
                                 try {
-                                    slData.remove(unidentifiedValue);
+                                    /*CURRENT-MMOITEMS*/slData.remove(unidentifiedValue);
+                                    //YE-OLDEN-MMO//slData.getList().remove(unidentifiedValue);
 
                                     // That's not good
                                 } catch (Exception ex) {
@@ -2804,7 +2834,8 @@ public class GooPMMOItems {
      * @param reslt Stores numerically the final damage the item has.
      * @param preventBreaking If the operation would break the item, it will set at 1 remaining.
      * @param logger Stores a string saying what went wrong, if something did.
-     * @return DEBUG_STICK ItemStack if the item broke.
+     *
+     * @return If it breaks without prevent breaking, the amount will be set to zero.
      */
     @Nullable
     public static ItemStack MMOItemModifyDurability(@Nullable ItemStack base, @Nullable Player holder, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> reslt, boolean preventBreaking, @Nullable RefSimulator<String> logger) {
@@ -2895,8 +2926,11 @@ public class GooPMMOItems {
                         // Broke
                         OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified durability of \u00a7f" + iName + "\u00a77, it broke though. ");
 
+                        ItemStack broken = base.clone();
+                        broken.setAmount(0);
+
                         // Return as air
-                        return new ItemStack(Material.DEBUG_STICK);
+                        return broken;
                     }
                 }
 
@@ -3294,10 +3328,32 @@ public class GooPMMOItems {
 
     /**
      * Forces an update of MMOItems player equipment
+     *
+     * @param p Player reference
      */
-    public static void UpdatePlayerEquipment(@NotNull OfflinePlayer p) {
+    public static void UpdatePlayerEquipment(@Nullable OfflinePlayer p) {
+        if (p == null) { return; }
 
         PlayerData.get(p.getUniqueId()).updateInventory();
+    }
+    /**
+     * Forces an update of MMOItems player equipment.
+     * Use this when the ID is not necessarily from a
+     * player, otherwise, use {@link #UpdatePlayerEquipment(OfflinePlayer)}
+     *
+     * @param p UUID that could be a player
+     *
+     * @see {@link #UpdatePlayerEquipment(OfflinePlayer)}
+     */
+    public static void UpdatePlayerEquipment(@Nullable UUID p) {
+        if (p == null) { return; }
+
+        OfflinePlayer potentialPlayer = Bukkit.getOfflinePlayer(p);
+        if (!potentialPlayer.hasPlayedBefore()) { return; }
+        if (!potentialPlayer.isOnline()) { return; }
+
+        // KK its a real player proceeed
+        PlayerData.get(p).updateInventory();
     }
 
     /**
@@ -3683,7 +3739,10 @@ public class GooPMMOItems {
             }
 
             UUID modUUID = UUID.randomUUID();
-            MMOItemBuilder freshBuilder = template.newBuilder();
+
+            /*CURRENT-MMOITEMS*/MMOItemBuilder freshBuilder = template.newBuilder();
+            //YE-OLDEN-MMO//MMOItemBuilder freshBuilder = template.newBuilder(null);
+
 
             for (ItemStat stat : modifier.getItemData().keySet()) {
 
@@ -3743,7 +3802,8 @@ public class GooPMMOItems {
             TemplateModifier modifier = modifierLocal ? template.getModifier(rawModifier) : MMOItems.plugin.getTemplates().getModifier(rawModifier);
 
             UUID modUUID = UUID.randomUUID();
-            MMOItemBuilder freshBuilder = template.newBuilder();
+            /*CURRENT-MMOITEMS*/MMOItemBuilder freshBuilder = template.newBuilder();
+            //YE-OLDEN-MMO//MMOItemBuilder freshBuilder = template.newBuilder(null);
 
             for (ItemStat stat : modifier.getItemData().keySet()) {
 

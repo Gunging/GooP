@@ -48,6 +48,16 @@ public class GooP_MinecraftVersions {
                 if (vers.contains("1.17.1")) { mcVersion = 17.1; }
                 if (vers.contains("1.17.2")) { mcVersion = 17.2; }
                 if (vers.contains("1.17.3")) { mcVersion = 17.3; }
+            } else if (vers.contains("1.18")) {
+                mcVersion = 18.0;
+                if (vers.contains("1.18.1")) { mcVersion = 18.1; }
+                if (vers.contains("1.18.2")) { mcVersion = 18.2; }
+                if (vers.contains("1.18.3")) { mcVersion = 18.3; }
+            } else if (vers.contains("1.19")) {
+                mcVersion = 19.0;
+                if (vers.contains("1.19.1")) { mcVersion = 19.1; }
+                if (vers.contains("1.19.2")) { mcVersion = 19.2; }
+                if (vers.contains("1.19.3")) { mcVersion = 19.3; }
             }
 
             return mcVersion;
@@ -361,10 +371,196 @@ public class GooP_MinecraftVersions {
         }
         //endregion
 
+        //region Minecraft Version 1.17+
+        if (mcVersion >= 17.0) {
+            versionMaterials.put(GooPVersionMaterials.AXOLOTL_SPAWN_EGG, Material.AXOLOTL_SPAWN_EGG);
+            versionMaterials.put(GooPVersionMaterials.AMETHYST_SHARD, Material.AMETHYST_SHARD);
+            versionMaterials.put(GooPVersionMaterials.AXOLOTL_BUCKET, Material.AXOLOTL_BUCKET);
+            versionMaterials.put(GooPVersionMaterials.AZALEA, Material.AZALEA);
+            versionMaterials.put(GooPVersionMaterials.AZALEA_LEAVES, Material.AZALEA_LEAVES);
+            versionMaterials.put(GooPVersionMaterials.AMETHYST_BLOCK, Material.AMETHYST_BLOCK);
+            versionMaterials.put(GooPVersionMaterials.AMETHYST_CLUSTER, Material.AMETHYST_CLUSTER);
+
+            versionMaterials.put(GooPVersionMaterials.BUDDING_AMETHYST, Material.BUDDING_AMETHYST);
+            versionMaterials.put(GooPVersionMaterials.BIG_DRIPLEAF, Material.BIG_DRIPLEAF);
+            versionMaterials.put(GooPVersionMaterials.BUNDLE, Material.BUNDLE);
+            versionMaterials.put(GooPVersionMaterials.BIG_DRIPLEAF_STEM, Material.BIG_DRIPLEAF_STEM);
+            versionMaterials.put(GooPVersionMaterials.BLACK_CANDLE_CAKE, Material.BLACK_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.BLUE_CANDLE, Material.BLUE_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.BROWN_CANDLE, Material.BROWN_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.BLACK_CANDLE, Material.BLACK_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.BLUE_CANDLE_CAKE, Material.BLUE_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.BROWN_CANDLE_CAKE, Material.BROWN_CANDLE_CAKE);
+
+            versionMaterials.put(GooPVersionMaterials.CANDLE, Material.CANDLE);
+            versionMaterials.put(GooPVersionMaterials.COPPER_INGOT, Material.COPPER_INGOT);
+            versionMaterials.put(GooPVersionMaterials.CUT_COPPER, Material.CUT_COPPER);
+            versionMaterials.put(GooPVersionMaterials.CUT_COPPER_STAIRS, Material.CUT_COPPER_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.COPPER_BLOCK, Material.COPPER_BLOCK);
+            versionMaterials.put(GooPVersionMaterials.COPPER_ORE, Material.COPPER_ORE);
+            versionMaterials.put(GooPVersionMaterials.CALCITE, Material.CALCITE);
+            versionMaterials.put(GooPVersionMaterials.COBBLED_DEEPSLATE, Material.COBBLED_DEEPSLATE);
+            versionMaterials.put(GooPVersionMaterials.CUT_COPPER_SLAB, Material.CUT_COPPER_SLAB);
+            versionMaterials.put(GooPVersionMaterials.CRACKED_DEEPSLATE_BRICKS, Material.CRACKED_DEEPSLATE_BRICKS);
+            versionMaterials.put(GooPVersionMaterials.CRACKED_DEEPSLATE_TILES, Material.CRACKED_DEEPSLATE_TILES);
+            versionMaterials.put(GooPVersionMaterials.COBBLED_DEEPSLATE_WALL, Material.COBBLED_DEEPSLATE_WALL);
+            versionMaterials.put(GooPVersionMaterials.COBBLED_DEEPSLATE_STAIRS, Material.COBBLED_DEEPSLATE_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.COBBLED_DEEPSLATE_SLAB, Material.COBBLED_DEEPSLATE_SLAB);
+            versionMaterials.put(GooPVersionMaterials.CUT_RED_SANDSTONE, Material.CUT_RED_SANDSTONE);
+            versionMaterials.put(GooPVersionMaterials.CHISELED_DEEPSLATE, Material.CHISELED_DEEPSLATE);
+            versionMaterials.put(GooPVersionMaterials.CYAN_CANDLE_CAKE, Material.CYAN_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.CAVE_VINES, Material.CAVE_VINES);
+            versionMaterials.put(GooPVersionMaterials.CAVE_VINES_PLANT, Material.CAVE_VINES_PLANT);
+            versionMaterials.put(GooPVersionMaterials.CYAN_CANDLE, Material.CYAN_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.CANDLE_CAKE, Material.CANDLE_CAKE);
+
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_COPPER_ORE, Material.DEEPSLATE_COPPER_ORE);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_GOLD_ORE, Material.DEEPSLATE_GOLD_ORE);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_REDSTONE_ORE);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE, Material.DEEPSLATE);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_COAL_ORE);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_IRON_ORE);
+            versionMaterials.put(GooPVersionMaterials.DRIPSTONE_BLOCK, Material.DRIPSTONE_BLOCK);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_TILES, Material.DEEPSLATE_TILES);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_BRICKS, Material.DEEPSLATE_BRICKS);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_BRICK_WALL, Material.DEEPSLATE_BRICK_WALL);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_TILE_WALL, Material.DEEPSLATE_TILE_WALL);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_BRICK_STAIRS, Material.DEEPSLATE_BRICK_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_TILE_STAIRS, Material.DEEPSLATE_TILE_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_BRICK_SLAB, Material.DEEPSLATE_BRICK_SLAB);
+            versionMaterials.put(GooPVersionMaterials.DEEPSLATE_TILE_SLAB, Material.DEEPSLATE_TILE_SLAB);
+            versionMaterials.put(GooPVersionMaterials.DIRT_PATH, Material.DIRT_PATH);   //renamed from GRASS_PATH
+            versionMaterials.put(GooPVersionMaterials.GRASS_PATH, Material.DIRT_PATH);   //renamed from GRASS_PATH
+
+            versionMaterials.put(GooPVersionMaterials.EXPOSED_CUT_COPPER_STAIRS, Material.EXPOSED_CUT_COPPER_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.EXPOSED_CUT_COPPER, Material.EXPOSED_CUT_COPPER);
+            versionMaterials.put(GooPVersionMaterials.EXPOSED_COPPER, Material.EXPOSED_COPPER);
+            versionMaterials.put(GooPVersionMaterials.EXPOSED_CUT_COPPER_SLAB, Material.EXPOSED_CUT_COPPER_SLAB);
+
+            versionMaterials.put(GooPVersionMaterials.FLOWERING_AZALEA_LEAVES, Material.FLOWERING_AZALEA_LEAVES);
+            versionMaterials.put(GooPVersionMaterials.FLOWERING_AZALEA, Material.FLOWERING_AZALEA);
+
+            versionMaterials.put(GooPVersionMaterials.GLOW_LICHEN, Material.GLOW_LICHEN);
+            versionMaterials.put(GooPVersionMaterials.GLOW_INK_SAC, Material.GLOW_INK_SAC);
+            versionMaterials.put(GooPVersionMaterials.GLOW_SQUID_SPAWN_EGG, Material.GLOW_SQUID_SPAWN_EGG);
+            versionMaterials.put(GooPVersionMaterials.GOAT_SPAWN_EGG, Material.GOAT_SPAWN_EGG);
+            versionMaterials.put(GooPVersionMaterials.GLOW_ITEM_FRAME, Material.GLOW_ITEM_FRAME);
+            versionMaterials.put(GooPVersionMaterials.GLOW_BERRIES, Material.GLOW_BERRIES);
+            versionMaterials.put(GooPVersionMaterials.GRAY_CANDLE, Material.GRAY_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.GREEN_CANDLE, Material.GREEN_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.GRAY_CANDLE_CAKE, Material.GRAY_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.GREEN_CANDLE_CAKE, Material.GREEN_CANDLE_CAKE);
+
+            versionMaterials.put(GooPVersionMaterials.HANGING_ROOTS, Material.HANGING_ROOTS);
+
+            versionMaterials.put(GooPVersionMaterials.LIGHT, Material.LIGHT);
+            versionMaterials.put(GooPVersionMaterials.LIGHT_GRAY_CANDLE, Material.LIGHT_GRAY_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.LIME_CANDLE, Material.LIME_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.LIGHTNING_ROD, Material.LIGHTNING_ROD);
+            versionMaterials.put(GooPVersionMaterials.LIGHT_BLUE_CANDLE, Material.LIGHT_BLUE_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.LARGE_AMETHYST_BUD, Material.LARGE_AMETHYST_BUD);
+            versionMaterials.put(GooPVersionMaterials.LAVA_CAULDRON, Material.LAVA_CAULDRON);
+            versionMaterials.put(GooPVersionMaterials.LIGHT_BLUE_CANDLE_CAKE, Material.LIGHT_BLUE_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.LIME_CANDLE_CAKE, Material.LIME_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.LIGHT_GRAY_CANDLE_CAKE, Material.LIGHT_GRAY_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.INFESTED_DEEPSLATE, Material.INFESTED_DEEPSLATE);
+
+            versionMaterials.put(GooPVersionMaterials.MOSS_CARPET, Material.MOSS_CARPET);
+            versionMaterials.put(GooPVersionMaterials.MOSS_BLOCK, Material.MOSS_BLOCK);
+            versionMaterials.put(GooPVersionMaterials.MAGENTA_CANDLE, Material.MAGENTA_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.MEDIUM_AMETHYST_BUD, Material.MEDIUM_AMETHYST_BUD);
+            versionMaterials.put(GooPVersionMaterials.MAGENTA_CANDLE_CAKE, Material.MAGENTA_CANDLE_CAKE);
+
+            versionMaterials.put(GooPVersionMaterials.OXIDIZED_CUT_COPPER_STAIRS, Material.OXIDIZED_CUT_COPPER_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.OXIDIZED_CUT_COPPER, Material.OXIDIZED_CUT_COPPER);
+            versionMaterials.put(GooPVersionMaterials.OXIDIZED_COPPER, Material.OXIDIZED_COPPER);
+            versionMaterials.put(GooPVersionMaterials.OXIDIZED_CUT_COPPER_SLAB, Material.OXIDIZED_CUT_COPPER_SLAB);
+            versionMaterials.put(GooPVersionMaterials.ORANGE_CANDLE, Material.ORANGE_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.ORANGE_CANDLE_CAKE, Material.ORANGE_CANDLE_CAKE);
+
+            versionMaterials.put(GooPVersionMaterials.POLISHED_DEEPSLATE, Material.POLISHED_DEEPSLATE);
+            versionMaterials.put(GooPVersionMaterials.POLISHED_DEEPSLATE_WALL, Material.POLISHED_DEEPSLATE_WALL);
+            versionMaterials.put(GooPVersionMaterials.POLISHED_DEEPSLATE_STAIRS, Material.POLISHED_DEEPSLATE_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.POLISHED_DEEPSLATE_SLAB, Material.POLISHED_DEEPSLATE_SLAB);
+            versionMaterials.put(GooPVersionMaterials.PURPLE_CANDLE_CAKE, Material.PURPLE_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.POWDER_SNOW, Material.POWDER_SNOW);
+            versionMaterials.put(GooPVersionMaterials.POTTED_AZALEA_BUSH, Material.POTTED_AZALEA_BUSH);
+            versionMaterials.put(GooPVersionMaterials.POTTED_FLOWERING_AZALEA_BUSH, Material.POTTED_FLOWERING_AZALEA_BUSH);
+            versionMaterials.put(GooPVersionMaterials.POWDER_SNOW_BUCKET, Material.POWDER_SNOW_BUCKET);
+            versionMaterials.put(GooPVersionMaterials.PINK_CANDLE, Material.PINK_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.POINTED_DRIPSTONE, Material.POINTED_DRIPSTONE);
+            versionMaterials.put(GooPVersionMaterials.PURPLE_CANDLE, Material.PURPLE_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.POWDER_SNOW_CAULDRON, Material.POWDER_SNOW_CAULDRON);
+            versionMaterials.put(GooPVersionMaterials.PINK_CANDLE_CAKE, Material.PINK_CANDLE_CAKE);
+
+            versionMaterials.put(GooPVersionMaterials.ROOTED_DIRT, Material.ROOTED_DIRT);
+            versionMaterials.put(GooPVersionMaterials.RAW_IRON_BLOCK, Material.RAW_IRON_BLOCK);
+            versionMaterials.put(GooPVersionMaterials.RAW_COPPER_BLOCK, Material.RAW_COPPER_BLOCK);
+            versionMaterials.put(GooPVersionMaterials.RAW_GOLD_BLOCK, Material.RAW_GOLD_BLOCK);
+            versionMaterials.put(GooPVersionMaterials.RAW_IRON, Material.RAW_IRON);
+            versionMaterials.put(GooPVersionMaterials.RAW_COPPER, Material.RAW_COPPER);
+            versionMaterials.put(GooPVersionMaterials.RAW_GOLD, Material.RAW_GOLD);
+            versionMaterials.put(GooPVersionMaterials.RED_CANDLE, Material.RED_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.RED_CANDLE_CAKE, Material.RED_CANDLE_CAKE);
+
+            versionMaterials.put(GooPVersionMaterials.SMALL_DRIPLEAF, Material.SMALL_DRIPLEAF);
+            versionMaterials.put(GooPVersionMaterials.SMOOTH_BASALT, Material.SMOOTH_BASALT);
+            versionMaterials.put(GooPVersionMaterials.SPORE_BLOSSOM, Material.SPORE_BLOSSOM);
+            versionMaterials.put(GooPVersionMaterials.SPYGLASS, Material.SPYGLASS);
+            versionMaterials.put(GooPVersionMaterials.SCULK_SENSOR, Material.SCULK_SENSOR);
+            versionMaterials.put(GooPVersionMaterials.SMALL_AMETHYST_BUD, Material.SMALL_AMETHYST_BUD);
+
+            versionMaterials.put(GooPVersionMaterials.TUFF, Material.TUFF);
+            versionMaterials.put(GooPVersionMaterials.TINTED_GLASS, Material.TINTED_GLASS);
+
+            versionMaterials.put(GooPVersionMaterials.WEATHERED_CUT_COPPER_SLAB, Material.WEATHERED_CUT_COPPER_SLAB);
+            versionMaterials.put(GooPVersionMaterials.WAXED_COPPER_BLOCK, Material.WAXED_COPPER_BLOCK);
+            versionMaterials.put(GooPVersionMaterials.WAXED_EXPOSED_COPPER, Material.WAXED_EXPOSED_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WAXED_WEATHERED_COPPER, Material.WAXED_WEATHERED_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WAXED_OXIDIZED_COPPER, Material.WAXED_OXIDIZED_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WAXED_CUT_COPPER, Material.WAXED_CUT_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WAXED_EXPOSED_CUT_COPPER, Material.WAXED_EXPOSED_CUT_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WAXED_WEATHERED_CUT_COPPER, Material.WAXED_WEATHERED_CUT_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WAXED_OXIDIZED_CUT_COPPER, Material.WAXED_OXIDIZED_CUT_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WAXED_CUT_COPPER_STAIRS, Material.WAXED_CUT_COPPER_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.WAXED_EXPOSED_CUT_COPPER_STAIRS, Material.WAXED_EXPOSED_CUT_COPPER_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.WAXED_WEATHERED_CUT_COPPER_STAIRS, Material.WAXED_WEATHERED_CUT_COPPER_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.WAXED_OXIDIZED_CUT_COPPER_STAIRS, Material.WAXED_OXIDIZED_CUT_COPPER_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.WAXED_CUT_COPPER_SLAB, Material.WAXED_CUT_COPPER_SLAB);
+            versionMaterials.put(GooPVersionMaterials.WAXED_EXPOSED_CUT_COPPER_SLAB, Material.WAXED_EXPOSED_CUT_COPPER_SLAB);
+            versionMaterials.put(GooPVersionMaterials.WAXED_WEATHERED_CUT_COPPER_SLAB, Material.WAXED_WEATHERED_CUT_COPPER_SLAB);
+            versionMaterials.put(GooPVersionMaterials.WAXED_OXIDIZED_CUT_COPPER_SLAB, Material.WAXED_OXIDIZED_CUT_COPPER_SLAB);
+            versionMaterials.put(GooPVersionMaterials.WEATHERED_CUT_COPPER_STAIRS, Material.WEATHERED_CUT_COPPER_STAIRS);
+            versionMaterials.put(GooPVersionMaterials.WEATHERED_CUT_COPPER, Material.WEATHERED_CUT_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WEATHERED_COPPER, Material.WEATHERED_COPPER);
+            versionMaterials.put(GooPVersionMaterials.WHITE_CANDLE, Material.WHITE_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.WHITE_CANDLE_CAKE, Material.WHITE_CANDLE_CAKE);
+            versionMaterials.put(GooPVersionMaterials.WATER_CAULDRON, Material.WATER_CAULDRON);
+
+            versionMaterials.put(GooPVersionMaterials.YELLOW_CANDLE, Material.YELLOW_CANDLE);
+            versionMaterials.put(GooPVersionMaterials.YELLOW_CANDLE_CAKE, Material.YELLOW_CANDLE_CAKE);
+        }
+        //endregion
+
+        //region Minecraft Version 1.17-
+        if (mcVersion <= 17.0) {
+            versionMaterials.put(GooPVersionMaterials.GRASS_PATH, GetMaterialFromString("GRASS_PATH"));
+        }
+        //endregion
+
+        //region Minecraft Version 1.18+
+        if (mcVersion >= 18.0) {
+            versionMaterials.put(GooPVersionMaterials.MUSIC_DISC_OTHERSIDE, Material.MUSIC_DISC_OTHERSIDE);
+        }
+        //endregion
+
         // Finally, fill the holes with null material VOID_AIR
         for (GooPVersionMaterials gvm : GooPVersionMaterials.values()) {
 
-            // If its not contianed
+            // If its not contained
             if (!versionMaterials.containsKey(gvm)) {
 
                 // Add it as VOID_AIR
@@ -411,6 +607,16 @@ public class GooP_MinecraftVersions {
             versionEntityTypes.put(GooPVersionEntities.PIGLIN, EntityType.PIGLIN);
             versionEntityTypes.put(GooPVersionEntities.STRIDER, EntityType.STRIDER);
             versionEntityTypes.put(GooPVersionEntities.ZOGLIN, EntityType.ZOGLIN);
+        }
+        //endregion
+
+        //region Minecraft 1.17+
+        if (mcVersion >= 17.0) {
+            versionEntityTypes.put(GooPVersionEntities.AXOLOTL, EntityType.AXOLOTL);
+            versionEntityTypes.put(GooPVersionEntities.GLOW_ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
+            versionEntityTypes.put(GooPVersionEntities.GLOW_SQUID, EntityType.GLOW_SQUID);
+            versionEntityTypes.put(GooPVersionEntities.GOAT, EntityType.GOAT);
+            versionEntityTypes.put(GooPVersionEntities.MARKER, EntityType.MARKER);
         }
         //endregion
 

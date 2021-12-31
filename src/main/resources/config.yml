@@ -13,6 +13,8 @@ ConverterUsesDefense: false
 #VaultLowBalance: "&cYou need $%charge% to use this"
 SummonLeashKillDistance: 60
 
+JSONFurnitureSpamPunchingBreak: true
+
 # Some MMOItems stuff, for the TAB complete
 SuggestedGemstoneColours:
   - "Blue"

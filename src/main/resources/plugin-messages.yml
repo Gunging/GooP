@@ -1,0 +1,58 @@
+
+# --------------------
+#   Messages sent to players when using the Usage Containers Commands
+#
+#   /gprivate       /ginfo      /gpublic      /gremove    /gmodify
+#
+# --------------------
+#
+#   Might not work in all messages, but in general, %player% is the player running the command,
+#   %container% is the display title of the target container.
+#
+#   For /ginfo inspection history -> %message% is the action, and %time% is how long ago.
+#
+Containers:
+
+  BlockNotContainer: '&cThis block is in the incorrect magical waves, try another one. '
+  BlockNotFound: '&cYou are not looking at anything, please look at a block. '
+  ProtectionPlayerNotFound: '&cPlayer &6%player%&c was not found. '
+
+  ProtectionNotMember: '&cThis %container%&c is protected by a magical spell. '
+  ProtectionNotAdmin: '&cYou need to be an admin of this %container%&c to do this. '
+  ProtectionNotOwner: '&cYou need to be the owner of this %container%&c to do this. '
+
+  ProtectionEdit: '&aSuccessfully edited protection of this %container%&a. '
+  ProtectionRemove: '&aSuccessfully removed protection from this %container%&a. '
+  ProtectionCreate: '&aSuccessfully protected this %container%&a. '
+  ProtectionNoChange: '&eNothing happened, the protection already was like that. '
+
+  ProtectionRemoveMember: '&cRemoved player &6%player%&c from this %container%. '
+  ProtectionAddMember: '&aAdded a new member &6%player%&a to this %container%. '
+  ProtectionAddAdmin: '&aAdded a new admin &6%player%&a to this %container%. '
+  ProtectionCannotRemove: '&eNothing happened, this person cannot be removed from this %container%. '
+  ProtectionNotExist: '&eNothing happened, this %container% is unprotected. '
+
+  ProtectionHelp1: '&3/gmodify &7Allow other people to open your storage. '
+  ProtectionHelp2: '&7Usage: &e/gmodify <player> '
+  ProtectionHelp3: '&8 > &e@<player> &8will promote to admin.'
+  ProtectionHelp4: '&8 > &e-<player> &8will remove that player.'
+
+  GInfoTitle: '&7&m====&7> &3%container%'
+  GInfoPhysicalLocation: '&7Location: &e%location%'
+  GInfoPhysicalProtection: '&7Protection Type: &e%protection%'
+  GInfoPhysicalMembersTitle: '&7Members: '
+  GInfoPhysicalMember: ' &e- &7%player%'
+  GInfoPhysicalAdmin: ' &bADMIN &e- &7%player%'
+  GInfoPhysicalOwner: ' &3OWNER &e- &7%player%'
+  GInfoPersonalOwner: '&7Code UUID: &e%uuid%'
+  GInfoPersonalNoOwner: '&7Code UUID: &eNone! This is brand-new!'
+  GInfoSeensTitle: '&7Opened History: '
+  GInfoSeen: '&e%time% ago: &7%message%'
+
+  #
+  # This message is sent when the player attempts to use a Container Bag Item for the first time
+  # in a stack greater than one item ~ Trying to create multiple bags at a time.
+  #
+  # Use %item% to insert the item name in the message.
+  #
+  BagFirstOpenUnstackable: '&cTo open this %container%&c you must hold one %item% at a time. '

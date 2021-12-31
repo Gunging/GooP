@@ -64,6 +64,62 @@ public class ChunkMap<T> {
         // That's all the values, yes.
         return ret;
     }
+
+    public void forEach(@NotNull ChunkForEach<T> operation) {
+
+        // Through every world
+        for (World w : chunky.keySet()) {
+            HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.get(w);
+
+            // Through every major chunk
+            for (CKS_Major M : worldMap.keySet()) {
+                HashMap<CKS_Minor, HashMap<Location, T>> majorMap = worldMap.get(M);
+
+                // Through every minor chunk
+                for (CKS_Minor m : majorMap.keySet()) {
+                    HashMap<Location, T> minorMap = majorMap.get(m);
+
+                    // Through every location
+                    for (Location l : minorMap.keySet()) { operation.process(l, minorMap.get(l)); }
+                }
+            }
+        }
+    }
+
+    public void forEachExisting(@NotNull ChunkForEachNotNull<T> operation) {
+
+        // Through every world
+        for (World w : chunky.keySet()) {
+            HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.get(w);
+
+            // Through every major chunk
+            for (CKS_Major M : worldMap.keySet()) {
+                HashMap<CKS_Minor, HashMap<Location, T>> majorMap = worldMap.get(M);
+
+                // Through every minor chunk
+                for (CKS_Minor m : majorMap.keySet()) {
+                    HashMap<Location, T> minorMap = majorMap.get(m);
+
+                    // Through every location
+                    for (Location l : minorMap.keySet()) {
+
+                        // Acquire
+                        T thing = minorMap.get(l);
+
+                        // Skip null
+                        if (thing == null) { continue; }
+
+                        // Process
+                        operation.process(l, thing);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @return All the entries registered to this map (total, each linked to an individual location)
+     */
     public ArrayList<ChunkMapEntry<T>> getEntries() {
 
         // A value to return
@@ -153,4 +209,11 @@ public class ChunkMap<T> {
         // Put it there
         return minorMap.get(loc);
     }
+
+    /**
+     * @param loc Location to access
+     *
+     * @return If there is any entry associated to this location
+     */
+    public boolean contains(@Nullable Location loc) { return get(loc) != null; }
 }

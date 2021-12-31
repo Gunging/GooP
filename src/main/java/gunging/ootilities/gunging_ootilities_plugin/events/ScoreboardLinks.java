@@ -209,7 +209,7 @@ public class ScoreboardLinks implements Listener {
         // If successful
         if (!event.isCancelled() && event.getEntity() instanceof LivingEntity) {
 
-            // Somewhat an arbitrary number but eh
+            // Somewhat of an arbitrary number but eh
             hits--;
             if (hits < 1) {
                 hits = 30;
@@ -226,10 +226,10 @@ public class ScoreboardLinks implements Listener {
 
                         boolean receiverValid = true;
                         if (linkedEntity instanceof EntityLinkedEntity) {
-                            /*DMG*/OotilityCeption.Log("\u00a7e------------------Receiver-----------------");
-                            /*DMG*/OotilityCeption.Log("\u00a77Living: \u00a72" + (((EntityLinkedEntity) linkedEntity).getReceiver() instanceof LivingEntity));
-                            /*DMG*/OotilityCeption.Log("\u00a77Valid: \u00a73" + ((EntityLinkedEntity) linkedEntity).isReceiverValid());
-                            /*DMG*/OotilityCeption.Log("\u00a77UUID: \u00a76" + ((EntityLinkedEntity) linkedEntity).getReceiverUUID());
+                            //DMG//OotilityCeption.Log("\u00a7e------------------Receiver-----------------");
+                            //DMG//OotilityCeption.Log("\u00a77Living: \u00a72" + (((EntityLinkedEntity) linkedEntity).getReceiver() instanceof LivingEntity));
+                            //DMG//OotilityCeption.Log("\u00a77Valid: \u00a73" + ((EntityLinkedEntity) linkedEntity).isReceiverValid());
+                            //DMG//OotilityCeption.Log("\u00a77UUID: \u00a76" + ((EntityLinkedEntity) linkedEntity).getReceiverUUID());
 
                             // Only living entity supported for these
                             receiverValid = (((EntityLinkedEntity) linkedEntity).getReceiver() instanceof LivingEntity) && ((EntityLinkedEntity) linkedEntity).isReceiverValid(); }
@@ -237,9 +237,9 @@ public class ScoreboardLinks implements Listener {
                         // Skip if the entity has died
                         if (!linkedEntity.getEntity().isValid() || !receiverValid) {
 
-                            /*DMG*/OotilityCeption.Log("\u00a7c------------------Invalid-----------------");
-                            /*DMG*/OotilityCeption.Log("\u00a77Receiver: \u00a76" + receiverValid);
-                            /*DMG*/OotilityCeption.Log("\u00a77Self: \u00a76" + linkedEntity.getEntity().isValid() + " \u00a78(" + linkedEntity.getEntityUUID() + "\u00a78)");
+                            //DMG//OotilityCeption.Log("\u00a7c------------------Invalid-----------------");
+                            //DMG//OotilityCeption.Log("\u00a77Receiver: \u00a76" + receiverValid);
+                            //DMG//OotilityCeption.Log("\u00a77Self: \u00a76" + linkedEntity.getEntity().isValid() + " \u00a78(" + linkedEntity.getEntityUUID() + "\u00a78)");
                             continue; }
 
                         // Was any damage actually dealt?
@@ -269,17 +269,17 @@ public class ScoreboardLinks implements Listener {
                                 // Thats the new base
                                 event.setDamage(finalEventBase);
 
-                                /*DMG*/OotilityCeption.Log("\u00a7e------------------------------------------");
-                                /*DMG*/OotilityCeption.Log("Entity Damage Dealt \u00a7e- \u00a73" + event.getEntity().getName());
-                                /*DMG*/OotilityCeption.Log("Damage \u00a7e- \u00a7b" + baseDamage);
-                                /*DMG*/OotilityCeption.Log("Final Damage \u00a7e- \u00a7b" + finalDamage);
-                                /*DMG*/OotilityCeption.Log("Expected Damage \u00a7e- \u00a73" + finalEventDamage + "\u00a78 (\u00a77" +  (1 - ((DamageTransferLink) linkedEntity).getPrevent()) + "x\u00a78)");
-                                /*DMG*/OotilityCeption.Log("Extra Sources \u00a7e- \u00a7b" + extraSources);
-                                /*DMG*/OotilityCeption.Log("Final Base \u00a7e- \u00a73" + finalEventBase);
-                                /*DMG*/OotilityCeption.Log("Actual Final Base \u00a7e- \u00a73" + event.getDamage());
-                                /*DMG*/OotilityCeption.Log("Actual Final Damage \u00a7e- \u00a73" + event.getFinalDamage());
-                                /*DMG*/OotilityCeption.Log("Life-Limited Damage \u00a7e- \u00a73" + actualDamage);
-                                /*DMG*/OotilityCeption.Log("Transferred Damage \u00a7e- \u00a7d" + transferredDamage + "\u00a78 (\u00a77" +  ((DamageTransferLink) linkedEntity).getTransfer() + "x\u00a78)");
+                                //DMG//OotilityCeption.Log("\u00a7e------------------------------------------");
+                                //DMG//OotilityCeption.Log("Entity Damage Dealt \u00a7e- \u00a73" + event.getEntity().getName());
+                                //DMG//OotilityCeption.Log("Damage \u00a7e- \u00a7b" + baseDamage);
+                                //DMG//OotilityCeption.Log("Final Damage \u00a7e- \u00a7b" + finalDamage);
+                                //DMG//OotilityCeption.Log("Expected Damage \u00a7e- \u00a73" + finalEventDamage + "\u00a78 (\u00a77" +  (1 - ((DamageTransferLink) linkedEntity).getPrevent()) + "x\u00a78)");
+                                //DMG//OotilityCeption.Log("Extra Sources \u00a7e- \u00a7b" + extraSources);
+                                //DMG//OotilityCeption.Log("Final Base \u00a7e- \u00a73" + finalEventBase);
+                                //DMG//OotilityCeption.Log("Actual Final Base \u00a7e- \u00a73" + event.getDamage());
+                                //DMG//OotilityCeption.Log("Actual Final Damage \u00a7e- \u00a73" + event.getFinalDamage());
+                                //DMG//OotilityCeption.Log("Life-Limited Damage \u00a7e- \u00a73" + actualDamage);
+                                //DMG//OotilityCeption.Log("Transferred Damage \u00a7e- \u00a7d" + transferredDamage + "\u00a78 (\u00a77" +  ((DamageTransferLink) linkedEntity).getTransfer() + "x\u00a78)");
 
 
                                 if (!((DamageTransferLink) linkedEntity).isSilent()) {
@@ -287,12 +287,12 @@ public class ScoreboardLinks implements Listener {
                                     // Fire event
                                     EntityDamageByEntityEvent loudness = new EntityDamageByEntityEvent(event.getDamager(), ((DamageTransferLink) linkedEntity).getReceiver(), EntityDamageEvent.DamageCause.THORNS, transferredDamage);
                                     Bukkit.getPluginManager().callEvent(loudness);
-                                    /*DMG*/OotilityCeption.Log("Transferred Evented Damage \u00a7e- \u00a7d" + loudness.getDamage());
-                                    /*DMG*/OotilityCeption.Log("Transferred Final Damage \u00a7e- \u00a7d" + loudness.getFinalDamage());
+                                    //DMG//OotilityCeption.Log("Transferred Evented Damage \u00a7e- \u00a7d" + loudness.getDamage());
+                                    //DMG//OotilityCeption.Log("Transferred Final Damage \u00a7e- \u00a7d" + loudness.getFinalDamage());
 
                                     // Cancel and don't apply damage
                                     if (loudness.isCancelled()) {
-                                        /*DMG*/OotilityCeption.Log("Event Cancelled \u00a7c---");
+                                        //DMG//OotilityCeption.Log("Event Cancelled \u00a7c---");
                                         return; }
                                     
                                     // Does not update damage because MMOItems scales and crits it which is ridiculous
@@ -323,8 +323,8 @@ public class ScoreboardLinks implements Listener {
         // Evaluate every linked entity
         for (int L = 0; L < olEntities.size(); L++) {
             LinkedEntity linkedEntity = olEntities.get(L);
-            /*DMG*/OotilityCeption.Log("Linked \u00a7e- " + linkedEntity.getEntity().getName());
-            /*DMG*/OotilityCeption.Log("Reason \u00a7e- " + linkedEntity.getReason().toString());
+            //DMG//OotilityCeption.Log("Linked \u00a7e- " + linkedEntity.getEntity().getName());
+            //DMG//OotilityCeption.Log("Reason \u00a7e- " + linkedEntity.getReason().toString());
 
             // If observed entity is of damage taken
             if (linkedEntity.getReason() == ObjectiveLinks.DamageTakenLink || linkedEntity.getReason() == ObjectiveLinks.DamageTransferLink) {
@@ -339,9 +339,9 @@ public class ScoreboardLinks implements Listener {
 
                     receiverValid = ((EntityLinkedEntity) linkedEntity).isReceiverValid();
 
-                    /*DMG*/OotilityCeption.Log("Transfer Count \u00a7b- " + transfers.get(rec));
-                    /*DMG*/OotilityCeption.Log("Receiver Valid? \u00a7b- " + receiverValid);
-                    /*DMG*/OotilityCeption.Log("\u00a78Receiver: \u00a73- " + ((EntityLinkedEntity) linkedEntity).getReceiver().getName() + " \u00a79" + rec.toString());
+                    //DMG//OotilityCeption.Log("Transfer Count \u00a7b- " + transfers.get(rec));
+                    //DMG//OotilityCeption.Log("Receiver Valid? \u00a7b- " + receiverValid);
+                    //DMG//OotilityCeption.Log("\u00a78Receiver: \u00a73- " + ((EntityLinkedEntity) linkedEntity).getReceiver().getName() + " \u00a79" + rec.toString());
                 }
 
                 // Remove, skip, and repeat if the entity has died
@@ -356,7 +356,7 @@ public class ScoreboardLinks implements Listener {
                         removed.putIfAbsent(rec, 0);
                         removed.put(rec, removed.get(rec) + 1);
 
-                        /*DMG*/OotilityCeption.Log("Removed Count \u00a7c- " + removed.get(rec));
+                        //DMG//OotilityCeption.Log("Removed Count \u00a7c- " + removed.get(rec));
                     }
                 }
             }
@@ -379,7 +379,7 @@ public class ScoreboardLinks implements Listener {
                 // Lock it = Unregister it
                 uck.Lock();
 
-                /*DMG*/OotilityCeption.Log("No Longer Receiver \u00a7d- " + trans.toString());
+                //DMG//OotilityCeption.Log("No Longer Receiver \u00a7d- " + trans.toString());
             }
         }
     }

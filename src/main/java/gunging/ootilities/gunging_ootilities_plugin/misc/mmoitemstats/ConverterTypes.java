@@ -10,6 +10,7 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.ConverterPerTier;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ConverterTypeSettings;
 import gunging.ootilities.gunging_ootilities_plugin.misc.FileConfigPair;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
+import net.Indyuce.mmoitems.api.ReforgeOptions;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -29,6 +30,9 @@ public class ConverterTypes {
     @Nullable public static String typePrefix = null;
     public static boolean preciseIDConversion = false;
     public static boolean blockMythicMobs = false;
+    public static boolean smithEnchants = false;
+    public static boolean smithUpgrades = false;
+    public static boolean smithGemstones = false;
 
     @NotNull public static String GenerateConverterID(@NotNull Material mat, @Nullable String tier) {
 
@@ -38,27 +42,28 @@ public class ConverterTypes {
         if (tier != null) { tierPost = "_" + tier.toUpperCase(); }
 
         String material = "";
-        if (OotilityCeption.IsNetherite(mat)) { material = "_" + "NETHERITE"; }
-        else if (OotilityCeption.IsDiamond(mat)) { material = "_" + "DIAMOND"; }
-        else if (OotilityCeption.IsGold(mat)) { material = "_" + "GOLDEN"; }
-        else if (OotilityCeption.IsIron(mat)) { material = "_" + "IRON"; }
-        else if (OotilityCeption.IsLeather(mat)) { material = "_" + "LEATHER"; }
-        else if (OotilityCeption.IsChainmail(mat)) { material = "_" + "CHAINMAIL"; }
-        else if (OotilityCeption.IsStone(mat)) { material = "_" + "STONE"; }
-        else if (OotilityCeption.IsWooden(mat)) { material = "_" + "WOODEN"; }
+        if (OotilityCeption.IsNetherite(mat)) { material = "_NETHERITE"; }
+        else if (OotilityCeption.IsDiamond(mat)) { material = "_DIAMOND"; }
+        else if (OotilityCeption.IsGold(mat)) { material = "_GOLDEN"; }
+        else if (OotilityCeption.IsIron(mat)) { material = "_IRON"; }
+        else if (OotilityCeption.IsLeather(mat)) { material = "_LEATHER"; }
+        else if (OotilityCeption.IsChainmail(mat)) { material = "_CHAINMAIL"; }
+        else if (OotilityCeption.IsStone(mat)) { material = "_STONE"; }
+        else if (OotilityCeption.IsWooden(mat)) { material = "_WOODEN"; }
+        else if (mat == Material.TURTLE_HELMET) { material = "_TURTLE"; }
 
         String equipment = "";
-        if (OotilityCeption.IsBoots(mat)) { equipment = "_" + "BOOTS"; }
-        else if (OotilityCeption.IsLeggings(mat)) { equipment = "_" + "LEGGINGS"; }
-        else if (OotilityCeption.IsChestplate(mat)) { equipment = "_" + "CHESTPLATE"; }
-        else if (OotilityCeption.IsHelmet(mat)) { equipment = "_" + "HELMET"; }
-        else if (mat == Material.BOW) { equipment = "_" + "BOW"; }
-        else if (mat == Material.CROSSBOW) { equipment = "_" + "GUN"; }
-        else if (OotilityCeption.IsHoe(mat)) { equipment = "_" + "HOE"; }
-        else if (OotilityCeption.IsShovel(mat)) { equipment = "_" + "SHOVEL"; }
-        else if (OotilityCeption.IsPickaxe(mat)) { equipment = "_" + "PICKAXE"; }
-        else if (OotilityCeption.IsAxe(mat)) { equipment = "_" + "AXE"; }
-        else if (OotilityCeption.IsSword(mat)) { equipment = "_" + "SWORD"; }
+        if (OotilityCeption.IsBoots(mat)) { equipment = "_BOOTS"; }
+        else if (OotilityCeption.IsLeggings(mat)) { equipment = "_LEGGINGS"; }
+        else if (OotilityCeption.IsChestplate(mat)) { equipment = "_CHESTPLATE"; }
+        else if (OotilityCeption.IsHelmet(mat)) { equipment = "_HELMET"; }
+        else if (mat == Material.BOW) { equipment = "_BOW"; }
+        else if (mat == Material.CROSSBOW) { equipment = "_GUN"; }
+        else if (OotilityCeption.IsHoe(mat)) { equipment = "_HOE"; }
+        else if (OotilityCeption.IsShovel(mat)) { equipment = "_SHOVEL"; }
+        else if (OotilityCeption.IsPickaxe(mat)) { equipment = "_PICKAXE"; }
+        else if (OotilityCeption.IsAxe(mat)) { equipment = "_AXE"; }
+        else if (OotilityCeption.IsSword(mat)) { equipment = "_SWORD"; }
 
         return "GENERIC" + equipment + material + tierPost;
     }
@@ -79,6 +84,15 @@ public class ConverterTypes {
             typePrefix = ofgStorage.getString("MMOItems_Type_Prefix", null);
             preciseIDConversion = ofgStorage.getBoolean("Differentiate_Items", false);
             blockMythicMobs = !(ofgStorage.getBoolean("Allow_MythicItems", true));
+
+            ConfigurationSection keepKeep = ofgStorage.getConfigurationSection("Smithing");
+            if (keepKeep != null) {
+
+                // Keep those things I guess
+                smithEnchants = keepKeep.getBoolean("Enchantments", false);
+                smithUpgrades = keepKeep.getBoolean("Upgrades", false);
+                smithGemstones = keepKeep.getBoolean("Gems", false);
+            }
 
             // Compile Converter Types
             List<String> conv = ofgStorage.getStringList("Convert_Into_MMOItems");
@@ -334,6 +348,7 @@ public class ConverterTypes {
                     if (!str.equals("MMOITEMS_TYPE_PREFIX") &&
                         !str.equals("DIFFERENTIATE_ITEMS") &&
                         !str.equals("ALLOW_MYTHICITEMS") &&
+                        !str.equals("SMITHING") &&
                         !str.equals("CONVERT_INTO_MMOITEMS")) {
 
                         Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("Converting Type '\u00a73" + str + "\u00a77' not recognized. Ignored")); }

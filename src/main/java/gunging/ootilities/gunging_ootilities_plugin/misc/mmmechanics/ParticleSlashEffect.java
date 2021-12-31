@@ -21,7 +21,7 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
 
     public ParticleSlashEffect(String skill, MythicLineConfig mlc) {
         super(skill, mlc);
-        this.arc = mlc.getPlaceholderFloat(new String[]{"arc", "a"}, 6F);
+        this.arc = mlc.getPlaceholderFloat(new String[]{"arc", "a"}, 130F);
         this.points = mlc.getPlaceholderFloat(new String[]{"points", "p"}, 12F);
         this.horizontal = mlc.getBoolean(new String[]{"horizontal", "h", "isHorizontal", "ih"}, true);
         this.randomPoints = mlc.getBoolean(new String[]{"randomPoints", "rP"}, true);
@@ -48,7 +48,6 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
 
         // Calculate some
         Random random = new Random(System.nanoTime());
-        int amount = this.amount.get(data);
         double circumference = toRadians(this.arc.get(data));
         double pointsTotal = Math.ceil(this.points.get(data));
         double fraction = circumference / pointsTotal;
@@ -64,9 +63,7 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
                 rnd = (random.nextDouble() - 0.5D) * circumference;
 
             // Chad even distribution
-            } else {
-                rnd = b + i * fraction;
-            }
+            } else { rnd = (b + i * fraction) - (circumference * 0.5D); }
 
             double x = Math.sin(rnd); double y = x;
             double z = Math.cos(rnd);
@@ -76,7 +73,8 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
 
             // Add, play, subtract
             location.add(vector);
-            this.playEffect(data, location, audienceList);
+            /*CURRENT-MMOITEMS*/this.playEffect(data, location, audienceList);
+            //YE-OLDEN-MMO//this.playParticleEffect(data, location);
             location.subtract(vector);
         }
     }

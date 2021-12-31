@@ -8,19 +8,24 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMo
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.AppliccableMask;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypeNames;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypes;
 import io.lumine.mythic.lib.api.item.NBTItem;
+import io.lumine.mythic.lib.api.util.ui.SilentNumbers;
 import net.Indyuce.mmoitems.ItemStats;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.Type;
 import net.Indyuce.mmoitems.api.event.item.ApplyGemStoneEvent;
+import net.Indyuce.mmoitems.api.interaction.GemStone;
 import net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem;
 import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
+import net.Indyuce.mmoitems.api.item.mmoitem.ReadMMOItem;
 import net.Indyuce.mmoitems.api.item.mmoitem.VolatileMMOItem;
-import net.Indyuce.mmoitems.stat.data.DoubleData;
-import net.Indyuce.mmoitems.stat.data.StringListData;
+import net.Indyuce.mmoitems.stat.Enchants;
+import net.Indyuce.mmoitems.stat.data.*;
+import net.Indyuce.mmoitems.stat.data.type.Mergeable;
+import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.ItemStat;
 import net.Indyuce.mmoitems.stat.type.NameData;
 import net.Indyuce.mmoitems.stat.type.StatHistory;
@@ -98,13 +103,13 @@ public class OnApplyCommand implements Listener {
      *
      * @param netheritizedResult Basically the item stack but funny converted into nitherite while keeping its stats constant.
      *
-     * @param toNetherite Original {@link Material} of the thing being smith
+     * @param original Original item being smith before becoming nitherite
      *
      * @param player Player, I, guess
      *
      * @return The item but upgraded into nitherite.
      */
-    @NotNull ItemStack FullSmith(@NotNull ItemStack netheritizedResult, @Nullable ConverterTypeSettings set, @NotNull Material toNetherite, @Nullable Player player) {
+    @NotNull ItemStack FullSmith(@NotNull ItemStack netheritizedResult, @Nullable ConverterTypeSettings set, @NotNull ItemStack original, @NotNull Player player) {
         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 Smithing for Full");
 
 
@@ -131,6 +136,101 @@ public class OnApplyCommand implements Listener {
                 // Found the appropriate MMOItem?
                 if (browse != null) {
                     //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aBuilding");
+                    ReadMMOItem mmo = ConverterTypes.smithGemstones ? new LiveMMOItem(NBTItem.get(original)) : new VolatileMMOItem(NBTItem.get(original));
+
+                    // Transfer stuff (Upgrades first because they are used when recalculating StatHistories)
+                    if (ConverterTypes.smithUpgrades) {
+
+                        // Get enchants data
+                        UpgradeData upgr2 = (UpgradeData) browse.getData(ItemStats.UPGRADE);
+                        //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a7aUPGRADE\u00a77 Reading level (\u00a7e" + (upgr2 != null) + "\u00a77)");
+
+                        if (upgr2 != null) {
+                            //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a7aUPGRADE\u00a77 Transferring level \u00a7e" + mmo.getUpgradeLevel());
+
+                            // Set level pog-yoo
+                            upgr2.setLevel(mmo.getUpgradeLevel());
+                        }
+                    }
+
+                    // Transfer stuff (Upgrades first because they are used when recalculating StatHistories)
+                    if (ConverterTypes.smithGemstones) {
+
+                        // Get enchants data
+                        ArrayList<MMOItem> gemstonesTherein = mmo.extractGemstones();
+                        ArrayList<ItemStack> remainingStones = new ArrayList<>();
+                        //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a7bGEMS\u00a77 Transferring stones \u00a73x" + gemstonesTherein.size());
+
+                        for (MMOItem m : gemstonesTherein) {
+                            //CNV// MMOItems.log("\u00a76 +\u00a77 Fitting \u00a7e" + m.getType().toString() + " " + m.getId());
+
+                            // What sockets are available?
+                            GemSocketsData genGemstones = (GemSocketsData) browse.getData(ItemStats.GEM_SOCKETS);
+
+                            // Abort lol
+                            if (genGemstones == null || (genGemstones.getEmptySlots().size() == 0)) {
+                                //GEM// MMOItems.log("\u00a7c !!\u00a77 Dropping: No more empty slots in target ");
+
+                                // Just keep as 'remaining'
+                                remainingStones.add(m.newBuilder().build());
+                                continue; }
+
+                            // Ok proceed
+                            GemStone asGem = new GemStone(player, m.newBuilder().buildNBT());
+
+                            // Put
+                            GemStone.ApplyResult res = asGem.applyOntoItem(browse, browse.getType(), "", false, true);
+
+                            // None?
+                            if (res.getType() == GemStone.ResultType.SUCCESS && (res.getResultAsMMOItem() != null)) {
+
+                                // Success that's nice
+                                browse = res.getResultAsMMOItem();
+                                //GEM// MMOItems.log("\u00a7a W\u00a77 Socketed! ");
+
+                                // Didn't fit L
+                            } else {
+                                //GEM// MMOItems.log("\u00a7e !!\u00a77 Dropping: Does not fit socket ");
+                                remainingStones.add(m.newBuilder().build()); } }
+
+                        // Give the gems back
+                        for (ItemStack drop : player.getInventory().addItem(
+                                remainingStones.toArray(new ItemStack[0])).values()) {
+
+                            // Not air right
+                            if (SilentNumbers.isAir(drop)) { continue; }
+
+                            // Drop to the world
+                            player.getWorld().dropItem(player.getLocation(), drop); }
+                    }
+
+                    // Transfer stuff
+                    if (ConverterTypes.smithEnchants) {
+                        //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a7dENCHANTS\u00a77 Separating Enchants");
+
+                        // Make sure to separate player enchantments
+                        Enchants.separateEnchantments(mmo);
+
+                        // Get enchants data
+                        StatHistory originalHist = StatHistory.from(mmo, ItemStats.ENCHANTS);
+                        //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a7dENCHANTS\u00a77 Transferring enchants \u00a75x" + originalHist.getExternalData());
+
+                        // Get enchantment history of new
+                        StatHistory hist = StatHistory.from(browse, ItemStats.ENCHANTS);
+
+                        for (StatData ench : originalHist.getExternalData()) {
+                            if (!(ench instanceof EnchantListData)) { continue; }
+
+                            // Merge as ExSH
+                            hist.registerExternalData(ench);
+                        }
+
+                        // The law requires me to merge this, too
+                        if (!((Mergeable) originalHist.getOriginalData()).isClear()) { hist.registerExternalData(originalHist.getOriginalData()); }
+
+                        // Recalculate with upgrade level
+                        browse.setData(ItemStats.ENCHANTS, hist.recalculate(browse.getUpgradeLevel()));
+                    }
 
                     // Build for display
                     return browse.newBuilder().build();
@@ -151,7 +251,7 @@ public class OnApplyCommand implements Listener {
         RefSimulator<String> tNameRef = new RefSimulator<>("MISCELLANEOUS");
 
         // Get those values
-        OotilityCeption.GatherDefaultVanillaAttributes(toNetherite, netheritizedResult.getType(), tNameRef, vDamageRef, vSpeedRef, vArmorRef, vArmorTRef, mKResRef);
+        OotilityCeption.GatherDefaultVanillaAttributes(original.getType(), netheritizedResult.getType(), tNameRef, vDamageRef, vSpeedRef, vArmorRef, vArmorTRef, mKResRef);
 
         // Get Live
         LiveMMOItem mmo = new LiveMMOItem(netheritizedResult);
@@ -351,7 +451,7 @@ public class OnApplyCommand implements Listener {
                                 //DBG//OotilityCeption.Log("\u00a77Had Mask: \u00a7b" + maskName);
 
                                 // If exists
-                                AppliccableMask targetMask = AppliccableMask.GetMask(maskName);
+                                ApplicableMask targetMask = ApplicableMask.getMask(maskName);
                                 if (targetMask != null) {
                                     //DBG//OotilityCeption.Log("\u00a7bFound Mask");
 
@@ -737,10 +837,13 @@ public class OnApplyCommand implements Listener {
             // Extract Name
             RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
 
+            ItemStack item = event.getInventory().getInputEquipment();
+            ItemStack ingot = event.getInventory().getInputMineral();
+
             // Diamond Upgrading Reqs
-            boolean nitheriteIngot = event.getInventory().getInputMineral() != null && event.getInventory().getInputMineral().getType() == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_INGOT, Material.COMMAND_BLOCK);
-            boolean diamondPiece = event.getInventory().getInputEquipment() != null && OotilityCeption.IsDiamond(event.getInventory().getInputEquipment().getType());
-            String baseID = GooPMMOItems.GetMMOItemID(event.getInventory().getInputEquipment(), "no");
+            boolean nitheriteIngot = ingot != null && ingot.getType() == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_INGOT, Material.COMMAND_BLOCK);
+            boolean diamondPiece = item != null && OotilityCeption.IsDiamond(item.getType());
+            String baseID = GooPMMOItems.GetMMOItemID(item, "no");
             boolean mIDMatch = (GooPMMOItems.VANILLA_MIID.equals(baseID) || baseID.startsWith("GENERIC"));
             //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NE\u00a77 Diamond:\u00a7b " + diamondPiece + "\u00a77, Nitherite:\u00a75 " + nitheriteIngot + "\u00a77, MIID:\u00a73 " + mIDMatch);
             if (nitheriteIngot && diamondPiece && mIDMatch) {
@@ -752,7 +855,7 @@ public class OnApplyCommand implements Listener {
                 if (ConverterTypes.IsConvertable(eventResultItem, convName)) { set = ConverterTypeSettings.PertainingTo(convName.getValue()); }
 
                 // Build that shit
-                ItemStack result = FullSmith(eventResultItem, set, event.getInventory().getInputEquipment().getType(), player);
+                ItemStack result = FullSmith(eventResultItem, set, item, player);
 
                 // Store
                 craftPrepResult.put(player.getUniqueId(), result.clone());
@@ -830,12 +933,15 @@ public class OnApplyCommand implements Listener {
             // If the item picked up is marked as convertible
             if (ConverterTypes.IsConvertable(originalResult, convName)) {
 
+                ItemStack item = event.getInventory().getInputEquipment();
+                ItemStack ingot = event.getInventory().getInputMineral();
+
                 //SMH//OotilityCeption.Log("\u00a78Smith \u00a76EV\u00a77 Convertible Result");
 
                 // Diamond Upgrading Reqs
-                boolean nitheriteIngot = event.getInventory().getInputMineral() != null && event.getInventory().getInputMineral().getType() == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_INGOT, Material.COMMAND_BLOCK);
-                boolean diamondPiece = event.getInventory().getInputEquipment() != null && OotilityCeption.IsDiamond(event.getInventory().getInputEquipment().getType());
-                String baseID = GooPMMOItems.GetMMOItemID(event.getInventory().getInputEquipment(), "no");
+                boolean nitheriteIngot = ingot != null && ingot.getType() == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_INGOT, Material.COMMAND_BLOCK);
+                boolean diamondPiece = item != null && OotilityCeption.IsDiamond(item.getType());
+                String baseID = GooPMMOItems.GetMMOItemID(item, "no");
                 if (nitheriteIngot && diamondPiece && (GooPMMOItems.VANILLA_MIID.equals(baseID) || baseID.startsWith("GENERIC"))) {
 
                     //SMH//OotilityCeption.Log("\u00a78Smith \u00a76NE\u00a77 Netherite Upgrade");
@@ -949,33 +1055,34 @@ public class OnApplyCommand implements Listener {
 
         // Only players ffs
         if (!(event.getView().getPlayer() instanceof Player)) { return; }
+        if (event.getInventory().getResult() == null) { return; }
         Player player = (Player) event.getView().getPlayer();
 
-        if (event.getInventory().getResult() != null) {
+        //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a77 Prep Begin ------------------------------> " + OotilityCeption.GetItemName(event.getInventory().getResult()));
 
-            // Extract Name
-            RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
+        // Extract Name
+        RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
 
-            // If the item picked up is marked as convertible
-            if (ConverterTypes.IsConvertable(event.getInventory().getResult(), convName)) {
+        // If the item picked up is marked as convertible
+        if (!ConverterTypes.IsConvertable(event.getInventory().getResult(), convName)) {
+            //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a7c Non-convertible result.");
+            return; }
+        //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a77 Convertible result...");
 
-                // If it is not a MMOItem
-                if (!GooPMMOItems.IsMMOItem(event.getInventory().getResult())) {
+        // If it is not a MMOItem
+        if (GooPMMOItems.IsMMOItem(event.getInventory().getResult())) {
+            //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a7c Already custom crafted.");
+            return; }
+        //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a77 Vanilla crafting detected... preparing for craft.");
 
-                    // Store
-                    craftPrep.put(player.getUniqueId(), event.getInventory().getResult().clone());
+        // Prepare result; Apply the pre craft I suppose
+        ItemStack result = DisplayConvert(event.getInventory().getResult(), ConverterTypeSettings.PertainingTo(convName.getValue()), player, false);
 
-                    // Prepare result; Apply the pre craft I suppose
-                    ItemStack result = DisplayConvert(event.getInventory().getResult(), ConverterTypeSettings.PertainingTo(convName.getValue()), player, false);
+        // Store
+        craftPrepResult.put(player.getUniqueId(), result.clone());
 
-                    // Store
-                    craftPrepResult.put(player.getUniqueId(), result.clone());
-
-                    // Well, override it I suppose. Drop another entity with the qualifications
-                    event.getInventory().setResult(result);
-                }
-            }
-        }
+        // Well, override it I suppose. Drop another entity with the qualifications
+        event.getInventory().setResult(result);
     }
 
     static HashMap<UUID, HashMap<Integer, ItemStack> > craftHeld = new HashMap<>();
@@ -991,53 +1098,54 @@ public class OnApplyCommand implements Listener {
         if (!(event.getView().getPlayer() instanceof Player)) { return; }
         Player player = (Player) event.getView().getPlayer();
 
-        // Get
-        ItemStack originalResult = craftPrep.get(player.getUniqueId());
-        craftPrep.remove(player.getUniqueId());
-
         // Get predicted result
         ItemStack postConvertedResult = craftPrepResult.get(player.getUniqueId());
         craftPrepResult.remove(player.getUniqueId());
+
         if (event.isCancelled()) { return; }
+        if (postConvertedResult == null) { return; }
 
-        if (originalResult != null) {
+        //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a77 Craft Begin ----------> " + OotilityCeption.GetItemName(event.getRecipe().getResult()) + "\u00a77 to " + OotilityCeption.GetItemName(postConvertedResult));
 
-            // Extract Name
-            RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
+        // Extract Name
+        RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
 
-            // If the item picked up is marked as convertible
-            if (ConverterTypes.IsConvertable(originalResult, convName)) {
+        // If the item picked up is marked as convertible
+        if (!ConverterTypes.IsConvertable(event.getRecipe().getResult(), convName)) {
+            //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a7c For some reason, not convertible anymore..? ");
+            return; }
+        //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a77 Convertible item identified. ");
 
-                // If it is not a MMOItem
-                if (!GooPMMOItems.IsMMOItem(originalResult)) {
+        // If it is not a MMOItem
+        if (GooPMMOItems.IsMMOItem(event.getRecipe().getResult())) {
+            //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a7c For some reason, custom crafted..? ");
+            return; }
+        //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a77 Vanilla crafted item identified! Performing operation... ");
 
-                    // Capture those already crafted
-                    HashMap<Integer, ItemStack> heldItems = ScourgeForConverted(player.getInventory(), postConvertedResult);
+        // Capture those already crafted
+        HashMap<Integer, ItemStack> heldItems = ScourgeForConverted(player.getInventory(), postConvertedResult);
 
-                    // Get Conversion Setting to Apply
-                    ConverterTypeSettings set = ConverterTypeSettings.PertainingTo(convName.getValue());
+        // Get Conversion Setting to Apply
+        ConverterTypeSettings set = ConverterTypeSettings.PertainingTo(convName.getValue());
 
-                    // Store
-                    crafters.add(player);
-                    craftHeld.put(player.getUniqueId(), heldItems);
-                    craftSearch.put(player.getUniqueId(), postConvertedResult.clone());
-                    craftPrepd.put(player.getUniqueId(), originalResult.clone());
-                    craftSet.put(player.getUniqueId(), set);
+        // Store
+        crafters.add(player);
+        craftHeld.put(player.getUniqueId(), heldItems);
+        craftSearch.put(player.getUniqueId(), postConvertedResult.clone());
+        craftPrepd.put(player.getUniqueId(), event.getRecipe().getResult().clone());
+        craftSet.put(player.getUniqueId(), set);
 
-                    // Apply 2 result itself
-                    if (event.getInventory().getResult() != null) {
+        // Apply 2 result itself
+        if (event.getInventory().getResult() != null) {
 
-                        // Convert
-                        ItemStack cursorResult = FullConvert(originalResult.clone(), set, player, false);
+            // Convert
+            ItemStack cursorResult = FullConvert(event.getRecipe().getResult().clone(), set, player, false);
 
-                        // Set in inventory a reroll
-                       event.getInventory().setResult(cursorResult);
-                    }
-
-                    BeginScourger();
-                }
-            }
+            // Set in inventory a reroll
+            event.getInventory().setResult(cursorResult);
         }
+
+        BeginScourger();
     }
 
     HashMap<Integer, ItemStack> ScourgeForConverted(@NotNull Inventory inven, @Nullable ItemStack sought) {

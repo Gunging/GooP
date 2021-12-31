@@ -33,6 +33,8 @@ public class QuickNumberRange {
         //OotilityCeption. Log("Getting Range From \u00a79" + fromString);
         if (fromString == null) { return null; }
 
+        if (fromString.equals("..")) { return new QuickNumberRange(null, null); }
+
         // Number itself? So its basically an EXACTLY this value, I'll allow it.
         if (OotilityCeption.DoubleTryParse(fromString)) {
 
