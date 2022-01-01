@@ -22,18 +22,12 @@ public class GooPVault {
 
         // Fail by missing vault
         Plugin vault = srv.getPluginManager().getPlugin("Vault");
-        if (vault == null) {
-            Gunging_Ootilities_Plugin.theOots.CPLog(ChatColor.GRAY + "Interrupted -\u00a7c Unloaded");
-            return false; }
-        if (!vault.isEnabled()) {
-            Gunging_Ootilities_Plugin.theOots.CPLog(ChatColor.GRAY + "Interrupted -\u00a7c Disabled");
-            return false; }
+        if (vault == null) { return false; }
+        if (!vault.isEnabled()) { return false; }
 
         // Fail due to invalid economy registration
         RegisteredServiceProvider<Economy> rsp = srv.getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            Gunging_Ootilities_Plugin.theOots.CPLog(ChatColor.GRAY + "Interrupted -\u00a7c Unregistered");
-            return false; }
+        if (rsp == null) { return false; }
 
         //Final
         econ = rsp.getProvider();

@@ -40,7 +40,6 @@ public class NBTFilter {
         amount = count;
     }
 
-
     @Override
     public String toString() {
         String am = "";

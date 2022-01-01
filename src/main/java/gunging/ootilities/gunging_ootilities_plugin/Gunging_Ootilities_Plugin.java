@@ -16,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Listener;
@@ -31,6 +32,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Listener {
 
@@ -155,11 +157,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //region World Edit Compatibility Attempt
         try {
             // Sweet, it is there
-            GooPWorldEdit worldEditChecc = new GooPWorldEdit();
+            GooPWorldEdit worldEditCheck = new GooPWorldEdit();
 
-            // Welp
-            worldEditChecc.CompatibilityCheck();
-            foundWorldEdit = true;
+            // Well
+            worldEditCheck.CompatibilityCheck();
+            foundWorldEdit = GooPWorldEdit.pluginExisted();
 
         } catch (Throwable e) {
 
@@ -192,7 +194,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             new GooPGriefPrevention();
 
             // Anyway
-            foundGriefPrevention = true;
+            foundGriefPrevention = GooPGriefPrevention.claimsMarketExisted();
 
         } catch (Throwable e) {
             e.printStackTrace();
@@ -748,6 +750,22 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         if (fontsPair != null) { storageRoots.put(fontsPair.getStorage(), fontsPair); }
         //endregion
 
+        //region Enchantment Scourge
+        FileConfigPair enchScourge = GetConfigAt(null, "enchantment-delete.yml", true, false);
+        blacklistedEnchantments.clear();
+        if (enchScourge != null) {
+
+            // Scourge Load
+            List<String> rawBlacklistedEnchantments = enchScourge.getStorage().getStringList("DeletedEnchantments");
+            for (String str : rawBlacklistedEnchantments) { Enchantment ench = OotilityCeption.GetEnchantmentByName(str); if (ench != null) { blacklistedEnchantments.add(ench); } }
+
+            // Enchantment Replace
+            replacementEnchantment = OotilityCeption.GetEnchantmentByName(enchScourge.getStorage().getString("ReplacementEnchantment", "no"));
+        }
+
+
+        //endregion
+
         //region MySQL Params
         //SQL//mySQLHostInfo = GetConfigAt(null, "mysql-support.yml", true, false);
         //SQL//if (mySQLHostInfo != null) { storageRoots.put(mySQLHostInfo.getStorage(), mySQLHostInfo); }
@@ -835,6 +853,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         GOOPCManager.reloadContainers();
         //endregion
     }
+
+    //region Enchantment Scourge
+    @NotNull public static ArrayList<Enchantment> blacklistedEnchantments = new ArrayList<>();
+    @Nullable public static Enchantment replacementEnchantment = null;
+    //endregion
 
     public boolean savingTheseTicks;
     public HashMap<String, FileConfigPair> l8st = new HashMap<>();

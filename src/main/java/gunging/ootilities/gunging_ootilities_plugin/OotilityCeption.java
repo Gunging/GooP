@@ -684,6 +684,29 @@ public class OotilityCeption {
     }
 
     //region Type Identifying
+    @Nullable public static Material asBlock(@NotNull Material source) {
+
+
+        if (source == Material.DIAMOND) { return Material.DIAMOND_BLOCK; }
+        else if (source == Material.EMERALD) { return Material.EMERALD_BLOCK; }
+        else if (source == Material.GOLD_INGOT) { return Material.GOLD_BLOCK; }
+        else if (source == Material.IRON_INGOT) { return Material.IRON_BLOCK; }
+        else if (source == Material.COAL) { return Material.COAL_BLOCK; }
+        else if (source == Material.LAPIS_LAZULI) { return Material.LAPIS_BLOCK; }
+        else if (source == Material.REDSTONE) { return Material.REDSTONE_BLOCK; }
+        else if (source == Material.BONE_MEAL) { return Material.BONE_BLOCK; }
+        else if (source == Material.MELON_SLICE) { return Material.MELON; }
+        else if (source == Material.DRIED_KELP) { return Material.DRIED_KELP_BLOCK; }
+        else if (source == Material.WHEAT) { return Material.HAY_BLOCK; }
+        else if (source == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_INGOT)) { return GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_BLOCK); }
+        else if (source == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.COPPER_INGOT)) { return GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.COPPER_BLOCK); }
+        else if (source == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.RAW_COPPER)) { return GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.RAW_COPPER_BLOCK); }
+        else if (source == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.RAW_GOLD)) { return GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.RAW_GOLD_BLOCK); }
+        else if (source == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.RAW_IRON)) { return GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.RAW_IRON_BLOCK); }
+
+        return null;
+    }
+
     public static ArrayList<Material> matArmor = new ArrayList<>();
     public static void BuildIdentifyingArrays() {
 
@@ -1209,7 +1232,8 @@ public class OotilityCeption {
 
         return false;
     }
-    public static Enchantment GetEnchantmentByName(String name) {
+    public static Enchantment GetEnchantmentByName(@Nullable String name) {
+        if (name == null) { return null; }
         try {
             Enchantment enchant = Enchantment.getByKey(NamespacedKey.minecraft(name.toLowerCase()));
 

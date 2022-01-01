@@ -3,30 +3,329 @@ package gunging.ootilities.gunging_ootilities_plugin.events;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Container;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.enchantment.EnchantItemEvent;
+import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.PlayerBucketFillEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.event.world.LootGenerateEvent;
+import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class ScoreboardLinks implements Listener {
+
+    //region Enchantment Deleter
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnEnchant(PrepareItemEnchantEvent event) {
+        if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
+
+        Enchantment allowedEnchantment = Gunging_Ootilities_Plugin.replacementEnchantment;
+        if (allowedEnchantment == null) {
+            for (Enchantment enchantment : Enchantment.values()) {
+
+                if (Gunging_Ootilities_Plugin.blacklistedEnchantments.contains(enchantment)) { continue; }
+                allowedEnchantment = enchantment;
+                break; } }
+
+        // If nothing is allowed... nothing is allowed.
+        if (allowedEnchantment == null) { event.setCancelled(true); return; }
+
+        // Replace blacklisted enchantments for the allowed enchantment I guess
+        for (EnchantmentOffer offer : event.getOffers()) {
+            //noinspection ConstantConditions
+            if (offer == null) { continue; }
+
+            if (Gunging_Ootilities_Plugin.blacklistedEnchantments.contains(offer.getEnchantment())) {
+
+                offer.setEnchantment(allowedEnchantment);
+                offer.setEnchantmentLevel(Math.min(offer.getEnchantmentLevel(), allowedEnchantment.getMaxLevel()));
+            }
+        }
+    }
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnEnchant(EnchantItemEvent event) {
+        if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
+
+        HashMap<Enchantment, Integer> actualAdd = new HashMap<>();
+
+        // Find thay enchantment to replace
+        Enchantment allowedEnchantment = Gunging_Ootilities_Plugin.replacementEnchantment;
+        if (allowedEnchantment == null) {
+            for (Enchantment enchantment : Enchantment.values()) {
+
+                if (Gunging_Ootilities_Plugin.blacklistedEnchantments.contains(enchantment)) { continue; }
+                allowedEnchantment = enchantment;
+                break; } }
+
+        // If nothing is allowed... nothing is allowed.
+        if (allowedEnchantment == null) { event.setCancelled(true); return; }
+
+        // Replace blacklisted enchantments for the allowed enchantment I guess
+        for (Map.Entry<Enchantment, Integer> offer : event.getEnchantsToAdd().entrySet()) {
+
+            // If the enchantment exists... remove it
+            if (Gunging_Ootilities_Plugin.blacklistedEnchantments.contains(offer.getKey())) {
+
+                // If there is no replacement enchantment... do not do that.
+                actualAdd.put(allowedEnchantment, Math.min(offer.getValue(), allowedEnchantment.getMaxLevel()));
+
+            // w h a t
+            } else {
+
+                // Yes
+                actualAdd.put(offer.getKey(), offer.getValue());
+            }
+        }
+
+        // Put accepted enchantments
+        event.getEnchantsToAdd().clear();
+        event.getEnchantsToAdd().putAll(actualAdd);
+    }
+
+
+    @EventHandler
+    public void OnItemPickup(EntityPickupItemEvent event) {
+        if(!(event.getEntity() instanceof Player)) { return; }
+        if (event.isCancelled()) { return; }
+
+        ItemStack converted = removeBlacklistedEnchantments(event.getItem().getItemStack());
+        if (converted == null) { return; }
+
+        // Replaced
+        event.getItem().setItemStack(converted);
+    }
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnChestMinecartAccess(PlayerInteractEntityEvent event) {
+        if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a73 IE\u00a77 On Chest Minecart Kick\u00a7b -------");
+
+        /*
+         * Villager? :flushed:
+         */
+        Entity entity = event.getRightClicked();
+        if (!(entity instanceof InventoryHolder)) { return; }
+
+        // Cast it
+        InventoryHolder holder = (InventoryHolder) entity;
+        removeBlacklistedEnchantments(holder.getInventory());
+    }
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnVillagerTalk(PlayerInteractEntityEvent event) {
+        if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a73 IE\u00a77 On Villager Talk Kick\u00a7b -------");
+
+        /*
+         * Villager? :flushed:
+         */
+        Entity entity = event.getRightClicked();
+        if (!(entity instanceof Merchant)) { return; }
+
+        // Cast it
+        Merchant merchant = (Merchant) entity;
+        for (int m = 0; m < merchant.getRecipes().size(); m++) {
+            MerchantRecipe recipe = merchant.getRecipe(m);
+
+            ArrayList<ItemStack> bakedIngredients = new ArrayList<>();
+            for (ItemStack ingredient : recipe.getIngredients()) {
+
+                ItemStack baked = removeBlacklistedEnchantments(ingredient);
+                if (baked == null) { bakedIngredients.add(ingredient); continue; }
+
+                //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Replacing Recipe ingredient\u00a79 #" + m);
+                bakedIngredients.add(baked);
+            }
+
+            ItemStack bakedResult = removeBlacklistedEnchantments(recipe.getResult());
+            if (bakedResult != null) {
+                //ENCH// OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Replacing Recipe at\u00a79 #" + m);
+
+                /*
+                 * If the result is enchanted... we must  remove this recipe entirely!
+                 */
+                MerchantRecipe newRecipe = new MerchantRecipe(bakedResult, recipe.getUses(), recipe.getMaxUses(), recipe.hasExperienceReward(), recipe.getVillagerExperience(), recipe.getPriceMultiplier(), recipe.getDemand(), recipe.getSpecialPrice(), recipe.shouldIgnoreDiscounts());
+
+                newRecipe.setIngredients(bakedIngredients);
+
+                // Reset recipe and re-evaluate
+                merchant.setRecipe(m, newRecipe);
+                continue;
+            }
+
+            // Set ingredients
+            recipe.setIngredients(bakedIngredients);
+        }
+    }
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnPlayerJoin(PlayerJoinEvent event) {
+        if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a73 IE\u00a77 On Player Join Kick\u00a7b -------");
+
+        // Scourge inventory and enderchest
+        removeBlacklistedEnchantments(event.getPlayer().getInventory());
+        removeBlacklistedEnchantments(event.getPlayer().getEnderChest());
+    }
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnChestOpen(PlayerInteractEvent event) {
+        if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a73 IE\u00a77 On Chest Open Kick\u00a7b -------");
+
+        /*
+         * Chest? :flushed:
+         */
+        if (OotilityCeption.IsAirNullAllowed(event.getClickedBlock())) { return; }
+        Block block = event.getClickedBlock();
+
+        // Ah
+        if (!(block.getState() instanceof Container)) { return; }
+        Container container = (Container) block.getState();
+
+        // Delete them, delete them all!
+        removeBlacklistedEnchantments(container.getInventory());
+    }
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnLootGen(LootGenerateEvent event) {
+        if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a73 IE\u00a77 On Loot Gen Kick\u00a7b -------");
+
+        // If it wasn't cancelled and the picker upper was a player
+        if (event.isCancelled()) { return; }
+
+        ArrayList<ItemStack> convertedItems = new ArrayList<>();
+
+        // For every item
+        for (ItemStack item : event.getLoot()) {
+
+            if (OotilityCeption.IsAirNullAllowed(item)) { convertedItems.add(item); continue; }
+
+            // Yes
+            ItemStack baked = removeBlacklistedEnchantments(item);
+            if (baked == null) { convertedItems.add(item); } else { convertedItems.add(baked); }
+        }
+
+        // Set items
+        event.setLoot(convertedItems);
+    }
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnLootGen(PlayerFishEvent event) {
+        if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a73 IE\u00a77 On Fish Kick\u00a7b -------");
+
+        // If it wasn't cancelled and the picker upper was a player
+        if (event.isCancelled()) { return; }
+        if (!(event.getCaught() instanceof Item)) { return; }
+
+        Item caught = (Item) event.getCaught();
+
+        ItemStack bakedItem = removeBlacklistedEnchantments(caught.getItemStack());
+        if (bakedItem == null) { return; }
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Replacing Fished item");
+
+        // Yes
+        caught.setItemStack(bakedItem);
+    }
+
+    /**
+     * Removes blacklisted enchantments from all items in this inventory
+     *
+     * @param inven Source Inventory
+     */
+    public static void removeBlacklistedEnchantments(@NotNull Inventory inven) {
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Queried for inventory... ");
+
+        // For every item in the inventory
+        for (int i = 0; i < inven.getSize(); i++) {
+
+            // ts
+            ItemStack res = removeBlacklistedEnchantments(inven.getItem(i));
+            if (res == null) { continue; }
+            //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Replacing Item at\u00a79 #" + i);
+
+            // Update
+            inven.setItem(i, res);
+        }
+    }
+    /**
+     * @param iSource Source Item
+     *
+     * @return Item but with no remaining enchantments. Null if no change was made
+     */
+    @Nullable public static ItemStack removeBlacklistedEnchantments(@Nullable ItemStack iSource) {
+        if (OotilityCeption.IsAirNullAllowed(iSource)) { return null; }
+        //ENCH//OotilityCeption.Log("\u00a78RELOAD\u00a73 IE\u00a77 Queried for " + OotilityCeption.GetItemName(iSource));
+
+        // From MMOItems Stat Histories
+        if (Gunging_Ootilities_Plugin.foundMMOItems) { return GooPMMOItems.removeBlacklistedEnchantments(iSource); }
+
+        return removeBlacklistedEnchantmentsVanilla(iSource);
+    }
+    /**
+     * @param iSource Source Item
+     *
+     * @return Item but with no remaining enchantments. Null if no change was made
+     */
+    @Nullable public static ItemStack removeBlacklistedEnchantmentsVanilla(@Nullable ItemStack iSource) {
+        if (OotilityCeption.IsAirNullAllowed(iSource)) { return null; }
+
+        /*
+         * Remove deleted enchantments
+         */
+        ItemMeta iMeta = iSource.getItemMeta();
+        int amount = iSource.getAmount();
+
+        boolean change = false; int addedLvl = 0;
+        for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+            addedLvl += iMeta.getEnchantLevel(e);
+            change = iMeta.removeEnchant(e) || change; }
+
+        if (Gunging_Ootilities_Plugin.replacementEnchantment != null && addedLvl != 0) {
+            if (addedLvl > Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel()) { addedLvl = Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel(); }
+            iMeta.addEnchant(Gunging_Ootilities_Plugin.replacementEnchantment, addedLvl, false); }
+
+        if (iMeta instanceof EnchantmentStorageMeta) {
+            addedLvl = 0;
+            EnchantmentStorageMeta eMeta = (EnchantmentStorageMeta) iMeta;
+
+            for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+                addedLvl += eMeta.getStoredEnchantLevel(e);
+                change = eMeta.removeStoredEnchant(e) || change; }
+
+            if (Gunging_Ootilities_Plugin.replacementEnchantment != null && addedLvl != 0) {
+                if (addedLvl > Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel()) { addedLvl = Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel(); }
+                eMeta.addStoredEnchant(Gunging_Ootilities_Plugin.replacementEnchantment, addedLvl, false); }
+        }
+
+        // No change
+        if (!change) { return null; }
+
+        iSource.setItemMeta(iMeta);
+        iSource.setAmount(amount);
+        return iSource;
+    }
+    //endregion
 
     public static ArrayList<LinkedEntity> olEntities = new ArrayList<>();
     public static ArrayList<UUID> watchedEntities = new ArrayList<>();

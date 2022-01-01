@@ -8,11 +8,13 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class GooPGriefPrevention {
 
-    static DataStore claimsMarket;
+    @Nullable static DataStore claimsMarket = null;
+    public static boolean claimsMarketExisted() { return claimsMarket != null; }
 
     public GooPGriefPrevention() { int p = GriefPrevention.TREE_RADIUS; }
 

@@ -1,5 +1,8 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats;
 
+/**
+ * Class of items that will be converted
+ */
 public enum ConverterTypeNames {
     ALL,
 

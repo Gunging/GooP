@@ -10,7 +10,6 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.ConverterPerTier;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ConverterTypeSettings;
 import gunging.ootilities.gunging_ootilities_plugin.misc.FileConfigPair;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
-import net.Indyuce.mmoitems.api.ReforgeOptions;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -19,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -130,11 +128,19 @@ public class ConverterTypes {
 
                         // Stuff on craft
                         ConfigurationSection onCraft = typeConfig.getConfigurationSection("OnCraft");
-                        if (onCraft != null) { converterSettings.SetPerTierStats(null, ParseConverterSettings(onCraft, converterSettings, null, false), false); }
+                        if (onCraft != null) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onCraft, converterSettings, null, ConvertingReason.CRAFT), ConvertingReason.CRAFT); }
 
                         // Stuff on pickup.
                         ConfigurationSection onPickup = typeConfig.getConfigurationSection("OnPickup");
-                        if (onPickup != null) { converterSettings.SetPerTierStats(null, ParseConverterSettings(onPickup, converterSettings, null, true), true); }
+                        if (onPickup != null) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onPickup, converterSettings, null, ConvertingReason.PICKUP), ConvertingReason.PICKUP); }
+
+                        // Stuff on pickup.
+                        ConfigurationSection onTrade = typeConfig.getConfigurationSection("OnTrade");
+                        if (onTrade != null) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onTrade, converterSettings, null, ConvertingReason.TRADED), ConvertingReason.TRADED); }
+
+                        // Stuff on pickup.
+                        ConfigurationSection onChest = typeConfig.getConfigurationSection("OnLootGen");
+                        if (onChest != null) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onChest, converterSettings, null, ConvertingReason.LOOT_GEN), ConvertingReason.LOOT_GEN); }
                     }
                 }
 
@@ -146,7 +152,8 @@ public class ConverterTypes {
 
     }
 
-    static @NotNull ConverterPerTier ParseConverterSettings(@NotNull ConfigurationSection section, @NotNull ConverterTypeSettings converterSettings, @Nullable String tierName, boolean asPickup) {
+    public final static String PRICE_MULTIPLIER = "Price";
+    static @NotNull ConverterPerTier ParseConverterSettings(@NotNull ConfigurationSection section, @NotNull ConverterTypeSettings converterSettings, @Nullable String tierName, ConvertingReason asPickup) {
         //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bSETTINGS\u00a77 Parsing Settings (Pickup? \u00a73" + asPickup + "\u00a77)");
 
         /*
@@ -162,7 +169,7 @@ public class ConverterTypes {
                 //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bSETTINGS\u00a77 Tier List\u00a7e x" + rawTierList.size());
 
                 // Add the tier rates
-                converterSettings.SetTierRates(new ArrayList<>(rawTierList), asPickup);
+                converterSettings.setRandomTiering(new ArrayList<>(rawTierList), asPickup);
 
                 // Get tier settings
                 for (String rawTier : rawTierList) {
@@ -180,7 +187,7 @@ public class ConverterTypes {
                     if (sSection == null) { continue; }
 
                     // Apply settings
-                    converterSettings.SetPerTierStats(trueTier, ParseConverterSettings(sSection, converterSettings, trueTier, asPickup), asPickup);
+                    converterSettings.setPerTierSettings(trueTier, ParseConverterSettings(sSection, converterSettings, trueTier, asPickup), asPickup);
                 }
             }
         }
@@ -211,7 +218,7 @@ public class ConverterTypes {
                 // Gather value
                 String readingAsString = section.getString(stat);
                 if (readingAsString != null) {
-                    //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bCRAFT\u00a73 " + tierName + "-MOD\u00a77 Accepted\u00a7a " + readingAsString);
+                    //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bCRAFT\u00a73 " + tierName + "-MOD\u00a77 Accepted\u00a7a " + readingAsString + "\u00a77 for\u00a7b " + stat);
 
                     // Add as such
                     cpt.AddStatData(stat, readingAsString);
@@ -233,7 +240,7 @@ public class ConverterTypes {
         boolean whipEnabled = realTypes.contains("WHIP");
 
         convertingTypes.clear();
-        ConverterTypeSettings.Reset();
+        ConverterTypeSettings.reset();
 
         // Macro-Overrides
         if (names.contains("ALL")) {

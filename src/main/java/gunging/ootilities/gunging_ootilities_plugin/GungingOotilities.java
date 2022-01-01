@@ -321,7 +321,7 @@ public class GungingOotilities implements CommandExecutor {
                     } else {
 
                         // Clarify it lack of perms
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to suspend creatures!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to suspend creatures!"));
                     }
                     break;
                 //endregion
@@ -545,7 +545,7 @@ public class GungingOotilities implements CommandExecutor {
                     } else {
 
                         // Tell him lmao
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to consume items!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to consume items!"));
                     }
                     break;
                 //endregion
@@ -986,7 +986,7 @@ public class GungingOotilities implements CommandExecutor {
                     } else {
 
                         // Tell him lmao
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to check inventories!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to check inventories!"));
                     }
                     break;
                 //endregion
@@ -1128,7 +1128,7 @@ public class GungingOotilities implements CommandExecutor {
                     // No perms
                     } else {
                         // Tell him lmao
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to change gamerules!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to change gamerules!"));
                     }
                     break;
                 //endregion
@@ -1500,7 +1500,7 @@ public class GungingOotilities implements CommandExecutor {
                         // No perms
                     } else {
                         // Tell him lmao
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to mess with textures!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to mess with textures!"));
                     }
                     break;
                 //endregion
@@ -1529,7 +1529,7 @@ public class GungingOotilities implements CommandExecutor {
                     } else {
 
                         // Clarify it lack of perms
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to reload the configs!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to reload the configs!"));
                     }
                     break;
                     //endregion
@@ -3225,7 +3225,7 @@ public class GungingOotilities implements CommandExecutor {
                         // No perms
                     } else {
                         // Tell him lmao
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to configure custom structures!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to configure custom structures!"));
                     }
                     break;
                 //endregion
@@ -3824,7 +3824,7 @@ public class GungingOotilities implements CommandExecutor {
                             // No perms
                         } else {
                             // Tell him lmao
-                            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to use mythicmobs-related commands!"));
+                            logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to use mythicmobs-related commands!"));
                         }
 
                         // MMOItems not installed. Returning
@@ -4584,7 +4584,7 @@ public class GungingOotilities implements CommandExecutor {
                     // No perms
                     } else {
                         // Tell him lmao
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to perform scoreboard operations!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to perform scoreboard operations!"));
                     }
                     break;
                     //endregion
@@ -4869,7 +4869,7 @@ public class GungingOotilities implements CommandExecutor {
                     } else {
 
                         // Clarify it lack of perms
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to power-grief the terrain!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to power-grief the terrain!"));
                     }
                     break;
                 //endregion
@@ -5343,7 +5343,7 @@ public class GungingOotilities implements CommandExecutor {
                     } else {
 
                         // Clarify it lack of perms
-                        logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to compare data!"));
+                        logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to compare data!"));
                     }
                     break;
                 //endregion
@@ -6120,7 +6120,7 @@ public class GungingOotilities implements CommandExecutor {
                         } else {
 
                             // Tell him lmao
-                            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to use vault-related commands!"));
+                            logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to use vault-related commands!"));
                         }
 
                     // Vault not installed. Returning
@@ -7192,7 +7192,7 @@ public class GungingOotilities implements CommandExecutor {
         } else {
 
             // Tell him lmao
-            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission unlock stuff this way!"));
+            logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission unlock stuff this way!"));
         }
 
         //Set Log Return Urn Value
@@ -8958,7 +8958,7 @@ public class GungingOotilities implements CommandExecutor {
             // No perms
         } else {
             // Tell him lmao
-            logReturn.add(OotilityCeption.LogFormat("\u00a7cYou dont have permission to edit item nbt!"));
+            logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to edit item nbt!"));
         }
 
         //Set Log Return Urn Value
@@ -11084,7 +11084,7 @@ public class GungingOotilities implements CommandExecutor {
         } else {
             // Tell him lmao
             //logReturn.add(OotilityCeption.LogFormat("Containers is a feature coming soon!"));
-            logReturn.add(OotilityCeption.LogFormat("You dont have permission to use containers this way!"));
+            logReturn.add(OotilityCeption.LogFormat("\u00a7c\u00a7oYou dont have permission to use containers this way!"));
         }
 
         //Set Log Return Urn Value

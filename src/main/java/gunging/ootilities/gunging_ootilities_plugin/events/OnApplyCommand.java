@@ -11,6 +11,7 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypeNames;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypes;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConvertingReason;
 import io.lumine.mythic.lib.api.item.NBTItem;
 import io.lumine.mythic.lib.api.util.ui.SilentNumbers;
 import net.Indyuce.mmoitems.ItemStats;
@@ -29,7 +30,10 @@ import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.ItemStat;
 import net.Indyuce.mmoitems.stat.type.NameData;
 import net.Indyuce.mmoitems.stat.type.StatHistory;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -39,8 +43,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Merchant;
+import org.bukkit.inventory.MerchantRecipe;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -52,14 +60,144 @@ import java.util.UUID;
 
 public class OnApplyCommand implements Listener {
 
-    @NotNull ItemStack DisplayConvert(@NotNull ItemStack stacc, @Nullable ConverterTypeSettings set, @Nullable Player p, boolean asPickup) {
+    @EventHandler(priority = EventPriority.HIGH)
+    public void OnVillagerTalk(PlayerInteractEntityEvent event) {
+
+        /*
+         * Villager? :flushed:
+         */
+        Entity entity = event.getRightClicked();
+        if (!(entity instanceof Merchant)) { return; }
+
+        // Cast it
+        Merchant merchant = (Merchant) entity;
+        for (int m = 0; m < merchant.getRecipes().size(); m++) {
+            MerchantRecipe recipe = merchant.getRecipe(m);
+
+            ArrayList<ItemStack> bakedIngredients = new ArrayList<>();
+            for (ItemStack ingredient : recipe.getIngredients()) {
+
+                ItemStack converted = convertOrNull(ingredient, event.getPlayer(), ConvertingReason.TRADED, null);
+                if (converted == null) { bakedIngredients.add(ingredient); continue; }
+
+                //TRD//OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Replacing Recipe ingredient\u00a79 #" + m);
+                bakedIngredients.add(converted);
+            }
+
+            RefSimulator<ConverterPerTier> cptRet = new RefSimulator<>(null);
+            ItemStack bakedResult = convertOrNull(recipe.getResult(), event.getPlayer(), ConvertingReason.TRADED, cptRet);
+            if (bakedResult != null) {
+                //TRD// OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Replacing Recipe at\u00a79 #" + m);
+
+                // If the result is enchanted... we must  remove this recipe entirely!
+                MerchantRecipe newRecipe = new MerchantRecipe(bakedResult, recipe.getUses(), recipe.getMaxUses(), recipe.hasExperienceReward(), recipe.getVillagerExperience(), recipe.getPriceMultiplier(), recipe.getDemand(), recipe.getSpecialPrice(), recipe.shouldIgnoreDiscounts());
+
+                // Valid tier thing?
+                if (cptRet.getValue() != null) {
+                    //TRD// OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Evaluating CPT for tier \u00a79" + cptRet.getValue().getTier());
+
+                    // Adjust ingredient prices
+                    RefSimulator<ItemStack> first = new RefSimulator<>(null); if (bakedIngredients.size() > 0) { first.setValue(bakedIngredients.get(0)); }
+                    RefSimulator<ItemStack> second = new RefSimulator<>(null); if (bakedIngredients.size() > 1) { second.setValue(bakedIngredients.get(1)); }
+
+                    //TRD// OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Input #1: " + OotilityCeption.GetItemName(first.getValue(), true));
+                    //TRD// OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Input #2: " + OotilityCeption.GetItemName(second.getValue(), true));
+
+                    cptRet.getValue().adjustPrice(first, second);
+
+                    //TRD// OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Result #1: " + OotilityCeption.GetItemName(first.getValue(), true));
+                    //TRD// OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Result #2: " + OotilityCeption.GetItemName(second.getValue(), true));
+
+                    // Take away first two
+                    bakedIngredients.remove(0);
+                    bakedIngredients.remove(0);
+                    bakedIngredients.add(0, second.getValue());
+                    bakedIngredients.add(0, first.getValue());
+                }
+
+                // Yes
+                newRecipe.setIngredients(bakedIngredients);
+
+                // Reset recipe and re-evaluate
+                merchant.setRecipe(m, newRecipe);
+                continue;
+            }
+
+            // Set ingredients
+            recipe.setIngredients(bakedIngredients);
+        }
+    }
+
+    @Nullable ItemStack convertOrNull(@Nullable ItemStack item, @Nullable Player p, @NotNull ConvertingReason reason, @Nullable RefSimulator<ConverterPerTier> cptRet) {
+
+        if (OotilityCeption.IsAirNullAllowed(item)) { return null; }
+
+        // If the item picked up is marked as convertible
+        RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
+        if (!ConverterTypes.IsConvertable(item, convName)) { return null; }
+
+        // If it is not a MMOItem
+        if (GooPMMOItems.IsMMOItem(item)) { return null; }
+
+        // Yes, result
+        return FullConvert(item, ConverterTypeSettings.PertainingTo(convName.getValue()), p, reason, cptRet);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void OnLootGen(LootGenerateEvent event) {
+
+        // If it wasn't cancelled and the picker upper was a player
+        if (event.isCancelled()) { return; }
+
+        //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Generating Loot!");
+        //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Entity:\u00a7e " + (event.getEntity() == null ? "null" : event.getEntity().getType().toString()));
+        //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Killer:\u00a7e " + (event.getLootContext().getKiller() == null ? "null" : event.getLootContext().getKiller().getType().toString()));
+        //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Holder Entity:\u00a7e " + (event.getInventoryHolder() instanceof Entity ? ((Entity) event.getInventoryHolder()).getType().toString() : null));
+        //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Holder Block:\u00a7e " + (event.getInventoryHolder() instanceof BlockState ? ((BlockState) event.getInventoryHolder()).getType().toString() : null));
+        //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Location:\u00a7e " + OotilityCeption.BlockLocation2String(event.getLootContext().getLocation()));
+        //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Looted:\u00a7e " + (event.getLootContext().getLootedEntity() == null ? "null" : event.getLootContext().getLootedEntity().getType().toString()));
+
+        if (event.getLootContext().getKiller() != null) { return; }
+        if (event.getEntity() != null) { return; }
+
+        Player parser = null;
+
+        // Players in world...
+        Location loc = event.getLootContext().getLocation();
+        double bestDistance = 30;
+        for (Player player : loc.getWorld().getNearbyPlayers(loc, 30)) {
+            double currentDistance = player.getLocation().distance(loc);
+
+            // Are they closer?
+            if (currentDistance < bestDistance) {
+
+                // Accept
+                bestDistance = currentDistance;
+                parser = player;
+            }
+        }
+
+        ArrayList<ItemStack> convertedItems = new ArrayList<>();
+
+        // For every item
+        for (ItemStack item : event.getLoot()) {
+
+            ItemStack converted = convertOrNull(item, parser, ConvertingReason.LOOT_GEN, null);
+            if (converted == null) { convertedItems.add(item); } else { convertedItems.add(converted); }
+        }
+
+        // Set items
+        event.setLoot(convertedItems);
+    }
+
+    @NotNull ItemStack DisplayConvert(@NotNull ItemStack stacc, @Nullable ConverterTypeSettings set, @Nullable Player p, @NotNull ConvertingReason asPickup) {
         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 Converting for Display");
 
         // Convert
         ItemStack result = GooPMMOItems.ConvertVanillaToMMOItem(
                 stacc,
                 ConverterTypes.typePrefix,
-                ConverterTypes.GenerateConverterID(stacc.getType(), set == null ? null : set.GetNullTier(asPickup)));
+                ConverterTypes.GenerateConverterID(stacc.getType(), set == null ? null : set.getNullTierName(asPickup)));
 
         // Obtain internals
         RefSimulator<String> miID = new RefSimulator<>(null), miType = new RefSimulator<>(null);
@@ -93,7 +231,7 @@ public class OnApplyCommand implements Listener {
         if (set != null) {
 
             // Apply Pre
-            result = set.ApplyTo(result, p, asPickup);
+            result = set.applyDisplayTo(result, p, asPickup);
         }
 
         return result;
@@ -299,7 +437,10 @@ public class OnApplyCommand implements Listener {
         // Build that shit
         return mmo.newBuilder().build();
     }
-    @NotNull ItemStack FullConvert(@NotNull ItemStack stacc, @Nullable ConverterTypeSettings set, @Nullable Player p, boolean asPickup) {
+    @NotNull ItemStack FullConvert(@NotNull ItemStack stacc, @Nullable ConverterTypeSettings set, @Nullable Player player, @NotNull ConvertingReason asPickup) {
+        return FullConvert(stacc, set, player, asPickup, null);
+    }
+    @NotNull ItemStack FullConvert(@NotNull ItemStack stacc, @Nullable ConverterTypeSettings set, @Nullable Player player, @NotNull ConvertingReason asPickup, @Nullable RefSimulator<ConverterPerTier> cptRet) {
         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 Converting for Full");
 
         String preChosenTier = null;
@@ -349,10 +490,10 @@ public class OnApplyCommand implements Listener {
         if (set != null) {
 
             // Apply Pre
-            result = set.ApplyTo(result, p, asPickup);
+            result = set.applyDisplayTo(result, player, asPickup);
 
             // Apply Post
-            result = set.ApplyPostTo(result, p, asPickup);
+            result = set.applyTo(result, player, asPickup, cptRet);
         }
 
         return result;
@@ -527,10 +668,8 @@ public class OnApplyCommand implements Listener {
                                             onApplied = new ArrayList<>(((StringListData) asV.getData(GooPMMOItems.APPLICABLE_TIMES)).getList());
                                             StatHistory.from(asV, GooPMMOItems.APPLICABLE_TIMES);
 
-                                        } else {
-
-                                            //DBG//OotilityCeption.Log("\u00a76 +\u00a77 Created New");
                                         }
+                                        //DBG// else { OotilityCeption.Log("\u00a76 +\u00a77 Created New"); }
                                         //endregion
 
                                         // New item
@@ -803,7 +942,7 @@ public class OnApplyCommand implements Listener {
                 if (!GooPMMOItems.IsMMOItem(event.getItem().getItemStack())) {
 
                     // Prepare result
-                    ItemStack result = FullConvert(event.getItem().getItemStack(), ConverterTypeSettings.PertainingTo(convName.getValue()), (Player) event.getEntity(), true);
+                    ItemStack result = FullConvert(event.getItem().getItemStack(), ConverterTypeSettings.PertainingTo(convName.getValue()), (Player) event.getEntity(), ConvertingReason.PICKUP);
 
                     // Well, override it I suppose. Drop another entity with the qualifications
                     Item e = event.getEntity().getWorld().dropItem(event.getEntity().getLocation(), result);
@@ -820,8 +959,7 @@ public class OnApplyCommand implements Listener {
         }
     }
 
-    @EventHandler
-    public void OnSmithPrep(PrepareSmithingEvent event) {
+    @EventHandler public void OnSmithPrep(PrepareSmithingEvent event) {
 
         //SMH//OotilityCeption.Log("\u00a78Smith \u00a73PR\u00a77 Prep Begin -----------------------------------------------");
 
@@ -892,7 +1030,7 @@ public class OnApplyCommand implements Listener {
                     craftPrep.put(player.getUniqueId(), eventResultItem.clone());
 
                     // Prepare result; Apply the pre craft I suppose
-                    ItemStack result = DisplayConvert(eventResultItem, ConverterTypeSettings.PertainingTo(convName.getValue()), player, false);
+                    ItemStack result = DisplayConvert(eventResultItem, ConverterTypeSettings.PertainingTo(convName.getValue()), player, ConvertingReason.CRAFT);
 
                     // Store
                     craftPrepResult.put(player.getUniqueId(), result.clone());
@@ -905,8 +1043,7 @@ public class OnApplyCommand implements Listener {
             }
         }
     }
-    @EventHandler
-    public void OnSmith(SmithItemEvent event) {
+    @EventHandler public void OnSmith(SmithItemEvent event) {
 
         //SMH//OotilityCeption.Log("\u00a78Smith \u00a76EV\u00a77 Event Begin");
 
@@ -971,7 +1108,7 @@ public class OnApplyCommand implements Listener {
                     if (event.getInventory().getResult() != null) {
 
                         // Convert
-                        ItemStack cursorResult = FullConvert(originalResult.clone(), set, player, false);
+                        ItemStack cursorResult = FullConvert(originalResult.clone(), set, player, ConvertingReason.CRAFT);
 
                         // Set in inventory a reroll
                         event.getInventory().setResult(cursorResult);
@@ -1026,7 +1163,7 @@ public class OnApplyCommand implements Listener {
                             //DBG//OotilityCeption.Log("\u00a78CONVERTER\u00a7e RESULT\u00a77 Converting At Slot: \u00a7b" + i);
 
                             // Clonium
-                            ItemStack curr = FullConvert(asMMOItem.clone(), set, p, false);
+                            ItemStack curr = FullConvert(asMMOItem.clone(), set, p, ConvertingReason.CRAFT);
 
                             // Set in inventory a reroll
                             p.getInventory().setItem(i, curr);
@@ -1050,8 +1187,7 @@ public class OnApplyCommand implements Listener {
 
     static HashMap<UUID, ItemStack> craftPrep = new HashMap<>();
     static HashMap<UUID, ItemStack> craftPrepResult = new HashMap<>();
-    @EventHandler
-    public void OnCraftPrep(PrepareItemCraftEvent event) {
+    @EventHandler public void OnCraftPrep(PrepareItemCraftEvent event) {
 
         // Only players ffs
         if (!(event.getView().getPlayer() instanceof Player)) { return; }
@@ -1076,7 +1212,7 @@ public class OnApplyCommand implements Listener {
         //CFT//OotilityCeption.Log("\u00a78Craft \u00a73PR\u00a77 Vanilla crafting detected... preparing for craft.");
 
         // Prepare result; Apply the pre craft I suppose
-        ItemStack result = DisplayConvert(event.getInventory().getResult(), ConverterTypeSettings.PertainingTo(convName.getValue()), player, false);
+        ItemStack result = DisplayConvert(event.getInventory().getResult(), ConverterTypeSettings.PertainingTo(convName.getValue()), player, ConvertingReason.CRAFT);
 
         // Store
         craftPrepResult.put(player.getUniqueId(), result.clone());
@@ -1091,8 +1227,7 @@ public class OnApplyCommand implements Listener {
     static HashMap<UUID, ConverterTypeSettings> craftSet = new HashMap<>();
     static ArrayList<Player> crafters = new ArrayList<>();
     static boolean messagesRunning = false;
-    @EventHandler
-    public void OnCraft(CraftItemEvent event) {
+    @EventHandler public void OnCraft(CraftItemEvent event) {
 
         // Only players ffs
         if (!(event.getView().getPlayer() instanceof Player)) { return; }
@@ -1139,7 +1274,7 @@ public class OnApplyCommand implements Listener {
         if (event.getInventory().getResult() != null) {
 
             // Convert
-            ItemStack cursorResult = FullConvert(event.getRecipe().getResult().clone(), set, player, false);
+            ItemStack cursorResult = FullConvert(event.getRecipe().getResult().clone(), set, player, ConvertingReason.CRAFT);
 
             // Set in inventory a reroll
             event.getInventory().setResult(cursorResult);

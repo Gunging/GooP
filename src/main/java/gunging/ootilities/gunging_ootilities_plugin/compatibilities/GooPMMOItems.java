@@ -5,6 +5,7 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.ContainerToMIInventory;
+import gunging.ootilities.gunging_ootilities_plugin.events.ScoreboardLinks;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.TargetedItems;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.LuckStat;
@@ -49,6 +50,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -3865,6 +3867,183 @@ public class GooPMMOItems {
     //endregion
 
     //region Item Stat Stuff
+
+    /**
+     * For the scope of today at 3:24am, this method only targets the
+     * Original Data of Stat Histories. If I ever use it for anything
+     * else than the MMOItems Converter (where this is not a problem),
+     * I guess I will add support for EXSH / GEMS / MODS
+     */
+    @NotNull public static ItemStack internallyParsePlaceholdes(@NotNull ItemStack item, @NotNull Player player) {
+        if (!IsMMOItem(item)) { return OotilityCeption.ParseLore(item, player); }
+
+        LiveMMOItem mmo = new LiveMMOItem(NBTItem.get(item));
+        StatHistory lore = StatHistory.from(mmo, ItemStats.LORE);
+
+        // Parse lore
+        ArrayList<String> parsedLore = new ArrayList<>();
+
+        for (String str : ((StringListData) lore.getOriginalData()).getList()) {
+
+            // Parse lore!
+            parsedLore.add(OotilityCeption.ParseConsoleCommand(str, player, player, player.getLocation().getBlock(), player.getActiveItem()));
+        }
+
+        // Set new list
+        lore.setOriginalData(new StringListData(parsedLore));
+        mmo.setData(ItemStats.LORE, lore.recalculate(0));   // Not only is level 0 part of the scope... does lore even level up?
+
+        StatHistory name = StatHistory.from(mmo, ItemStats.NAME);
+        NameData nameData = ((NameData) name.getOriginalData());
+        nameData.setString(OotilityCeption.ParseConsoleCommand(nameData.getMainName(), player, player, player.getLocation().getBlock(), player.getActiveItem()));
+
+        mmo.setData(ItemStats.NAME, name.recalculate(mmo.getUpgradeLevel()));
+
+        // Yeah
+        return mmo.newBuilder().build();
+    }
+
+    /**
+     * @param item Item to clear stat data from
+     *
+     * @return Removes enchants from stat data, then rebuilds I guess yeah.
+     */
+    @NotNull public static ItemStack removeBlacklistedEnchantments(@NotNull ItemStack item) {
+
+        // Vanilla procedure
+        if (!IsMMOItem(item)) { return ScoreboardLinks.removeBlacklistedEnchantmentsVanilla(item); }
+
+        // Okay
+        if (!hasBlacklistedEnchants(new VolatileMMOItem(NBTItem.get(item)))) { return null; }
+
+        // Well time to get real
+        int amount = item.getAmount();
+        LiveMMOItem mmo = new LiveMMOItem(NBTItem.get(item));
+
+        // Lets see if its worth making it a live MMOItem...
+        StatHistory hist = StatHistory.from(mmo, ItemStats.ENCHANTS);
+
+        for (StatData data : hist.getExternalData()) {
+            if (!(data instanceof EnchantListData)) { continue; }
+
+            int addedLvl = 0;
+            for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+                addedLvl += ((EnchantListData) data).getLevel(e);
+                ((EnchantListData) data).addEnchant(e, 0); }
+
+            if (Gunging_Ootilities_Plugin.replacementEnchantment != null && addedLvl != 0) {
+                if (addedLvl > Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel()) { addedLvl = Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel(); }
+                ((EnchantListData) data).addEnchant(Gunging_Ootilities_Plugin.replacementEnchantment, addedLvl); }
+
+        }
+
+        for (UUID mod : hist.getAllModifiers()) {
+            StatData data = hist.getModifiersBonus(mod);
+            if (!(data instanceof EnchantListData)) { continue; }
+
+            int addedLvl = 0;
+            for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+                addedLvl += ((EnchantListData) data).getLevel(e);
+                ((EnchantListData) data).addEnchant(e, 0); }
+
+            if (Gunging_Ootilities_Plugin.replacementEnchantment != null && addedLvl != 0) {
+                if (addedLvl > Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel()) { addedLvl = Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel(); }
+                ((EnchantListData) data).addEnchant(Gunging_Ootilities_Plugin.replacementEnchantment, addedLvl); }
+        }
+
+        for (UUID gem : hist.getAllGemstones()) {
+            StatData data = hist.getModifiersBonus(gem);
+            if (!(data instanceof EnchantListData)) { continue; }
+
+            int addedLvl = 0;
+            for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+                addedLvl += ((EnchantListData) data).getLevel(e);
+                ((EnchantListData) data).addEnchant(e, 0); }
+
+            if (Gunging_Ootilities_Plugin.replacementEnchantment != null && addedLvl != 0) {
+                if (addedLvl > Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel()) { addedLvl = Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel(); }
+                ((EnchantListData) data).addEnchant(Gunging_Ootilities_Plugin.replacementEnchantment, addedLvl); }
+        }
+
+        StatData data = hist.getOriginalData();
+        if (data instanceof EnchantListData) {
+            int addedLvl = 0;
+            for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+                addedLvl += ((EnchantListData) data).getLevel(e);
+                ((EnchantListData) data).addEnchant(e, 0); }
+
+            if (Gunging_Ootilities_Plugin.replacementEnchantment != null && addedLvl != 0) {
+                if (addedLvl > Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel()) { addedLvl = Gunging_Ootilities_Plugin.replacementEnchantment.getMaxLevel(); }
+                ((EnchantListData) data).addEnchant(Gunging_Ootilities_Plugin.replacementEnchantment, addedLvl); }
+        }
+
+        // Recalculate
+        mmo.setData(ItemStats.ENCHANTS, hist.recalculate(mmo.getUpgradeLevel()));
+
+        // Yeah
+        ItemStack ret = mmo.newBuilder().build();
+        ret.setAmount(amount);
+        return ret;
+    }
+
+    public static boolean hasBlacklistedEnchants(@NotNull  VolatileMMOItem mmo) {
+        if (!mmo.hasData(ItemStats.ENCHANTS)) {
+            //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Item has no enchantments");
+            return false; }
+
+        // Lets see if its worth making it a live MMOItem...
+        StatHistory hist = StatHistory.from(mmo, ItemStats.ENCHANTS);
+
+        for (StatData data : hist.getExternalData()) {
+            if (!(data instanceof EnchantListData)) { continue; }
+
+            for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+                //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Checking\u00a7e EXSH\u00a77 ~\u00a7a " + e.getName() + " " + ((EnchantListData) data).getLevel(e));
+                if (((EnchantListData) data).getLevel(e) != 0) {
+                    //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Item is\u00a7c illegal\u00a77.");
+                    return true; }
+            }
+        }
+
+        for (UUID mod : hist.getAllModifiers()) {
+            StatData data = hist.getModifiersBonus(mod);
+            if (!(data instanceof EnchantListData)) { continue; }
+
+            for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+                //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Checking\u00a7a MOD\u00a77 ~\u00a7a " + e.getName() + " " + ((EnchantListData) data).getLevel(e));
+                if (((EnchantListData) data).getLevel(e) != 0) {
+                    //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Item is\u00a7c illegal\u00a77.");
+                    return true; }
+            }
+        }
+
+        for (UUID gem : hist.getAllGemstones()) {
+            StatData data = hist.getModifiersBonus(gem);
+            if (!(data instanceof EnchantListData)) { continue; }
+
+            for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+                //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Checking\u00a7c GEM\u00a77 ~\u00a7a " + e.getName() + " " + ((EnchantListData) data).getLevel(e));
+                if (((EnchantListData) data).getLevel(e) != 0) {
+                    //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Item is\u00a7c illegal\u00a77.");
+                    return true; }
+            }
+        }
+
+        StatData data = hist.getOriginalData();
+        if (!(data instanceof EnchantListData)) {
+            //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Item is\u00a7a clear\u00a77.");
+            return false; }
+
+        for (Enchantment e : Gunging_Ootilities_Plugin.blacklistedEnchantments) {
+            //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Checking\u00a79 OG\u00a77 ~\u00a7a " + e.getName() + " " + ((EnchantListData) data).getLevel(e));
+            if (((EnchantListData) data).getLevel(e) != 0) {
+                //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Item is\u00a7c illegal\u00a77.");
+                return true; } }
+
+        //ENCH//OotilityCeption.Log("\u00a78MMOITEMS\u00a73 IE\u00a77 Item is\u00a7a clear\u00a77.");
+        return false;
+    }
+
     /**
      * Apparently, for MMOItems 6.3, instead of using <code>ItemStat.DURABILITY</code> you have to use <code>ItemStats.DURABILITY</code>.
      *

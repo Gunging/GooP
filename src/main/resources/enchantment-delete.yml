@@ -1,0 +1,38 @@
+
+# -------
+#     Enchantment Replacer and Destroyer:
+#
+#         Because bows scaling with POWER is very scuffed,
+#         as well as daggers scaling with SMITE because all
+#         of my mythicmobs are UNDEAD.
+# -------
+
+#
+# List of enchantments to remove from all items:
+#
+#   - When a player logs in, goes through their inventory and enderchest
+#   - When chest is opened, goes through the contents of that chest
+#   - When an item is picked up
+#   - When an item is generated from a loot table
+#   - From villager trading offerings
+#   - From enchanting with the enchantment table
+#   - From MMOItems internal histories
+#
+DeletedEnchantments: []
+
+#
+# Removing enchantments with the above operation can leave
+# villagers selling empty books... which is not a lot of fun
+# from the eyes of players.
+#
+# Use this to switch enchantments to another, assuming you
+# are not removing absolutely every enchantment!
+#
+# Basically, suppose you include SMITE in DeletedEnchantments,
+# and here you set UNBREAKING; All instances of SMITE in items
+# will be switched to UNBREAKING of the same level.
+#
+# The levels will never exceed UNBREAKING 3, as this is the vanilla
+# maximum.
+#
+ReplacementEnchantment: UNBREAKING

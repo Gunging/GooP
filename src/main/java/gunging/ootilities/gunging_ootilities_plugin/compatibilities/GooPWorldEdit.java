@@ -13,6 +13,7 @@ public class GooPWorldEdit {
     static WorldEditPlugin theWorldEdit = null;
     public static WorldEditPlugin GetPlugin() { return theWorldEdit; }
     public static WorldEditPlugin getPlugin() { return GetPlugin(); }
+    public static boolean pluginExisted() { return theWorldEdit != null; }
 
     public GooPWorldEdit() { }
 
