@@ -617,13 +617,14 @@ public class GungingOotilitiesTab implements TabCompleter {
                                 tabM.add("fixStacks");
                                 tabM.add("stat");
                                 tabM.add("upgrade");
+                                tabM.add("equipmentUpdate");
                                 if (Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
                                     tabM.add("newShrub");
                                     tabM.add("listShrubTypes");
                                     tabM.add("reloadShrubTypes");
                                 }
 
-                            } else if (args.length > 2) {
+                            } else {
                                 switch (args[1].toLowerCase()) {
                                     case "addgemslot":
                                         //   0      1        2          3       4       5     args.Length
@@ -672,16 +673,12 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         }
                                         break;
                                     case "fixstacks":
+                                    case "equipmentupdate":
                                         //   0      1        2          3       args.Length
                                         // /goop mmoitems fixStacks [player]
                                         //   -      0        1         2        args[n]
 
-                                        switch (args.length) {
-                                            case 3:
-                                                tabM = null;
-                                                break;
-                                            default: break;
-                                        }
+                                        if (args.length == 3) { tabM = null; }
 
                                         break;
                                     case "modifier":
@@ -2188,12 +2185,24 @@ public class GungingOotilitiesTab implements TabCompleter {
                         if (args.length == 2) {
                             tabM.add("open");
                             tabM.add("see");
+                            tabM.add("close");
                             tabM.add("access");
                             tabM.add("config");
+                            tabM.add("unregister");
 
                         } else {
 
                             switch (args[1].toLowerCase()) {
+
+                                //region close
+                                case "close":
+                                    //   0        1      2       3       args.Length
+                                    // /goop containers close <player>
+                                    //   -        0      1       2       args[n]
+
+                                    if (args.length == 3) { tabM = null; }
+                                    break;
+                                //endregion
                                 //region open
                                 case "open":
                                     //   0        1      2         3             4           args.Length
@@ -2236,6 +2245,93 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         case 6:
                                             tabM.add("USAGE");
                                             tabM.add("PREVIEW");
+                                            break;
+                                        default:  break;
+                                    }
+                                    break;
+                                //endregion
+                                //region unregister
+                                case "unregister":
+                                    //   0        1         2           3        4      5 6 7 8      args.Length
+                                    // /goop containers unregister <container> <owner> [w x y z]
+                                    //   -        0         1           2        3      4 5 6 7      args[n]
+
+                                    if (args.length >= 5 && args.length <= 8) {
+                                        // Just target location I guess?
+                                        tBlock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
+
+                                        // If exists
+                                        if (OotilityCeption.IsAirNullAllowed(tBlock)) {
+                                            // Git Target Location
+                                            tBlock = null;
+                                        }
+                                    }
+
+                                    switch (args.length) {
+                                        case 3:
+                                            tabM.addAll(GCL_Personal.getByInternalName().keySet());
+                                            break;
+                                        case 4:
+                                            tabM = null;
+                                            break;
+                                        case 5:
+                                            //region w
+                                            // Assuming it IS a player and not the console, console wont be considered.
+                                            if (sender instanceof Player) {
+                                                if (tBlock != null) {
+
+                                                    // Block exists, use thay
+                                                    tabM.add(tBlock.getWorld().getName());
+
+                                                } else {
+
+                                                    // Default Shit: All
+                                                    for (World wrld : Bukkit.getWorlds()) { tabM.add(wrld.getName()); }
+                                                }
+                                            }
+                                            //endregion
+                                            break;
+                                        case 6:
+                                            //region x
+                                            if (tBlock != null) {
+
+                                                // Block exists, use thay
+                                                tabM.add(((Integer)tBlock.getX()).toString());
+
+                                            } else {
+
+                                                // Default Shit: Player's Own X
+                                                tabM.add(((Integer)((Player)sender).getLocation().getBlockX()).toString());
+                                            }
+                                            //endregion
+                                            break;
+                                        case 7:
+                                            //region y
+                                            if (tBlock != null) {
+
+                                                // Block exists, use thay
+                                                tabM.add(((Integer)tBlock.getY()).toString());
+
+                                            } else {
+
+                                                // Default Shit: Player's Own Y
+                                                tabM.add(((Integer)((Player)sender).getLocation().getBlockY()).toString());
+                                            }
+                                            //endregion
+                                            break;
+                                        case 8:
+                                            //region z
+                                            if (tBlock != null) {
+
+                                                // Block exists, use thay
+                                                tabM.add(((Integer)tBlock.getZ()).toString());
+
+                                            } else {
+
+                                                // Default Shit: Player's Own Z
+                                                tabM.add(((Integer)((Player)sender).getLocation().getBlockZ()).toString());
+                                            }
+                                            //endregion
                                             break;
                                         default:  break;
                                     }
@@ -2333,7 +2429,6 @@ public class GungingOotilitiesTab implements TabCompleter {
                                     //   0         1       2      3+    args.Length
                                     // /goop containers config {action}
                                     //   -         0       1      2+    args[n]
-
 
                                     if (args.length == 3) {
                                         tabM.add("new");

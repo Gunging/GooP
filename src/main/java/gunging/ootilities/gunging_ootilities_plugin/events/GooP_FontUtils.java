@@ -4,17 +4,15 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.misc.FileConfigPair;
 import gunging.ootilities.gunging_ootilities_plugin.misc.NameVariableOperation;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.plugin.RegisteredListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.List;
 
 public class GooP_FontUtils implements Listener {
 
@@ -340,7 +338,7 @@ public class GooP_FontUtils implements Listener {
         event.setMessage(ParseFontLinks(event.getMessage()));
 
         // Parse as OP
-        if (event.getPlayer().isOp()) {
+        if (event.getPlayer().isOp() && OotilityCeption.If(Gunging_Ootilities_Plugin.anvilRenameEnabled)) {
 
             // Revariablize
             event.setMessage(OotilityCeption.RerenameNameVarialbes(event.getPlayer(), new NameVariableOperation(event.getMessage()), null, null, null));

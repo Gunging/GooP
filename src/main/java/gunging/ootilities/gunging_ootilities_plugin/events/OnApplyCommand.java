@@ -90,7 +90,8 @@ public class OnApplyCommand implements Listener {
                 //TRD// OotilityCeption.Log("\u00a78RELOAD\u00a79 IE\u00a77 Replacing Recipe at\u00a79 #" + m);
 
                 // If the result is enchanted... we must  remove this recipe entirely!
-                MerchantRecipe newRecipe = new MerchantRecipe(bakedResult, recipe.getUses(), recipe.getMaxUses(), recipe.hasExperienceReward(), recipe.getVillagerExperience(), recipe.getPriceMultiplier(), recipe.getDemand(), recipe.getSpecialPrice(), recipe.shouldIgnoreDiscounts());
+                MerchantRecipe newRecipe = new MerchantRecipe(bakedResult, recipe.getUses(), recipe.getMaxUses(), recipe.hasExperienceReward(), recipe.getVillagerExperience(), recipe.getPriceMultiplier(), recipe.shouldIgnoreDiscounts());
+                /*CURRENT-MMOITEMS*/if (GooP_MinecraftVersions.GetMinecraftVersion() > 17.0) { newRecipe.setDemand(recipe.getDemand()); newRecipe.setSpecialPrice(recipe.getSpecialPrice()); }
 
                 // Valid tier thing?
                 if (cptRet.getValue() != null) {
@@ -475,12 +476,13 @@ public class OnApplyCommand implements Listener {
                 // Find loaded MMOItem
                 MMOItem browse = MMOItems.plugin.getMMOItem(mType, miID.getValue());
 
-                // Found the appropriate MMOitem?
+                // Found the appropriate MMOItem?
                 if (browse != null) {
                     //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aBuilding");
 
                     // Build for display
-                    return browse.newBuilder().build();
+                    ItemStack ret = browse.newBuilder().build();
+                    if (ret != null) { if (cptRet != null) {  cptRet.setValue(set != null ? set.getPerTierSettings(preChosenTier, asPickup) : null); } return ret; }
                 }
             }
         }

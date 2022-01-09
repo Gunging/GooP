@@ -2902,7 +2902,7 @@ public class GooPMMOItems {
                     OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified durability of \u00a7f" + iName + "\u00a77, it broke though. ");
 
                     // Return as air
-                    return new ItemStack(Material.DEBUG_STICK);
+                    return OotilityCeption.asQuantity(base, 0);
                 }
 
                 // If positive
@@ -4494,11 +4494,78 @@ public class GooPMMOItems {
 
                 // Help Parameters
                 int argsMinLength, argsMaxLength;
-                String subcommand, usage;
+                String subcommand, subcategory, usage;
 
                 if (OotilityCeption.hasPermission(sender, "mmoitems", subsonic)) {
 
                     switch (subsonic) {
+                        //region Equipment Update
+                        case "equipmentupdate":
+                            //   0      1           2            3      args.Length
+                            // /goop mmoitems equipmentupdate <player>
+                            //   -      0           1            2      args[n]
+                            
+                            argsMinLength = 3;
+                            argsMaxLength = 3;
+                            usage = "/goop mmoitems equipmentupdate <player>";
+                            subcommand = "Equipment Update";
+                            subcategory = "MMOItems -Equipment Update";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Forces MMOItems to recalculate player's stats.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player to update equipment from.");
+
+                            // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
+                                }
+
+                                if (!failure) {
+
+                                    // Through all of them
+                                    for (Player target : targets) {
+
+                                        // Open it for them
+                                        UpdatePlayerEquipment(target);
+
+                                        // Log Success
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Forced \u00a73" + target.getName() + "\u00a77 to reload their equipped items. "));
+
+                                        // Run Chain
+                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                    }
+                                }
+
+                                // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
                         //region addGemSlot
                         case "addgemslot":
 
@@ -4509,6 +4576,7 @@ public class GooPMMOItems {
                             argsMaxLength = 5;
                             usage = "/goop mmoitems addGemSlot <color> <player> <slot>";
                             subcommand = "Add Gem Slot";
+                            subcategory = "MMOItems - Add Gem Slot";
 
                             // Help form?
                             if (args.length == 2)  {
@@ -4530,7 +4598,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Notify the error
-                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
                                 }
 
                                 if (!failure) {
@@ -4561,7 +4629,7 @@ public class GooPMMOItems {
                                     executor.process();
 
                                     // Was there any log messages output?
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
                                 }
 
                             // Incorrect number of args
@@ -4569,11 +4637,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length >= argsMinLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -4591,6 +4659,7 @@ public class GooPMMOItems {
                             argsMaxLength = 7;
                             usage = "/goop mmoitems countGems <includeEmpty> <player> <slot> [range] [scoreboard]";
                             subcommand = "Count Gem Slots";
+                            subcategory = "MMOItems - Count Gem Slots";
 
                             // Help form?
                             if (args.length == 2)  {
@@ -4615,7 +4684,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Notify the error
-                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
                                 }
 
                                 // Boolean parses?
@@ -4625,7 +4694,7 @@ public class GooPMMOItems {
                                     // Fail
                                     failure = true;
 
-                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7atrue\u00a77 or \u00a7cfalse\u00a77 instead of '\u00a73" + args[2] + "\u00a77'"));
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected \u00a7atrue\u00a77 or \u00a7cfalse\u00a77 instead of '\u00a73" + args[2] + "\u00a77'"));
 
                                 } else {
                                     includeEmpty = OotilityCeption.BoolParse(args[2]);
@@ -4649,7 +4718,7 @@ public class GooPMMOItems {
                                         failure = true;
 
                                         // Mention
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard Objective '\u00a73" + objectiveName + "\u00a77' does not exist."));
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Scoreboard Objective '\u00a73" + objectiveName + "\u00a77' does not exist."));
                                     }
                                 }
 
@@ -4659,7 +4728,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Mention
-                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected vanilla range format instead of '\u00a73" + args[5] + "\u00a77'"));
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected vanilla range format instead of '\u00a73" + args[5] + "\u00a77'"));
                                 }
 
                                 if (!failure) {
@@ -4725,7 +4794,7 @@ public class GooPMMOItems {
                                     executor.process();
 
                                     // Was there any log messages output?
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
 
                                 }
 
@@ -4734,11 +4803,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length >= argsMinLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -4756,6 +4825,7 @@ public class GooPMMOItems {
                             argsMaxLength = 8;
                             usage = "/goop mmoitems upgrade <player> <slot> [±]<levels>[%] [break max] [objective] [±][score][%]";
                             subcommand = "Upgrade";
+                            subcategory = "MMOItems - Upgrade";
 
                             // Help form?
                             if (args.length == 2)  {
@@ -4781,7 +4851,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Notify the error
-                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
                                 }
 
                                 PlusMinusPercent pmpLevel = PlusMinusPercent.GetPMP(args[4], refAddition);
@@ -4790,7 +4860,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Mention it
-                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected a number or operation for level (like \u00a7b1\u00a77, \u00a7b5,\u00a77 \u00a7bn2\u00a77, or \u00a7b+2\u00a77) instead of \u00a7e" + args[4]));
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected a number or operation for level (like \u00a7b1\u00a77, \u00a7b5,\u00a77 \u00a7bn2\u00a77, or \u00a7b+2\u00a77) instead of \u00a7e" + args[4]));
                                 }
 
                                 boolean breakLimit = false;
@@ -4804,7 +4874,7 @@ public class GooPMMOItems {
                                         // Failure
                                         failure = true;
 
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[5]));
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[5]));
                                     }
                                 }
 
@@ -4819,7 +4889,7 @@ public class GooPMMOItems {
                                         // Failure
                                         failure = true;
 
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard objective \u00a73" + args[6] + "\u00a77 does not exist."));
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Scoreboard objective \u00a73" + args[6] + "\u00a77 does not exist."));
                                     }
 
                                     if (args.length >= 8) {
@@ -4830,7 +4900,7 @@ public class GooPMMOItems {
                                             failure = true;
 
                                             // Mention it
-                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "The final score '\u00a73" + args[7] + "\u00a77' should be an integer number (maybe with an operation)."));
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "The final score '\u00a73" + args[7] + "\u00a77' should be an integer number (maybe with an operation)."));
                                         }
                                     }
                                 }
@@ -4876,7 +4946,7 @@ public class GooPMMOItems {
                                     executor.process();
 
                                     // Was there any log messages output?
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
 
                                 }
 
@@ -4885,11 +4955,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length >= argsMinLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -4909,6 +4979,7 @@ public class GooPMMOItems {
                             argsMaxLength = 5;
                             usage = "/goop mmoitems setTier <player> <slot> <value>";
                             subcommand = "Set Tier";
+                            subcategory = "MMOItems - Set Tier";
 
                             // Help form?
                             if (args.length == 2)  {
@@ -4930,7 +5001,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Notify the error
-                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
                                 }
 
                                 String tier = args[4];  // No way to get it wrong lol
@@ -4942,7 +5013,7 @@ public class GooPMMOItems {
                                         // Failure
                                         failure = true;
 
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Specified Tier \u00a73" + args[4] + "\u00a77 is not loaded."));
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Specified Tier \u00a73" + args[4] + "\u00a77 is not loaded."));
                                     }
                                 }
 
@@ -4972,7 +5043,7 @@ public class GooPMMOItems {
                                     executor.process();
 
                                     // Was there any log messages output?
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
 
                                 }
 
@@ -4981,11 +5052,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length >= argsMinLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -5005,6 +5076,7 @@ public class GooPMMOItems {
                             argsMaxLength = 7;
                             usage = "/goop mmoitems modifier <player> <slot> <name> [use-global] [use-chances]";
                             subcommand = "Modifier";
+                            subcategory = "MMOItems - Modifier";
 
                             // Help form?
                             if (args.length == 2)  {
@@ -5029,7 +5101,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Notify the error
-                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
                                 }
 
                                 boolean scryAll = true;
@@ -5049,7 +5121,7 @@ public class GooPMMOItems {
                                         failure = true;
 
                                         // Notify the error
-                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 for 'use-global' instead of \u00a7e" + args[5] + "\u00a77. "));
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 for 'use-global' instead of \u00a7e" + args[5] + "\u00a77. "));
                                     }
                                 }
 
@@ -5070,7 +5142,7 @@ public class GooPMMOItems {
                                         failure = true;
 
                                         // Notify the error
-                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 for 'use-chances' instead of \u00a7e" + args[6] + "\u00a77. "));
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 for 'use-chances' instead of \u00a7e" + args[6] + "\u00a77. "));
                                     }
                                 }
 
@@ -5112,7 +5184,7 @@ public class GooPMMOItems {
                                     /*
                                      *      Output Consolidation
                                      */
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
 
                                 }
 
@@ -5121,11 +5193,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length >= argsMinLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -5144,6 +5216,7 @@ public class GooPMMOItems {
                             argsMaxLength = 16;
                             usage = "/goop mmoitems regenerate <player> <slot> [reroll] [keep...]";
                             subcommand = "Regenerate";
+                            subcategory = "MMOItems - Regenerate";
 
                             // Help form?
                             if (args.length == 2)  {
@@ -5176,7 +5249,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Notify the error
-                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!")); }
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!")); }
 
                                 boolean reroll = true;
                                 if (args.length >= 5) {
@@ -5188,7 +5261,7 @@ public class GooPMMOItems {
                                         failure = true;
 
                                         // Notify the error
-                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[4] + "\u00a77 regarding whether RNG stats should be rerolled."));
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a7e" + args[4] + "\u00a77 regarding whether RNG stats should be rerolled."));
                                     } }
 
                                 boolean name = false,
@@ -5265,7 +5338,7 @@ public class GooPMMOItems {
                                     /*
                                      *      Output Consolidation
                                      */
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
                                 }
 
 
@@ -5274,11 +5347,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length >= argsMinLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -5297,6 +5370,7 @@ public class GooPMMOItems {
                             argsMaxLength = 7;
                             usage = "/goop mmoitems getTier <player> <slot> <value> [objective] [±][score][%]";
                             subcommand = "Get Tier";
+                            subcategory = "MMOItems - Get Tier";
 
                             // Help form?
                             if (args.length == 2)  {
@@ -5321,7 +5395,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Notify the error
-                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
                                 }
 
                                 String tier = args[4].toUpperCase();  // No way to get it wrong lol
@@ -5332,7 +5406,7 @@ public class GooPMMOItems {
                                     // Failure
                                     failure = true;
 
-                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Specified Tier \u00a73" + args[4] + "\u00a77 is not loaded. If trying to detect the item not having any tier, use the \u00a7bnone\u00a77 keyword."));
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Specified Tier \u00a73" + args[4] + "\u00a77 is not loaded. If trying to detect the item not having any tier, use the \u00a7bnone\u00a77 keyword."));
                                 }
 
                                 // Some scoreboards to test
@@ -5347,7 +5421,7 @@ public class GooPMMOItems {
                                         // Failure
                                         failure = true;
 
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Scoreboard objective \u00a73" + args[5] + "\u00a77 does not exist."));
                                     }
 
                                     score = PlusMinusPercent.GetPMP(args[6], refAddition);
@@ -5356,7 +5430,7 @@ public class GooPMMOItems {
                                         failure = true;
 
                                         // Mention it
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "The final score '\u00a73" + args[6] + "\u00a77' should be an integer number (maybe with an operation)."));
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "The final score '\u00a73" + args[6] + "\u00a77' should be an integer number (maybe with an operation)."));
                                     }
                                 }
 
@@ -5414,7 +5488,7 @@ public class GooPMMOItems {
                                     /*
                                      *      Output Consolidation
                                      */
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
 
                                 }
 
@@ -5423,11 +5497,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length >= argsMinLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -5446,12 +5520,13 @@ public class GooPMMOItems {
                             argsMaxLength = 7;
                             usage = "/goop mmoitems newShrub <type> [w] [x] [y] [z]";
                             subcommand = "New Shrub";
+                            subcategory = "MMOItems - New Shrub";
 
                             if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
 
                                 // Notify fuCk
                                 if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
                                 }
 
                             // Help form?
@@ -5484,7 +5559,7 @@ public class GooPMMOItems {
                                             failure = true;
 
                                             // Mention
-                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand,"You are not looking at any block!"));
+                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory,"You are not looking at any block!"));
 
                                             // I suppose its not air, right?
                                         } else if (!OotilityCeption.IsAir(bLock.getType())) {
@@ -5499,7 +5574,7 @@ public class GooPMMOItems {
                                             failure = true;
 
                                             // Mention
-                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand,"You are not looking at any block!"));
+                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory,"You are not looking at any block!"));
 
                                         }
 
@@ -5508,7 +5583,7 @@ public class GooPMMOItems {
                                         failure = true;
 
                                         // Say
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "When making shrubs from the console, you must specify co-ordinates and a world!"));
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "When making shrubs from the console, you must specify co-ordinates and a world!"));
                                     }
 
                                     // Build Location from args, later, if they parse.
@@ -5522,7 +5597,7 @@ public class GooPMMOItems {
                                     failure = true;
 
                                     // Comment
-                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, logAddition.GetValue())); }
+                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat(subcategory, logAddition.GetValue())); }
                                 }
 
                                 // Parse location?
@@ -5539,7 +5614,7 @@ public class GooPMMOItems {
                                     if (targetLocation == null) { failure = true; }
 
                                     // Add Log
-                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, logAddition.GetValue())); }
+                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat(subcategory, logAddition.GetValue())); }
                                 }
 
                                 // Byce syntax
@@ -5549,7 +5624,7 @@ public class GooPMMOItems {
                                     GooPE_Shrubs.CreateShrubInstanceAt(args[2], targetLocation, logAddition);
 
                                     // Notify
-                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, logAddition.GetValue())); }
+                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat(subcategory, logAddition.GetValue())); }
                                 }
 
                             // Incorrect number of args
@@ -5557,11 +5632,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length <= argsMaxLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -5581,6 +5656,7 @@ public class GooPMMOItems {
                             argsMaxLength = 9;
                             usage = "/goop mmoitems stat <stat> <player> <slot> [±]<value>[%] [range] [objective] [±][score][%]";
                             subcommand = "Stat";
+                            subcategory = "MMOItems - Stat";
 
                             // Help form?
                             if (args.length == 2)  {
@@ -5617,7 +5693,7 @@ public class GooPMMOItems {
 
                                     // Notify the error
                                     if (Gunging_Ootilities_Plugin.sendGooPFailFeedback)
-                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Target must be an online player!"));
+                                        logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
                                 }
 
                                 // Attempt to get
@@ -5629,7 +5705,7 @@ public class GooPMMOItems {
 
                                     // Notify the error
                                     if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback)
-                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Stat\u00a73 " + args[2] + "\u00a77 does not exist."));
+                                        logReturn.add(OotilityCeption.LogFormat(subcategory, "Stat\u00a73 " + args[2] + "\u00a77 does not exist."));
                                 }
 
                                 // Value will be identified.... later...
@@ -5688,7 +5764,7 @@ public class GooPMMOItems {
                                         failure = true;
 
                                         // Notify
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard objective \u00a73" + objectiveName + "\u00a77 does not exist. ")); }
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat(subcategory, "Scoreboard objective \u00a73" + objectiveName + "\u00a77 does not exist. ")); }
                                     }
 
                                     if (!readValue && scoreOperation == null) {
@@ -5697,7 +5773,7 @@ public class GooPMMOItems {
                                         failure = true;
 
                                         // Notify
-                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Scoreboard operation \u00a73" + objectiveOpp + "\u00a77 is not in the correct format (\u00a7b+4\u00a77, \u00a7b10\u00a77, \u00a7b-20%\u00a77...) nor the \u00a7bread\u00a77 keyword: " + refAddition.getValue())); }
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat(subcategory, "Scoreboard operation \u00a73" + objectiveOpp + "\u00a77 is not in the correct format (\u00a7b+4\u00a77, \u00a7b10\u00a77, \u00a7b-20%\u00a77...) nor the \u00a7bread\u00a77 keyword: " + refAddition.getValue())); }
                                     }
                                 }
 
@@ -5761,7 +5837,7 @@ public class GooPMMOItems {
                                     /*
                                      *      Output Consolidation
                                      */
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
 
                                 }
 
@@ -5770,11 +5846,11 @@ public class GooPMMOItems {
 
                                 // Notify Error
                                 if (args.length >= argsMinLength) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 } else {
 
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
                                 }
 
                                 // Notify Usage
@@ -5792,12 +5868,13 @@ public class GooPMMOItems {
                             argsMaxLength = 2;
                             usage = "/goop mmoitems listShrubTypes";
                             subcommand = "List Shrub Types";
-                            
+                            subcategory = "MMOItems - List Shrub Types";
+
                             if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
 
                                 // Notify fuCk
                                 if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
                                 }
 
                                 // Help form?
@@ -5813,9 +5890,9 @@ public class GooPMMOItems {
 
                                 logReturn.add("\u00a7e______________________________________________");
                                 if (lShrubs.size() == 0) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a77Would list all loaded shrub types if there were any."));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "\u00a77Would list all loaded shrub types if there were any."));
                                 } else {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a77All loaded shrub types:"));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "\u00a77All loaded shrub types:"));
                                     for (String struct : lShrubs) { logReturn.add("\u00a73 - \u00a77" + struct); }
                                 }
 
@@ -5824,7 +5901,7 @@ public class GooPMMOItems {
                             } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
 
                                 // Notify Error
-                                logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 // Notify Usage
                                 logReturn.add("\u00a73Usage: \u00a7e" + usage);
@@ -5840,6 +5917,7 @@ public class GooPMMOItems {
                             argsMaxLength = 3;
                             usage = "/goop mmoitems fixstacks [player]";
                             subcommand = "Fix Stacks";
+                            subcategory = "MMOItems - Fix Stacks";
 
                             // Help form?
                             if (args.length <= argsMaxLength) {
@@ -5861,7 +5939,7 @@ public class GooPMMOItems {
 
                                     // Not contained, and from console
                                     if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
-                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a77This cannot be called from the console without specifying a player."));
+                                        logReturn.add(OotilityCeption.LogFormat(subcategory, "\u00a77This cannot be called from the console without specifying a player."));
                                     }
                                 }
                                 
@@ -5872,7 +5950,7 @@ public class GooPMMOItems {
 
                                     // Not contained, and from console
                                     if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) {
-                                        logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a77Must specify an online player."));
+                                        logReturn.add(OotilityCeption.LogFormat(subcategory, "\u00a77Must specify an online player."));
                                     }
                                 }
                                 
@@ -5913,14 +5991,14 @@ public class GooPMMOItems {
                                     /*
                                      *      Output Consolidation
                                      */
-                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, executor.getIncludedStrBuilder().toString())); }
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
                                 }
                                 
                             // Incorrect number of args
                             } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
 
                                 // Notify Error
-                                logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 // Notify Usage
                                 logReturn.add("\u00a73Usage: \u00a7e" + usage);
@@ -5938,12 +6016,13 @@ public class GooPMMOItems {
                             argsMaxLength = 2;
                             usage = "/goop mmoitems reloadShrubTypes";
                             subcommand = "Reload Shrub Types";
+                            subcategory = "MMOItems - Reload Shrub Types";
 
                             if (!Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
 
                                 // Notify fuCk
                                 if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
-                                    logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "\u00a7cYou don't have MMOItem Shrubs Module Installed!"));
                                 }
 
                                 // Help form?
@@ -5951,13 +6030,13 @@ public class GooPMMOItems {
 
                                 // Exec
                                 GooPE_Shrubs.ReloadShrubTypes();
-                                logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Reloaded MMOItem Shrub Types."));
+                                logReturn.add(OotilityCeption.LogFormat(subcategory, "Reloaded MMOItem Shrub Types."));
 
                                 // Incorrect number of args
                             } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
 
                                 // Notify Error
-                                logReturn.add(OotilityCeption.LogFormat("MMOItems - " + subcommand, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
 
                                 // Notify Usage
                                 logReturn.add("\u00a73Usage: \u00a7e" + usage);

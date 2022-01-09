@@ -3,6 +3,7 @@ package gunging.ootilities.gunging_ootilities_plugin.events;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -166,7 +167,8 @@ public class ScoreboardLinks implements Listener {
                 /*
                  * If the result is enchanted... we must  remove this recipe entirely!
                  */
-                MerchantRecipe newRecipe = new MerchantRecipe(bakedResult, recipe.getUses(), recipe.getMaxUses(), recipe.hasExperienceReward(), recipe.getVillagerExperience(), recipe.getPriceMultiplier(), recipe.getDemand(), recipe.getSpecialPrice(), recipe.shouldIgnoreDiscounts());
+                MerchantRecipe newRecipe = new MerchantRecipe(bakedResult, recipe.getUses(), recipe.getMaxUses(), recipe.hasExperienceReward(), recipe.getVillagerExperience(), recipe.getPriceMultiplier(), recipe.shouldIgnoreDiscounts());
+                /*CURRENT-MMOITEMS*/if (GooP_MinecraftVersions.GetMinecraftVersion() > 17.0) { newRecipe.setDemand(recipe.getDemand()); newRecipe.setSpecialPrice(recipe.getSpecialPrice()); }
 
                 newRecipe.setIngredients(bakedIngredients);
 

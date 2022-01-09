@@ -93,6 +93,12 @@
             <artifactId>GriefPrevention</artifactId>
             <version>16.17.1</version>
         </dependency>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.18.1-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
         <!--
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
@@ -101,12 +107,6 @@
             <scope>provided</scope>
         </dependency>
         -->
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.18.1-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
@@ -147,13 +147,6 @@
             <scope>system</scope>
             <systemPath>${basedir}/lib/MythicLib.jar</systemPath>
             <version>1.0.10</version>
-        </dependency>
-        <dependency>
-            <groupId>net.MMOGroup</groupId>
-            <artifactId>MMOCore</artifactId>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/MMOCore.jar</systemPath>
-            <version>1.2.2</version>
         </dependency>
         <dependency>
             <groupId>io.lumine.graveyards</groupId>

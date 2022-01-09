@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -157,15 +158,15 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
         RemoveAllMinionsOf(event.getPlayer().getUniqueId());
     }
 
+    /** @noinspection ConstantConditions*/
     @EventHandler(priority = EventPriority.HIGH)
     public void OnPlayerDeath(PlayerDeathEvent event) {
 
-        // Did they die?
-        if (!event.isCancelled()) {
+        // Cancel event
+        if (event instanceof Cancellable) { if (((Cancellable) event).isCancelled()) { return; } }
 
-            // Kill their minions
-            RemoveAllMinionsOf(event.getEntity().getUniqueId());
-        }
+        // Kill their minions
+        RemoveAllMinionsOf(event.getEntity().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGH)

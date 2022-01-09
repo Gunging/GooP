@@ -4,6 +4,7 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.*;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.containers.*;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Personal;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Physical;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Templates;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerOpeningReason;
@@ -18,6 +19,7 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.goop.TargetedItems;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackLocation;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackSlot;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -4596,7 +4598,7 @@ public class GungingOotilities implements CommandExecutor {
 
                     // To extract log return
                     // Delegate onto NBT
-                    onCommand_GooPContainers(sender, command, label, args, senderLocation, chained, chainedCommand, chainedNoLocation, logReturnUrn);
+                    onCommand_GooPContainers(sender, command, label, args, senderLocation, chained, chainedCommand, chainedNoLocation, logReturnUrn, failMessage);
 
                     // Extract
                     if (logReturnUrn.getValue() != null) {
@@ -6446,7 +6448,11 @@ public class GungingOotilities implements CommandExecutor {
         if (sender instanceof Player) {
 
             // I guess this works?
-            for (String s : logReturn) { sender.sendMessage(s); }
+            for (String s : logReturn) {
+                sender.sendMessage(s);
+
+                if (Gunging_Ootilities_Plugin.devLogging) { if (Gunging_Ootilities_Plugin.devPlayer != null) { Gunging_Ootilities_Plugin.devPlayer.sendMessage(ChatColor.YELLOW + sender.getName() + s); } }
+            }
 
         // Otherwise this B is the console
         } else {
@@ -6455,7 +6461,7 @@ public class GungingOotilities implements CommandExecutor {
             for (String s : logReturn) {
                 oots.CLog(s);
 
-                if (Gunging_Ootilities_Plugin.devLogging) { if (Gunging_Ootilities_Plugin.devPlayer != null) { Gunging_Ootilities_Plugin.devPlayer.sendMessage(s); } }
+                if (Gunging_Ootilities_Plugin.devLogging) { if (Gunging_Ootilities_Plugin.devPlayer != null) { Gunging_Ootilities_Plugin.devPlayer.sendMessage("\u00a76CONSOLE " + s); } }
             }
         }
 
@@ -7731,7 +7737,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Register the ItemStacks
                                 if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
-                                executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+                                executor.registerPlayers(targets, args[4], executor.getIncludedStrBuilder());
 
                                 // Process the stuff
                                 executor.process();
@@ -7886,7 +7892,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Register the ItemStacks
                                 if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
-                                executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+                                executor.registerPlayers(targets, args[4], executor.getIncludedStrBuilder());
 
                                 // Process the stuff
                                 executor.process();
@@ -8964,7 +8970,7 @@ public class GungingOotilities implements CommandExecutor {
         //Set Log Return Urn Value
         logReturnUrn.SetValue(logReturn);
     }
-    public void onCommand_GooPContainers(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @Nullable String chainedNoLocation, @NotNull RefSimulator<List<String>> logReturnUrn) {
+    public void onCommand_GooPContainers(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @Nullable String chainedNoLocation, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
         // Has permission?
         boolean permission = true;
 
@@ -8990,6 +8996,81 @@ public class GungingOotilities implements CommandExecutor {
                 boolean failure = false;
 
                 switch (args[1].toLowerCase()) {
+                    //region close
+                    case "close":
+                        //   0        1       2       3     args.Length
+                        // /goop containers close <player>
+                        //   -        0       1       2     args[n]
+
+                        // Correct number of args?
+                        argsMinLength = 3;
+                        argsMaxLength = 3;
+                        usage = "/goop containers close <player>";
+                        subcommand = "Close";
+                        subcategory = "Containers - Close";
+
+                        // Help form?
+                        if (args.length == 2)  {
+
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Containers - \u00a7b" + subcommand + ",\u00a77 Forces the target player to close their inventory.");
+                            logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player to close the inventory of.");
+                            logReturn.add("\u00a76This command solely forces the player to close the inventory they are looking at.");
+
+                            // Correct number of args?
+                        } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                            // Gather Player
+                            ArrayList<Player> targets = null;
+                            if (args.length >= 3) {
+
+                                // If specified, just get target player
+                                targets = OotilityCeption.GetPlayers(senderLocation, args[2], null); }
+
+                            // If null, failure
+                            if (targets == null || targets.size() == 0) {
+
+                                // failure
+                                failure = true;
+
+                                // Notify
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Please specify an online player to open the container to."));
+                            }
+
+                            // So that is a success
+                            if (!failure) {
+
+                                for (Player target : targets) {
+
+                                    // Open it for them
+                                    target.closeInventory();
+
+                                    // Log Success
+                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Forced \u00a73" + target.getName() + "\u00a77 to close their inventory. "));
+
+                                    // Run Chain
+                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                }
+                            }
+
+                            // Incorrect number of args
+                        } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                            // Notify Error
+                            if (args.length >= argsMinLength) {
+                                logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop containers open"));
+
+                            } else {
+
+                                logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop containers open"));
+                            }
+
+                            // Notify Usage
+                            logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                        }
+                        break;
+                    //endregion
                     //region open
                     case "open":
                         //   0        1      2         3        4        5   args.Length
@@ -9000,7 +9081,7 @@ public class GungingOotilities implements CommandExecutor {
                         argsMinLength = 3;
                         argsMaxLength = 5;
                         usage = "/goop containers open <container> [player] [mode]";
-                        subcommand = "Containers";
+                        subcommand = "Open";
                         subcategory = "Containers - Open";
 
                         // Help form?
@@ -9112,7 +9193,7 @@ public class GungingOotilities implements CommandExecutor {
                         argsMinLength = 3;
                         argsMaxLength = 6;
                         usage = "/goop containers see <container> [player] <owner> [mode]";
-                        subcommand = "Containers";
+                        subcommand = "See";
                         subcategory = "Containers - See";
 
                         // Help form?
@@ -9237,7 +9318,7 @@ public class GungingOotilities implements CommandExecutor {
                                 failure = true;
 
                                 // Notify
-                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Please specify a valid player, '\u00a73" + ownerName + "\u00a77' not found."));
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Please specify a valid player or UUID, '\u00a73" + ownerName + "\u00a77' not found."));
                             }
 
                             // Is container loaded?
@@ -9293,6 +9374,150 @@ public class GungingOotilities implements CommandExecutor {
                         }
                         break;
                     //endregion
+                    //region unregister
+                    case "unregister":
+                        //   0        1         2           3        4      5 6 7 8      args.Length
+                        // /goop containers unregister <container> <owner> [w x y z]
+                        //   -        0         1           2        3      4 5 6 7      args[n]
+
+                        // Correct number of args?
+                        argsMinLength = 4;
+                        argsMaxLength = 8;
+                        usage = "/goop containers unregister <container> <owner> [w x y z]";
+                        subcommand = "Unregister";
+                        subcategory = "Containers - Unregister";
+
+                        // Help form?
+                        if (args.length == 2)  {
+
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73Containers - \u00a7b" + subcommand + ",\u00a77 Delete someone's personal container.");
+                            logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            logReturn.add("\u00a73 - \u00a7e<container> \u00a77Name of the container template.");
+                            logReturn.add("\u00a73 - \u00a7e<owner> \u00a77Owner of the container being deleted.");
+                            logReturn.add("\u00a73 ---> \u00a7b(any uuid) \u00a77UUID of owner.");
+                            logReturn.add("\u00a73 - \u00a7e[w x y z] \u00a77Coordinates to drop items at.");
+                            logReturn.add("\u00a73 ---> \u00a7b(nothing) \u00a77Items will be lost, destroyed.");
+
+                            // Correct number of args?
+                        } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                            String ownerName = args[3];
+                            UUID ownerUUID = OotilityCeption.UUIDFromString(ownerName);
+                            Player locationPlayer = null;
+
+                            // Not a UUID? Okay lets seek a player
+                            if (ownerUUID == null) {
+
+                                // Gather Player
+                                OfflinePlayer ownerASPlayer = OotilityCeption.GetPlayer(ownerName, true);
+                                if (ownerASPlayer != null) {
+                                    ownerUUID = ownerASPlayer.getUniqueId();
+                                    if (ownerASPlayer.isOnline()) { locationPlayer = ownerASPlayer.getPlayer(); }
+                                } }
+
+                            // If null, failure
+                            if (ownerUUID == null) {
+
+                                // failure
+                                failure = true;
+
+                                // Notify
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Please specify a valid player or UUID, '\u00a73" + ownerName + "\u00a77' not found."));
+                            } else if (locationPlayer == null && sender instanceof Player) { locationPlayer = (Player) sender; }
+
+                            //region Gets that location boi
+                            Location targetLocation = null;
+
+                            // Get
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+                            if (args.length >= 8) {
+                                targetLocation = OotilityCeption.ValidLocation(locationPlayer, args[4], args[5], args[6], args[7], logAddition);
+
+                                // Ret
+                                if (targetLocation == null) { failure = true; }
+
+                                // Add Log
+                                if (logAddition.GetValue() != null) {
+                                    logReturn.add(OotilityCeption.LogFormat("Grief", logAddition.GetValue()));
+                                }
+                            }
+                            //endregion
+
+                            // Is container loaded?
+                            GOOPCTemplate template = GCL_Templates.getByInternalName(args[2]);
+                            if (template == null) {
+
+                                // Fat L
+                                failure = true;
+
+                                // Notify
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Could not find any loaded container of name \u00a73" + args[2]));
+
+                                // So it exists; Was it physical?
+                            } else if (!template.isPersonal()) {
+
+                                // Wont open non-PERSONAL
+                                failure = true;
+
+                                // Notify Failure
+                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target container is \u00a7cnot PERSONAL\u00a77, this method is intended to look at \u00a73PERSONAL\u00a77 type containers."));
+                            }
+
+                            // So that is a success
+                            if (!failure) {
+
+                                // Will open target player's version. Get the corresponding Personal Container
+                                GOOPCPersonal personal = (GOOPCPersonal) template.getDeployed();
+
+                                // If a locationw as specified, drop all the contents there
+                                if (targetLocation != null) {
+
+                                    // Fetch the items
+                                    HashMap<Integer, ItemStack> contents = personal.getOwnerInventory(ownerUUID);
+
+                                    // Spill them
+                                    for (Map.Entry<Integer, ItemStack> item : contents.entrySet()) {
+
+                                        // Get itemstack
+                                        ItemStack stack = item.getValue();
+                                        if (OotilityCeption.IsAirNullAllowed(stack)) { continue; }
+
+                                        // Drop there
+                                        targetLocation.getWorld().dropItemNaturally(targetLocation, stack);
+                                    }
+                                }
+
+                                // Unregister
+                                personal.closeInventory(personal.getOpenedInstance(ownerUUID), true);
+                                // <drop items / already happened>>
+                                GCL_Personal.unloadDelete(personal, ownerUUID);
+
+
+                                // Log Success
+                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Deleted " + ownerName + "'s container \u00a73" + template.getInternalName() + "\u00a77 successfuly. " + (targetLocation != null ? "Dropped the items at\u00a7b " + OotilityCeption.BlockLocation2String(targetLocation) : "")));
+
+                                // Run Chain
+                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                            }
+
+                            // Incorrect number of args
+                        } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                            // Notify Error
+                            if (args.length >= argsMinLength) {
+                                logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop containers see"));
+
+                            } else {
+
+                                logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop containers see"));
+                            }
+
+                            // Notify Usage
+                            logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                        }
+                        break;
+                    //endregion
                     //region access
                     case "access":
                         //   0         1       2       3          4      5 6 7 8    args.Length
@@ -9303,7 +9528,7 @@ public class GungingOotilities implements CommandExecutor {
                         argsMinLength = 3;
                         argsMaxLength = 8;
                         usage = "/goop containers access <container> [player] [w x y z]";
-                        subcommand = "Containers";
+                        subcommand = "Access";
                         subcategory = "Containers - Access";
 
                         // Help form?
@@ -11055,7 +11280,6 @@ public class GungingOotilities implements CommandExecutor {
                         if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Containers", "'\u00a73" + args[1] + "\u00a77' is not a valid Containers action! do \u00a7e/goop containers\u00a77 for the list of actions."));
                         break;
                 }
-
 
             } else if (args.length == 1) {
                 logReturn.add("\u00a7e______________________________________________");

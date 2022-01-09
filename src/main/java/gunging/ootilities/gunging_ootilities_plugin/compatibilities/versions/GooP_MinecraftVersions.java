@@ -373,6 +373,7 @@ public class GooP_MinecraftVersions {
 
         //region Minecraft Version 1.17+
         if (mcVersion >= 17.0) {
+            /* YE-OLD-MMO
             versionMaterials.put(GooPVersionMaterials.AXOLOTL_SPAWN_EGG, Material.AXOLOTL_SPAWN_EGG);
             versionMaterials.put(GooPVersionMaterials.AMETHYST_SHARD, Material.AMETHYST_SHARD);
             versionMaterials.put(GooPVersionMaterials.AXOLOTL_BUCKET, Material.AXOLOTL_BUCKET);
@@ -542,6 +543,7 @@ public class GooP_MinecraftVersions {
 
             versionMaterials.put(GooPVersionMaterials.YELLOW_CANDLE, Material.YELLOW_CANDLE);
             versionMaterials.put(GooPVersionMaterials.YELLOW_CANDLE_CAKE, Material.YELLOW_CANDLE_CAKE);
+            // YE-OLD-MMO */
         }
         //endregion
 
@@ -553,7 +555,9 @@ public class GooP_MinecraftVersions {
 
         //region Minecraft Version 1.18+
         if (mcVersion >= 18.0) {
+            /* YE-OLD-MMO
             versionMaterials.put(GooPVersionMaterials.MUSIC_DISC_OTHERSIDE, Material.MUSIC_DISC_OTHERSIDE);
+            // YE-OLD-MMO */
         }
         //endregion
 
@@ -612,11 +616,13 @@ public class GooP_MinecraftVersions {
 
         //region Minecraft 1.17+
         if (mcVersion >= 17.0) {
+            /* YE-OLD-MMO
             versionEntityTypes.put(GooPVersionEntities.AXOLOTL, EntityType.AXOLOTL);
             versionEntityTypes.put(GooPVersionEntities.GLOW_ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
             versionEntityTypes.put(GooPVersionEntities.GLOW_SQUID, EntityType.GLOW_SQUID);
             versionEntityTypes.put(GooPVersionEntities.GOAT, EntityType.GOAT);
             versionEntityTypes.put(GooPVersionEntities.MARKER, EntityType.MARKER);
+            // YE-OLD-MMO */
         }
         //endregion
 

@@ -4255,7 +4255,8 @@ public class OotilityCeption {
      * @param operation Operation to apply to current amount
      * @param result Stores the final Amount for easy access
      * @param logger String saying what, if anything, went wrong.
-     * @return DEBUG_STICK ItemStack if Amount ends up being ZERO or negative.
+     *
+     * @return Sets amount to zero
      */
     @Nullable
     public static ItemStack SetAmount(@Nullable ItemStack iSource, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> result, @Nullable RefSimulator<String> logger) {
@@ -4275,22 +4276,13 @@ public class OotilityCeption {
                 // Apply operation
                 mData = (int)Math.round(operation.apply((double)mData));
                 if (result != null) { result.setValue((double)mData);}
-
-                // Final AMount?
-                if (mData <= 0) {
-
-                    // Notify
-                    Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified amount of \u00a7f" + sName);
-
-                    // Return
-                    return new ItemStack(Material.DEBUG_STICK);
-                }
+                if (mData < 0) { mData = 0; }
 
                 // Insert into item
                 iSource.setAmount(mData);
 
                 // Finish
-                Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified amount of \u00a7f" + sName);
+                Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified amount of \u00a7f" + sName + "\u00a77 to\u00a7a " + mData);
                 return iSource;
 
 
@@ -7554,32 +7546,9 @@ public class OotilityCeption {
      */
     @NotNull public static ArrayList<ItemStackLocation> getMatchingItems(@NotNull Player player, @NotNull NBTFilter filter, @Nullable RefSimulator<Integer> count, @Nullable String shulkerNameFilter, @Nullable RefSimulator<String> logger, @NotNull SearchLocation... locations) {
 
-        // Count total found
-        int totalAmount = 0;
-
         // Create Ret
         ArrayList<ItemStackLocation> ret = new ArrayList<>();
-
-        // Cook some booleans for efficiency
-        boolean invShulk = false, ecShulk = false, perShulk = false, obsShulk = false;
-        for (SearchLocation loc : locations) {
-
-            // Identify which shulkers we must watch out for
-            switch (loc) {
-                case SHULKER_INVENTORY:
-                    invShulk = true;
-                    break;
-                case SHULKER_ENDERCHEST:
-                    ecShulk = true;
-                    break;
-                case SHULKER_OBSERVED_CONTAINER:
-                    obsShulk = true;
-                    break;
-                case SHULKER_PERSONAL_CONTAINER:
-                    perShulk = true;
-                    break;
-            }
-        }
+        int totalAmount = 0;
 
         /*
          * Will now examine every search location, and add up
@@ -7616,7 +7585,12 @@ public class OotilityCeption {
                 case SHULKER_PERSONAL_CONTAINER:
                     matches = (new ISLPersonalContainer().getShulker(0)).getAllMatching(player, filter, localCount, logger);
                     break;
+                default: continue;
             }
+
+            if (localCount.getValue() == null) { continue; }
+            totalAmount += localCount.getValue();
+            ret.addAll(matches);
         }
 
         // Return total found

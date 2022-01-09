@@ -97,7 +97,11 @@ public class ConverterTypeSettings {
      * @return A random of any of the configured tiers, if any were configured,
      *         or <code>null</code> if none were configured.
      */
-    @Nullable public String getRandomTier(@NotNull ConvertingReason reason) { ListPlaceholder lph = getRandomTiering(reason); if (lph == null) { return null; } return lph.RandomListItem(); }
+    @Nullable public String getRandomTier(@NotNull ConvertingReason reason) {
+        ListPlaceholder lph = getRandomTiering(reason);
+        if (lph == null) { return null; }
+        String chosen = lph.RandomListItem();
+        return "none".equals(chosen) ? null : chosen; }
 
     /**
      * @return Per-Converting-Action, the tier displayed before the tier is decided.

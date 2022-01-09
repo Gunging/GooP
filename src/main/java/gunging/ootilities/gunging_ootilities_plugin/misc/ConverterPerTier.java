@@ -178,7 +178,6 @@ public class ConverterPerTier {
 
                 // Set max and subtract
                 second.setValue(OotilityCeption.asQuantity(finalCurrency, finalCurrency.getType().getMaxStackSize()));
-                totalEmeraldCount -= finalCurrency.getType().getMaxStackSize();
 
             // Max stack fits, we can just set them all
             } else {

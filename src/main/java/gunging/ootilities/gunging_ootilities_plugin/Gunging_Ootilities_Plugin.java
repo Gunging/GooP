@@ -45,7 +45,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static Boolean anvilRenameEnabled = false;
     public static boolean spamPunchingJSON = false;
     public static boolean useMMOLibDefenseConvert = false;
-    public static Boolean devLogging = true;
+    public static Boolean devLogging = false;
     public static Player devPlayer = null;
     public static Double nameRangeExclusionMin = null;
     public static Double nameRangeExclusionMax = null;
