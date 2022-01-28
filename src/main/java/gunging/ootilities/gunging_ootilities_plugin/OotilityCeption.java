@@ -758,7 +758,7 @@ public class OotilityCeption {
      * Will only check that this type is AIR. If you are examining an ItemStack, keep in mind that the AMOUNT could be ZERO (And I personally think that is air, idk about you).
      */
     public static boolean IsAir(@NotNull Material target) {
-        return target.isEmpty() || !target.isItem();
+        return target == Material.AIR || target == Material.CAVE_AIR || target == Material.VOID_AIR || !target.isItem();
     }
     /**
      * Will return TRUE if iTarget is either NULL, Count is 0, or IsAir()
@@ -4404,7 +4404,7 @@ public class OotilityCeption {
         if (iSource == null) {
             Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant change the material of non-existent items.");
             return null; }
-        if (mat == null || mat.isEmpty() || !mat.isItem()) {
+        if (mat == null || IsAir(mat)) {
             Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant change the material to non-existence / invalid items.");
             return null; }
 
@@ -7301,7 +7301,7 @@ public class OotilityCeption {
 
         // Use the stuff after the dots
         if (arg == null) { return false; }
-        if (arg.contains(".")) { arg = arg.substring(arg.indexOf("." + 1)); }
+        if (arg.contains(".")) { arg = arg.substring(arg.indexOf(".") + 1); }
         if (arg.equals("*")) { slot.setValue(null); range.setValue(null); return true; }
         if (arg.startsWith("<") && arg.endsWith(">")) { return allowAliases; }
 

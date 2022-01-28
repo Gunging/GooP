@@ -1,16 +1,17 @@
 package gunging.ootilities.gunging_ootilities_plugin.events;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
+import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -192,6 +193,48 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
             // They've died lmao, unregister them I guess.
             DisableMinion(minion);
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnMinionPvP(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()) { return; }
+        if (!(event.getEntity() instanceof LivingEntity)) { return; }
+
+        // The receiver isn't a minion? Not our business
+        SummonerClassMinion minion = GetMinion(event.getEntity());
+        if (minion == null) { return; }
+
+        if (!minion.isPreventPlayerDamage()) { return; }
+
+        //region Get True Damager
+        Entity trueDamager = event.getDamager();
+        if (event.getDamager() instanceof Projectile) {
+
+            // If shooter is not null
+            Projectile arrow = (Projectile) trueDamager;
+            if (arrow.getShooter() instanceof Entity) {
+
+                // Real damager is the one who fired this
+                trueDamager = (Entity) arrow.getShooter();
+            }
+        }
+        if (event.getDamager() instanceof Firework) {
+
+            // If shooter is not null
+            Firework arrow = (Firework) event.getDamager();
+            if (XBow_Rockets.fireworkSources.containsKey(arrow.getUniqueId())) {
+
+                // Real damager is the one who fired this
+                trueDamager = XBow_Rockets.fireworkSources.get(arrow.getUniqueId());
+            }
+        }
+        //endregion
+
+        // The damager isn't a player? Not our business.
+        if (!(trueDamager instanceof Player)) { return; }
+
+        // Players cannot deal damage to minions with PvP Block
+        event.setCancelled(true);
     }
 
     @Override

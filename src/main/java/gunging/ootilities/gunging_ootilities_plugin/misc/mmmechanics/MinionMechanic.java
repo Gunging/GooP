@@ -26,6 +26,7 @@ public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkil
     String mmSkill;
     PlaceholderDouble weight;
     PlaceholderString kindOverride;
+    boolean pvpBlock;
 
 
     public MinionMechanic(CustomMechanic skill, MythicLineConfig mlc) {
@@ -34,6 +35,7 @@ public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkil
         mmSkill = mlc.getString(new String[] { "skill", "s" });
         weight = mlc.getPlaceholderDouble(new String[] { "weight", "w", "minionweight", "mw" }, 1D);
         kindOverride = mlc.getPlaceholderString(new String[] { "kind", "k" }, "generic");
+        pvpBlock = mlc.getBoolean(new String[] { "pvpblock", "pvpb", "preventPlayerDamage", "ppd" }, false);
     }
 
     @Override
@@ -61,6 +63,7 @@ public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkil
             newMinion.setSkillOnRemove(mmSkill);
             newMinion.setKind(k);
             newMinion.setWeight(w);
+            newMinion.setPreventPlayerDamage(pvpBlock);
 
             // Enable
             newMinion.Enable();

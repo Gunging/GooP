@@ -169,6 +169,19 @@ public class SummonerClassMinion {
      * MythicMobs skill to run when the entity is removed.
      */
     public void setSkillOnRemove(String skor) { skillOnRemove = skor; }
+
+    /**
+     * @return If this minion cannot be damaged by players.
+     */
+    public boolean isPreventPlayerDamage() { return preventPlayerDamage; }
+    /**
+     * If this minion cannot be damaged by players.
+     */
+    boolean preventPlayerDamage;
+    /**
+     * @param preventPlayerDamage If this minion cannot be damaged by players.
+     */
+    public void setPreventPlayerDamage(boolean preventPlayerDamage) { this.preventPlayerDamage = preventPlayerDamage; }
     //endregion
 
     /**

@@ -2365,7 +2365,7 @@ public class GooPMMOItems {
      * @param breakLimit if it should overshoot the max upgrade level of an item
      * @return <code>null</code> if anything goes wrong
      */
-    @Nullable public static ItemStack UpgradeMMOItem(@Nullable ItemStack base, @NotNull PlusMinusPercent toLevel, boolean breakLimit, @Nullable RefSimulator<Integer> finalLevel, @Nullable RefSimulator<String> logger) {
+    @Nullable public static ItemStack UpgradeMMOItem(@Nullable ItemStack base, @Nullable PlusMinusPercent toLevel, boolean breakLimit, @Nullable RefSimulator<Integer> finalLevel, @Nullable RefSimulator<String> logger) {
 
         // Neh
         if (OotilityCeption.IsAirNullAllowed(base)) {
@@ -2387,11 +2387,20 @@ public class GooPMMOItems {
         // Live
         LiveMMOItem live = LiveFromNBT(nbt);
 
+        int liveUpgradeLevel = live.getUpgradeLevel();
+        if (toLevel == null) {
+
+            // Just read level
+            if (finalLevel != null) { finalLevel.setValue(liveUpgradeLevel); }
+            return base;
+        }
+
         // What level will it be?
-        int result = SilentNumbers.floor(toLevel.apply((double) live.getUpgradeLevel()));
+        int result = SilentNumbers.floor(toLevel.apply((double) liveUpgradeLevel));
 
         // Respect limit
         boolean limited = false;
+
         if (!breakLimit && (result > live.getMaxUpgradeLevel()) && live.getMaxUpgradeLevel() > 0) { result = live.getMaxUpgradeLevel(); limited = true; }
 
         live.getUpgradeTemplate().upgradeTo(live, result);
@@ -4836,6 +4845,7 @@ public class GooPMMOItems {
                                 logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
                                 logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
                                 logReturn.add("\u00a73 - \u00a7e[±]<levels>[%] \u00a77Operation on the upgrade level.");
+                                logReturn.add("\u00a73      * \u00a7bread\u00a77 Keyword to only read the level.");
                                 logReturn.add("\u00a73 - \u00a7e[break max] \u00a77Can this command upgrade beyond limit?");
                                 logReturn.add("\u00a73      * \u00a77There is no limit to downgrading (negative levels).");
                                 logReturn.add("\u00a73 - \u00a7e[objective] \u00a77Scoreboard to output the result.");
@@ -4856,12 +4866,16 @@ public class GooPMMOItems {
 
                                 PlusMinusPercent pmpLevel = PlusMinusPercent.GetPMP(args[4], refAddition);
                                 if (pmpLevel == null) {
-                                    // Failure
-                                    failure = true;
 
-                                    // Mention it
-                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected a number or operation for level (like \u00a7b1\u00a77, \u00a7b5,\u00a77 \u00a7bn2\u00a77, or \u00a7b+2\u00a77) instead of \u00a7e" + args[4]));
-                                }
+                                    // Fail if not read keyword
+                                    if (!"read".equalsIgnoreCase(args[4])) {
+
+                                        // Failure
+                                        failure = true;
+
+                                        // Mention it
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected a number or operation for level (like \u00a7b1\u00a77, \u00a7b5,\u00a77 \u00a7bn2\u00a77, or \u00a7b+2\u00a77) instead of \u00a7e" + args[4]));
+                                    } }
 
                                 boolean breakLimit = false;
                                 if (args.length >= 6) {

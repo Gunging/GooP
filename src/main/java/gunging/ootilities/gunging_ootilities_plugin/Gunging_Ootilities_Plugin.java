@@ -6,6 +6,7 @@ import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCListener;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCCommands;
 import gunging.ootilities.gunging_ootilities_plugin.containers.interaction.ContainersInteractionHandler;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Player;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructures;
 import gunging.ootilities.gunging_ootilities_plugin.events.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
@@ -419,10 +420,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         getServer().getPluginManager().registerEvents(new GOOPCListener(), theMain);
         getServer().getPluginManager().registerEvents(new GooP_FontUtils(), theMain);
         getServer().getPluginManager().registerEvents(new SummonerClassUtils(), theMain);
+        getServer().getPluginManager().registerEvents(new GCL_Player(), theMain);
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { getServer().getPluginManager().registerEvents(new JSONPlacerUtils(), theMain); }
-        if (foundMMOItems) {
-            getServer().getPluginManager().registerEvents(new OnApplyCommand(), theMain);
-        }
+
+        if (foundMMOItems) { getServer().getPluginManager().registerEvents(new OnApplyCommand(), theMain); }
         if (foundMythicMobs) { getServer().getPluginManager().registerEvents(new GooPMythicMobs(), theMain); }
 
         // Schedule insync

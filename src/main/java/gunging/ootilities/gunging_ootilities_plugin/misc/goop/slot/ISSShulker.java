@@ -29,8 +29,8 @@ public class ISSShulker extends ItemStackSlot {
 
     @Override public @NotNull SearchLocation getShulkerLocation() { return getLocation(); }
 
-    @SuppressWarnings("InfiniteRecursion")
-    @Override @NotNull public ItemStackSlot getParent() { return getParent(); }
+    /** @noinspection ConstantConditions*/
+    @Override @NotNull public ItemStackSlot getParent() { return super.getParent(); }
 
     @Override @NotNull
     public String getPrefix() { return getParent().getPrefix() + getParent().getRangeToString() + "."; }

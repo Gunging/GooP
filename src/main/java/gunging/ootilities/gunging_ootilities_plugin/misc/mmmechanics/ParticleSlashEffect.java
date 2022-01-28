@@ -8,9 +8,11 @@ import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.skills.ITargetedEntitySkill;
 import io.lumine.xikage.mythicmobs.skills.ITargetedLocationSkill;
 import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
+import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderDouble;
 import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderFloat;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
@@ -43,7 +45,22 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
 
     protected void playParticleSlashEffect(SkillMetadata data, AbstractLocation target) {
         AbstractLocation location = target.clone();
-        location.add(0.0D, (double)this.yOffset, 0.0D);
+
+        double trueYOffset = 0; Object funnyYOffset = null;
+        try { Field fd = getClass().getField("yOffset"); fd.setAccessible(true); funnyYOffset = fd.get(this); } catch (NoSuchFieldException|IllegalAccessException ignored) {}
+        if (funnyYOffset instanceof PlaceholderFloat) {
+
+            // Execute
+            PlaceholderFloat asPH = (PlaceholderFloat) funnyYOffset;
+            trueYOffset = (double) asPH.get(data);
+
+        } else if (funnyYOffset != null) {
+
+            // Frantic
+            trueYOffset = (double) funnyYOffset;
+        }
+
+        location.add(0.0D, trueYOffset, 0.0D);
         Collection<AbstractEntity> audienceList = GetAudience(target);
 
         // Calculate some

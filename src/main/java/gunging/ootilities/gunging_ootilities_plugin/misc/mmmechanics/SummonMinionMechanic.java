@@ -35,6 +35,7 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
     PlaceholderDouble amount;
     PlaceholderDouble weight;
     boolean capBreak;
+    boolean pvpBlock;
 
 
     public SummonMinionMechanic(CustomMechanic skill, MythicLineConfig mlc) {
@@ -47,6 +48,7 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
         kindLimit = mlc.getPlaceholderDouble(new String[] { "kindLimit", "kl" }, 32767D);
         mmSkill = mlc.getString(new String[] { "skill", "s" });
         capBreak = mlc.getBoolean(new String[] { "capbreak", "cb" }, true);
+        pvpBlock = mlc.getBoolean(new String[] { "pvpblock", "pvpb", "preventPlayerDamage", "ppd" }, false);
 
         // Must be called in Sync
         setAsyncSafe(false);
@@ -108,6 +110,7 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
                     newMinion.setWeight(effectiveWeight);
                     newMinion.setKind(effectiveKind);
                     newMinion.setLimit(OotilityCeption.RoundToInt(effectiveKLimit));
+                    newMinion.setPreventPlayerDamage(pvpBlock);
 
                     // Enable
                     newMinion.Enable();

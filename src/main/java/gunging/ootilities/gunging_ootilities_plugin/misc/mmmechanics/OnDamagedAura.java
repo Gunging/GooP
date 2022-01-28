@@ -47,6 +47,7 @@ public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
     @NotNull PlaceholderString skillName;
     @Nullable Skill metaskill;
     protected boolean cancelDamage;
+    protected boolean traceSource;
     protected boolean modDamage = false;
     protected double damageSub;
     protected double damageMult;
@@ -57,6 +58,7 @@ public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());
         this.cancelDamage = mlc.getBoolean(new String[]{"cancelevent", "ce", "canceldamage", "cd"}, false);
+        this.traceSource = mlc.getBoolean(new String[]{"tracesource", "ts"}, true);
         this.damageSub = mlc.getDouble(new String[]{"damagesub", "sub", "s"}, 0.0D);
         this.damageMult = mlc.getDouble(new String[]{"damagemultiplier", "multiplier", "m"}, 1.0D);
         PlaceholderString strDamageMod = mlc.getPlaceholderString(new String[]{"damagemodifiers", "damagemods", "damagemod"}, (String)null, new String[0]);
@@ -183,28 +185,29 @@ public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
                 // Find the true entity
                 Entity trueDamager = event.getDamager();
 
-                //region Get True Damager
-                if (event.getDamager() instanceof Projectile) {
+                // Get True Damager
+                if (traceSource) {
+                    if (event.getDamager() instanceof Projectile) {
 
-                    // If shooter is not null
-                    Projectile arrow = (Projectile) trueDamager;
-                    if (arrow.getShooter() instanceof Entity) {
+                        // If shooter is not null
+                        Projectile arrow = (Projectile) trueDamager;
+                        if (arrow.getShooter() instanceof Entity) {
 
-                        // Real damager is the one who fired this
-                        trueDamager = (Entity) arrow.getShooter();
+                            // Real damager is the one who fired this
+                            trueDamager = (Entity) arrow.getShooter();
+                        }
+                    }
+                    if (event.getDamager() instanceof Firework) {
+
+                        // If shooter is not null
+                        Firework arrow = (Firework) event.getDamager();
+                        if (XBow_Rockets.fireworkSources.containsKey(arrow.getUniqueId())) {
+
+                            // Real damager is the one who fired this
+                            trueDamager = XBow_Rockets.fireworkSources.get(arrow.getUniqueId());
+                        }
                     }
                 }
-                if (event.getDamager() instanceof Firework) {
-
-                    // If shooter is not null
-                    Firework arrow = (Firework) event.getDamager();
-                    if (XBow_Rockets.fireworkSources.containsKey(arrow.getUniqueId())) {
-
-                        // Real damager is the one who fired this
-                        trueDamager = XBow_Rockets.fireworkSources.get(arrow.getUniqueId());
-                    }
-                }
-                //endregion
 
                 // Set the target of the skill to be the attacking entity
                 if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(meta, meta.getCaster().getEntity()));}

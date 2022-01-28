@@ -4,10 +4,7 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPE_Shrubs
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Personal;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Physical;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Station;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Templates;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerTypes;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.KindRestriction;
 import gunging.ootilities.gunging_ootilities_plugin.containers.restriction.RestrictedBehaviour;
@@ -818,7 +815,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM.addAll(OotilityCeption.getSlotKeywords());
                                                 break;
                                             case 5:
-                                                Collections.addAll(tabM, "1", "2", "3", "n2", "-1", "+4");
+                                                Collections.addAll(tabM, "read", "1", "2", "3", "n2", "-1", "+4");
                                                 break;
                                             case 6:
                                                 Collections.addAll(tabM, "true", "false", "(break-max-upgrades?)");
@@ -2083,6 +2080,9 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         case 6:
                                             Collections.addAll(tabM, "<Mythic Skill Internal Name>");
                                             break;
+                                        case 7:
+                                            Collections.addAll(tabM, "(pvp-block?)", "true", "false");
+                                            break;
                                         default: break;
                                     }
 
@@ -2221,6 +2221,26 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         case 5:
                                             tabM.add("USAGE");
                                             tabM.add("PREVIEW");
+                                            break;
+                                        default:  break;
+                                    }
+                                    break;
+                                    //endregion
+                                //region player inventory
+                                case "playerinventory":
+                                    //   0        1             2           3          4           args.Length
+                                    // /goop containers playerInventory <container> [player]
+                                    //   -        0             1           2           3           args[n]
+
+
+                                    switch (args.length) {
+                                        case 3:
+                                            tabM.addAll(GCL_Player.getByInternalName().keySet());
+                                            tabM.add("CLEAR");
+                                            break;
+                                        case 4:
+                                            for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            tabM.add("DEFAULT");
                                             break;
                                         default:  break;
                                     }
