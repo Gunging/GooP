@@ -2058,7 +2058,24 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = null;
                                             break;
                                         case 5:
+                                        case 6:
+                                        case 7:
+                                        case 8:
                                             Collections.addAll(tabM, "@<target>", "~<trigger>", "vDAMAGE=30");
+                                            if (args[args.length - 1].startsWith("@")) {
+                                                for (Player p : Bukkit.getOnlinePlayers()) { tabM.add("@" + p.getName()); }
+                                                if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+                                                    tabM.add("@<caster.name>");
+                                                    tabM.add("@<trigger.name>");
+                                                    tabM.add("@<target.name>"); }
+
+                                            } else if (args[args.length - 1].equals("~")) {
+                                                for (Player p : Bukkit.getOnlinePlayers()) { tabM.add("~" + p.getName()); }
+                                                if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+                                                    tabM.add("~<caster.name>");
+                                                    tabM.add("~<trigger.name>");
+                                                    tabM.add("~<target.name>"); }
+                                            }
                                             break;
                                         default: break;
                                     }
@@ -2240,6 +2257,10 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             break;
                                         case 4:
                                             for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+                                                tabM.add("<caster.name>");
+                                                tabM.add("<trigger.name>");
+                                                tabM.add("<target.name>"); }
                                             tabM.add("DEFAULT");
                                             break;
                                         default:  break;
@@ -2262,6 +2283,10 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             break;
                                         case 5:
                                             for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+                                                tabM.add("<caster.name>");
+                                                tabM.add("<trigger.name>");
+                                                tabM.add("<target.name>"); }
                                         case 6:
                                             tabM.add("USAGE");
                                             tabM.add("PREVIEW");
@@ -2880,7 +2905,10 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                 // Adds online players
                                 for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
-
+                                if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+                                    tabM.add("<caster.name>");
+                                    tabM.add("<trigger.name>");
+                                    tabM.add("<target.name>"); }
                                 break;
                             case 3:
                                 if (firstWorld) {
@@ -2916,6 +2944,10 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                 // Adds online players
                                 for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+                                    tabM.add("<caster.name>");
+                                    tabM.add("<trigger.name>");
+                                    tabM.add("<target.name>"); }
                                 break;
                             case 4:
                                 if (firstWorld) {
@@ -3093,6 +3125,10 @@ public class GungingOotilitiesTab implements TabCompleter {
                         if (args.length == 2) {
                             Collections.addAll(tabM, "console", "@p", "<Some UUID>");
                             for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                            if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+                                tabM.add("<caster.name>");
+                                tabM.add("<trigger.name>");
+                                tabM.add("<target.name>"); }
                         }
                         break;
                     //endregion
@@ -3234,60 +3270,68 @@ public class GungingOotilitiesTab implements TabCompleter {
             }
 
             // If its not null
-            if (tabM != null) {
+            if (tabM == null) {
 
-                // If there is anything!
-                if (tabM.size() > 0){
+                // Nonullify as player names
+                tabM = new ArrayList<>();
+                for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                if (Gunging_Ootilities_Plugin.foundMythicMobs) {
+                    tabM.add("<caster.name>");
+                    tabM.add("<trigger.name>");
+                    tabM.add("<target.name>"); }
+            }
 
-                    // If there is a filtering key
-                    if (tabSt.length() > 0){
-                        // True List
-                        List<String> tabMCT = new ArrayList<String>();
+            // If there is anything!
+            if (tabM.size() > 0){
 
-                        // Filter the original list and build into the returned one
-                        for (String stComp : tabM) {
+                // If there is a filtering key
+                if (tabSt.length() > 0){
+                    // True List
+                    List<String> tabMCT = new ArrayList<String>();
 
-                            // By default, the tab complete ignores caps
-                            //noinspection ConstantConditions
-                            if (ignoreCaps) {
+                    // Filter the original list and build into the returned one
+                    for (String stComp : tabM) {
 
-                                // Will ignore caps
-                                if (startWith) {
+                        // By default, the tab complete ignores caps
+                        //noinspection ConstantConditions
+                        if (ignoreCaps) {
 
-                                    if (stComp.toLowerCase().startsWith(tabSt.toLowerCase())) { tabMCT.add(stComp); }
-                                } else {
+                            // Will ignore caps
+                            if (startWith) {
 
-                                    if (stComp.toLowerCase().contains(tabSt.toLowerCase())) { tabMCT.add(stComp); }
-                                }
-
-                            // Ignore Caps is in FALSE = consider caps
+                                if (stComp.toLowerCase().startsWith(tabSt.toLowerCase())) { tabMCT.add(stComp); }
                             } else {
 
-                                // Will account for caps
-                                if (startWith) {
+                                if (stComp.toLowerCase().contains(tabSt.toLowerCase())) { tabMCT.add(stComp); }
+                            }
 
-                                    if (stComp.startsWith(tabSt)) { tabMCT.add(stComp); }
-                                } else {
+                            // Ignore Caps is in FALSE = consider caps
+                        } else {
 
-                                    if (stComp.contains(tabSt)) { tabMCT.add(stComp); }
-                                }
+                            // Will account for caps
+                            if (startWith) {
+
+                                if (stComp.startsWith(tabSt)) { tabMCT.add(stComp); }
+                            } else {
+
+                                if (stComp.contains(tabSt)) { tabMCT.add(stComp); }
                             }
                         }
-
-                        // Filtered
-                        return tabMCT;
-
-                        // If there is nothing to filter from
-                    } else {
-
-                        // Normal
-                        return  tabM;
                     }
 
+                    // Filtered
+                    return tabMCT;
+
+                    // If there is nothing to filter from
                 } else {
 
-                    return tabM;
+                    // Normal
+                    return  tabM;
                 }
+
+            } else {
+
+                return tabM;
             }
         }
 

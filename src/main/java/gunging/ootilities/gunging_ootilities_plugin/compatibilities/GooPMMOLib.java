@@ -3,9 +3,16 @@ package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOCore;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
+import io.lumine.mythic.lib.api.crafting.uimanager.ProvidedUIFilter;
 import org.bukkit.entity.Player;
 
 public class GooPMMOLib {
+
+    public static boolean CompatibilityCheck() {
+        ProvidedUIFilter poof = new ProvidedUIFilter(null, "", "");
+
+        return true;
+    }
 
     // For the dual-cummulativity of some stats
     public static Double CDoubleStat(Player target, String arg) {

@@ -3694,7 +3694,7 @@ public class OotilityCeption {
         }
     }
 
-    public static ItemStack RemoveLoreLine(ItemStack iSource, Integer index, RefSimulator<String> logger) {
+    public static ItemStack RemoveLoreLine(ItemStack iSource, Integer index, boolean removeAll, RefSimulator<String> logger) {
 
         // Check that iSource exists
         if (iSource != null) {
@@ -3712,20 +3712,20 @@ public class OotilityCeption {
                     if (GooPMMOItems.IsMMOItem(iSource)) {
 
                         // Cool MMOItem removing shit
-                        return GooPMMOItems.MMOItemRemoveLoreLine(iSource, index, logger);
+                        return GooPMMOItems.MMOItemRemoveLoreLine(iSource, index, removeAll, logger);
 
                     // Just vanilla lol
                     } else {
 
                         // Do It Vanilla
-                        return RemoveLoreLineVanilla(iSource, index, logger);
+                        return RemoveLoreLineVanilla(iSource, index, removeAll, logger);
                     }
 
                 // Just vanilla lol
                 } else {
 
                     // Do It Vanilla
-                    return RemoveLoreLineVanilla(iSource, index, logger);
+                    return RemoveLoreLineVanilla(iSource, index, removeAll, logger);
                 }
 
             // Well that is air
@@ -3743,7 +3743,7 @@ public class OotilityCeption {
 
         }
     }
-    public static ItemStack RemoveLoreLineVanilla(ItemStack iSource, Integer index, RefSimulator<String> logger) {
+    public static ItemStack RemoveLoreLineVanilla(ItemStack iSource, Integer index, boolean removeAll, RefSimulator<String> logger) {
 
         // Check that iSource exists
         if (iSource != null) {
@@ -3755,10 +3755,27 @@ public class OotilityCeption {
                 ItemMeta iMeta = iSource.getItemMeta();
 
                 // Get Existing Lore
-                ArrayList<String> iLore = new ArrayList<String>();
-                ArrayList<String> vLore = new ArrayList<String>();
+                ArrayList<String> iLore = new ArrayList<>();
+                ArrayList<String> vLore = new ArrayList<>();
+
+                // Just delete previous lore
+                if (removeAll) {
+
+                    // Set clear lore
+                    iMeta.setLore(iLore);
+
+                    // Append to Source
+                    iSource.setItemMeta(iMeta);
+
+                    // Log Success
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Sucessfully cleared lore of " + GetItemName(iSource));
+
+                    // Reutrn thay
+                    return  iSource;
+                }
 
                 if (iMeta.getLore() != null) {
+
                     // If the item has any damn lore
                     iLore = new ArrayList<String>(iMeta.getLore());
 

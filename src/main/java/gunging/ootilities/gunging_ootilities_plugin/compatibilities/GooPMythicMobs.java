@@ -539,6 +539,9 @@ public class GooPMythicMobs implements Listener {
      * Returns the Entity if it was successfuly spawned.
      */
     @Nullable public static Entity SpawnMythicMob(@Nullable String name, @Nullable Location location) {
+        return SpawnMythicMob(name, location, 1.0D);
+    }
+    @Nullable public static Entity SpawnMythicMob(@Nullable String name, @Nullable Location location, double level) {
         if (name == null) { return null; }
         if (location == null) { return null; }
 
@@ -550,7 +553,7 @@ public class GooPMythicMobs implements Listener {
             if (mm == null) { return null; }
 
             // Spawn mob?
-            ActiveMob mob = mm.spawnMob(name, location);
+            ActiveMob mob = mm.spawnMob(name, location, level);
 
             if (mob == null) { return null; }
 

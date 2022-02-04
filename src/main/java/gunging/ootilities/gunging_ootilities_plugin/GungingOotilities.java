@@ -50,6 +50,20 @@ public class GungingOotilities implements CommandExecutor {
     @SuppressWarnings("ConstantConditions")
     @Override
     public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args) {
+        boolean senderIsPlayer = (sender instanceof Player);
+
+        // Parse funny <caster.name> placeholder sweet
+        if (senderIsPlayer) {
+
+            // Cook commands
+            for (int i = 0; i < args.length; i++) {
+
+                // Yes
+                args[i] = args[i].replace("<caster.name>", sender.getName());
+                args[i] = args[i].replace("<target.name>", sender.getName());
+                args[i] = args[i].replace("<trigger.name>", sender.getName());
+            }
+        }
 
         // Strip location data
         Location senderLocation = null;
@@ -133,7 +147,7 @@ public class GungingOotilities implements CommandExecutor {
                         if (args[4].equals("in")) {
                             if (args[1].startsWith("fo")) {
                                 if (Math.pow((args[7] + args[5] + args[3]).length() - (args[0] + args[2] + args[4]).length() + (args[4].length() - 1), (args[6] + args[6] + args[4]).length()) == 1) {
-                                    if (sender instanceof Player) {
+                                    if (senderIsPlayer) {
                                         if (((Player)sender).getClientViewDistance() == 2) {
                                             // Imbending Boom Abbroaches
                                             Gunging_Ootilities_Plugin.daybroken = true;
@@ -234,7 +248,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0       1         2     args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.stasis");
                     }
@@ -331,7 +345,7 @@ public class GungingOotilities implements CommandExecutor {
                 //endregion
                 //region help
                 case help:
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.help");
                     }
@@ -356,7 +370,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0            1     2 3 4      5     args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.consumeitem");
                     }
@@ -560,7 +574,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0              1       2    3 4 5     [6]       6 [7]     7 [8]  8 [9]      args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.testinventory");
                     }
@@ -1001,7 +1015,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0       1      2    args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.gamerule");
                     }
@@ -1172,7 +1186,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0         1     args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.optifine");
                     }
@@ -1367,7 +1381,7 @@ public class GungingOotilities implements CommandExecutor {
                                     if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) {
 
                                         // Get player
-                                        if (sender instanceof Player) {
+                                        if (senderIsPlayer) {
 
                                             // Get Target
                                             Player target = (Player) sender;
@@ -1515,7 +1529,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0    args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.reload");
                     }
@@ -1583,7 +1597,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -          0             1     args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.customstructures");
                     }
@@ -2649,7 +2663,7 @@ public class GungingOotilities implements CommandExecutor {
                                                     // Gets that location boi
                                                     Location targetLocation = null;
                                                     if (args.length == 5) {
-                                                        if (sender instanceof Player) {
+                                                        if (senderIsPlayer) {
 
                                                             // Just target location I guess?
                                                             Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
@@ -2728,7 +2742,7 @@ public class GungingOotilities implements CommandExecutor {
                                                         }
 
                                                         // Player must be sender
-                                                        if (sender instanceof Player) {
+                                                        if (senderIsPlayer) {
 
                                                             // Store
                                                             target = (Player) sender;
@@ -2766,7 +2780,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                         // Relativity
                                                         Player rel = null;
-                                                        if (sender instanceof Player) { rel = (Player)sender;}
+                                                        if (senderIsPlayer) { rel = (Player)sender;}
 
                                                         // Get
                                                         targetLocation = OotilityCeption.ValidLocation(rel, args[5], args[6], args[7], args[8], logAddition);
@@ -2897,7 +2911,7 @@ public class GungingOotilities implements CommandExecutor {
                                         // Gets that location boi
                                         Location targetLocation = null;
                                         if (args.length == 4) {
-                                            if (sender instanceof Player) {
+                                            if (senderIsPlayer) {
 
                                                 // Just target location I guess?
                                                 Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
@@ -2977,7 +2991,7 @@ public class GungingOotilities implements CommandExecutor {
                                             }
 
                                             // Player must be sender
-                                            if (sender instanceof Player) {
+                                            if (senderIsPlayer) {
 
                                                 // Store
                                                 target = (Player) sender;
@@ -3015,7 +3029,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                             // Relativity
                                             Player rel = null;
-                                            if (sender instanceof Player) { rel = (Player)sender;}
+                                            if (senderIsPlayer) { rel = (Player)sender;}
 
                                             // Get
                                             targetLocation = OotilityCeption.ValidLocation(rel, args[4], args[5], args[6], args[7], logAddition);
@@ -3090,7 +3104,7 @@ public class GungingOotilities implements CommandExecutor {
                                         // Gets that location boi
                                         Location targetLocation = null;
                                         if (args.length == 3) {
-                                            if (sender instanceof Player) {
+                                            if (senderIsPlayer) {
 
                                                 // Just target location I guess?
                                                 Block bLock = ((Player)sender).getTargetBlockExact(30, FluidCollisionMode.NEVER);
@@ -3150,7 +3164,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                             // Relativity
                                             Player rel = null;
-                                            if (sender instanceof Player) { rel = (Player)sender;}
+                                            if (senderIsPlayer) { rel = (Player)sender;}
 
                                             // Get
                                             targetLocation = OotilityCeption.ValidLocation(rel, args[3], args[4], args[5], args[6], logAddition);
@@ -3243,7 +3257,7 @@ public class GungingOotilities implements CommandExecutor {
                     if (Gunging_Ootilities_Plugin.foundMythicMobs) {
 
                         // Check 5 Permission
-                        if (sender instanceof Player) {
+                        if (senderIsPlayer) {
                             // Solid check for permission
                             permission = sender.hasPermission("gunging_ootilities_plugin.mythicmobs");
                         }
@@ -3868,7 +3882,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0         1     args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.scoreboard");
                     }
@@ -4643,7 +4657,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -     0     1       2     3 4 5 6      7            8               9                    10           args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.grief");
                     }
@@ -4906,7 +4920,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -     0        1           2        3        4...                                 args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.compare");
                     }
@@ -5380,7 +5394,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -    0      1         2...     args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.tell");
                     }
@@ -5463,7 +5477,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -    0      1        2...      args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.tp");
                     }
@@ -5499,7 +5513,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Valid location?
                                 RefSimulator<String> logAddition = new RefSimulator<>("");
-                                Player p = null; if (sender instanceof Player) { p = (Player) sender; }
+                                Player p = null; if (senderIsPlayer) { p = (Player) sender; }
                                 targetLocation = OotilityCeption.ValidLocation(p, senderLocation, pW, pX, pY, pZ, logAddition);
 
                                 // Ret
@@ -5622,7 +5636,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -    0      1        2...      args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.delay");
                     }
@@ -5712,7 +5726,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -    0             1               2...      args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.chance");
                     }
@@ -5816,7 +5830,7 @@ public class GungingOotilities implements CommandExecutor {
                     if (Gunging_Ootilities_Plugin.foundVault) {
 
                         // Check 5 Permission
-                        if (sender instanceof Player) {
+                        if (senderIsPlayer) {
                             // Solid check for permission
                             permission = sender.hasPermission("gunging_ootilities_plugin.vault");
                         }
@@ -6164,7 +6178,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -    0      1        2...      args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.sudo");
                     }
@@ -6291,7 +6305,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0          1        2       3           4   args[n]
 
                     // Check 5 Permission
-                    if (sender instanceof Player) {
+                    if (senderIsPlayer) {
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.permission");
                     }
@@ -6469,7 +6483,7 @@ public class GungingOotilities implements CommandExecutor {
         //
 
         // If the caster is a player, it sends messages.
-        if (sender instanceof Player) {
+        if (senderIsPlayer) {
 
             // I guess this works?
             for (String s : logReturn) {
@@ -7882,6 +7896,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Copy of finals
                                 final Integer finalIIndex = iIndex;
+                                final boolean finalRevAll = revAll;
 
                                 // Preparation of Methods
                                 TargetedItems executor;
@@ -7890,7 +7905,7 @@ public class GungingOotilities implements CommandExecutor {
                                             chained, chainedCommand, sender, failMessage,
 
                                             // What method to use to process the item
-                                            iSource -> OotilityCeption.RemoveLoreLineVanilla(iSource.getValidOriginal(), finalIIndex, iSource.getLogAddition()),
+                                            iSource -> OotilityCeption.RemoveLoreLineVanilla(iSource.getValidOriginal(), finalIIndex, finalRevAll, iSource.getLogAddition()),
 
                                             // When will it succeed
                                             iSource -> iSource.getResult() != null,
@@ -7904,7 +7919,7 @@ public class GungingOotilities implements CommandExecutor {
                                             chained, chainedCommand, sender, failMessage,
 
                                             // What method to use to process the item
-                                            iSource -> OotilityCeption.RemoveLoreLineVanilla(iSource.getValidOriginal(), finalIIndex, iSource.getLogAddition()),
+                                            iSource -> OotilityCeption.RemoveLoreLine(iSource.getValidOriginal(), finalIIndex, finalRevAll, iSource.getLogAddition()),
 
                                             // When will it succeed
                                             iSource -> iSource.getResult() != null,

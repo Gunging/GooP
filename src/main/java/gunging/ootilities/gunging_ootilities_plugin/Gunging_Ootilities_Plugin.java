@@ -67,6 +67,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static Boolean foundMCMMO = false;
     public static Boolean foundVault = false;
     public static Boolean foundWorldEdit = false;
+    public static Boolean foundMythicLib = false;
     public static Boolean foundDiscordSRV = false;
     public static Boolean foundGriefPrevention = false;
     public static Boolean foundTowny = false;
@@ -287,6 +288,18 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             GooPMMOItems.RegisterCustomStats(getConfig().getInt("MiscStatAmount", 3));
         }
         //endregion
+        //endregion
+
+        //region MythicLib COmp
+        try {
+
+            // Well
+            foundMythicLib = GooPMMOLib.CompatibilityCheck();
+
+        } catch (NoClassDefFoundError e) {
+            // Vr0
+            foundMythicLib = false;
+        }
         //endregion
 
         //region MMOCore Compatibility Attempt

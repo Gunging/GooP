@@ -34,6 +34,7 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
     String mmSkill;
     PlaceholderDouble amount;
     PlaceholderDouble weight;
+    PlaceholderDouble level;
     boolean capBreak;
     boolean pvpBlock;
 
@@ -49,6 +50,7 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
         mmSkill = mlc.getString(new String[] { "skill", "s" });
         capBreak = mlc.getBoolean(new String[] { "capbreak", "cb" }, true);
         pvpBlock = mlc.getBoolean(new String[] { "pvpblock", "pvpb", "preventPlayerDamage", "ppd" }, false);
+        this.level = mlc.getPlaceholderDouble(new String[]{"level", "l"}, -1.0D);
 
         // Must be called in Sync
         setAsyncSafe(false);
@@ -62,6 +64,8 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
         // Cancel if player will exceed cap
         double current = SummonerClassUtils.GetCurrentMinionCount(summonner.getUniqueId());
         double max = SummonerClassUtils.GetMaxMinions(summonner);
+        double effectiveLevel = level.get(skillMetadata, skillMetadata.getCaster().getEntity());
+        if (effectiveLevel == -1) { effectiveLevel = skillMetadata.getCaster().getLevel(); }
         double effectiveWeight = weight.get(skillMetadata, skillMetadata.getCaster().getEntity());
         double effectiveAmount = amount.get(skillMetadata, skillMetadata.getCaster().getEntity());
         double effectiveRange = leashRange.get(skillMetadata, skillMetadata.getCaster().getEntity());
@@ -92,7 +96,7 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
             //MM//OotilityCeption. Log("\u00a73 >\u00a77 " + i);
 
             // Spawn
-            Entity target = GooPMythicMobs.SpawnMythicMob(mmName, loc);
+            Entity target = GooPMythicMobs.SpawnMythicMob(mmName, loc, effectiveLevel);
 
             if (target != null) {
                 //MM//OotilityCeption. Log("\u00a7a >\u00a77 Spawn Success");

@@ -2554,10 +2554,10 @@ public class GooPMMOItems {
             return null;
         }
     }
-    public static ItemStack MMOItemRemoveLoreLine(ItemStack base, Integer index, RefSimulator<String> logger) {
+    public static ItemStack MMOItemRemoveLoreLine(ItemStack base, Integer index, RefSimulator<String> logger) { return MMOItemRemoveLoreLine(base, index, false, logger); }
+    public static ItemStack MMOItemRemoveLoreLine(ItemStack base, Integer index, boolean removeAll, RefSimulator<String> logger) {
 
-
-        // I hope that bitch is not null to begin with
+        // I hope that is not null to begin with
         if (base != null) {
 
             // Result
@@ -2573,7 +2573,7 @@ public class GooPMMOItems {
             if (tNBT.hasType()) {
 
                 // Add lore heck
-                result = RemoveLoreLine(tNBT, index);
+                result = RemoveLoreLine(tNBT, index, removeAll);
 
                 // Log if Appropiate
                 if (result != null) {
@@ -3071,7 +3071,8 @@ public class GooPMMOItems {
             return null;
         }
     }
-    public static ItemStack RemoveLoreLine(NBTItem base, Integer index) {
+    public static ItemStack RemoveLoreLine(NBTItem base, Integer index) { return RemoveLoreLine(base, index, false); }
+    public static ItemStack RemoveLoreLine(NBTItem base, Integer index, boolean removeAll) {
 
         // Test of existance of such type and IDs
         try {
@@ -3086,8 +3087,18 @@ public class GooPMMOItems {
             // Has the items any sockets already?
             if (loreData != null) {
 
+                // Clear lore
+                if (removeAll) {
+
+                    // Replace old lore with a fresh array
+                    mmoitem.setData(GooPMMOItems.Stat(GooPMMOItemsItemStats.LORE), new StringListData());
+
+                    // Get Finished Product
+                    return mmoitem.newBuilder().build();
+                }
+
                 // Get Lore Data
-                ArrayList<String> iLore = new ArrayList<String>(loreData.getList());
+                ArrayList<String> iLore = new ArrayList<>(loreData.getList());
 
                 // Make sure there is any relevant lore data
                 if (iLore.size() > 0) {
