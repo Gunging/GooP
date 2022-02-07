@@ -132,6 +132,13 @@ public abstract class ItemStackSlot {
         // Any case
         if (isAny()) { return "*"; }
 
+        // Special slots
+        switch (getSlot()) {
+            case -7: return "mainhand";
+            case -106: return "offhand";
+            case -107: return "cursor";
+        }
+
         // Single case
         if (getSlot() == getRange()) { return String.valueOf(getSlot()); }
 

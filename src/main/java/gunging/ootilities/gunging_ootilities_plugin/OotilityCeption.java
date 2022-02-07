@@ -4299,7 +4299,7 @@ public class OotilityCeption {
                 iSource.setAmount(mData);
 
                 // Finish
-                Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified amount of \u00a7f" + sName + "\u00a77 to\u00a7a " + mData);
+                Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified amount of \u00a7f" + sName + "\u00a77 to\u00a7a " + mData + "\u00a77. ");
                 return iSource;
 
 
@@ -4307,14 +4307,14 @@ public class OotilityCeption {
             } else {
 
                 // Log and cancel
-                Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Uuuuuh cant really edit the amount of air.");
+                Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Uuuuuh cant really edit the amount of air. ");
                 return null;
             }
 
         } else {
 
             // Log and cancel
-            Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Can't edit the amount of something that doesn't exist!");
+            Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Can't edit the amount of something that doesn't exist! ");
             return null;
 
         }

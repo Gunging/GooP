@@ -109,8 +109,15 @@ public class TargetedItems {
             // Counter air
             if (!allowAir && iSource.isAir()) { continue; }
 
+            // Original Amount
+            int originalAmount = 0;
+            if (!OotilityCeption.IsAirNullAllowed(iSource.getOriginal())) { originalAmount = iSource.getValidOriginal().getAmount(); }
+
             // Process it lets go
             iSource.result = process.Process(iSource);
+
+            // Set amount
+            if (!OotilityCeption.IsAirNullAllowed(iSource.getResult())) { iSource.getResult().setAmount(originalAmount); }
 
             // Success?
             if (condition.isSuccess(iSource)) {
@@ -124,6 +131,11 @@ public class TargetedItems {
                 succeeded = true;
 
                 /*
+                 * What changes must be made to whom score?
+                 */
+                if (scoreHandle != null) { scoreHandle.handleScores(iSource, sInfo); }
+
+                /*
                  * Apply changes to the item, wherever it is
                  */
                 if (applyChanges) { iSource.ApplyChanges(); }
@@ -131,16 +143,7 @@ public class TargetedItems {
                 /*
                  * Build the slots of success that succeed from this command.
                  */
-                if (chained && iSource.type == TargetedItemType.PLAYER) {
-
-                    // Process slots 4 success
-                    OotilityCeption.Slot4Success(sInfo.getSlots4Success(), iSource.player_slot, OotilityCeption.comma);
-                }
-
-                /*
-                 * What changes must be made to whom score?
-                 */
-                if (scoreHandle != null) { scoreHandle.handleScores(iSource, sInfo); }
+                if (chained && iSource.type == TargetedItemType.PLAYER) { OotilityCeption.Slot4Success(sInfo.getSlots4Success(), iSource.player_slot, OotilityCeption.comma); }
 
                 // Update
                 successStuff.put(iSource.getEntity(), sInfo);

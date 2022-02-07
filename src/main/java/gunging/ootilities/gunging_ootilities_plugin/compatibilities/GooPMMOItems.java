@@ -2340,7 +2340,7 @@ public class GooPMMOItems {
 
                 //STAT//for (String str : finalList) { OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Final data: \u00a7b " + str); }
 
-                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Emtpy gem sockets of " + OotilityCeption.GetItemName(iSource) + "\u00a77 changed to a total of \u00a7b" + finalList.size() + "\u00a77. ");
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Empty gem sockets of " + OotilityCeption.GetItemName(iSource) + "\u00a77 changed to a total of \u00a7b" + finalList.size() + "\u00a77. ");
 
             } else {
 
@@ -2349,7 +2349,7 @@ public class GooPMMOItems {
 
                 //STAT//for (String str : finalList) { OotilityCeption.Log("\u00a77STAT\u00a7f GEM\u00a77 Final data: \u00a7b " + str); }
 
-                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Emtpy gem sockets of " + OotilityCeption.GetItemName(iSource) + "\u00a77 were a total of \u00a7b" + finalList.size() + "\u00a77. ");
+                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Empty gem sockets of " + OotilityCeption.GetItemName(iSource) + "\u00a77 were a total of \u00a7b" + finalList.size() + "\u00a77. ");
             }
         }
 
@@ -5799,6 +5799,19 @@ public class GooPMMOItems {
 
                                         // Notify
                                         if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat(subcategory, "Scoreboard operation \u00a73" + objectiveOpp + "\u00a77 is not in the correct format (\u00a7b+4\u00a77, \u00a7b10\u00a77, \u00a7b-20%\u00a77...) nor the \u00a7bread\u00a77 keyword: " + refAddition.getValue())); }
+                                    }
+                                }
+
+                                // Not that stat!
+                                if (!failure) {
+
+                                    if (stat == ItemStats.UPGRADE) {
+
+                                        // Failure
+                                        failure = true;
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) { logReturn.add(OotilityCeption.LogFormat(subcategory, "Please use \u00a7e/goop mmoitems upgrade\u00a77 to upgrade items, using \u00a7e/goop mmoitems stat UPGRADE\u00a77 is not supported because the upgrade stat stores information on the item's upgrade level, max level, min level, upgrade template, upgrade reference...")); }
                                     }
                                 }
 

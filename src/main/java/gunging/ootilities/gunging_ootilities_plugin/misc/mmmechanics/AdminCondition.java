@@ -15,10 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-@MythicCondition(
-        author = "gunging",
-        name = "distance",
-        description = "To detect admins apart from players")
 public class AdminCondition extends CustomMMCondition implements IEntityCondition {
     boolean requireOP;
     @NotNull ArrayList<GameMode> requiredGamemodes = new ArrayList<>();

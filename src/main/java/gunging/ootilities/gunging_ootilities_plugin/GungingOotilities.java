@@ -8769,6 +8769,9 @@ public class GungingOotilities implements CommandExecutor {
                                         // Handle score if
                                         (iSource, sInfo) -> {
 
+                                            // Re-set amount .-.
+                                            iSource.getResult().setAmount(OotilityCeption.RoundToInt(iSource.getRef_dob_a().getValue()));
+
                                             // If the scoreboard stuff is even active
                                             if (useObjective) {
 

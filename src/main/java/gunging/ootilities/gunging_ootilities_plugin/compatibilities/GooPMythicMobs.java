@@ -135,6 +135,11 @@ public class GooPMythicMobs implements Listener {
             case "goopadmin":
                 event.register(new AdminCondition(event.getConfig()));
                 break;
+            case "canpvp":
+            case "canpve":
+            case "canattack":
+                event.register(new CanPvPCondition(event.getConfig()));
+                break;
             case "isminion":
             case "isgoopminion":
                 event.register(new GooPMinionCondition(event.getConfig()));
