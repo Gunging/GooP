@@ -9,8 +9,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-
 public class CanPvPCondition extends CustomMMCondition implements IEntityComparisonCondition {
 
     public CanPvPCondition(@NotNull MythicLineConfig mlc) { super(mlc); }
@@ -32,7 +30,7 @@ public class CanPvPCondition extends CustomMMCondition implements IEntityCompari
         Entity victim = target.getBukkitEntity();
 
         // Run event
-        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(attacker, victim, EntityDamageEvent.DamageCause.ENTITY_ATTACK, new HashMap<>(), new HashMap<>(), false);
+        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(attacker, victim, EntityDamageEvent.DamageCause.ENTITY_ATTACK, 0);
         Bukkit.getPluginManager().callEvent(event);
 
         // Did it get cancelled?

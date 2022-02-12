@@ -4432,13 +4432,54 @@ public class OotilityCeption {
         return ret;
     }
 
+
     /**
      * @param iSource Item to edit
      * @param mat Material to set
      *
      * @return Same item, different material. Fails if the material is invalid for items
      */
-    @NotNull public static ItemStack SetItem(@Nullable ItemStack iSource, @Nullable ItemStack iFinal, @NotNull PlusMinusPercent pValue, @Nullable RefSimulator<String> logger) {
+    @Nullable public static ItemStack CopyItem(@Nullable ItemStack iSource, @Nullable String targetSlot, @Nullable Player targetPlayer, @Nullable ItemStack targetDropped, @NotNull PlusMinusPercent pValue, @Nullable RefSimulator<Integer> outAmount, @Nullable RefSimulator<String> logger) {
+
+        // Attempt to get slots
+        ArrayList<ItemStackSlot> toCopy = getInventorySlots(targetSlot, targetPlayer, logger);
+        if (toCopy.size() == 0 && targetDropped == null) { return null; }
+
+        // Make sure to find an item I guess
+        @NotNull ItemStack chosen;
+        if (toCopy.size() > 0) {
+
+            // Find first
+            ItemStackSlot chosenSlot = toCopy.get(0);
+
+            // Uh no
+            if (targetPlayer == null) {
+                Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Could not evaluate slot \u00a73" + chosenSlot.getRangeToString() + "\u00a77 because there is no player. ");
+                return null; }
+
+            // Evaluate
+            ItemStackLocation loc = chosenSlot.getItem(targetPlayer);
+
+            // Okay
+            chosen = loc.getItem();
+
+        } else {
+
+            // From dropped item
+            chosen = targetDropped;
+        }
+
+        // Set Item, air or clone
+        return SetItem(iSource, IsAirNullAllowed(chosen) ? new ItemStack(Material.AIR) : chosen.clone(), pValue, outAmount, logger);
+    }
+
+        /**
+         * @param iSource Item to edit
+         * @param mat Material to set
+         *
+         * @return Same item, different material. Fails if the material is invalid for items
+         */
+    @NotNull public static ItemStack SetItem(@Nullable ItemStack iSource, @Nullable ItemStack iFinal, @NotNull PlusMinusPercent pValue, @Nullable RefSimulator<Integer> outAmount, @Nullable RefSimulator<String> logger) {
         if (iFinal == null) { iFinal = new ItemStack(Material.AIR); }
 
         // Get Current Item (For amount calculations)
@@ -4453,6 +4494,8 @@ public class OotilityCeption {
 
         // Set amount
         ItemStack ret = iFinal.clone();
+
+        if (outAmount != null) { outAmount.setValue(amount); }
         ret.setAmount(amount);
 
         // Log

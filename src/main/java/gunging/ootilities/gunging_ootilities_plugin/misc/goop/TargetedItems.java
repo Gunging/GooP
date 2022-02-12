@@ -110,7 +110,7 @@ public class TargetedItems {
             if (!allowAir && iSource.isAir()) { continue; }
 
             // Original Amount
-            int originalAmount = 0;
+            int originalAmount = 1;
             if (!OotilityCeption.IsAirNullAllowed(iSource.getOriginal())) { originalAmount = iSource.getValidOriginal().getAmount(); }
 
             // Process it lets go

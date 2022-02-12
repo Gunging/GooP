@@ -8904,13 +8904,122 @@ public class GungingOotilities implements CommandExecutor {
                                         chained, chainedCommand, sender, failMessage,
 
                                         // What method to use to process the item
-                                        iSource -> OotilityCeption.SetItem(iSource.getOriginal(), finalTSource, pValue, iSource.getLogAddition()),
+                                        iSource -> OotilityCeption.SetItem(iSource.getOriginal(), finalTSource, pValue, iSource.getRef_int_a(), iSource.getLogAddition()),
 
                                         // When will it succeed
                                         iSource -> true,
 
                                         // Handle score if
-                                        null
+                                        ((iSource, sInfo) -> {
+
+                                            // Set amount, again
+                                            iSource.getResult().setAmount(iSource.getRef_int_a().getValue());
+                                        })
+                                );
+
+                                // Register the ItemStacks
+                                if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+
+                                // Process the stuff
+                                executor.process();
+
+                                // Was there any log messages output?
+                                if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subsection, executor.getIncludedStrBuilder().toString())); }
+                            }
+
+                        // Incorrect number of args
+                        } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                            // Notify Error
+                            if (args.length >= argsMinLength) {
+                                logReturn.add(OotilityCeption.LogFormat(subsection, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop nbt " + subsection));
+
+                            } else {
+
+                                logReturn.add(OotilityCeption.LogFormat(subsection, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop nbt " + subsection));
+                            }
+
+                            // Notify Usage
+                            logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                        }
+                        break;
+                    //endregion
+                    //region Copy Item
+                    case "copy":
+                        //   0    1    2      3       4          5               6        args.Length
+                        // /goop nbt copy <player> <slots> <source-slot> [±][amount][%]
+                        //   -    0    1      2       3          4               5          args[n]
+                        argsMinLength = 5;
+                        argsMaxLength = 6;
+                        usage = "/goop nbt copy <player> <slots> <source-slot> [±][amount][%]";
+                        subcommand = "Copy";
+                        subsection = "NBT - copy";
+
+                        // Help form?
+                        if (args.length == 2)  {
+
+                            logReturn.add("\u00a7e______________________________________________");
+                            logReturn.add("\u00a73NBT - \u00a7b" + subcommand + ",\u00a77 Copy the contents from one to another slot.");
+                            logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                            logReturn.add("\u00a73 - \u00a7e<slots> \u00a77Slots onto which to copy the target item.");
+                            logReturn.add("\u00a73 - \u00a7e<source-slot> \u00a77Slot of the target item to copy.");
+                            logReturn.add("\u00a73 --> \u00a7cCannot \u00a77target multiple slots.");
+                            logReturn.add("\u00a73 - \u00a7e[±][amount][%] \u00a77Edit the amount of items in the stack, too.");
+
+                        // Correct number of args?
+                        } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                            // Gets that player boi
+                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                            // Does the player exist?
+                            if (targets.size() <  1 && asDroppedItem == null) {
+                                // Failure
+                                failure = true;
+
+                                // Notify the error
+                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subsection, "Target must be an online player!"));
+                            }
+
+                            // Other dropped item I guess
+                            Entity fromDroppedEnt = OotilityCeption.getEntityByUniqueId(args[4]);
+
+                            // Check PMP
+                            PlusMinusPercent pValue;
+                            if (args.length >= 6) {
+                                pValue = PlusMinusPercent.GetPMP(args[5], logAddition);
+                                if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat(subsection, logAddition.getValue())); }
+
+                                if (pValue == null) {
+
+                                    // Failure
+                                    failure = true; }
+
+                            } else { pValue = new PlusMinusPercent(1.0, false, false); }
+
+                            if (!failure) {
+
+                                // Copy of finals
+                                final ItemStack finalFromDropped = OotilityCeption.FromDroppedItem(fromDroppedEnt);
+
+                                // Preparation of Methods
+                                TargetedItems executor = new TargetedItems(true, true,
+                                        chained, chainedCommand, sender, failMessage,
+
+                                        // What method to use to process the item
+                                        iSource -> OotilityCeption.CopyItem(iSource.getOriginal(), args[4], iSource.getPlayer(), finalFromDropped, pValue, iSource.getRef_int_a(), iSource.getLogAddition()),
+
+                                        // When will it succeed
+                                        iSource -> iSource.getResult() != null,
+
+                                        // Handle score if
+                                        ((iSource, sInfo) -> {
+
+                                            // Set amount, again
+                                            iSource.getResult().setAmount(iSource.getRef_int_a().getValue());
+                                        })
                                 );
 
                                 // Register the ItemStacks

@@ -375,6 +375,9 @@ public class ConverterTypes {
         // Block MM
         if (Gunging_Ootilities_Plugin.foundMythicMobs && blockMythicMobs) { if (GooPMythicMobs.isMythicItem(stack)) { return false; } }
 
+        // Is it unidentified? No conversion
+        if (GooPMMOItems.IsUnidentified(stack)) { return false; }
+
         // Usual working
         Material type = stack.getType();
 

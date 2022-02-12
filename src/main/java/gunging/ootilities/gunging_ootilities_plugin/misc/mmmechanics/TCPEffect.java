@@ -23,6 +23,7 @@ import java.util.HashSet;
  */
 public class TCPEffect extends ParticleEffect {
     @NotNull public final PlaceholderFloat radius, rotation, fOff, sOff, vOff, xOff, yOff, zOff;
+    @NotNull public final PlaceholderFloat fScale, sScale, vScale, xScale, yScale, zScale;
 
     boolean useDegrees;
 
@@ -35,6 +36,13 @@ public class TCPEffect extends ParticleEffect {
         this.xOff =   mlc.getPlaceholderFloat(new String[]{"xOff"}, 0.0F);
         this.yOff =   mlc.getPlaceholderFloat(new String[]{"yOff"}, 0.0F);
         this.zOff =   mlc.getPlaceholderFloat(new String[]{"zOff"}, 0.0F);
+
+        this.fScale =   mlc.getPlaceholderFloat(new String[]{"fScale"}, 1.0F);
+        this.sScale =   mlc.getPlaceholderFloat(new String[]{"sScale"}, 1.0F);
+        this.vScale =   mlc.getPlaceholderFloat(new String[]{"vScale"}, 1.0F);
+        this.xScale =   mlc.getPlaceholderFloat(new String[]{"xScale"}, 1.0F);
+        this.yScale =   mlc.getPlaceholderFloat(new String[]{"yScale"}, 1.0F);
+        this.zScale =   mlc.getPlaceholderFloat(new String[]{"zScale"}, 1.0F);
 
         this.radius = mlc.getPlaceholderFloat(new String[]{"radius", "r"}, 5.0F);
         this.rotation = mlc.getPlaceholderFloat(new String[]{"rotation", "rot"}, 0F);
@@ -72,12 +80,18 @@ public class TCPEffect extends ParticleEffect {
     public AbstractVector transform(@NotNull SkillMetadata data, @NotNull AbstractLocation target, double hor, double ver, double fro) {
         AbstractLocation source = data.getCaster().getLocation();
 
+        // Prevent singularities
+        if (source.getX() == target.getX() && source.getY() == target.getY() && source.getZ() == target.getZ()) {
+
+            // Target will be right above source
+            target = source.clone().add(new AbstractVector(0, 0.001, 0)); }
+
         double r = radius.get(data);
 
         // Rotate input relatives about the relative forward axis
-        double o = hor + (sOff.get(data) / r);
-        double p = ver + (vOff.get(data) / r);
-        double f = fro + (fOff.get(data) / r);
+        double o = (hor * sScale.get(data)) + (sOff.get(data) / r);
+        double p = (ver * vScale.get(data)) + (vOff.get(data) / r);
+        double f = (fro * fScale.get(data)) + (fOff.get(data) / r);
         double e = toRadians(rotation.get(data));
         double ce = Math.cos(e), se = Math.sin(e);
 
@@ -105,6 +119,10 @@ public class TCPEffect extends ParticleEffect {
         double t_z = (hor * g_z_dir) - (ver * r_y_dir * g_x_dir) + (f * r_z_dir);
 
         // Add offsets
+        t_x *= xScale.get(data);
+        t_y *= yScale.get(data);
+        t_z *= zScale.get(data);
+
         t_x += (xOff.get(data) / r);
         t_y += (yOff.get(data) / r);
         t_z += (zOff.get(data) / r);

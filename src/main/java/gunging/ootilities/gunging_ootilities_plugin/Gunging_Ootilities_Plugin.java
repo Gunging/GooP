@@ -721,6 +721,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         // Get Custom Configs
         SetupPersistentData(reloadInstances);
+
+        // Send event
+        GooPReloadEvent reloadEvent = new GooPReloadEvent();
+        Bukkit.getPluginManager().callEvent(reloadEvent);
     }
 
     public void UpdateConfigBool(String path, Boolean value) {

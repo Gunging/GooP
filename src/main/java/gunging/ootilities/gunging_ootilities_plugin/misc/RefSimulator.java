@@ -8,5 +8,5 @@ public class RefSimulator<E> {
     public void SetValue( E e ){ this.ref = e; }
     public void setValue( E e ){ this.ref = e; }
 
-    public String toString() { return ref.toString(); }
+    public String toString() { return "Ref<" + ref + ">"; }
 }

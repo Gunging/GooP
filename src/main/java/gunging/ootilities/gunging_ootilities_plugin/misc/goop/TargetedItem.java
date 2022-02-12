@@ -51,6 +51,7 @@ public class TargetedItem {
      * Overwrites the contents of this place yes.
      */
     public void ApplyChanges() {
+
         switch (type) {
             case PLAYER:
                 player_loc.setItem(getResult());

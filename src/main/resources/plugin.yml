@@ -1,5 +1,5 @@
 name: Gunging_Ootilities_Plugin
-version: 1.10.4
+version: 1.10.6
 main: gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin
 api-version: 1.14
 prefix: GooP

@@ -27,7 +27,7 @@ public class GooPGriefEvent extends Event implements Cancellable {
     }
     //endregion
 
-    // Cancellable Standard
+    //region Cancellable Standard
     boolean cancelled = false;
 
     @Override

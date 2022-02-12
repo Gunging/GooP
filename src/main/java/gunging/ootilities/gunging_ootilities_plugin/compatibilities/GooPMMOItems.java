@@ -30,6 +30,7 @@ import net.Indyuce.mmoitems.api.item.mmoitem.VolatileMMOItem;
 import net.Indyuce.mmoitems.api.item.template.MMOItemTemplate;
 import net.Indyuce.mmoitems.api.item.template.NameModifier;
 import net.Indyuce.mmoitems.api.item.template.TemplateModifier;
+import net.Indyuce.mmoitems.api.item.util.identify.IdentifiedItem;
 import net.Indyuce.mmoitems.api.player.PlayerData;
 import net.Indyuce.mmoitems.api.player.RPGPlayer;
 import net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem;
@@ -2419,6 +2420,36 @@ public class GooPMMOItems {
     }
 
     /**
+     * Identifies a stack of Unidentified MMOItems
+     *
+     * @param base ItemStack that may not be an MMOItem
+     * @param toLevel Level operaton
+     * @param breakLimit if it should overshoot the max upgrade level of an item
+     * @return <code>null</code> if anything goes wrong
+     */
+    @Nullable public static ItemStack IdentifyMMOItem(@Nullable ItemStack base, @Nullable RefSimulator<String> logger) {
+
+        // Neh
+        if (OotilityCeption.IsAirNullAllowed(base)) {
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant identify air! ");
+            return null; }
+
+        // Is Unidentified right
+        if (!IsUnidentified(base)) {
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, OotilityCeption.GetItemName(base) + "\u00a77 is not an unidentified MMOItem. ");
+            return null; }
+
+        // Get NBT
+        ItemStack result = (new IdentifiedItem(NBTItem.get(base)).identify());
+
+        // Log success
+        OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Identified " + OotilityCeption.GetItemName(result) + "\u00a77. ");
+
+        // Deal
+        return result;
+    }
+
+    /**
      * Will return the MMOItems lore of this. Not the vanilla.
      */
     @NotNull
@@ -3347,6 +3378,21 @@ public class GooPMMOItems {
     //endregion
 
     //region Identifying MMOItems
+    public static boolean IsUnidentified(@Nullable ItemStack item) {
+
+        // Not unident
+        if (OotilityCeption.IsAirNullAllowed(item)) { return false; }
+
+        // Well
+        return IsUnidentified(NBTItem.get(item));
+    }
+
+    public static boolean IsUnidentified(@Nullable NBTItem item) {
+        if (item == null) { return false; }
+
+        // Check Tag
+        return item.hasTag("MMOITEMS_UNIDENTIFIED_ITEM");
+    }
 
     /**
      * Forces an update of MMOItems player equipment
@@ -4976,6 +5022,84 @@ public class GooPMMOItems {
                                 }
 
                             // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        //region Identify
+                        case "identify":
+                            //   0       1       2         3       4     args.Length
+                            // /goop mmoitems identify <player> <slot>
+                            //   -       0       1         2       3     args[n]
+                            argsMinLength = 4;
+                            argsMaxLength = 4;
+                            usage = "/goop mmoitems identify <player> <slot>";
+                            subcommand = "Identify";
+                            subcategory = "MMOItems - Identify";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Identifies all items in the slot.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+
+                                // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
+                                }
+
+                                if (!failure) {
+
+                                    // Preparation of Methods
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> GooPMMOItems.IdentifyMMOItem(iSource.getValidOriginal(), iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> iSource.getResult() != null,
+
+                                            // Store scores
+                                            null
+                                    );
+
+                                    // Register the ItemStacks
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+
+                                    // Process the stuff
+                                    executor.process();
+
+                                    // Was there any log messages output?
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
+
+                                }
+
+                                // Incorrect number of args
                             } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
 
                                 // Notify Error

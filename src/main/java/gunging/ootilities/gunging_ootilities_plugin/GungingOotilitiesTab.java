@@ -615,6 +615,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                 tabM.add("stat");
                                 tabM.add("upgrade");
                                 tabM.add("equipmentUpdate");
+                                tabM.add("identify");
                                 if (Gunging_Ootilities_Plugin.usingMMOItemShrubs) {
                                     tabM.add("newShrub");
                                     tabM.add("listShrubTypes");
@@ -832,6 +833,21 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             default: break;
                                         }
                                         break;
+                                    case "identify":
+                                        //   0       1       2         3       4     args.Length
+                                        // /goop mmoitems identify <player> <slot>
+                                        //   -       0       1         2       3     args[n]
+
+                                        switch (args.length) {
+                                            case 3:
+                                                tabM = null;
+                                                break;
+                                            case 4:
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
+                                                break;
+                                            default: break;
+                                        }
+                                        break;
                                     case "gettier":
                                         //   0    1      2      3      4       5         6          7   args.Length
                                         // /goop mmi gettier <player> <slot> <value> <objective> <score>
@@ -1039,6 +1055,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                             if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { tabM.add("cModelData"); }
                             tabM.add("enchantment");
                             tabM.add("setMaterial");
+                            tabM.add("copy");
                             tabM.add("setItem");
                             tabM.add("damage");
 
@@ -1261,6 +1278,27 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             }
                                             break;
                                         case 8:
+                                            Collections.addAll(tabM, "+5", "n3", "-8", "+30%", "140%", "-10%");
+                                            break;
+                                        default: break;
+                                    }
+                                    break;
+                                case "copy":
+                                    //   0    1    2      3       4          5               6        args.Length
+                                    // /goop nbt copy <player> <slots> <source-slot> [±][amount][%]
+                                    //   -    0    1      2       3          4               5          args[n]
+
+                                    switch (args.length) {
+                                        case 3:
+                                            tabM = null;
+                                            break;
+                                        case 4:
+                                            Collections.addAll(tabM, "ec*", "4-5", "c<RESULT>");
+                                        case 5:
+                                            Collections.addAll(tabM, "ec2", "14", "c29");
+                                            tabM.addAll(OotilityCeption.getSlotKeywords());
+                                            break;
+                                        case 6:
                                             Collections.addAll(tabM, "+5", "n3", "-8", "+30%", "140%", "-10%");
                                             break;
                                         default: break;
