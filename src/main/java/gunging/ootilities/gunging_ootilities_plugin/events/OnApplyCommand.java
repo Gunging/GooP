@@ -923,7 +923,7 @@ public class OnApplyCommand implements Listener {
         if (cmd.toLowerCase().contains("runskillas")) {
 
             // Prepare placeholder
-            GungingOotilities.providedSlot.put(player.getUniqueId(), providedSlot);
+            GungingOotilities.setProvidedSlot(player.getUniqueId(), SearchLocation.INVENTORY, providedSlot);
         }
 
         // Run command

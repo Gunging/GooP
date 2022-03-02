@@ -5,11 +5,18 @@ import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 
 import java.util.ArrayList;
 
-public class PlusMinusPercent {
+public class PlusMinusPercent implements Cloneable {
 
     Boolean relative = false;
     Double operationValue = 0.0;
     Boolean multiplyPercent = false;
+
+    @Override
+    public PlusMinusPercent clone() {
+
+        // Cloned
+        return new PlusMinusPercent(operationValue, relative, multiplyPercent);
+    }
 
     public PlusMinusPercent(Double value, Boolean relativity, Boolean multiplicative) {
         relative = relativity;
@@ -57,6 +64,18 @@ public class PlusMinusPercent {
 
     public Boolean GetRelative() { return relative; }
     public Boolean getRelative() { return relative; }
+
+    public void setMultiplyPercent(boolean multiplyPercent) {
+        this.multiplyPercent = multiplyPercent;
+    }
+
+    public void setOperationValue(double operationValue) {
+        this.operationValue = operationValue;
+    }
+
+    public void setRelative(boolean relative) {
+        this.relative = relative;
+    }
 
     public Boolean IsPercent() { return multiplyPercent; }
     public Boolean isPercent() { return multiplyPercent; }

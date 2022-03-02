@@ -1564,6 +1564,7 @@ public class GooPMMOItems {
         if (OotilityCeption.IsAirNullAllowed(iSource)) { return null; }
         if (!IsMMOItem(iSource)) { iSource = ConvertVanillaToMMOItem(iSource); }
         boolean readonly = "read".equals(unidentifiedValue);
+        boolean clearStatSuccess = false;
 
         //STAT//OotilityCeption.Log("\u00a77STAT\u00a7c OPS\u00a77 Editing \u00a73" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 into\u00a7e " + unidentifiedValue + "\u00a77 if \u00a7b" + unparsedRange);
 
@@ -1584,7 +1585,15 @@ public class GooPMMOItems {
 
             // Mention
             OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "MMOItem type \u00a7e" + GetMMOItemTypeRaw(iNBT) + "\u00a77 does not support stat \u00a73" + stat.getId() + "\u00a77. ");
-            return null;
+
+            // Well so it cannot be edited... but is it being read?
+            if (readonly) {
+
+                // Will succeed if the stat is clear
+                clearStatSuccess = true;
+
+            // Cannot be edited ~ fail
+            } else { return null; }
         }
 
         // Open up
@@ -1604,7 +1613,7 @@ public class GooPMMOItems {
             //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Current:\u00a7b " + current.getValue());
 
             // Does it have a value?
-            if (unidentifiedValue != null && !readonly) {
+            if (unidentifiedValue != null && !readonly && !clearStatSuccess) {
 
                 // Parse value as number
                 PlusMinusPercent value = PlusMinusPercent.GetPMP(unidentifiedValue, logAddition);
@@ -1656,7 +1665,7 @@ public class GooPMMOItems {
             if (finalValue != null) { finalValue.setValue(expectedData); }
 
             // Edit the data
-            if (!readonly) {
+            if (!readonly && !clearStatSuccess) {
 
                 /*
                  * Since we are merging (additively), for the final value
@@ -1700,7 +1709,7 @@ public class GooPMMOItems {
             //STAT//OotilityCeption.Log("\u00a77STAT\u00a7a BOL\u00a77 Current:\u00a7b " + current.isEnabled());
 
             // Does it have a value?
-            if (unidentifiedValue != null && !readonly) {
+            if (unidentifiedValue != null && !readonly && !clearStatSuccess) {
 
                 // Flip if toggle
                 if ("toggle".equalsIgnoreCase(unidentifiedValue)) { expectedData = !current.isEnabled(); } else {
@@ -1757,7 +1766,7 @@ public class GooPMMOItems {
             // Make data
             if (expectedData != clearState) { endData = new BooleanData(expectedData); }
 
-            if (!readonly) {
+            if (!readonly && !clearStatSuccess) {
 
                 //STAT//OotilityCeption.Log("\u00a77STAT\u00a7a BOL\u00a77 Result:\u00a7b " + endData);
 
@@ -1786,7 +1795,7 @@ public class GooPMMOItems {
             //STAT//OotilityCeption.Log("\u00a77STAT\u00a73 STR\u00a77 Current:\u00a7b " + current);
 
             // Does it have a value? Replace those spaces and roll
-            if (unidentifiedValue != null && !readonly) {
+            if (unidentifiedValue != null && !readonly && !clearStatSuccess) {
                 expectedData = unidentifiedValue.replace("__", " ");
                 //STAT//OotilityCeption.Log("\u00a77STAT\u00a73 STR\u00a77 Expected:\u00a7b " + expectedData);
             } else if (readonly) {
@@ -1814,7 +1823,7 @@ public class GooPMMOItems {
             if (finalValue != null) { finalValue.setValue(expectedData != null ? 1D : 0D); }
             if (expectedData == null) { expectedData = ""; }
 
-            if (!readonly) {
+            if (!readonly && !clearStatSuccess) {
 
                 // What ill be the latest string data?
                 endData = new StringData(expectedData);
@@ -1853,7 +1862,7 @@ public class GooPMMOItems {
             boolean actuallyRemoved = false;
 
             // Does it have a value? Replace those spaces and roll
-            if (unidentifiedValue != null && !readonly) {
+            if (unidentifiedValue != null && !readonly && !clearStatSuccess) {
 
                 // Remove mode: Starts with a minus
                 if (unidentifiedValue.startsWith("-")) {
@@ -1930,7 +1939,7 @@ public class GooPMMOItems {
             // Store final value
             if (finalValue != null) { finalValue.setValue((double) expectedData.size()); }
 
-            if (!readonly) {
+            if (!readonly && !clearStatSuccess) {
 
                 // Get SH
                 StatHistory hist = StatHistory.from(mmo, stat);
@@ -2140,7 +2149,7 @@ public class GooPMMOItems {
             boolean actuallyRemoved = false;
 
             // Does it have a value? Replace those spaces and roll
-            if (unidentifiedValue != null && !readonly) {
+            if (unidentifiedValue != null && !readonly && !clearStatSuccess) {
 
                 // Remove mode: Starts with a minus
                 if (unidentifiedValue.startsWith("-")) {
@@ -2217,7 +2226,7 @@ public class GooPMMOItems {
             // Store final value
             if (finalValue != null) { finalValue.setValue((double) expectedData.size()); }
 
-            if (!readonly) {
+            if (!readonly && !clearStatSuccess) {
 
                 // Get SH
                 StatHistory hist = StatHistory.from(mmo, stat);
@@ -2881,6 +2890,30 @@ public class GooPMMOItems {
      */
     @Nullable
     public static ItemStack MMOItemModifyDurability(@Nullable ItemStack base, @Nullable Player holder, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> reslt, boolean preventBreaking, @Nullable RefSimulator<String> logger) {
+        return MMOItemModifyDurability(base, holder, operation, reslt, preventBreaking, false, logger);
+    }
+    /**
+     * Performs an operation on the durability of an item. If it succeeded on setting the durability, it will return the modified ItemStack.
+     * <p>Will target MMOItems durability if applicable.</p> Does not bypass Unbreakable attribute.
+     * <p></p>
+     * Reasons it could fail: <p>
+     * + The item does not exist </p>
+     * + The item cannot be damaged (say, a stone block) <p>
+     * <p><p>
+     * If it would break by receiving such damage, but it is prevented from breaking, this will not fail
+     * and just return the item at 1 remaining durability.
+     * @param base Item to modify damage of
+     * @param operation Operation to apply, based on the current damage of the item
+     * @param holder Player under whose name to break the MMOItem (will display a message of breaking to them).
+     * @param reslt Stores numerically the final damage the item has.
+     * @param preventBreaking If the operation would break the item, it will set at 1 remaining.
+     * @param useMaxDura If using max durability as source of operation instead of current dura
+     * @param logger Stores a string saying what went wrong, if something did.
+     *
+     * @return If it breaks without prevent breaking, the amount will be set to zero.
+     */
+    @Nullable
+    public static ItemStack MMOItemModifyDurability(@Nullable ItemStack base, @Nullable Player holder, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> reslt, boolean preventBreaking, boolean useMaxDura, @Nullable RefSimulator<String> logger) {
         String pname = "no";
         if (holder != null) { pname = holder.getName(); }
         //dur//OotilityCeption. Log("Dura As MMOItem: " + OotilityCeption.GetItemName(base) + "\u00a77, holder " + pname + "\u00a77, prevent break \u00a7b" + preventBreaking);
@@ -2915,14 +2948,66 @@ public class GooPMMOItems {
 
                 // Simulate Vanilla
                 int vanillaStyleDamage = maxDura - currentDura;
+                double finalValue;
+
+                /*
+                 * Maybe using max durability as operation source.
+                 *
+                 * #1 Setting ~ Set the current durability to this number, no change.
+                 *
+                 * #2 Adding ~ Adds to the current durability
+                 *
+                 * #3 Percent ~ Sets current damage to this percent of the max damage
+                 *
+                 * #4 Plus Percent ~ Adds to the current damage this percent of the max damage
+                 */
+                //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 ------ MMOITems ------ \u00a7f" + operation.toString());
+                //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 Current Damage:\u00a7e " + vanillaStyleDamage);
+                if (useMaxDura) {
+
+                    // Recreate plus minus percent
+                    PlusMinusPercent toMax = operation.clone();
+
+                    // Not relative, just get percent from the max durability
+                    toMax.setRelative(false);
+                    //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 Applying Max Operation:\u00a7e " + toMax.toString() + "\u00a77 to max durability\u00a79 " + base.getType().getMaxDurability());
+
+                    // Apply to that
+                    double convertedMax = toMax.apply((double) base.getType().getMaxDurability());
+
+                    //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 Max Operation Result:\u00a7e " + convertedMax);
+
+                    // Was it additive in the first place?
+                    if (operation.getRelative()) {
+
+                        // Add this percent of max durability to the current
+                        finalValue = convertedMax + vanillaStyleDamage;
+                        //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 Adding result:\u00a7e " + finalValue);
+
+                        // It was a set command
+                    } else {
+
+                        // The final value is this percent
+                        finalValue = convertedMax;
+                        //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 Setting result:\u00a7e " + finalValue);
+                    }
+
+                } else {
+                    //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 Applying Direct Operation:\u00a7e " + operation.toString());
+
+                    // Yeah
+                    finalValue = operation.apply((double) vanillaStyleDamage);
+                    //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 Result:\u00a7e " + finalValue);
+                }
 
                 // Perform operation to current damage
-                int finalDamage = (int) Math.round(operation.apply(vanillaStyleDamage + 0.0D));
+                int finalDamage = (int) Math.round(finalValue);
                 //dur//OotilityCeption. Log("\u00a77As Damage: \u00a7b" + vanillaStyleDamage + " -> " + finalDamage);
 
                 // Constrain I suppose, if its preventing from breaking or there is no holder :thinking:
                 if (preventBreaking) { if (finalDamage >= (maxDura - 1)) { finalDamage = (maxDura - 1); } } else if (finalDamage > maxDura) { finalDamage = maxDura + 1; }
                 if (finalDamage < 0) { finalDamage = 0; }
+                //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 True Result:\u00a76 " + finalValue);
 
                 // Get Actual Durability
                 int finalDura = maxDura - finalDamage;
@@ -2987,7 +3072,7 @@ public class GooPMMOItems {
             } else {
 
                 // Perform operation vanilla-wise
-                result = OotilityCeption.SetDurabilityVanilla(base, operation, reslt, preventBreaking, logger);
+                result = OotilityCeption.SetDurabilityVanilla(base, operation, reslt, preventBreaking, useMaxDura, logger);
             }
 
             return result;
@@ -3533,38 +3618,14 @@ public class GooPMMOItems {
 
         return lTypes;
     }
-    public static List<String> GetMMOItem_IDNames(String ofType) {
-        // Make sure it exists
-        if (lastTypes != null) { if (lastTypes.size() == 0) { GetMMOItem_Types(); } } else { GetMMOItem_Types(); }
+    @NotNull public static List<String> GetMMOItem_IDNames(String ofType) {
 
-        // Well at this point we pretty sure that shit work
-        if (lastTypes != null) {
+        // GEt type
+        Type type = MMOItems.plugin.getTypes().get(ofType);
+        if (type == null) { return new ArrayList<>(); }
 
-            // I guess
-            if (lastTypes.size() > 0) {
-
-                // Get those types
-                TypeManager types = MMOItems.plugin.getTypes();
-                Type typ = types.get(ofType);
-
-                // Did it exist?
-                if (typ != null){
-
-                    // Alr is that even a valid type
-                    if (lastTypes.contains(typ)){
-
-                        // I suppose so
-                        List<String> idNames = new ArrayList<String>();
-                        // Well whats all those IDs
-                        //////// ItemManager itemManager = MMOItems.plugin.getItems(). //BRUH NO LIST
-
-                        return idNames;
-                    }
-                }
-            }
-        }
-
-        return null;
+        // Alr
+        return MMOItems.plugin.getTemplates().getTemplateNames(type);
     }
     static ArrayList<String> statNames = null;
     public static ArrayList<String> GetMMOItem_StatNames() {

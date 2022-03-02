@@ -8,6 +8,7 @@ import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCCommands;
 import gunging.ootilities.gunging_ootilities_plugin.containers.interaction.ContainersInteractionHandler;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Player;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructures;
+import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.CustomStructureMetaSource;
 import gunging.ootilities.gunging_ootilities_plugin.events.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
@@ -30,10 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Listener {
 
@@ -46,6 +44,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static Boolean anvilRenameEnabled = false;
     public static boolean spamPunchingJSON = false;
     public static boolean useMMOLibDefenseConvert = false;
+    public static boolean csPressurePlates = false;
     public static Boolean devLogging = false;
     public static Player devPlayer = null;
     public static Double nameRangeExclusionMin = null;
@@ -101,6 +100,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         // Singleton
         OotilityCeption.Fill_xSupression();
+        CustomStructureMetaSource.registerAll();
 
         // Is it Paper Spigot?
         @SuppressWarnings("ConstantConditions") EntityDeathEvent paperSpigot = new EntityDeathEvent(null, null);
@@ -131,7 +131,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             premiumCNCheck.CompatibilityCheck();
             GOOPCManager.enable();
 
-        } catch (NoClassDefFoundError ignored) { }
+        } catch (NoClassDefFoundError ignored) {
+
+            GOOPCManager.enableLiteEquipment(getConfig().getString("Containers.Lite"));
+        }
         //endregion
 
         //region World Guard Compatibility Attempt
@@ -601,6 +604,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         String nameRangeExclusionMinRaw = null, nameRangeExclusionMaxRaw = null, placeholderReadablenessRaw = null;
         useMMOLibDefenseConvert = getConfig().getBoolean("ConverterUsesDefense", false);
         spamPunchingJSON = getConfig().getBoolean("JSONFurnitureSpamPunchingBreak", true);
+        csPressurePlates = getConfig().getBoolean("CustomStructures.PlayerPressurePlates", false);
         if (getConfig().contains("SendSuccessFeedback"))
             sendGooPSuccessFeedback = getConfig().getBoolean("SendSuccessFeedback");
         if (getConfig().contains("SummonLeashKillDistance"))
@@ -837,7 +841,6 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         GetConfigAt(null, "external-examples/MMOItems/dynamic/mythic-mobs-abilities/prismanecer.yml", true, false);
         GetConfigAt(null, "external-examples/MMOItems/item/conbuff.yml", true, false);
         GetConfigAt(null, "external-examples/MMOItems/item/consumable.yml", true, false);
-        GetConfigAt(null, "external-examples/MMOItems/language/stats.yml", true, false);
 
         GetConfigAt(null, "external-examples/MythicMobs/Packs/GooPExamples/Items/items_goop.yml", true, false);
         GetConfigAt(null, "external-examples/MythicMobs/Packs/GooPExamples/Mobs/mobs_goop.yml", true, false);
@@ -882,23 +885,26 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public ArrayList<FileConfigPair> pairs2save = new ArrayList<>();
     public void SaveFile(FileConfigPair csPair) {
         // Assuming it is ALWAYS the latest or a modification of the latest
+        //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a77 Saving \u00a7e" + csPair.getFile().getPath()));
 
         // Update the latest
         l8st.put(csPair.getFile().getPath(), csPair);
-        //DBG*/theOots.ECP Log("MMOItem Shrubs", "Made changes to storage pertaining to \u00a7b" + csPair.getFile().getPath());
 
         //region Make sure it is marked to be saved
         if (pairs2save == null) { pairs2save = new ArrayList<>(); }
 
         //endregion
         pairs2save.add(csPair);
+        //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a77 Queue Size \u00a7e" + pairs2save.size()));
 
         // Save the file half a second from now with all its changes
         if (!Gunging_Ootilities_Plugin.theMain.savingTheseTicks && !Gunging_Ootilities_Plugin.theMain.shutDown) {
             Gunging_Ootilities_Plugin.theMain.savingTheseTicks = true;
+            //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 Queue Registered"));
 
             (new BukkitRunnable() {
                 public void run() {
+                    //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 --- Queue Run ---"));
 
                     // Basically Save
                     Gunging_Ootilities_Plugin.theMain.FileSaveExecution();
@@ -916,14 +922,20 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         while (pairs2save.size() > 0) {
 
             FileConfigPair fl = pairs2save.get(0);
+            //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a77 Saving file\u00a7b " + fl.getFile().getPath()));
 
             // Basically Saves it
             try {
 
                 // Save all files
                 fl.getStorage().save(fl.getFile());
+                //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7a Saved!"));
 
-            } catch (IOException ignored) { }
+            } catch (IOException ignored) {
+
+                //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7c IOException!!! " + ignored.getMessage()));
+                ignored.printStackTrace();
+            }
 
             // Remove
             pairs2save.remove(0);

@@ -445,7 +445,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                             case 5:
                                 switch (args[2]){
                                     case "m":
-                                        tabM.add("<MMOItem ID of your Item>");
+                                        tabM.addAll(GooPMMOItems.GetMMOItem_IDNames(args[3]));
                                         //if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_IDNames(args[4]); } else { tabM =  = new ArrayList<String>(); }
                                         break;
                                     case "e":
@@ -496,7 +496,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                             case 6:
                                 switch (args[3]){
                                     case "m":
-                                        tabM.add("<MMOItem ID of your Item>");
+                                        tabM.addAll(GooPMMOItems.GetMMOItem_IDNames(args[4]));
                                         //if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_IDNames(args[4]); } else { tabM = new ArrayList<String>(); }
                                         break;
                                     case "e":
@@ -1179,9 +1179,11 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                             for (Objective objectiv : scoreboard.getObjectives()) { tabM.add(objectiv.getName()); }
 
-                                            if (args[1].toLowerCase().equals("damage")) { Collections.addAll(tabM, "true", "false"); }
+                                            if (args[1].toLowerCase().equals("damage")) { Collections.addAll(tabM, "(prevent-breaking?)", "true", "false"); }
                                             break;
                                         case 7:
+                                            if (args[1].toLowerCase().equals("damage")) { Collections.addAll(tabM, "(use-max-durability?)", "true", "false"); }
+                                        case 8:
                                             if (args[1].toLowerCase().equals("damage")) {
                                                 scoreboardManager = Bukkit.getScoreboardManager();
                                                 scoreboard = scoreboardManager.getMainScoreboard();
@@ -1269,7 +1271,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         case 7:
                                             switch (args[4]){
                                                 case "m":
-                                                    tabM.add("<MMOItem ID of your Item>");
+                                                    tabM.addAll(GooPMMOItems.GetMMOItem_IDNames(args[5]));
                                                     //if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_IDNames(args[4]); } else { tabM = new ArrayList<String>(); }
                                                     break;
                                                 case "v":
@@ -1474,7 +1476,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                                         case PRESSUREPLATE_ITEMS:
                                                                                             switch (args[7]) {
                                                                                                 case "m":
-                                                                                                    tabM.add("<MMOItem ID of your Item>");
+                                                                                                    tabM.addAll(GooPMMOItems.GetMMOItem_IDNames(args[6]));
                                                                                                     //if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_IDNames(args[4]); } else { tabM = new ArrayList<String>(); }
                                                                                                     break;
                                                                                                 case "e":
@@ -1593,7 +1595,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                                         case PRESSUREPLATE_ITEMS:
                                                                                             switch (args[8]) {
                                                                                                 case "m":
-                                                                                                    tabM.add("<MMOItem ID of your Item>");
+                                                                                                    tabM.addAll(GooPMMOItems.GetMMOItem_IDNames(args[7]));
                                                                                                     //if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_IDNames(args[4]); } else { tabM = new ArrayList<String>(); }
                                                                                                     break;
                                                                                                 case "e":
@@ -1957,7 +1959,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                 //region build
                                 case "build":
                                     //   0           1           2         3          4   5   6   7    args.Length
-                                    // /goop customstructures build <structure name> [w] [x] [y] [z]
+                                    // /goop customstructures build <structure name> [w] [x] [y] [z] [frw]
                                     //   -           0           1          2         3   4   5   6    args[n]
 
                                     // Gets block player is pointing at. AIR = NULL
@@ -2035,6 +2037,9 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 tabM.add(((Integer)((Player)sender).getLocation().getBlockZ()).toString());
                                             }
                                             //endregion
+                                            break;
+                                        case 8:
+                                            for (Orientations or : Orientations.values()) { tabM.add(or.toString()); }
                                             break;
                                         default: break;
                                     }
@@ -2242,6 +2247,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                             tabM.add("see");
                             tabM.add("close");
                             tabM.add("access");
+                            if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM.add("tempEquip"); }
                             tabM.add("config");
                             tabM.add("unregister");
 
@@ -2276,6 +2282,53 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         case 5:
                                             tabM.add("USAGE");
                                             tabM.add("PREVIEW");
+                                            break;
+                                        default:  break;
+                                    }
+                                    break;
+                                    //endregion
+                                //region tempequip
+                                case "tempequip":
+                                    //   0        1         2           3         4     5       6 7 8    9         args.Length
+                                    // /goop containers tempeEquip <container> <slot> <player> <m T I> [time]
+                                    //   -        0         1           2         3     4       5 6 7    8         args[n]
+
+
+                                    switch (args.length) {
+                                        case 3:
+                                            tabM.addAll(GCL_Personal.getByInternalName().keySet());
+                                            break;
+                                        case 4:
+                                            tabM.add("0");
+                                            tabM.add("1");
+                                            tabM.add("2");
+                                            tabM.add("23");
+                                            tabM.add("34");
+                                            tabM.add("45");
+                                            tabM.add("56");
+                                            break;
+                                        case 5:
+                                            tabM = null;
+                                            break;
+                                        case 6:
+                                            tabM.add("m");
+                                            break;
+                                        case 7:
+                                            switch (args[5]){
+                                                case "m":
+                                                    if (Gunging_Ootilities_Plugin.foundMMOItems) tabM = GooPMMOItems.GetMMOItem_TypeNames();
+                                                    break;
+                                            }
+                                            break;
+                                        case 8:
+                                            switch (args[5]){
+                                                case "m":
+                                                    if (Gunging_Ootilities_Plugin.foundMMOItems) tabM.addAll(GooPMMOItems.GetMMOItem_IDNames(args[6]));
+                                                    break;
+                                            }
+                                            break;
+                                        case 9:
+                                            Collections.addAll(tabM, "(timer)", "20s", "120s", "5m" ,"72h", "180d", "1y");
                                             break;
                                         default:  break;
                                     }
@@ -2360,17 +2413,15 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         case 5:
                                             //region w
                                             // Assuming it IS a player and not the console, console wont be considered.
-                                            if (sender instanceof Player) {
-                                                if (tBlock != null) {
+                                            if (tBlock != null) {
 
-                                                    // Block exists, use thay
-                                                    tabM.add(tBlock.getWorld().getName());
+                                                // Block exists, use thay
+                                                tabM.add(tBlock.getWorld().getName());
 
-                                                } else {
+                                            } else {
 
-                                                    // Default Shit: All
-                                                    for (World wrld : Bukkit.getWorlds()) { tabM.add(wrld.getName()); }
-                                                }
+                                                // Default Shit: All
+                                                for (World wrld : Bukkit.getWorlds()) { tabM.add(wrld.getName()); }
                                             }
                                             //endregion
                                             break;
@@ -2525,6 +2576,8 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         tabM.add("edgeMaterial");
                                         tabM.add("restrictions");
                                         tabM.add("view");
+                                        tabM.add("options");
+                                        tabM.add("station");
 
                                     } else {
 
@@ -2610,9 +2663,54 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                         break;
                                                     case 5:
                                                         Collections.addAll(tabM, "0", "1-4", "2", "3-5", "0-8,18-26", "0,2,4,6,8", "0,2-6,8");
+                                                    case 6:
+                                                        Collections.addAll(tabM, "true", "false");
+                                                        break;
+                                                    default:  break;
+                                                }
+
+                                                break;
+                                            //endregion
+                                            //region Options
+                                            case "options":
+                                                //   0      1          2     3       4         5        6       args.Length
+                                                // /goop containers config view <container> <option> <value>
+                                                //   -      0          1     2       3         4        5       args[n]
+
+                                                switch (args.length) {
+                                                    case 4:
+                                                        // Adds all loaded structures
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
+
+                                                        break;
+                                                    case 5:
+                                                        Collections.addAll(tabM, "MythicLibStation", "AllowDrag", "DragOverflow", "DuplicateEquipment", "EdgeFormations");
                                                         break;
                                                     case 6:
                                                         Collections.addAll(tabM, "true", "false");
+                                                        break;
+                                                    default:  break;
+                                                }
+
+                                                break;
+                                            //endregion
+                                            //region Station Options
+                                            case "station":
+                                                //   0      1          2      3          4          5        6      args.Length
+                                                // /goop containers config station <container> resultSlot [slot]
+                                                //   -      0          1      2          3          4        5      args[n]
+
+                                                switch (args.length) {
+                                                    case 4:
+                                                        // Adds all loaded structures
+                                                        tabM.addAll(GCL_Templates.getByInternalName().keySet());
+
+                                                        break;
+                                                    case 5:
+                                                        Collections.addAll(tabM, "resultSlot");
+                                                        break;
+                                                    case 6:
+                                                        Collections.addAll(tabM, "0", "1", "2", "4", "8", "16", "32");
                                                         break;
                                                     default:  break;
                                                 }
@@ -2722,7 +2820,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                                 break;
                                             //endregion
-                                            //region Equipment
+                                            //region Restrictions
                                             case "restrictions":
                                             case "restrict":
                                                 //   0      1          2      3          4                5         6       7       args.Length

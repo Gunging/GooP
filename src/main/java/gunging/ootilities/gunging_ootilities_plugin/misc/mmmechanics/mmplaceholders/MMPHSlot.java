@@ -16,15 +16,20 @@ public class MMPHSlot extends MMPlaceholder {
         // Was it <goop.slot.provided> ?
         if (arg.toLowerCase().equals("provided")) {
 
-            // If the caster UUID is associated to a provided slot
-            if (GungingOotilities.providedSlot.containsKey(metadata.getCaster().getEntity().getUniqueId())) {
+            // Get provided
+            String providedSlot = GungingOotilities.getProvidedSlot(metadata.getCaster().getEntity().getUniqueId(), false);
 
-                // Return the value of that 'provided slot'
-                return String.valueOf(GungingOotilities.providedSlot.get(metadata.getCaster().getEntity().getUniqueId()));
+            // Return the value of that 'provided slot'
+            if (providedSlot != null) { return providedSlot; } else { return "{ent}"; }
 
+            // The slot is invalid (only <goop.slot.provided> is supported for now)
+        } else if (arg.toLowerCase().equals("provided.full")) {
 
-                // The entity is invalid (it has no provided slot associated to it)
-            } else { return "{ent}"; }
+            // Get provided
+            String providedSlot = GungingOotilities.getProvidedSlot(metadata.getCaster().getEntity().getUniqueId(), true);
+
+            // Return the value of that 'provided slot'
+            if (providedSlot != null) { return providedSlot; } else { return "{ent}"; }
 
             // The slot is invalid (only <goop.slot.provided> is supported for now)
         } else { return "{slt}"; }

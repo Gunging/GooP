@@ -110,11 +110,20 @@ public class GooPPlaceholderAPI extends PlaceholderExpansion {
             String identifier2 = identifier.substring("slot_".length());
             if (identifier2.equals("provided")) {
 
-                if (GungingOotilities.providedSlot.containsKey(player.getUniqueId())) {
+                // Get provided
+                String providedSlot = GungingOotilities.getProvidedSlot(player.getUniqueId(), false);
 
-                    return String.valueOf(GungingOotilities.providedSlot.get(player.getUniqueId()));
+                // Return that value
+                if (providedSlot != null) { return providedSlot; } else { return "Invalid Entity"; }
 
-                } else { return "Invalid Entity"; }
+            } else if (identifier2.equals("provided_full")) {
+
+                // Get provided
+                String providedSlot = GungingOotilities.getProvidedSlot(player.getUniqueId(), true);
+
+                // Return that value
+                if (providedSlot != null) { return providedSlot; } else { return "Invalid Entity"; }
+
             }
 
         // %goop_bowdraw%

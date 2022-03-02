@@ -13,6 +13,19 @@ ConverterUsesDefense: false
 #VaultLowBalance: "&cYou need $%charge% to use this"
 SummonLeashKillDistance: 60
 
+CustomStructures:
+
+  #
+  #   Detect the pressure plates as structure triggers?
+  #
+  #   It has been reported to impact performance on large servers after
+  #   several hours of running, as such the option to enable/disable it
+  #   was added. I suppose if you don't use its better to just disable
+  #   it anyway.
+  #
+  PlayerPressurePlates: false
+
+
 JSONFurnitureSpamPunchingBreak: true
 
 # Some MMOItems stuff, for the TAB complete

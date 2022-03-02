@@ -4,6 +4,7 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.*;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.containers.*;
+import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISSObservedContainer;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Personal;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Physical;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Player;
@@ -18,6 +19,8 @@ import gunging.ootilities.gunging_ootilities_plugin.events.GooP_FontUtils;
 import gunging.ootilities.gunging_ootilities_plugin.events.ScoreboardLinks;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.TargetedItems;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ISSEnderchest;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ISSInventory;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackLocation;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackSlot;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
@@ -237,7 +240,6 @@ public class GungingOotilities implements CommandExecutor {
 
                 } else { chained = false; }
             }
-
 
             // Which command thoi?
             switch (cmd) {
@@ -3094,12 +3096,12 @@ public class GungingOotilities implements CommandExecutor {
                                 //endregion
                                 //region build
                                 case "build":
-                                    //   0           1           2         3          4   5   6   7    args.Length
-                                    // /goop customstructures build <structure name> [w] [x] [y] [z]
-                                    //   -           0           1          2         3   4   5   6    args[n]
+                                    //   0           1           2         3          4   5   6   7   8 args.Length
+                                    // /goop customstructures build <structure name> [w] [x] [y] [z] [f]
+                                    //   -           0           1          2         3   4   5   6   7 args[n]
 
                                     // Correct number of args?
-                                    if (args.length == 3 || args.length == 7) {
+                                    if (args.length == 3 || args.length >= 7) {
 
                                         // Gets that location boi
                                         Location targetLocation = null;
@@ -3157,7 +3159,7 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         // Parse location?
-                                        if (args.length == 7) {
+                                        if (args.length >= 7) {
 
                                             // Make Error Messager
                                             RefSimulator<String> logAddition = new RefSimulator<>("");
@@ -3176,11 +3178,29 @@ public class GungingOotilities implements CommandExecutor {
                                             if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build", logAddition.GetValue())); }
                                         }
 
+                                        Orientations o = Orientations.SouthForward;
+                                        if (args.length >= 8) {
+
+                                            try {
+
+                                                // Add those
+                                                o = Orientations.valueOf(args[7]);
+
+                                            } catch (IllegalArgumentException ignored) {
+
+                                                // No loaded strucutre of such name
+                                                failure = true;
+
+                                                // Mention
+                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build","Unknown facing direction \u00a73" + args[7]));
+                                            }
+                                        }
+
                                         // Bice sintax
                                         if (!failure) {
 
                                             // Build at location
-                                            CustomStructures.csLoadedStructures.get(args[2]).generateAt(targetLocation, Orientations.SouthForward);
+                                            CustomStructures.csLoadedStructures.get(args[2]).generateAt(null, targetLocation, o,false, false, false);
 
                                             // Mention success
                                             if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build","Successfuly Generated Structure \u00a73" + args[2] + "\u00a77 at \u00a7e " + OotilityCeption.BlockLocation2String(targetLocation))); }
@@ -3191,10 +3211,11 @@ public class GungingOotilities implements CommandExecutor {
 
                                         logReturn.add("\u00a7e______________________________________________");
                                         logReturn.add("\u00a73Custom Structures - \u00a7bBuild, \u00a77Place loaded structure in the world.");
-                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures build <structure name> [w x y z]");
+                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures build <structure name> [w x y z] [facing]");
                                         logReturn.add("\u00a73 - \u00a7e<structure name> \u00a77Name of the loaded structure");
                                         logReturn.add("\u00a73 - \u00a7e[w] \u00a77World");
                                         logReturn.add("\u00a73 - \u00a7e[x y z] \u00a77Coords");
+                                        logReturn.add("\u00a73 - \u00a7e[facing] \u00a77Facing direction, by default south.");
                                         logReturn.add("\u00a78/goop customstructures build Stove world 420 69 30");
 
                                     } else {
@@ -8273,12 +8294,12 @@ public class GungingOotilities implements CommandExecutor {
                     //region Durability Damage
                     case "damage":
                     case "durability":
-                        //   0    1     2      3       4       5       6        7       args.Length
-                        // /goop nbt damage <player> <slot> <value> [break] [objective]
-                        //   -    0     1      2       3       4       5        6       args[n]
+                        //   0    1     2      3       4       5       6        7        8      args.Length
+                        // /goop nbt damage <player> <slot> <value> [break] [usemax] [objective]
+                        //   -    0     1      2       3       4       5        6        7       args[n]
                         argsMinLength = 5;
-                        argsMaxLength = 7;
-                        usage = "/goop nbt damage <player> <slot> [±][damage][%] [break] [objective]";
+                        argsMaxLength = 8;
+                        usage = "/goop nbt damage <player> <slot> [±][damage][%] [preventBreak] [useMax] [objective]";
                         subcommand = "Durability Damage";
                         subsection = "NBT - Durability Damage";
 
@@ -8291,7 +8312,12 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
                             logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
                             logReturn.add("\u00a73 - \u00a7e[±][damage][%] \u00a77Damage the item has taken.");
-                            logReturn.add("\u00a73 - \u00a7e[break] \u00a77If the damage exceeds max durability, destroy item?.");
+                            logReturn.add("\u00a73 - \u00a7e[preventBreak] \u00a77If the damage exceeds max durability, destroy item?.");
+                            logReturn.add("\u00a73 --> \u00a7btrue \u00a77Item will always survive with 1 durability left.");
+                            logReturn.add("\u00a73 --> \u00a7bfalse \u00a77Item might break because of this command.");
+                            logReturn.add("\u00a73 - \u00a7e[useMax] \u00a77Perform operation based on max durability?");
+                            logReturn.add("\u00a73 --> \u00a7btrue \u00a77Damage operation uses the item max durability.");
+                            logReturn.add("\u00a73 --> \u00a7bfalse \u00a77Damage operation uses the item current durability.");
                             logReturn.add("\u00a73 - \u00a7e[objective] \u00a77Save the result onto the player's score.");
                             logReturn.add("\u00a78Score is the final value miltiplied by 10.");
 
@@ -8303,38 +8329,89 @@ public class GungingOotilities implements CommandExecutor {
 
                             // Boolean to save or keep
                             boolean preventBreaking = true;
+                            boolean useMaxDura = false;
                             String scoreboardGit = null;
                             if (args.length >= 6) {
+                                //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Optional Arguments");
+
+                                String preventBreakingRaw = args[5];
+                                String useMaxDuraRaw = null;
 
                                 // It did not parse, is there a seventh?
                                 if (args.length == 7) {
 
+                                    // Maybe it means the max dura
+                                    useMaxDuraRaw = args[6];
+
+                                } else if (args.length == 8) {
+
+                                    // Okay we know what it is
+                                    useMaxDuraRaw = args[6];
+
                                     // Take that as the score
-                                    scoreboardGit = args[6];
+                                    scoreboardGit = args[7];
                                 }
 
+                                //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Arg Prevent Break:\u00a73 " + preventBreakingRaw);
+                                //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Arg Use Max:\u00a73 " + useMaxDuraRaw);
+                                //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Arg Score:\u00a73 " + scoreboardGit);
+
                                 // Does it parse as boolean?
-                                if (OotilityCeption.BoolTryParse(args[5])) {
+                                if (OotilityCeption.BoolTryParse(preventBreakingRaw)) {
 
                                     // Thats the prevent break
-                                    preventBreaking = Boolean.parseBoolean(args[5]);
+                                    preventBreaking = Boolean.parseBoolean(preventBreakingRaw);
+                                    //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Parsed Prevent Break:\u00a7b " + preventBreaking);
 
-                                    // Why gotta decide which one is the scoreboard
+                                // If the size is exactly six, the scoreboard may alternatively have been there
                                 } else if (args.length == 6) {
 
                                     // Length is 6 and it is not a bool value, assume it is the coreboard
                                     scoreboardGit = args[5];
+                                    //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Transfer to Score:\u00a7b " + scoreboardGit);
 
-                                    // It doesnt parse but it is of length 7
+                                // It doesnt parse but it is of length 7 or 8, thats error parsing that boolean
                                 } else {
 
                                     // Boolean parse error
                                     failure = true;
 
                                     // Notify
-                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subsection, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a73" + args[5] + "\u00a77 for prevent breaking option."));
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subsection, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a73" + preventBreakingRaw + "\u00a77 for prevent breaking option."));
                                 }
+
+                                // Specified max dura raw?
+                                if (useMaxDuraRaw != null) {
+                                    //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Step Parse\u00a7c " + useMaxDuraRaw);
+
+                                    // Does it parse as boolean?
+                                    if (OotilityCeption.BoolTryParse(useMaxDuraRaw)) {
+
+                                        // Thats the use max durability
+                                        useMaxDura = Boolean.parseBoolean(useMaxDuraRaw);
+                                        //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Parsed Max Dura:\u00a7b " + useMaxDura);
+
+                                        // If the size is exactly seven, the scoreboard may alternatively have been there
+                                    } else if (args.length == 7) {
+
+                                        // Length is 6 and it is not a bool value, assume it is the coreboard
+                                        scoreboardGit = args[6];
+                                        //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Transfer to Score:\u00a7b " + scoreboardGit);
+
+                                    // It doesnt parse but it is of length 8, thats error parsing that boolean
+                                    } else {
+
+                                        // Boolean parse error
+                                        failure = true;
+
+                                        // Notify
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subsection, "Expected \u00a7btrue\u00a77 or \u00a7bfalse\u00a77 instead of \u00a73" + useMaxDuraRaw + "\u00a77 for using max durability option."));
+                                    }
+                                    //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Step Parse\u00a7a " + useMaxDura);
+                                }
+                                //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Step Dura\u00a7a " + useMaxDura);
                             }
+                            //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Step -2\u00a7a " + useMaxDura);
 
                             // Some scoreboards to test
                             ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -8345,6 +8422,7 @@ public class GungingOotilities implements CommandExecutor {
                                 targetObjective = targetScoreboard.getObjective(scoreboardGit);
                                 scor = new RefSimulator<>(0.0);
                             }
+                            //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Step -1\u00a7a " + useMaxDura);
 
                             // Does the player exist?
                             if (targets.size() <  1 && asDroppedItem == null) {
@@ -8354,6 +8432,7 @@ public class GungingOotilities implements CommandExecutor {
                                 // Notify the error
                                 if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subsection, "Target must be an online player!"));
                             }
+                            //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Step 0\u00a7a " + useMaxDura);
 
                             PlusMinusPercent pValue = PlusMinusPercent.GetPMP(args[4], logAddition);
                             if (logAddition.getValue() != null) { logReturn.add(OotilityCeption.LogFormat(subsection, logAddition.getValue())); }
@@ -8361,6 +8440,7 @@ public class GungingOotilities implements CommandExecutor {
                                 // Failure
                                 failure = true;
                             }
+                            //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Step 1\u00a7a " + useMaxDura);
 
                             if (scoreboardGit != null && targetObjective == null) {
                                 // Failure
@@ -8371,6 +8451,7 @@ public class GungingOotilities implements CommandExecutor {
 
                             // For cummulative score
                             double tScore = 0.0;
+                            //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Pre Failure\u00a7a " + useMaxDura);
 
                             if (!failure) {
 
@@ -8378,13 +8459,15 @@ public class GungingOotilities implements CommandExecutor {
                                 final Objective finalTargetObjective = targetObjective;
                                 final boolean useObjective = targetObjective != null;
                                 boolean finalPreventBreaking = preventBreaking;
+                                boolean finalUseMax = useMaxDura;
+                                //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Passing Use Max Dura:\u00a72 " + finalUseMax);
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(false, true,
                                         chained, chainedCommand, sender, failMessage,
 
                                         // What method to use to process the item
-                                        iSource -> OotilityCeption.SetDurability(iSource.getValidOriginal(), iSource.getPlayer(), pValue, iSource.getRef_dob_a(), finalPreventBreaking, iSource.getLogAddition()),
+                                        iSource -> OotilityCeption.SetDurability(iSource.getValidOriginal(), iSource.getPlayer(), pValue, iSource.getRef_dob_a(), finalPreventBreaking, finalUseMax, iSource.getLogAddition()),
 
                                         // When will it succeed
                                         iSource -> iSource.getResult() != null,
@@ -9122,5 +9205,94 @@ public class GungingOotilities implements CommandExecutor {
         logReturnUrn.SetValue(logReturn);
     }
 
-    public static HashMap<UUID, Integer> providedSlot = new HashMap<>();
+    /**
+     * Sets the one slot the player clicked.
+     *
+     * @param player Player who is clicking
+     * @param location Location where they did click
+     * @param number Slot number they clicked
+     */
+    public static void setProvidedSlot(@NotNull UUID player, @NotNull SearchLocation location, int number) {
+
+        // The one to set
+        ItemStackSlot ret;
+        switch (location) {
+            default:
+
+                // Just in inventory
+                ret = new ISSInventory(number, null);
+                break;
+            case OBSERVED_CONTAINER:
+            case PERSONAL_CONTAINER:
+
+                // Just in observed container
+                ret = new ISSObservedContainer(number, null, null);
+                break;
+            case ENDERCHEST:
+
+                // Just in inventory
+                ret = new ISSEnderchest(number, null);
+                break;
+        }
+
+        // Put simple
+        ArrayList<ItemStackSlot> cleared = new ArrayList<>();
+        cleared.add(ret);
+
+        // Register
+        providedSlot.put(player, cleared);
+    }
+
+    /**
+     * Sets the one slot the player clicked.
+     *
+     * @param player Player who is clicking
+     * @param location Location where they did click
+     * @param number Slot number they clicked
+     */
+    public static void setProvidedSlots(@NotNull UUID player, @NotNull ArrayList<ItemStackSlot> locs) {
+
+        // Register
+        providedSlot.put(player, locs);
+    }
+
+    /**
+     * @param player Player you are querying.
+     *
+     * @return All the provided slots of the player (generally one) with
+     *         or without the key prefixes.
+     */
+    @Nullable public static String getProvidedSlot(@Nullable UUID player, boolean includeLocationPrefixes) {
+        if (player == null) { return null; }
+
+        ArrayList<ItemStackSlot> found = providedSlot.get(player);
+        if (found == null || found.size() == 0) { return null; }
+
+        boolean separated = false;
+        StringBuilder builder = new StringBuilder();
+
+        // All right begin building it
+        for (ItemStackSlot slot : found) {
+
+            // Separate with comma
+            if (separated) { builder.append(","); } else { separated = true; }
+
+            // Append slot
+            if (includeLocationPrefixes) {
+
+                // Append with prefix
+                builder.append(slot.toString());
+
+            } else {
+
+                // Append without prefix
+                builder.append(slot.getSlot());
+            }
+        }
+
+        // Yeah
+        return builder.toString();
+    }
+
+    @NotNull static HashMap<UUID, ArrayList<ItemStackSlot>> providedSlot = new HashMap<>();
 }

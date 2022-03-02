@@ -31,10 +31,8 @@ import static gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.OnSh
 
 public class OnAttackAura extends Aura implements ITargetedEntitySkill {
 
-    @NotNull
-    PlaceholderString skillName;
-    @Nullable
-    Skill metaskill;
+    @NotNull PlaceholderString skillName;
+    @Nullable Skill metaskill;
     protected boolean cancelDamage;
     protected boolean traceSource;
     protected boolean modDamage = false;

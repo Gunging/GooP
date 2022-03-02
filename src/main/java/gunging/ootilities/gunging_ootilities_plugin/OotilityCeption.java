@@ -4361,7 +4361,31 @@ public class OotilityCeption {
      */
     @Nullable
     public static ItemStack SetDurability(@Nullable ItemStack iSource, @Nullable Player mmoitemsDurabilityComp, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> result, boolean preventBreaking, @Nullable RefSimulator<String> logger) {
-
+        return SetDurability(iSource, mmoitemsDurabilityComp, operation, result, preventBreaking, false, logger);
+    }
+    /**
+     * Performs an operation on the durability of an item. If it succeeded on setting the durability, it will return the modified ItemStack.
+     * <p>Will target MMOItems durability if applicable.</p> Does not bypass Unbreakable attribute.
+     * <p></p>
+     * Reasons it could fail: <p>
+     * + The item does not exist </p>
+     * + The item cannot be damaged (say, a stone block) <p>
+     * <p><p>
+     * If it would break by receiving such damage, but it is prevented from breaking, this will not fail
+     * and just return the item at 1 remaining durability.
+     * @param iSource Item to modify damage of
+     * @param operation Operation to apply, based on the current damage of the item
+     * @param result Stores numerically the final damage the item has
+     * @param mmoitemsDurabilityComp player to say 'your MMOItem broke!' if it is a MMOItem
+     * @param preventBreaking If the operation would break the item, it will set at 1 remaining durabilit left
+     * @param useMaxDura If using max durability instead of current durability as base for operation
+     * @param logger Stores a string saying what went wrong, if something did.
+     *
+     * @return If it broke withour prevent breaking, the count will be set to zero.
+     */
+    @Nullable
+    public static ItemStack SetDurability(@Nullable ItemStack iSource, @Nullable Player mmoitemsDurabilityComp, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> result, boolean preventBreaking, boolean useMaxDura, @Nullable RefSimulator<String> logger) {
+        //DUR//OotilityCeption.Log("\u00a78OOTS\u00a73 DUR\u00a77 Received Use Max\u00a7a " + useMaxDura);
         // Check that iSource exists
         if (iSource != null) {
 
@@ -4376,22 +4400,24 @@ public class OotilityCeption {
 
                     // Check if MMOItem
                     if (GooPMMOItems.IsMMOItem(iSource)) {
-
+                        //DUR//OotilityCeption.Log("\u00a78OOTS\u00a73 DUR\u00a77 To MMO \u00a7a " + useMaxDura);
                         // Cool MMOItem removing shit
-                        return GooPMMOItems.MMOItemModifyDurability(iSource, mmoitemsDurabilityComp, operation, result, preventBreaking, logger);
+                        return GooPMMOItems.MMOItemModifyDurability(iSource, mmoitemsDurabilityComp, operation, result, preventBreaking, useMaxDura, logger);
 
                         // Just vanilla lol
                     } else {
+                        //DUR//OotilityCeption.Log("\u00a78OOTS\u00a73 DUR\u00a77 MMO to Vanilla \u00a7a " + useMaxDura);
 
                         // Do It Vanilla
-                        return SetDurabilityVanilla(iSource, operation, result, preventBreaking, logger);
+                        return SetDurabilityVanilla(iSource, operation, result, preventBreaking, useMaxDura, logger);
                     }
 
                     // Just vanilla lol
                 } else {
+                    //DUR//OotilityCeption.Log("\u00a78OOTS\u00a73 DUR\u00a77 To Vanilla \u00a7a " + useMaxDura);
 
                     // Do It Vanilla
-                    return SetDurabilityVanilla(iSource, operation, result, preventBreaking, logger);
+                    return SetDurabilityVanilla(iSource, operation, result, preventBreaking, useMaxDura, logger);
                 }
 
                 // Well that is air
@@ -4543,6 +4569,30 @@ public class OotilityCeption {
      */
     @Nullable
     public static ItemStack SetDurabilityVanilla(@Nullable ItemStack iSource, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> result, boolean preventBreaking, @Nullable RefSimulator<String> logger) {
+        return SetDurabilityVanilla(iSource, operation, result, preventBreaking, false, logger);
+    }
+    /**
+     * Performs an operation on the durability of an item. If it succeeded on setting the durability, it will return the modified ItemStack.
+     * <p>Will target MMOItems durability if applicable.</p> Does not bypass Unbreakable attribute.
+     * <p></p>
+     * Reasons it could fail: <p>
+     * + The item does not exist </p>
+     * + The item cannot be damaged (say, a stone block) <p>
+     * <p><p>
+     * If it would break by receiving such damage, but it is prevented from breaking, this will not fail
+     * and just return the item at 1 remaining durability.
+     * @param iSource Item to modify damage of
+     * @param operation Operation to apply, based on the current damage of the item
+     * @param result Stores numerically the final damage the item has
+     * @param preventBreaking If the operation would break the item, it will set at 1 remaining durabilit left
+     * @param useMaxDura If using the max durability instead of the current
+     * @param logger Stores a string saying what went wrong, if something did.
+     *
+     * @return If it broke withour prevent breaking, the count will be set to zero.
+     */
+    @Nullable
+    public static ItemStack SetDurabilityVanilla(@Nullable ItemStack iSource, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> result, boolean preventBreaking, boolean useMaxDura, @Nullable RefSimulator<String> logger) {
+        //DUR//OotilityCeption.Log("\u00a78OOTS\u00a73 DUR\u00a77 Received \u00a7a " + useMaxDura);
 
         // Check that iSource exists
         if (iSource != null) {
@@ -4559,16 +4609,68 @@ public class OotilityCeption {
                     // Get name
                     String iName = OotilityCeption.GetItemName(iSource);
 
-                    // Apply operation and store
-                    Double fValue = operation.apply(((Damageable) iMeta).getDamage() * 1.0D);
+                    // Get final damage
+                    double finalValue;
+                    int vanillaStyleDamage = ((Damageable) iMeta).getDamage();
+
+                    /*
+                     * Maybe using max durability as operation source.
+                     *
+                     * #1 Setting ~ Set the current durability to this number, no change.
+                     *
+                     * #2 Adding ~ Adds to the current durability
+                     *
+                     * #3 Percent ~ Sets current damage to this percent of the max damage
+                     *
+                     * #4 Plus Percent ~ Adds to the current damage this percent of the max damage
+                     */
+                    //DUR//OotilityCeption.Log("\u00a78DURA\u00a7b FV\u00a77 ------ Vanilla ------ \u00a7f " + operation.toString() + "\u00a77 ~\u00a72 " + useMaxDura);
+                    //DUR//Log("\u00a78DURA\u00a7b FV\u00a77 Current Damage:\u00a7e " + vanillaStyleDamage);
+                    if (useMaxDura) {
+
+                        // Recreate plus minus percent
+                        PlusMinusPercent toMax = operation.clone();
+
+                        // Not relative, just get percent from the max durability
+                        toMax.setRelative(false);
+                        //DUR//Log("\u00a78DURA\u00a7b FV\u00a77 Applying Max Operation:\u00a7e " + toMax.toString() + "\u00a77 to max durability\u00a79 " + iSource.getType().getMaxDurability());
+
+                        // Apply to that
+                        double convertedMax = toMax.apply((double) iSource.getType().getMaxDurability());
+
+                        //DUR//Log("\u00a78DURA\u00a7b FV\u00a77 Max Operation Result:\u00a7e " + convertedMax);
+
+                        // Was it additive in the first place?
+                        if (operation.getRelative()) {
+
+                            // Add this percent of max durability to the current
+                            finalValue = convertedMax + vanillaStyleDamage;
+                            //DUR//Log("\u00a78DURA\u00a7b FV\u00a77 Adding result:\u00a7e " + finalValue);
+
+                        // It was a set command
+                        } else {
+
+                            // The final value is this percent
+                            finalValue = convertedMax;
+                            //DUR//Log("\u00a78DURA\u00a7b FV\u00a77 Setting result:\u00a7e" + finalValue);
+                        }
+
+                    } else {
+                        //DUR//Log("\u00a78DURA\u00a7b FV\u00a77 Applying Direct Operation:\u00a7e " + operation.toString());
+
+                        // Yeah
+                        finalValue = operation.apply((double) vanillaStyleDamage);
+                        //DUR//Log("\u00a78DURA\u00a7b FV\u00a77 Result:\u00a7e " + finalValue);
+                    }
 
                     // Restrict to 1, if it is preventing from breaking
-                    if ((fValue >= iSource.getType().getMaxDurability()) && preventBreaking) { fValue = (iSource.getType().getMaxDurability() - 1.0D); } else if (fValue > iSource.getType().getMaxDurability()) { fValue = iSource.getType().getMaxDurability() + 1.0D; }
-                    if (fValue < 0) { fValue = 0.0D; }
-                    if (result != null) { result.setValue(fValue);}
+                    if ((finalValue >= iSource.getType().getMaxDurability()) && preventBreaking) { finalValue = (iSource.getType().getMaxDurability() - 1.0D); } else if (finalValue > iSource.getType().getMaxDurability()) { finalValue = iSource.getType().getMaxDurability() + 1.0D; }
+                    if (finalValue < 0) { finalValue = 0.0D; }
+                    if (result != null) { result.setValue(finalValue);}
+                    //DUR//Log("\u00a78DURA\u00a7b FV\u00a77 True Result:\u00a76 " + finalValue);
 
                     // Did it break?
-                    if (fValue > iSource.getType().getMaxDurability()) {
+                    if (finalValue > iSource.getType().getMaxDurability()) {
 
                         Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfully modified durability of \u00a7f" + iName + "\u00a77, it broke though");
 
@@ -4578,7 +4680,7 @@ public class OotilityCeption {
                     }
 
                     // Repair Accordingly
-                    ((Damageable) iMeta).setDamage((int) Math.round(fValue));
+                    ((Damageable) iMeta).setDamage((int) Math.round(finalValue));
 
                     // Insert into item
                     iSource.setItemMeta(iMeta);
@@ -4782,7 +4884,7 @@ public class OotilityCeption {
      * Will generate an error if the string is not in numeric format
      */
     public static int ParseInt(@NotNull String value) {
-        return Integer.parseInt(RemoveDecimalZeros(value));
+        return RoundToInt(Double.parseDouble(RemoveDecimalZeros(value)));
     }
 
     /**

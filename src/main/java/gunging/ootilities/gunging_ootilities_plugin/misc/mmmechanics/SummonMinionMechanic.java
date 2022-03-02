@@ -78,6 +78,7 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
         //MM//OotilityCeption. Log("\u00a7a# \u00a77Range:\u00a7f " + effectiveRange);
         //MM//OotilityCeption. Log("\u00a7a# \u00a77Kind:\u00a7f " + effectiveKind);
         //MM//OotilityCeption. Log("\u00a7a# \u00a77KindLim:\u00a7f " + effectiveKLimit);
+        //MM//OotilityCeption. Log("\u00a7a# \u00a77Level:\u00a7f " + effectiveLevel);
 
         // For each amount
         for (int i = 1; i <= effectiveAmount; i++) {

@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -306,13 +307,56 @@ public class CustomModelDataLink {
         if (!iSource.hasItemMeta()) { return null; }
         if (!iSource.getItemMeta().hasCustomModelData()) {  return null; }
 
-        // Get
-        HashMap<Integer, CustomModelDataLink> cmInt = cmdLinks.get(iSource.getType());
+        // Return Custom Model Data of iSource
+        return getFrom(iSource.getType(), iSource.getItemMeta().getCustomModelData());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof CustomModelDataLink)) { return false; }
+
+        // Both material and CMD must equal
+        return ((CustomModelDataLink) obj).getParentMaterial().equals(getParentMaterial())
+                && ((CustomModelDataLink) obj).getCustomModelData().equals(getCustomModelData());
+    }
+
+    @NotNull public ItemStack toStack() {
+
+        // Create new
+        ItemStack stack = new ItemStack(getParentMaterial());
+
+        // Meta?
+        if (!stack.hasItemMeta()) { return stack; }
+
+        // Get meta
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) { return stack; }
+
+        // Set
+        meta.setCustomModelData(getCustomModelData());
+
+        // Yes
+        stack.setItemMeta(meta);
+        return stack;
+    }
+
+    /**
+     * @param material The material in query.
+     *
+     * @param modelData The custom model data in query
+     *
+     * @return If the link exists, that one that is loaded corresponding to
+     *         this material and custom model data number.
+     */
+    @Nullable public static CustomModelDataLink getFrom(@NotNull Material material, @NotNull Integer modelData) {
+
+        // Find array
+        HashMap<Integer, CustomModelDataLink> loadedLinks = cmdLinks.get(material);
 
         // Missing?
-        if (cmInt == null) { return null; }
+        if (loadedLinks == null) { return null; }
 
-        // Return Custom Model Data of iSource
-        return cmInt.get(iSource.getItemMeta().getCustomModelData());
+        // Return the one that matches the model data.
+        return loadedLinks.get(modelData);
     }
 }

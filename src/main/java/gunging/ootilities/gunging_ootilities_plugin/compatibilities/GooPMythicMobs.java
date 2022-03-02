@@ -76,6 +76,9 @@ public class GooPMythicMobs implements Listener {
             case "onattackg":
                 event.register(new OnAttackAura(event.getContainer().getConfigLine(), event.getConfig()));
                 break;
+            case "hideaura":
+                event.register(new HideAura(event.getContainer().getConfigLine(), event.getConfig()));
+                break;
             case "goopminion":
                 event.register(new MinionMechanic(event.getContainer(), event.getConfig()));
                 break;
