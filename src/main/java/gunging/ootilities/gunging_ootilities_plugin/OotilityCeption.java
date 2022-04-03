@@ -12,10 +12,9 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.Goo
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionEntities;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
-import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISLObservedContainer;
-import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISLPersonalContainer;
-import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISSObservedContainer;
-import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISSPersonalContainer;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCDeployed;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
+import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Personal;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerSlotTypes;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCTemplate;
@@ -488,6 +487,10 @@ public class OotilityCeption {
         cmd = cmd.replace("%player_y%", String.valueOf(asPlayer.getPlayer().getLocation().getY()));
         cmd = cmd.replace("%player_z%", String.valueOf(asPlayer.getPlayer().getLocation().getZ()));
 
+        // Observed Container?? :flushed:
+        GOOPCDeployed d = GOOPCManager.getObservedContainer(asPlayer.getUniqueId());
+        if (d != null) { ContainerInventory a = d.getObservedBy(asPlayer.getUniqueId());if (a != null) { cmd = GOOPCManager.parseAsContainers(cmd, a); } }
+
         int lastIndex = 0;
         while (cmd.contains("%player_score_")) {
 
@@ -526,6 +529,129 @@ public class OotilityCeption {
             }
         }
 
+        //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Parsing\u00a7b " + cmd);
+        while (cmd.contains("%goop_unlockable_")) {
+
+            int percent = cmd.indexOf("%goop_unlockable_");
+
+            // no more
+            if (percent < 0) { break; }
+
+            // What should the score be
+            String uckNmae = cmd.substring(percent + "%goop_unlockable_".length());
+            //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Found Aft\u00a7b " + uckNmae);
+
+            // Closing %?
+            int perc = uckNmae.indexOf('%');
+            if (perc >= 0) {
+
+                // Got the name?
+                String uckName = uckNmae.substring(0, perc);
+                String uckArg = "";
+                //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Found Nme\u00a7b " + uckName);
+
+                // What query?
+                if (uckName.contains(":")) {
+
+                    // Yes
+                    String[] uckSplit = uckName.split(":");
+                    uckName = uckSplit[0];
+                    uckArg = uckSplit[1];
+                }
+                //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a7b + Name\u00a7f " + uckName);
+                //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a7b + Arg\u00a7f " + uckArg);
+
+                // Get objective
+                GooPUnlockables uck = GooPUnlockables.Get(asPlayer.getPlayer().getUniqueId(), uckName);
+
+                // Existed?
+                if (uck != null) {
+                    //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a7a +\u00a77 Valid Unlockble ");
+
+                    String interim = "";
+                    OptimizedTimeFormat otf = uck.GetTimed() != null ? uck.GetTimed() : OptimizedTimeFormat.Current();
+                    long secondsRemianing = SecondsElapsedSince(OptimizedTimeFormat.Current(), otf);
+
+                    switch (uckArg) {
+                        default:
+                            interim = uck.IsUnlocked() ? "1" : "0";
+                            break;
+                        case "remaining_time_seconds_full":
+                            interim = String.valueOf(secondsRemianing);
+                            break;
+                        case "remaining_time_seconds":
+                            interim = String.valueOf(secondsRemianing % 60);
+                            break;
+                        case "remaining_time_minutes_full":
+                            interim = String.valueOf(Math.round(Math.floor(secondsRemianing / 60)));
+                            break;
+                        case "remaining_time_minutes":
+                            interim = String.valueOf((Math.round(Math.floor(secondsRemianing / 60))) % 60);
+                            break;
+                        case "remaining_time_hours_full":
+                            interim = String.valueOf(Math.round(Math.floor(secondsRemianing / 3600)));
+                            break;
+                        case "remaining_time_hours":
+                            interim = String.valueOf((Math.round(Math.floor(secondsRemianing / 3600))) % 24);
+                            break;
+                        case "remaining_time_days":
+                            interim = String.valueOf((Math.round(Math.floor(secondsRemianing / 86400))));
+                            break;
+
+                        case "time_seconds_full":
+                            interim = String.valueOf(otf.second + (otf.minute * 60) + (otf.hour * 3600) + (otf.day * 86400));
+                            break;
+                        case "time_seconds":
+                            interim = String.valueOf(otf.second);
+                            break;
+                        case "time_minutes_full":
+                            interim = String.valueOf(otf.minute + (otf.hour * 60) + (otf.day * 1536));
+                            break;
+                        case "time_minutes":
+                            interim = String.valueOf(otf.minute);
+                            break;
+                        case "time_hours_full":
+                            interim = String.valueOf(otf.hour + (otf.day * 24));
+                            break;
+                        case "time_hours":
+                            interim = String.valueOf(otf.hour);
+                            break;
+                        case "time_days":
+                            interim = String.valueOf(otf.day);
+                            break;
+                        case "time_years":
+                            interim = String.valueOf(otf.year);
+                            break;
+                    }
+
+                    // All right strip befre
+                    String before = cmd.substring(0, percent);
+                    String after = uckNmae.substring(perc + 1);
+
+                    // There
+                    cmd = before + interim + after;
+                } else {
+
+
+                    // All right strip befre
+                    String before = cmd.substring(0, percent);
+                    String after = uckNmae.substring(perc + 1);
+
+                    // UCK not existing ~ LOCKED probably
+                    cmd = before + "0" + after;
+                }
+
+            // No closing %
+            } else {
+
+                // What is before
+                String before = cmd.substring(0, percent);
+                String after = uckNmae.substring("%goop_unlockable_".length());
+
+                // There
+                cmd = before + "<missing-closing-%>" + after;
+            }
+        }
         return ParseAsEntity(asPlayer.getPlayer(), cmd);
     }
     @NotNull
@@ -599,10 +725,10 @@ public class OotilityCeption {
         long milliseconds1 = calendar1.getTimeInMillis();
         long milliseconds2 = calendar2.getTimeInMillis();
         long diff = milliseconds2 - milliseconds1;
-        long ret = diff / 1000;
 
-        return ret;
+        return diff / 1000;
     }
+
     public static boolean LocationTolerance(Location expected, Location observed, double tolerance) {
 
         // If Smae World
@@ -7418,6 +7544,7 @@ public class OotilityCeption {
                             && slot.getValue() != -107
                             && slot.getValue() != -106
                             && slot.getValue() != -7
+                            && !(slot.getValue() >= 80 && slot.getValue() <= 84)        // Not one of the crafting slots
                             && slot.getValue() != 100
                             && slot.getValue() != 101
                             && slot.getValue() != 102
@@ -7430,6 +7557,7 @@ public class OotilityCeption {
                             && range.getValue() != -107
                             && range.getValue() != -106
                             && range.getValue() != -7
+                            && !(slot.getValue() >= 80 && slot.getValue() <= 84)        // Not one of the crafting slots
                             && range.getValue() != 100
                             && range.getValue() != 101
                             && range.getValue() != 102

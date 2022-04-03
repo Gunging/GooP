@@ -2,22 +2,21 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.adapters.AbstractVector;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.ITargetedEntitySkill;
-import io.lumine.xikage.mythicmobs.skills.ITargetedLocationSkill;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderDouble;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderFloat;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.adapters.AbstractLocation;
+import io.lumine.mythic.api.adapters.AbstractVector;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.ITargetedEntitySkill;
+import io.lumine.mythic.api.skills.ITargetedLocationSkill;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.api.skills.SkillResult;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderFloat;
+import io.lumine.mythic.core.skills.SkillExecutor;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
@@ -25,8 +24,8 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
     @NotNull final PlaceholderFloat arc, points, slashDelay, skew;
     final boolean horizontal, randomPoints;
 
-    public ParticleSlashEffect(String skill, MythicLineConfig mlc) {
-        super(skill, mlc);
+    public ParticleSlashEffect(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
         this.arc = mlc.getPlaceholderFloat(new String[]{"arc", "a"}, 130F);
         this.points = mlc.getPlaceholderFloat(new String[]{"points", "p"}, 12F);
         this.slashDelay = mlc.getPlaceholderFloat(new String[]{"slashdelay", "sd"}, 0F);
@@ -37,16 +36,16 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
         //MM//OotilityCeption.Log("\u00a78PSlash\u00a7a L\u00a77 Loaded Particle Slash, Horizontal?\u00a7b" + horizontal);
     }
 
-    public boolean castAtLocation(SkillMetadata data, AbstractLocation target) {
+    public SkillResult castAtLocation(SkillMetadata data, AbstractLocation target) {
         this.playParticleSlashEffect(data, target);
         //MM//OotilityCeption.Log("\u00a78PSlash\u00a7a C\u00a77 Casting Location Particle Slash, Horizontal?\u00a7b" + horizontal);
-        return false;
+        return SkillResult.SUCCESS;
     }
 
-    public boolean castAtEntity(SkillMetadata data, AbstractEntity target) {
+    public SkillResult castAtEntity(SkillMetadata data, AbstractEntity target) {
         this.playParticleSlashEffect(data, target.getLocation());
         //MM//OotilityCeption.Log("\u00a78PSlash\u00a7a C\u00a77 Casting Entity Particle Slash, Horizontal?\u00a7b" + horizontal);
-        return false;
+        return SkillResult.SUCCESS;
     }
 
     protected void playParticleSlashEffect(SkillMetadata data, AbstractLocation target) {
@@ -83,14 +82,19 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
          * If less than 1, it is inversely proportional to how many simultaneous points
          */
         double lashTimer = slashDelay.get(data);
-        int slashTicks = OotilityCeption.RoundToInt(lashTimer);
+        int slashTicks = OotilityCeption.RoundToInt(Math.ceil(lashTimer));
         int simultaneous = lashTimer >= 1 ? 1 : OotilityCeption.RoundToInt(1 / lashTimer);
+        //DLY//OotilityCeption.Log("\u00a78SLH \u00a73D\u00a77 Delay read\u00a7b " + lashTimer);
+        //DLY//OotilityCeption.Log("\u00a78SLH \u00a73D\u00a77 Slash Ticks\u00a7b " + slashTicks);
+        //DLY//OotilityCeption.Log("\u00a78SLH \u00a73D\u00a77 Simultaneous\u00a7b " + simultaneous);
 
         // All in one tick
         if (slashTicks <= 0) {
+            //DLY//OotilityCeption.Log("\u00a78SLH \u00a73D\u00a77 Mode \u00a79INSTANT\u00a77 ~ Total\u00a75" + pointsTotal + "\u00a77 points");
 
             // One instantaneous
-            for(double i = 0; i < pointsTotal; i++) {
+            for (double i = 0; i < pointsTotal; i++) {
+                //DLY//OotilityCeption.Log("\u00a78SLH \u00a72DR\u00a77 Point\u00a7a " + i);
 
                 // Generate all points
                 slashGen(random, data, target, location, audienceList, circumference, pointsTotal, fraction, skewed, b, i);
@@ -98,18 +102,24 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
 
         // Repeating
         } else {
+            //DLY//OotilityCeption.Log("\u00a78SLH \u00a73D\u00a77 Mode \u00a79INSTANT\u00a77 ~ Total\u00a75" + pointsTotal + "\u00a77 points ~ Ticking at \u00a7b " + slashTicks);
 
             // Store the current i
             RefSimulator<Integer> i = new RefSimulator<>(0);
 
             (new BukkitRunnable() {
                 public void run() {
+                    //DLY//OotilityCeption.Log("\u00a78SLH \u00a72DR\u00a77 Points starting at \u00a7a " + i.getValue() + "\u00a77 through\u00a7a " + (i.getValue() + simultaneous));
 
                     // One instantaneous
-                    for(double I = 0; I < simultaneous; I++) {
+                    for (double I = 0; I < simultaneous; I++) {
+                        //DLY//OotilityCeption.Log("\u00a78SLH \u00a72DR\u00a77 Point\u00a7a " + i.getValue() + "\u00a78 ~ Loop Index \u00a72" + I);
 
                         // Cancel
-                        if (i.getValue() >= pointsTotal) { this.cancel(); return; }
+                        if (i.getValue() >= pointsTotal) {
+                            //DLY//OotilityCeption.Log("\u00a78SLH \u00a72DR\u00a77 Slash completed: \u00a7eTotal Points Reached");
+
+                            this.cancel(); return; }
 
                         // Generate all points
                         slashGen(random, data, target, location, audienceList, circumference, pointsTotal, fraction, skewed, b, i.getValue());
@@ -118,7 +128,9 @@ public class ParticleSlashEffect extends TCPEffect implements ITargetedEntitySki
                         i.setValue(i.getValue() + 1);
 
                         // Cancel
-                        if (i.getValue() >= pointsTotal) { this.cancel(); return; }
+                        if (i.getValue() >= pointsTotal) {
+                            //DLY//OotilityCeption.Log("\u00a78SLH \u00a72DR\u00a77 Slash completed: \u00a7eTotal Points Spawned");
+                            this.cancel(); return; }
                     }
                 }
 

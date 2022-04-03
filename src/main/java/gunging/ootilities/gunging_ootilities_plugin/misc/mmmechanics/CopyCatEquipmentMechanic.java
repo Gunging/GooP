@@ -1,12 +1,14 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.ITargetedEntitySkill;
-import io.lumine.xikage.mythicmobs.skills.SkillMechanic;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.mechanics.CustomMechanic;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.ITargetedEntitySkill;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.api.skills.SkillResult;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EntityEquipment;
@@ -18,8 +20,8 @@ public class CopyCatEquipmentMechanic extends SkillMechanic implements ITargeted
 
     boolean helmet, chestplate, leggings, boots, mainhand, offhand;
 
-    public CopyCatEquipmentMechanic(CustomMechanic skill, MythicLineConfig mlc) {
-        super(skill.getConfigLine(), mlc);
+    public CopyCatEquipmentMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
 
         helmet = mlc.getBoolean(new String[] { "helmet", "h", "helm", "head" }, true);
         chestplate = mlc.getBoolean(new String[] { "chestplate", "chest", "breastplate", "plate", "c", "p" }, true);
@@ -31,7 +33,7 @@ public class CopyCatEquipmentMechanic extends SkillMechanic implements ITargeted
 
 
     @Override
-    public boolean castAtEntity(SkillMetadata skillMetadata, AbstractEntity targetProbably) {
+    public SkillResult castAtEntity(SkillMetadata skillMetadata, AbstractEntity targetProbably) {
 
         // Gather all necessary values - caster and target
         Entity target = BukkitAdapter.adapt(targetProbably);
@@ -47,7 +49,7 @@ public class CopyCatEquipmentMechanic extends SkillMechanic implements ITargeted
             EntityEquipment casterItems = ((LivingEntity) caster).getEquipment();
 
             // Both should exist
-            if (targetItems == null || casterItems == null) { return true; }
+            if (targetItems == null || casterItems == null) { return SkillResult.SUCCESS; }
 
             // All right copy those over
             if (helmet) { casterItems.setHelmet(targetItems.getHelmet()); }
@@ -59,6 +61,6 @@ public class CopyCatEquipmentMechanic extends SkillMechanic implements ITargeted
         }
 
         // yes
-        return true;
+        return SkillResult.SUCCESS;
     }
 }

@@ -3,15 +3,16 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.mobs.GenericCaster;
-import io.lumine.xikage.mythicmobs.skills.*;
-import io.lumine.xikage.mythicmobs.skills.auras.Aura;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.utils.Events;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.mobs.GenericCaster;
+import io.lumine.mythic.api.skills.*;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.auras.Aura;
+import io.lumine.mythic.utils.Events;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -28,8 +29,8 @@ public class OnShootAura extends Aura implements ITargetedEntitySkill {
     protected boolean cancelEvent;
     protected boolean forceAsPower;
 
-    public OnShootAura(String skill, MythicLineConfig mlc) {
-        super(skill, mlc);
+    public OnShootAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());
         this.cancelEvent = mlc.getBoolean(new String[]{"cancelevent", "ce"}, false);
@@ -51,16 +52,16 @@ public class OnShootAura extends Aura implements ITargetedEntitySkill {
         }
     }
 
-    public boolean castAtEntity(SkillMetadata data, AbstractEntity target) {
+    public SkillResult castAtEntity(SkillMetadata data, AbstractEntity target) {
         // Find caster
         SkillCaster caster;
 
         // Will be caster of the skill, as a mythicmob
-        if (MythicMobs.inst().getMobManager().isActiveMob(target)) {
+        if (MythicBukkit.inst().getMobManager().isActiveMob(target)) {
             //SOM//OotilityCeption.Log("\u00a73  * \u00a77Target as ActiveMob");
 
             // Just pull the mythicmob
-            caster = MythicMobs.inst().getMobManager().getMythicMobInstance(target);
+            caster = MythicBukkit.inst().getMobManager().getMythicMobInstance(target);
 
             // If its a player or some other non-mythicmob
         } else {
@@ -71,7 +72,7 @@ public class OnShootAura extends Aura implements ITargetedEntitySkill {
         }
 
         new OnShootAura.Tracker(caster, data, target);
-        return true;
+        return SkillResult.SUCCESS;
     }
 
     private class Tracker extends AuraTracker implements IParentSkill, Runnable {
@@ -137,10 +138,8 @@ public class OnShootAura extends Aura implements ITargetedEntitySkill {
     public static String collapseList(@NotNull ArrayList<String> list, @NotNull String separator) {
         StringBuilder sb = new StringBuilder();
         boolean af = false;
-        Iterator var4 = list.iterator();
 
-        while(var4.hasNext()) {
-            String str = (String)var4.next();
+        for (String str : list) {
             if (str == null) {
                 str = "null";
             }

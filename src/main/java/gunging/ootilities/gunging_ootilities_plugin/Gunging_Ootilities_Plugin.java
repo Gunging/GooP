@@ -100,7 +100,6 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         // Singleton
         OotilityCeption.Fill_xSupression();
-        CustomStructureMetaSource.registerAll();
 
         // Is it Paper Spigot?
         @SuppressWarnings("ConstantConditions") EntityDeathEvent paperSpigot = new EntityDeathEvent(null, null);
@@ -379,6 +378,9 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         }
         //endregion
+
+        // Some us paper spigot methods some use plugin methods who knows
+        CustomStructureMetaSource.registerAll();
 
         loaded = true;
     }
@@ -883,7 +885,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public boolean savingTheseTicks;
     public HashMap<String, FileConfigPair> l8st = new HashMap<>();
     public ArrayList<FileConfigPair> pairs2save = new ArrayList<>();
-    public void SaveFile(FileConfigPair csPair) {
+    public void SaveFile(@NotNull FileConfigPair csPair) {
         // Assuming it is ALWAYS the latest or a modification of the latest
         //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a77 Saving \u00a7e" + csPair.getFile().getPath()));
 
@@ -906,11 +908,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 public void run() {
                     //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 --- Queue Run ---"));
 
-                    // Basically Save
-                    Gunging_Ootilities_Plugin.theMain.FileSaveExecution();
-
                     // Allow to save again
                     Gunging_Ootilities_Plugin.theMain.savingTheseTicks = false;
+
+                    // Basically Save
+                    Gunging_Ootilities_Plugin.theMain.FileSaveExecution();
 
                 }
 
@@ -922,6 +924,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         while (pairs2save.size() > 0) {
 
             FileConfigPair fl = pairs2save.get(0);
+            
+            // Skip if null
+            if (fl == null) { pairs2save.remove(0); continue; }
+            
             //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a77 Saving file\u00a7b " + fl.getFile().getPath()));
 
             // Basically Saves it
@@ -931,10 +937,17 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 fl.getStorage().save(fl.getFile());
                 //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7a Saved!"));
 
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
 
-                //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7c IOException!!! " + ignored.getMessage()));
-                ignored.printStackTrace();
+                //CLI//if (ignored instanceof IOException) {
+ 
+                    //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7c IOException!!! " + ignored.getMessage()));
+                    //CLI//} else {
+
+                    //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7c Exception!!!\u00a7e " + ignored.getClass().getName() + " \u00a77-\u00a7c " + ignored.getMessage()));
+                    //CLI//}
+
+                //CLI//ignored.printStackTrace();
             }
 
             // Remove

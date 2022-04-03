@@ -121,12 +121,6 @@
             <systemPath>${basedir}/lib/MythicMobs.jar</systemPath>
             <version>4.12.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.LoneDev6</groupId>
-            <artifactId>api-itemsadder</artifactId>
-            <version>2.4.7</version>
-            <scope>provided</scope>
-        </dependency>
         <!--
         <dependency>
             <groupId>io.lumine.xikage</groupId>
@@ -212,6 +206,14 @@
             <version>5.3.2</version>
         </dependency>
         <dependency>
+            <groupId>discrd.apprently.anything</groupId>
+            <artifactId>discordsrv</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/DiscordSRV.jar</systemPath>
+            <version>5.3.2</version>
+        </dependency>
+        <!--
+        <dependency>
             <groupId>bot.tisco</groupId>
             <artifactId>modelengine</artifactId>
             <scope>system</scope>
@@ -219,16 +221,10 @@
             <version>5.3.2</version>
         </dependency>
         <dependency>
-            <groupId>discrd.apprently.anything</groupId>
-            <artifactId>discordsrv</artifactId>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/DiscordSRV.jar</systemPath>
-            <version>5.3.2</version>
-        </dependency>
-        <dependency>
             <groupId>net.objecthunter</groupId>
             <artifactId>exp4j</artifactId>
             <version>0.4.8</version>
         </dependency>
+        -->
     </dependencies>
 </project>

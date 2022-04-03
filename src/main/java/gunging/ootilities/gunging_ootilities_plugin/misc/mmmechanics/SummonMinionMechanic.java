@@ -4,28 +4,32 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
+import gunging.ootilities.gunging_ootilities_plugin.misc.GTL_SummonerClass;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.ITargetedEntitySkill;
-import io.lumine.xikage.mythicmobs.skills.ITargetedLocationSkill;
-import io.lumine.xikage.mythicmobs.skills.SkillMechanic;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.mechanics.CustomMechanic;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderDouble;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.adapters.AbstractLocation;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.mobs.MythicMob;
+import io.lumine.mythic.api.skills.ITargetedEntitySkill;
+import io.lumine.mythic.api.skills.ITargetedLocationSkill;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.api.skills.SkillResult;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderDouble;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.mobs.MobExecutor;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 
-@MythicMechanic(
-        author = "gunging",
-        name = "GooPSummonMinion",
-        description = "Summons a new mythicmob as a minion of the caster."
-)
+import java.util.Optional;
+
 public class SummonMinionMechanic extends SkillMechanic implements ITargetedLocationSkill, ITargetedEntitySkill {
     String mmName;
     PlaceholderDouble leashRange;
@@ -39,8 +43,8 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
     boolean pvpBlock;
 
 
-    public SummonMinionMechanic(CustomMechanic skill, MythicLineConfig mlc) {
-        super(skill.getConfigLine(), mlc);
+    public SummonMinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
         mmName = mlc.getString(new String[] { "mob", "m", "type", "t" });
         leashRange = mlc.getPlaceholderDouble(new String[] { "leashrange", "lr" }, 20.0);
         amount = mlc.getPlaceholderDouble(new String[] { "amount", "a", "count", "c" }, 1D);
@@ -86,6 +90,27 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
             // Cap exceed
             if (!capBreak) {
                 if ((current + effectiveWeight) >= max) {
+
+                    // Message
+                    if (effectiveWeight > 0 && (summonner instanceof Player)) {
+
+                        // Message
+                        String message = GTranslationManager.getSummonerTranslation(GTL_SummonerClass.MINION_WOULD_EXCEED_CAP);
+
+                        // Set to space to skip
+                        if (message.length() > 0 && !message.equals(" ")) {
+
+                            // Get Manager
+                            MobExecutor mm = MythicBukkit.inst().getMobManager();
+                            Optional<MythicMob> mob = mm.getMythicMob(mmName);
+
+                            String mmName = mob.isPresent() ? (mob.get().getDisplayName() == null ? mob.get().getEntityType() : mob.get().getDisplayName().get(skillMetadata, skillMetadata.getCaster().getEntity())) : "\u00a74<invalid-mythicmob>";
+                            message = message.replace("%minion_name%", mmName);
+
+                            message = OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(message, summonner, (Player) summonner, null, null));
+                            ((Player) summonner).sendMessage(message); }
+                    }
+
                     //MM//OotilityCeption. Log("\u00a7c >>\u00a77 Cap Broken");
                     return;
 
@@ -127,26 +152,26 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
     }
 
     @Override
-    public boolean castAtEntity(SkillMetadata skillMetadata, AbstractEntity targetProbably) {
+    public SkillResult castAtEntity(SkillMetadata skillMetadata, AbstractEntity targetProbably) {
         // Gather all necessary values - caster and target
         LivingEntity mob = (LivingEntity) BukkitAdapter.adapt(targetProbably);
         LivingEntity caster = (LivingEntity) BukkitAdapter.adapt(skillMetadata.getCaster().getEntity());
 
-        if (mob == null) { return false; }
+        if (mob == null) { return SkillResult.ERROR; }
 
         AsMinionSpawn(skillMetadata, caster, mob.getLocation());
 
-        return false;
+        return SkillResult.SUCCESS;
     }
 
     @Override
-    public boolean castAtLocation(SkillMetadata skillMetadata, AbstractLocation targetProbably) {
+    public SkillResult castAtLocation(SkillMetadata skillMetadata, AbstractLocation targetProbably) {
         // Gather all necessary values - caster and target
         Location mobLocation = BukkitAdapter.adapt(targetProbably);
         LivingEntity caster = (LivingEntity) BukkitAdapter.adapt(skillMetadata.getCaster().getEntity());
 
         AsMinionSpawn(skillMetadata, caster, mobLocation);
 
-        return false;
+        return SkillResult.SUCCESS;
     }
 }

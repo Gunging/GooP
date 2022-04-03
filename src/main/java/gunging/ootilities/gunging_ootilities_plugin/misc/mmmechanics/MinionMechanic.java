@@ -2,25 +2,21 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.ITargetedEntitySkill;
-import io.lumine.xikage.mythicmobs.skills.SkillMechanic;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.mechanics.CustomMechanic;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderDouble;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.ITargetedEntitySkill;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.api.skills.SkillResult;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderDouble;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
-@MythicMechanic(
-        author = "gunging",
-        name = "GooPMinion",
-        description = "Labels the targets as minions of the caster"
-)
 public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkill {
     PlaceholderDouble leashRange;
     String mmSkill;
@@ -29,8 +25,8 @@ public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkil
     boolean pvpBlock;
 
 
-    public MinionMechanic(CustomMechanic skill, MythicLineConfig mlc) {
-        super(skill.getConfigLine(), mlc);
+    public MinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
         leashRange = mlc.getPlaceholderDouble(new String[] { "leashrange", "lr" }, 20.0);
         mmSkill = mlc.getString(new String[] { "skill", "s" });
         weight = mlc.getPlaceholderDouble(new String[] { "weight", "w", "minionweight", "mw" }, 1D);
@@ -39,12 +35,12 @@ public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkil
     }
 
     @Override
-    public boolean castAtEntity(SkillMetadata skillMetadata, AbstractEntity targetProbably) {
+    public SkillResult castAtEntity(SkillMetadata skillMetadata, AbstractEntity targetProbably) {
         // Gather all necessary values - caster and target
         Entity target = BukkitAdapter.adapt(targetProbably);
 
         // Target not player right
-        if (target instanceof Player) { return false; }
+        if (target instanceof Player) { return SkillResult.ERROR; }
 
         // All right proceed
         Entity caster = BukkitAdapter.adapt(skillMetadata.getCaster().getEntity());
@@ -67,9 +63,9 @@ public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkil
 
             // Enable
             newMinion.Enable();
-            return true;
+            return SkillResult.SUCCESS;
         }
 
-        return false;
+        return SkillResult.ERROR;
     }
 }

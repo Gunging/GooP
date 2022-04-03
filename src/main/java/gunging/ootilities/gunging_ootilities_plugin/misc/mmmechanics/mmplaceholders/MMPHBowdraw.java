@@ -2,9 +2,9 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplacehol
 
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.events.XBow_Rockets;
-import io.lumine.xikage.mythicmobs.skills.placeholders.Placeholder;
-import io.lumine.xikage.mythicmobs.skills.placeholders.PlaceholderMeta;
-import io.lumine.xikage.mythicmobs.skills.placeholders.types.MetaPlaceholder;
+import io.lumine.mythic.core.skills.placeholders.Placeholder;
+import io.lumine.mythic.core.skills.placeholders.PlaceholderMeta;
+import io.lumine.mythic.core.skills.placeholders.types.MetaPlaceholder;
 
 public class MMPHBowdraw extends MMPlaceholder {
 

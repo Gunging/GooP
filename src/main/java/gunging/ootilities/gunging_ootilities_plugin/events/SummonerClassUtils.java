@@ -3,7 +3,9 @@ package gunging.ootilities.gunging_ootilities_plugin.events;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
+import gunging.ootilities.gunging_ootilities_plugin.misc.GTL_SummonerClass;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
@@ -69,7 +71,7 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
     }
 
     /**
-     * Will add such a minion to such owner, restricting to maximum count (whenever that is implemented).
+     * Will add such a minion to such owner, restricting to maximum count.
      */
     public static void AddEnabledMinionTo(@Nullable SummonerClassMinion minion) {
 
@@ -121,6 +123,10 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
 
         // Remove from minionship
         minionship.get(min.getOwner().getUniqueId()).remove(min);
+
+        // Call event
+        GooPMinionDisableEvent event = new GooPMinionDisableEvent(min);
+        Bukkit.getPluginManager().callEvent(event);
     }
 
     /**
@@ -190,6 +196,19 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
             SummonerClassMinion minion = GetMinion(event.getEntity());
             if (minion == null) { return; }
 
+            // Message
+            if (minion.getOwner() instanceof Player) {
+
+                // Message
+                String message = GTranslationManager.getSummonerTranslation(GTL_SummonerClass.MINION_DEATH).replace("%minion_uuid%", String.valueOf(minion.getMinion().getUniqueId())).replace("%minion_name%", (minion.getMinion().getCustomName() != null ? minion.getMinion().getCustomName() : minion.getMinion().getName()));
+
+                // Set to space to skip
+                if (message.length() > 0 && !message.equals(" ")) {
+
+                    message = OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(message, minion.getOwner(), (Player) minion.getOwner(), null, null));
+                    minion.getOwner().sendMessage(message); }
+            }
+
             // They've died lmao, unregister them I guess.
             DisableMinion(minion);
         }
@@ -258,54 +277,11 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
         for (UUID owner : owners) {
 
             // Get array
-            ArrayList<SummonerClassMinion> subs = minionship.get(owner);
-            ArrayList<SummonerClassMinion> cleaned = new ArrayList<>();
+            ArrayList<SummonerClassMinion> cleaned = CheckMinionCount(owner);
 
             // Get owner
             Entity summoner = null;
-            double maxSummons = 32767;
-
-            // Clean up the minions
-            for (int m = subs.size() - 1; m >= 0; m--) {
-                // Get observed
-                SummonerClassMinion minion = subs.get(m);
-
-                // Actually get owner
-                if (summoner == null) {
-
-                    // Set
-                    summoner = minion.getOwner();
-
-                    // Is it player?
-                    if (summoner instanceof Player) {
-
-                        // Is MMOItems enabled?
-                        if (Gunging_Ootilities_Plugin.foundMMOItems) {
-
-                            // Get Cummulative Minions
-                            maxSummons = GooPMMOItems.CummaltiveEquipmentDoubleStatValue((Player) summoner, GooPMMOItems.MINIONS, 1.0);
-                        }
-                    }
-                }
-
-                // Owner valid? If not then kill (They should have been killed already tho but anyway)
-                if (minion.isMinionValid() && minion.isOwnerValid() && maxSummons > 0 && minion.isEnabled()) {
-
-                    // Add and count
-                    maxSummons -= minion.getWeight();
-                    cleaned.add(minion);
-
-                // If still enabled
-                } else if (minion.isEnabled()) {
-
-                    // Kill and forget about it
-                    if (minion.isMinionValid()) { minion.Kill(); } else { DisableMinion(minion); }
-                    selfship.remove(minion.getMinion().getUniqueId());
-                }
-            }
-
-            // Alr now they've been cleaned
-            minionship.put(owner, cleaned);
+            Location sLoc = null;
 
             // Apply leash ranges
             for (int m = 0; m < cleaned.size(); m++) {
@@ -313,11 +289,19 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
                 // Get at
                 SummonerClassMinion minion = cleaned.get(m);
 
+                // Actually get owner
+                if (summoner == null) {
+
+                    // Acquire summoner specifications
+                    summoner = minion.getOwner();
+                    sLoc = summoner.getLocation();
+                }
+
                 // Get self
                 Entity min = minion.getMinion();
 
                 // Get Locs
-                Location sLoc = summoner.getLocation(), mLoc = min.getLocation();
+                Location mLoc = min.getLocation();
 
                 // Same world?
                 if (sLoc.getWorld() == mLoc.getWorld()) {
@@ -369,14 +353,15 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
     /**
      * Checks and constrains minion count of this owner.
      */
-    public static void CheckMinionCount(@NotNull UUID owner) {
+    @NotNull public static ArrayList<SummonerClassMinion> CheckMinionCount(@NotNull UUID owner) {
 
         // Get array
         ArrayList<SummonerClassMinion> subs = minionship.get(owner);
+        ArrayList<SummonerClassMinion> cleaned = new ArrayList<>();
 
         // Return if null
-        if (subs == null) { return; }
-        if (subs.size() <= 0) { return; }
+        if (subs == null) { return cleaned; }
+        if (subs.size() <= 0) { return cleaned; }
 
         // Get owner
         double maxSummons = GetMaxMinions(subs.get(0).getOwner());
@@ -384,6 +369,7 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
 
         // Clean up the minions
         for (int m = subs.size() - 1; m >= 0; m--) {
+
             // Get observed
             SummonerClassMinion minion = subs.get(m);
             boolean limitFailure = false;
@@ -392,14 +378,15 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
             if (minion.hasKind()) {
 
                 // Check Kind
-                Integer i = kindCount.get(minion.getKind());
-                if (i == null) { i = 0; } i++; int ip = i;
+                Integer currentKindCount = kindCount.get(minion.getKind());
+                if (currentKindCount == null) { currentKindCount = 0; }
+                currentKindCount++;
 
                 // Check Limit
                 if (minion.hasLimit()) {
 
                     // Check Limit
-                    if (ip > minion.getLimit()) {
+                    if (currentKindCount > minion.getLimit()) {
 
                         // Cancel this
                         limitFailure = true;
@@ -410,24 +397,42 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
                 if (!limitFailure) {
 
                     // Well its added
-                    kindCount.put(minion.getKind(), ip);
+                    kindCount.put(minion.getKind(), currentKindCount);
                 }
             }
 
+            // Summon weight must fit this minion's weight
+            boolean weightFailure = (maxSummons - minion.getWeight()) < 0;
+
             // Owner valid? If not then kill (They should have been killed already tho but anyway)
-            if (minion.isMinionValid() && !limitFailure && minion.isOwnerValid() && maxSummons > 0 && minion.isEnabled()) {
+            if (!weightFailure && !limitFailure && minion.isOwnerValid() && minion.isMinionValid()) {
 
                 // Add and count
                 maxSummons -= minion.getWeight();
+                cleaned.add(minion);
 
             // If still enabled
             } else if (minion.isEnabled()) {
 
+                // Message
+                if (minion.getWeight() > 0 && (minion.getOwner() instanceof Player)) {
+
+                    // Message
+                    String message = GTranslationManager.getSummonerTranslation(GTL_SummonerClass.MINION_EXCEED_CAP).replace("%minion_uuid%", String.valueOf(minion.getMinion().getUniqueId())).replace("%minion_name%", (minion.getMinion().getCustomName() != null ? minion.getMinion().getCustomName() : minion.getMinion().getName()));
+
+                    // Set to space to skip
+                    if (message.length() > 0 && !message.equals(" ")) {
+                        message = OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(message, minion.getOwner(), (Player) minion.getOwner(), null, null));
+                        minion.getOwner().sendMessage(message); }
+                }
                 // Kill and forget about it
                 if (minion.isMinionValid()) { minion.Kill(); } else { DisableMinion(minion); }
-                selfship.remove(minion.getMinion().getUniqueId());
             }
         }
+
+        // Save
+        minionship.put(owner, cleaned);
+        return cleaned;
     }
 
     /**
@@ -446,7 +451,7 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
             // Is MMOItems enabled?
             if (Gunging_Ootilities_Plugin.foundMMOItems) {
 
-                // Get Cummulative Minions
+                // Get Cumulative Minions
                 maxSummons = GooPMMOItems.CummaltiveEquipmentDoubleStatValue((Player) summoner, GooPMMOItems.MINIONS, 1.0);
             }
         }

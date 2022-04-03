@@ -1,13 +1,14 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.adapters.AbstractVector;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.mechanics.ParticleEffect;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderFloat;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.adapters.AbstractLocation;
+import io.lumine.mythic.api.adapters.AbstractVector;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderFloat;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.mechanics.ParticleEffect;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,8 +28,8 @@ public class TCPEffect extends ParticleEffect {
 
     boolean useDegrees;
 
-    public TCPEffect(String skill, MythicLineConfig mlc) {
-        super(skill, mlc);
+    public TCPEffect(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
 
         this.fOff =   mlc.getPlaceholderFloat(new String[]{"fOff"}, 0.0F);
         this.sOff =   mlc.getPlaceholderFloat(new String[]{"sOff"}, 0.0F);
@@ -131,7 +132,7 @@ public class TCPEffect extends ParticleEffect {
     }
 
     public HashSet<AbstractEntity> get(SkillMetadata data) {
-        return new HashSet<>(MythicMobs.inst().getEntityManager().getPlayers(data.getCaster().getEntity().getWorld()));
+        return new HashSet<>(MythicBukkit.inst().getEntityManager().getPlayers(data.getCaster().getEntity().getWorld()));
     }
 
     /**

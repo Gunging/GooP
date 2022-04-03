@@ -5,16 +5,18 @@ import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.mobs.GenericCaster;
-import io.lumine.xikage.mythicmobs.skills.*;
-import io.lumine.xikage.mythicmobs.skills.mechanics.CustomMechanic;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.skills.targeters.IEntitySelector;
-import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.mobs.GenericCaster;
+import io.lumine.mythic.api.skills.*;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
+import io.lumine.mythic.core.skills.SkillTargeter;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
+import io.lumine.mythic.core.skills.targeters.IEntitySelector;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -23,12 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.HashSet;
 
-@SuppressWarnings("SpellCheckingInspection")
-@MythicMechanic(
-        author = "gunging",
-        name = "GooPSudoOwner",
-        description = "Forces the owner of this minion to fire the skill"
-)
 public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
     boolean casterAsTrigger;
     Boolean targetMinionsSelf;
@@ -37,8 +33,8 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
     PlaceholderString skillname;
     Skill metaskill;
 
-    public SudoOwnerMechanic(CustomMechanic skill, MythicLineConfig mlc) {
-        super(skill.getConfigLine(), mlc);
+    public SudoOwnerMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
         casterAsTrigger = mlc.getBoolean(new String[]{"setcasterastrigger", "cat"}, false);
         String tmS = mlc.getString(new String[]{"targetownminions", "tom"}, "none");
         if (OotilityCeption.BoolTryParse(tmS)) { targetMinionsSelf = Boolean.parseBoolean(tmS); } else { targetMinionsSelf = null; }
@@ -63,7 +59,8 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
         }
     }
 
-    public boolean cast(@NotNull SkillMetadata data) {
+    @Override
+    public SkillResult cast(@NotNull SkillMetadata data) {
         Collection<AbstractEntity> targets = new HashSet<>();
         if (data.getEntityTargets() != null) { targets = new HashSet<>(data.getEntityTargets()); }
 
@@ -142,11 +139,11 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
             SkillCaster caster;
 
             // Will be caster of the skill, as a mythicmob
-            if (MythicMobs.inst().getMobManager().isActiveMob(t)) {
+            if (MythicBukkit.inst().getMobManager().isActiveMob(t)) {
                 //MM//OotilityCeption.Log("\u00a73  * \u00a77Caster as ActiveMob");
 
                 // Just pull the mythicmob
-                caster = MythicMobs.inst().getMobManager().getMythicMobInstance(t);
+                caster = MythicBukkit.inst().getMobManager().getMythicMobInstance(t);
 
                 // If its a player or some other non-mythicmob
             } else {
@@ -174,7 +171,7 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
             }
 
             // ??
-            if (!metaskill.isUsable(clonedData)) { return false; }
+            if (!metaskill.isUsable(clonedData)) { return SkillResult.ERROR; }
             //MM//OotilityCeption.Log("\u00a7a  + \u00a77Useable");
 
             // Run skill sync or async
@@ -190,7 +187,7 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
                         metaskill.execute(clonedData);
 
                     }
-                }).runTask(MythicMobs.inst());
+                }).runTask(MythicBukkit.inst());
 
                 // Forncing Sync
             } else {
@@ -201,7 +198,7 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
             }
 
             // Success I guess
-            return true;
+            return SkillResult.SUCCESS;
 
         // Targets were null :B
         } else {
@@ -212,7 +209,7 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
             //MM//OotilityCeption.Log("\u00a7e ? \u00a77Nonull Metaskl: \u00a7f" + (metaskill != null));
 
             // L
-            return false;
+            return SkillResult.ERROR;
         }
     }
 }

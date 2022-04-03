@@ -1,23 +1,21 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
-import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.XBow_Rockets;
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitTriggerMetadata;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.logging.MythicLogger;
-import io.lumine.xikage.mythicmobs.mobs.GenericCaster;
-import io.lumine.xikage.mythicmobs.skills.*;
-import io.lumine.xikage.mythicmobs.skills.auras.Aura;
-import io.lumine.xikage.mythicmobs.skills.damage.DamageMetadata;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.util.annotations.MythicField;
-import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
-import io.lumine.xikage.mythicmobs.utils.Events;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.mobs.GenericCaster;
+import io.lumine.mythic.api.skills.*;
+import io.lumine.mythic.api.skills.damage.DamageMetadata;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.bukkit.adapters.BukkitTriggerMetadata;
+import io.lumine.mythic.core.logging.MythicLogger;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.auras.Aura;
+import io.lumine.mythic.utils.Events;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Projectile;
@@ -37,12 +35,6 @@ import java.util.Optional;
  *
  * @author Ashijin but mildly edited by Gunging
  */
-
-@MythicMechanic(
-        author = "Ashijin",
-        name = "ondamaged",
-        description = "Applies an aura to the target that triggers a skill when they take damage"
-)
 public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
     @NotNull PlaceholderString skillName;
     @Nullable Skill metaskill;
@@ -53,8 +45,8 @@ public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
     protected double damageMult;
     @NotNull private final HashMap<String, Double> damageModifiers = new HashMap();
 
-    public OnDamagedAura(String skill, MythicLineConfig mlc) {
-        super(skill, mlc);
+    public OnDamagedAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());
         this.cancelDamage = mlc.getBoolean(new String[]{"cancelevent", "ce", "canceldamage", "cd"}, false);
@@ -72,7 +64,7 @@ public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
 
                 try {
                     try {
-                        if (!MythicMobs.isVolatile()) {
+                        if (!MythicBukkit.isVolatile()) {
                             EntityDamageEvent.DamageCause.valueOf(dm.toUpperCase());
                         }
                     } catch (Error | Exception var13) {
@@ -113,16 +105,16 @@ public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
         //SOM//OotilityCeption.Log("\u00a7cStep 0 \u00a7eMechanic Load");
     }
 
-    public boolean castAtEntity(SkillMetadata data, AbstractEntity target) {
+    public SkillResult castAtEntity(SkillMetadata data, AbstractEntity target) {
         // Find caster
         SkillCaster caster;
 
         // Will be caster of the skill, as a mythicmob
-        if (MythicMobs.inst().getMobManager().isActiveMob(target)) {
+        if (MythicBukkit.inst().getMobManager().isActiveMob(target)) {
             //SOM//OotilityCeption.Log("\u00a73  * \u00a77Caster as ActiveMob");
 
             // Just pull the mythicmob
-            caster = MythicMobs.inst().getMobManager().getMythicMobInstance(target);
+            caster = MythicBukkit.inst().getMobManager().getMythicMobInstance(target);
 
             // If its a player or some other non-mythicmob
         } else {
@@ -133,7 +125,7 @@ public class OnDamagedAura extends Aura implements ITargetedEntitySkill {
         }
 
         new OnDamagedAura.Tracker(caster, data, target);
-        return true;
+        return SkillResult.SUCCESS;
     }
 
     protected double calculateDamage(AbstractEntity entity, EntityDamageByEntityEvent event) {

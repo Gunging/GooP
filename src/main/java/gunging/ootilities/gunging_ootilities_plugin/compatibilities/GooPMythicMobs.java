@@ -1,38 +1,38 @@
 package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 
 import com.google.common.collect.Sets;
-import gunging.ootilities.gunging_ootilities_plugin.GungingOotilities;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.events.GooP_FontUtils;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
-import gunging.ootilities.gunging_ootilities_plugin.events.XBow_Rockets;
 import gunging.ootilities.gunging_ootilities_plugin.misc.CompactCodedValue;
 import gunging.ootilities.gunging_ootilities_plugin.misc.FileConfigPair;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ListPlaceholder;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplaceholders.*;
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.adapters.AbstractPlayer;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitItemStack;
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicConditionLoadEvent;
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMechanicLoadEvent;
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicReloadedEvent;
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicTargeterLoadEvent;
-import io.lumine.xikage.mythicmobs.items.MythicItem;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
-import io.lumine.xikage.mythicmobs.mobs.GenericCaster;
-import io.lumine.xikage.mythicmobs.mobs.MobManager;
-import io.lumine.xikage.mythicmobs.mobs.MythicMob;
-import io.lumine.xikage.mythicmobs.skills.Skill;
-import io.lumine.xikage.mythicmobs.skills.SkillTrigger;
-import io.lumine.xikage.mythicmobs.skills.placeholders.Placeholder;
-import io.lumine.xikage.mythicmobs.skills.placeholders.PlaceholderManager;
-import io.lumine.xikage.mythicmobs.util.jnbt.CompoundTag;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.adapters.AbstractLocation;
+import io.lumine.mythic.api.adapters.AbstractPlayer;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.mobs.GenericCaster;
+import io.lumine.mythic.api.mobs.MythicMob;
+import io.lumine.mythic.api.skills.Skill;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderManager;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.bukkit.adapters.BukkitItemStack;
+import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
+import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
+import io.lumine.mythic.bukkit.events.MythicReloadedEvent;
+import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent;
+import io.lumine.mythic.core.items.MythicItem;
+import io.lumine.mythic.core.mobs.ActiveMob;
+import io.lumine.mythic.core.mobs.MobExecutor;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillTriggers;
+import io.lumine.mythic.core.skills.placeholders.Placeholder;
+import io.lumine.mythic.core.utils.jnbt.CompoundTag;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -55,62 +55,65 @@ public class GooPMythicMobs implements Listener {
 
     @EventHandler
     public void OnRegisterCustomMechanics(MythicMechanicLoadEvent event) {
+        SkillExecutor exec = event.getContainer().getManager();
+        String line = event.getConfig().getLine();
+        MythicLineConfig config = event.getConfig();
 
         // Switch Mechanic ig
         switch (event.getMechanicName().toLowerCase()) {
             case "effect:particleslash":
-                event.register(new ParticleSlashEffect(event.getContainer().getConfigLine(), event.getConfig()));
+                event.register(new ParticleSlashEffect(exec, line, config));
                 break;
             case "goopondamaged":
             case "gondamaged":
             case "ondamagedg":
-                event.register(new OnDamagedAura(event.getContainer().getConfigLine(), event.getConfig()));
+                event.register(new OnDamagedAura(exec, line, config));
                 break;
             case "gooponshoot":
             case "gonshoot":
             case "onshootg":
-                event.register(new OnShootAura(event.getContainer().getConfigLine(), event.getConfig()));
+                event.register(new OnShootAura(exec, line, config));
                 break;
             case "gooponattack":
             case "gonattack":
             case "onattackg":
-                event.register(new OnAttackAura(event.getContainer().getConfigLine(), event.getConfig()));
+                event.register(new OnAttackAura(exec, line, config));
                 break;
             case "hideaura":
-                event.register(new HideAura(event.getContainer().getConfigLine(), event.getConfig()));
+                event.register(new HideAura(exec, line, config));
                 break;
             case "goopminion":
-                event.register(new MinionMechanic(event.getContainer(), event.getConfig()));
+                event.register(new MinionMechanic(exec, line, config));
                 break;
             case "copycatequipment":
-                event.register(new CopyCatEquipmentMechanic(event.getContainer(), event.getConfig()));
+                event.register(new CopyCatEquipmentMechanic(exec, line, config));
                 break;
             case "goopsettrigger":
             case "goopastrigger":
-                event.register(new AsTrigger(event.getContainer(), event.getConfig()));
+                event.register(new AsTrigger(exec, line, config));
                 break;
             case "goopsetorigin":
             case "goopasorigin":
-                event.register(new AsOrigin(event.getContainer(), event.getConfig()));
+                event.register(new AsOrigin(exec, line, config));
                 break;
             case "goopsummonminion":
             case "goopsummonminions":
-                event.register(new SummonMinionMechanic(event.getContainer(), event.getConfig()));
+                event.register(new SummonMinionMechanic(exec, line, config));
                 break;
             case "goopreleaseminion":
             case "goopreleaseminions":
-                event.register(new MinionEmancipation(event.getContainer(), event.getConfig()));
+                event.register(new MinionEmancipation(exec, line, config));
                 break;
             case "goopsudoowner":
-                event.register(new SudoOwnerMechanic(event.getContainer(), event.getConfig()));
+                event.register(new SudoOwnerMechanic(exec, line, config));
                 break;
             case "gooprally":
             case "rallyall":
-                event.register(new RallyAll(event.getContainer(), event.getConfig()));
+                event.register(new RallyAll(exec, line, config));
                 break;
             case "goopsudominions":
             case "goopsudominion":
-                event.register(new SudoMinionsMechanic(event.getContainer(), event.getConfig()));
+                event.register(new SudoMinionsMechanic(exec, line, config));
                 break;
             default: break;
         }
@@ -156,21 +159,23 @@ public class GooPMythicMobs implements Listener {
     }
     @EventHandler
     public void OnRegisterCustomTargeters(MythicTargeterLoadEvent event) {
+        SkillExecutor exec = event.getContainer().getManager();
+        MythicLineConfig mlc = event.getConfig();
 
         // Switch Mechanic ig
         switch (event.getTargeterName().toLowerCase()) {
             case "goopminions":
             case "goopminion":
-                event.register(new MinionsTargeter(event.getConfig()));
+                event.register(new MinionsTargeter(exec, mlc));
                 break;
             case "goopowner":
-                event.register(new MinionsOwnerTargeter(event.getConfig()));
+                event.register(new MinionsOwnerTargeter(exec, mlc));
                 break;
             case "goopscore":
-                event.register(new ScoreboardTargeter(event.getConfig()));
+                event.register(new ScoreboardTargeter(exec, mlc));
                 break;
             case "gooptag":
-                event.register(new TagTargeter(event.getConfig()));
+                event.register(new TagTargeter(exec, mlc));
                 break;
             default: break;
         }
@@ -186,7 +191,7 @@ public class GooPMythicMobs implements Listener {
 
         ArrayList<String> ret = new ArrayList<>();
 
-        for (MythicMob mb : MythicMobs.inst().getMobManager().getMobTypes()) { ret.add(mb.getInternalName()); }
+        for (MythicMob mb : MythicBukkit.inst().getMobManager().getMobTypes()) { ret.add(mb.getInternalName()); }
 
         return ret;
     }
@@ -238,7 +243,7 @@ public class GooPMythicMobs implements Listener {
         }
     }
     public static void RegisterPlaceholders(boolean withMMOItems) {
-        PlaceholderManager phm = MythicMobs.inst().getPlaceholderManager();
+        PlaceholderManager phm = MythicBukkit.inst().getPlaceholderManager();
 
         // Register OnApply Placeholder
         phm.register("goop.slot", MMPHSlot.getInst());
@@ -489,7 +494,7 @@ public class GooPMythicMobs implements Listener {
         if (name == null) { return null; }
 
         // All right
-        Optional<MythicItem> hasMythicItem = MythicMobs.inst().getItemManager().getItem(name);
+        Optional<MythicItem> hasMythicItem = MythicBukkit.inst().getItemManager().getItem(name);
 
         // Cancel present
         if (!hasMythicItem.isPresent()) { return null; }
@@ -504,7 +509,7 @@ public class GooPMythicMobs implements Listener {
         if (stack == null) { return false; }
 
         // Un parse it
-        CompoundTag ct = MythicMobs.inst().getVolatileCodeHandler().getItemHandler().getNBTData(stack);
+        CompoundTag ct = MythicBukkit.inst().getVolatileCodeHandler().getItemHandler().getNBTData(stack);
 
         // Yo is that a mythic item?
         return ct.containsKey(MYTHIC_TYPE);
@@ -556,7 +561,7 @@ public class GooPMythicMobs implements Listener {
         if (IsMythicMobLoaded(name)) {
 
             // Get Manager
-            MobManager mm = MythicMobs.inst().getMobManager();
+            MobExecutor mm = MythicBukkit.inst().getMobManager();
 
             if (mm == null) { return null; }
 
@@ -577,13 +582,14 @@ public class GooPMythicMobs implements Listener {
             return null;
         }
     }
-    public static boolean IsMythicMobLoaded(String name) {
+    public static boolean IsMythicMobLoaded(@Nullable String name) {
+        if (name == null) { return false; }
 
         // Try
-        MythicMob mobtest = MythicMobs.inst().getMobManager().getMythicMob(name);
+        Optional<MythicMob> mobtest = MythicBukkit.inst().getMobManager().getMythicMob(name);
 
         // Try
-        return mobtest != null;
+        return mobtest.isPresent();
     }
     public static Boolean IsMythicMobOfInternalID(Entity targetEntity, String mythicmobName, RefSimulator<String> logger) {
 
@@ -591,7 +597,7 @@ public class GooPMythicMobs implements Listener {
         if (IsMythicMob(targetEntity)) {
 
             // Just do thay
-            if (MythicMobs.inst().getAPIHelper().getMythicMobInstance(targetEntity).getType().getInternalName().equals(mythicmobName)) {
+            if (MythicBukkit.inst().getAPIHelper().getMythicMobInstance(targetEntity).getType().getInternalName().equals(mythicmobName)) {
 
                 // Success
                 OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Entity is indeed a MythicMob instance of \u00a7e" + mythicmobName + "\u00a77!");
@@ -620,10 +626,10 @@ public class GooPMythicMobs implements Listener {
     public static Boolean IsMythicMob(Entity targetEntity) {
 
         // Solid yes or no
-        return MythicMobs.inst().getAPIHelper().isMythicMob(targetEntity);
+        return MythicBukkit.inst().getAPIHelper().isMythicMob(targetEntity);
     }
     public static Boolean GraveyardsRespawnSkill(String skillName, Location loc, Player pl) {
-        Optional mSkillFk = MythicMobs.inst().getSkillManager().getSkill(skillName);
+        Optional mSkillFk = MythicBukkit.inst().getSkillManager().getSkill(skillName);
 
         // Is there a skill of that name?
         if (mSkillFk.isPresent()) {
@@ -644,7 +650,7 @@ public class GooPMythicMobs implements Listener {
                 skHash.add(skPlayer);
 
                 // Cast!
-                mSkill.execute(SkillTrigger.API, skCaster, skPlayer, skLocation, skHash, (HashSet)null, 1);
+                mSkill.execute(SkillTriggers.API, skCaster, skPlayer, skLocation, skHash, (HashSet)null, 1);
 
                 // Success
                 return true;
@@ -666,7 +672,7 @@ public class GooPMythicMobs implements Listener {
         // If null no
         if (skillName == null) { return false; }
 
-        Optional<Skill> mSkillFk = MythicMobs.inst().getSkillManager().getSkill(skillName);
+        Optional<Skill> mSkillFk = MythicBukkit.inst().getSkillManager().getSkill(skillName);
 
         // Is there a skill of that name?
         if (mSkillFk.isPresent()) {
@@ -695,7 +701,7 @@ public class GooPMythicMobs implements Listener {
 
         if (SkillExists(skillName)) {
 
-            Optional<Skill> mSkillFk = MythicMobs.inst().getSkillManager().getSkill(skillName);
+            Optional<Skill> mSkillFk = MythicBukkit.inst().getSkillManager().getSkill(skillName);
             if (mSkillFk == null) { return null; }
             if (mSkillFk.isPresent()) { return mSkillFk.get(); }
         }
@@ -782,7 +788,7 @@ public class GooPMythicMobs implements Listener {
             }
 
             // Cast!
-            mSkill.execute(SkillTrigger.API, skCaster, skTrEntity, skLocation, skHash, skHashL, 1);
+            mSkill.execute(SkillTriggers.API, skCaster, skTrEntity, skLocation, skHash, skHashL, 1);
 
             return true;
 

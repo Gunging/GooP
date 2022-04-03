@@ -2,12 +2,9 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplacehol
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.skills.SkillCaster;
-import io.lumine.xikage.mythicmobs.skills.placeholders.Placeholder;
-import io.lumine.xikage.mythicmobs.skills.placeholders.PlaceholderMeta;
-import io.lumine.xikage.mythicmobs.skills.placeholders.types.MetaPlaceholder;
+import io.lumine.mythic.core.skills.placeholders.Placeholder;
+import io.lumine.mythic.core.skills.placeholders.PlaceholderMeta;
+import io.lumine.mythic.core.skills.placeholders.types.MetaPlaceholder;
 
 import java.util.ArrayList;
 

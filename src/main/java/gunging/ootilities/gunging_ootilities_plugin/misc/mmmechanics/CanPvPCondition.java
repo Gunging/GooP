@@ -1,8 +1,8 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.conditions.IEntityComparisonCondition;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.conditions.IEntityComparisonCondition;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -31,7 +31,7 @@ public class CanPvPCondition extends CustomMMCondition implements IEntityCompari
 
         // Run event
         EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(attacker, victim, EntityDamageEvent.DamageCause.ENTITY_ATTACK, 0);
-        Bukkit.getPluginManager().callEvent(event);
+        try { Bukkit.getPluginManager().callEvent(event); } catch (IllegalStateException ignored) { return false; }
 
         // Did it get cancelled?
         return !event.isCancelled();

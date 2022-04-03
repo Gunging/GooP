@@ -2,12 +2,13 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ScoreRequirements;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.skills.targeters.IEntitySelector;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.targeters.IEntitySelector;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -20,10 +21,10 @@ public class TagTargeter extends IEntitySelector {
 
     ArrayList<String> sReq = new ArrayList<>();
 
-    public TagTargeter(MythicLineConfig var1) {
-        super(var1);
+    public TagTargeter(SkillExecutor manager, MythicLineConfig mlc) {
+        super(manager, mlc);
 
-        PlaceholderString sreQ = var1.getPlaceholderString(new String[]{"tags", "tag", "t"}, (String)null);
+        PlaceholderString sreQ = mlc.getPlaceholderString(new String[]{"tags", "tag", "t"}, (String)null);
 
         //MM//OotilityCeption.Log("\u00a7b> > > > > > > > > > Loading \u00a7dGooPTag");
         // F

@@ -2,16 +2,16 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.mobs.GenericCaster;
-import io.lumine.xikage.mythicmobs.skills.*;
-import io.lumine.xikage.mythicmobs.skills.auras.Aura;
-import io.lumine.xikage.mythicmobs.skills.mechanics.CustomMechanic;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.utils.Events;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.mobs.GenericCaster;
+import io.lumine.mythic.api.skills.*;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.auras.Aura;
+import io.lumine.mythic.utils.Events;
 import org.bukkit.entity.Mob;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -29,8 +29,8 @@ public class HideAura extends Aura implements ITargetedEntitySkill {
     @NotNull PlaceholderString skillName;
     @Nullable Skill metaskill;
 
-    public HideAura(String skill, MythicLineConfig mlc) {
-        super(skill, mlc);
+    public HideAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
         hideFromMonsters = mlc.getBoolean(new String[] { "hideFromMonsters", "hfm" }, true);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());
@@ -51,16 +51,16 @@ public class HideAura extends Aura implements ITargetedEntitySkill {
         }
     }
 
-    public boolean castAtEntity(SkillMetadata data, AbstractEntity target) {
+    public SkillResult castAtEntity(SkillMetadata data, AbstractEntity target) {
         // Find caster
         SkillCaster hideTarget;
 
         // Will be caster of the skill, as a mythicmob
-        if (MythicMobs.inst().getMobManager().isActiveMob(target)) {
+        if (MythicBukkit.inst().getMobManager().isActiveMob(target)) {
             //SOM//OotilityCeption.Log("\u00a73  * \u00a77Caster as ActiveMob");
 
             // Just pull the mythicmob
-            hideTarget = MythicMobs.inst().getMobManager().getMythicMobInstance(target);
+            hideTarget = MythicBukkit.inst().getMobManager().getMythicMobInstance(target);
 
             // If its a player or some other non-mythicmob
         } else {
@@ -82,7 +82,7 @@ public class HideAura extends Aura implements ITargetedEntitySkill {
         }
 
         new HideAura.Tracker(hideTarget, data, target);
-        return true;
+        return SkillResult.SUCCESS;
     }
 
     private class Tracker extends Aura.AuraTracker implements IParentSkill, Runnable {

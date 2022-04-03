@@ -2,12 +2,13 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.skills.targeters.IEntitySelector;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.targeters.IEntitySelector;
 import org.bukkit.entity.LivingEntity;
 
 import java.util.ArrayList;
@@ -17,8 +18,8 @@ public class MinionsTargeter extends IEntitySelector {
 
     PlaceholderString kindTargetting;
 
-    public MinionsTargeter(MythicLineConfig mlc) {
-        super(mlc);
+    public MinionsTargeter(SkillExecutor manager, MythicLineConfig mlc) {
+        super(manager, mlc);
         kindTargetting = mlc.getPlaceholderString(new String[] { "kind", "k" }, null);
     }
 

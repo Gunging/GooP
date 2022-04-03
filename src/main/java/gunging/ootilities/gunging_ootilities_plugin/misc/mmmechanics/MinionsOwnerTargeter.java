@@ -2,19 +2,20 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.targeters.IEntitySelector;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.targeters.IEntitySelector;
 import org.bukkit.entity.LivingEntity;
 
 import java.util.HashSet;
 
 public class MinionsOwnerTargeter extends IEntitySelector {
 
-    public MinionsOwnerTargeter(MythicLineConfig var1) {
-        super(var1);
+    public MinionsOwnerTargeter(SkillExecutor manager, MythicLineConfig mlc) {
+        super(manager, mlc);
     }
 
     public HashSet<AbstractEntity> getEntities(SkillMetadata skillMetadata) {

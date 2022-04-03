@@ -1,5 +1,19 @@
 
 # --------------------
+#   Messages sent to players when minions perform certain actions
+# --------------------
+#
+#   The message is sent to the player owning the minion involved.
+#   -> %minion_name% Name of the minion involved.
+#   -> %minion_uuid% UUID of the minion involved.
+#
+SummonerClassUtils:
+
+  MinionExceedCapacity: '&8&l[<#ff6bb7>&l!&8&l] <#ffc4e2>Your elemental control over <#d594eb>%minion_name%<#ffc4e2> is not strong enough and collapses! '
+  MinionDeath: '&8&l[<#ff6bb7>&l!&8&l] <#ffc4e2>Your <#d594eb>%minion_name%<#ffc4e2> has fallen in battle. '
+  MinionWouldExceedCapacity: '&8&l[<#ff6bb7>&l!&8&l] <#ffc4e2>Your fail to summon <#d594eb>%minion_name%<#ffc4e2> because your elemental control is not strong enough! '
+
+# --------------------
 #   Messages sent to players when using the Usage Containers Commands
 #
 #   /gprivate       /ginfo      /gpublic      /gremove    /gmodify

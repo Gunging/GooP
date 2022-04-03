@@ -1,9 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplaceholders;
 
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.placeholders.Placeholder;
-import io.lumine.xikage.mythicmobs.skills.placeholders.PlaceholderMeta;
-import org.jetbrains.annotations.NotNull;
+import io.lumine.mythic.core.skills.placeholders.PlaceholderMeta;
 
 import java.util.function.BiFunction;
 

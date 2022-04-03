@@ -1,15 +1,14 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
-import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.events.GooPMinionSummonEvent;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 /**
  * The parameters stored to make minions work.
@@ -20,7 +19,7 @@ public class SummonerClassMinion {
     /**
      * Entity this minion represents
      */
-    Entity minion;
+    @NotNull final Entity minion;
     /**
      * Entity this minion represents
      */
@@ -47,19 +46,19 @@ public class SummonerClassMinion {
     /**
      * How many minions of the same kind can the user have.
      */
-    Integer limit = null;
+    @Nullable Integer limit = null;
 
     /**
      * How many minions of the same kind can the user have.
      */
-    public Integer getLimit() { return limit; }
+    @Nullable public Integer getLimit() { return limit; }
 
     /**
      * How many minions of the same kind can the user have.
      * <p></p>
      * Note that negative values make no sense
      */
-    public void setLimit(Integer l) { limit = l; }
+    public void setLimit(@Nullable Integer l) { limit = l; }
 
     /**
      * How many minions of the same kind can the user have.
@@ -75,7 +74,7 @@ public class SummonerClassMinion {
      * <p></p>
      * May also be used to target them via the Mythic Skills targetter
      */
-    String kind = null;
+    @Nullable String kind = null;
 
     /**
      * What 'kind' of minion this is.
@@ -84,7 +83,7 @@ public class SummonerClassMinion {
      * <p></p>
      * May also be used to target them via the Mythic Skills targetter
      */
-    public String getKind() { return kind; }
+    @Nullable public String getKind() { return kind; }
 
     /**
      * What 'kind' of minion this is.
@@ -93,7 +92,7 @@ public class SummonerClassMinion {
      * <p></p>
      * May also be used to target them via the Mythic Skills targetter
      */
-    public void setKind(String k) { kind = k; }
+    public void setKind(@Nullable String k) { kind = k; }
 
     /**
      * Does this minion have a 'kind' defined?
@@ -108,7 +107,7 @@ public class SummonerClassMinion {
     /**
      * Owner of thay entity.
      */
-    Entity owner;
+    @NotNull final Entity owner;
     /**
      * Owner of thay entity.
      */
@@ -130,7 +129,7 @@ public class SummonerClassMinion {
     /**
      * The scoreboard tag that characterizes all minions
      */
-    public static final String minionTag = "GooP_Minion";
+    @NotNull public static final String minionTag = "GooP_Minion";
     //endregion
 
     //region Options
@@ -156,7 +155,7 @@ public class SummonerClassMinion {
     /**
      * MythicMobs skill to run when the entity is removed.
      */
-    String skillOnRemove = null;
+    @Nullable String skillOnRemove = null;
     /**
      * MythicMobs skill to run when the entity is removed.
      */
@@ -168,7 +167,7 @@ public class SummonerClassMinion {
     /**
      * MythicMobs skill to run when the entity is removed.
      */
-    public void setSkillOnRemove(String skor) { skillOnRemove = skor; }
+    public void setSkillOnRemove(@Nullable String skor) { skillOnRemove = skor; }
 
     /**
      * @return If this minion cannot be damaged by players.
@@ -207,6 +206,11 @@ public class SummonerClassMinion {
      * Will register this minion in the ticking teleportation events and such.
      */
     public void Enable() {
+
+        // Event
+        GooPMinionSummonEvent event = new GooPMinionSummonEvent(this);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) { return; }
 
         // Just add lmao
         SummonerClassUtils.EnableMinion(this);

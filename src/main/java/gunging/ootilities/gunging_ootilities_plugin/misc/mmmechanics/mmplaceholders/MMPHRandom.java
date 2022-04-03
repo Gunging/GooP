@@ -1,9 +1,9 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplaceholders;
 
 import gunging.ootilities.gunging_ootilities_plugin.misc.ListPlaceholder;
-import io.lumine.xikage.mythicmobs.skills.placeholders.Placeholder;
-import io.lumine.xikage.mythicmobs.skills.placeholders.PlaceholderMeta;
-import io.lumine.xikage.mythicmobs.skills.placeholders.types.MetaPlaceholder;
+import io.lumine.mythic.core.skills.placeholders.Placeholder;
+import io.lumine.mythic.core.skills.placeholders.PlaceholderMeta;
+import io.lumine.mythic.core.skills.placeholders.types.MetaPlaceholder;
 
 public class MMPHRandom extends MMPlaceholder {
 

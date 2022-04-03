@@ -32,7 +32,7 @@ public class OptimizedTimeFormat {
         }
     }
 
-    public static OptimizedTimeFormat Current() { return new OptimizedTimeFormat(GetCurrentTime()); }
+    @NotNull public static OptimizedTimeFormat Current() { return new OptimizedTimeFormat(GetCurrentTime()); }
 
     /**
      * MUST BE A POSITIVE AMOUNT.

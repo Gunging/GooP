@@ -504,10 +504,16 @@ public class JSONPlacerUtils implements Listener {
             // Is Armor Stand?
             if (ent instanceof ArmorStand) {
 
-                // Has tag?
+                // It is an armor stand that has the JSON furniture tag
                 if (ent.getScoreboardTags().contains("GooP_JSON")) {
 
-                    // Check
+                    /*
+                     * This check will delete armor stands that have the tag
+                     * but are somehow corrupted (their block not being a barrier
+                     * block anymore).
+                     *
+                     * Also removes duplicates, if it somehow was spawned twice?
+                     */
                     IsJSON_Furniture(ent.getWorld().getBlockAt(ReverseDisplayLocation(ent)), null);
                 }
             }

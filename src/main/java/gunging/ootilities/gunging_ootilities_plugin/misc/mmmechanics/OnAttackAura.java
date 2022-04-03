@@ -4,17 +4,17 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.XBow_Rockets;
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.mobs.GenericCaster;
-import io.lumine.xikage.mythicmobs.skills.*;
-import io.lumine.xikage.mythicmobs.skills.auras.Aura;
-import io.lumine.xikage.mythicmobs.skills.mechanics.OnAttackMechanic;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderDouble;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.utils.Events;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.mobs.GenericCaster;
+import io.lumine.mythic.api.skills.*;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderDouble;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.auras.Aura;
+import io.lumine.mythic.utils.Events;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Projectile;
@@ -38,8 +38,8 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
     protected boolean modDamage = false;
     protected PlaceholderDouble damageAdd;
     protected PlaceholderDouble damageMult;
-    public OnAttackAura(String skill, MythicLineConfig mlc) {
-        super(skill, mlc);
+    public OnAttackAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());
         this.cancelDamage = mlc.getBoolean(new String[]{"cancelevent", "ce", "canceldamage", "cd"}, false);
@@ -78,16 +78,16 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
         }
     }
 
-    public boolean castAtEntity(SkillMetadata data, AbstractEntity target) {
+    public SkillResult castAtEntity(SkillMetadata data, AbstractEntity target) {
         // Find caster
         SkillCaster caster;
 
         // Will be caster of the skill, as a mythicmob
-        if (MythicMobs.inst().getMobManager().isActiveMob(target)) {
+        if (MythicBukkit.inst().getMobManager().isActiveMob(target)) {
             //SOM//OotilityCeption.Log("\u00a73  * \u00a77Caster as ActiveMob");
 
             // Just pull the mythicmob
-            caster = MythicMobs.inst().getMobManager().getMythicMobInstance(target);
+            caster = MythicBukkit.inst().getMobManager().getMythicMobInstance(target);
 
             // If its a player or some other non-mythicmob
         } else {
@@ -98,7 +98,7 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
         }
 
         new OnAttackAura.Tracker(caster, data, target);
-        return true;
+        return SkillResult.SUCCESS;
     }
 
     protected double calculateDamage(SkillMetadata data, AbstractEntity target, double damage) {

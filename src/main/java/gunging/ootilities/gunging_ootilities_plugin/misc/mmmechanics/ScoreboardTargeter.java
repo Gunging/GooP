@@ -4,12 +4,13 @@ import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ScoreRequirements;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
-import io.lumine.xikage.mythicmobs.skills.placeholders.parsers.PlaceholderString;
-import io.lumine.xikage.mythicmobs.skills.targeters.IEntitySelector;
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.config.MythicLineConfig;
+import io.lumine.mythic.api.skills.SkillMetadata;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.targeters.IEntitySelector;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -23,9 +24,9 @@ public class ScoreboardTargeter extends IEntitySelector {
 
     PlaceholderString sreQ;
 
-    public ScoreboardTargeter(MythicLineConfig var1) {
-        super(var1);
-        sreQ = var1.getPlaceholderString(new String[]{"scores", "score", "sc", "s"}, (String)null);
+    public ScoreboardTargeter(SkillExecutor manager, MythicLineConfig mlc) {
+        super(manager, mlc);
+        sreQ = mlc.getPlaceholderString(new String[]{"scores", "score", "sc", "s"}, (String)null);
         //DBG//OotilityCeption.Log("\u00a7b> > > > > > > > > > Loading \u00a73GooPScore");
     }
 
