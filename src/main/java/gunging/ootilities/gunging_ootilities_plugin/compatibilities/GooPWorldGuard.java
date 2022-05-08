@@ -8,6 +8,7 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.LocationFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
@@ -19,10 +20,14 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GooPWorldGuard {
 
     public static StateFlag MORTAL_IMMORTALITY;
+    public static StateFlag HOV_ALLOW_SET_BACK;
+    public static LocationFlag HOV_RESPAWN_LOCATION;
     OotilityCeption oots = new OotilityCeption();
 
     public static void LoadNRegisterFlags() {
@@ -44,13 +49,55 @@ public class GooPWorldGuard {
                 // hopefully this never actually happens
             }
         }
+
+        if (Gunging_Ootilities_Plugin.theMain.getServer().getPluginManager().getPlugin("AAA_HeartOfAvalon") != null) {
+
+            try {
+                // create a flag with the name "my-custom-flag", defaulting to true
+                StateFlag flag = new StateFlag("goop-allow-back-set", true);
+                registry.register(flag);
+                HOV_ALLOW_SET_BACK = flag; // only set our field if there was no error
+            } catch (FlagConflictException e) {
+                // some other plugin registered a flag by the same name already.
+                // you can use the existing flag, but this may cause conflicts - be sure to check type
+                Flag<?> existing = registry.get("goop-allow-back-set");
+                if (existing instanceof StateFlag) {
+                    HOV_ALLOW_SET_BACK = (StateFlag) existing;
+                } else {
+                    // types don't match - this is bad news! some other plugin conflicts with you
+                    // hopefully this never actually happens
+                }
+            }
+
+            try {
+
+                // create a flag with the name "my-custom-flag", defaulting to true
+                LocationFlag flag = new LocationFlag("goop-revive-location");
+                registry.register(flag);
+                HOV_RESPAWN_LOCATION = flag; // only set our field if there was no error
+
+            } catch (FlagConflictException e) {
+
+                // some other plugin registered a flag by the same name already.
+                // you can use the existing flag, but this may cause conflicts - be sure to check type
+                Flag<?> existing = registry.get("goop-revive-location");
+                if (existing instanceof LocationFlag) {
+                    HOV_RESPAWN_LOCATION = (LocationFlag) existing;
+
+                } else {
+                    // types don't match - this is bad news! some other plugin conflicts with you
+                    // hopefully this never actually happens
+                }
+            }
+        }
     }
 
     public BlockVector3 BV3at(Location loc) {
         return BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
     }
 
-    public Boolean PlayerInCustomFlag(Player player, Integer customFlagID){
+    public Boolean PlayerInCustomFlag(Player player, Integer customFlagID) {
+
         // WHAT this should not even load wtf!
         if (!Gunging_Ootilities_Plugin.foundWorldGuard) {
             oots.CPLog("\u00a7cAttempting to use World Guard while it should be disabled wth.");
@@ -62,7 +109,7 @@ public class GooPWorldGuard {
         ApplicableRegionSet tSet = tQuery.getApplicableRegions(BukkitAdapter.adapt(player.getLocation()));
 
         // Supposing it Loaded
-        if (tSet != null){
+        if (tSet != null) {
 
             // Lets see what regions apply to da player
             try {
@@ -76,6 +123,9 @@ public class GooPWorldGuard {
                 switch (customFlagID){
                     case 0:
                         tFlag = MORTAL_IMMORTALITY;
+                        break;
+                    case 1:
+                        tFlag = HOV_ALLOW_SET_BACK;
                         break;
                     default:
                         oots.CPLog("\u00a7cCustom WorldGuard Flag ID \u00a7e" + customFlagID + "\u00a7c not found. Contact Plugin Developer.");

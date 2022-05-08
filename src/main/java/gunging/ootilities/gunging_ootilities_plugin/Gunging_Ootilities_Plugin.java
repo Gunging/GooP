@@ -85,7 +85,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     // Persistent Data
     public FileConfigPair optiFineGlintPair, translationsPair, mySQLHostInfo, customModelDataLinkPair, goopUnlockables, applicableMasksPair, mmoitemsConverterPair, globalContainerContents, listPlaceholderPair, fontsPair;
     public ArrayList<FileConfigPair> customStructurePairs, containerTemplatesPairs, recipesPairs, ingredientsPairs;
-    public HashMap<YamlConfiguration, FileConfigPair> storageRoots = new HashMap<>();
+    //STORE//public HashMap<YamlConfiguration, FileConfigPair> storageRoots = new HashMap<>();
 
     static long bootTime = 0;
     public static long getBootTime() { return bootTime; }
@@ -118,7 +118,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             premiumCSCheck.CompatibilityCheck();
             CustomStructures.Enable();
 
-        } catch (NoClassDefFoundError ignored) { }
+        } catch (Throwable ignored) { }
         //endregion
 
         //region Premium Containers Attempt
@@ -130,11 +130,12 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             premiumCNCheck.CompatibilityCheck();
             GOOPCManager.enable();
 
-        } catch (NoClassDefFoundError ignored) {
+        } catch (Throwable ignored) {}
 
-            GOOPCManager.enableLiteEquipment(getConfig().getString("Containers.Lite"));
-        }
+        Gunging_Ootilities_Plugin.theOots.CLog("\u00a78EES\u00a7c INVALID\u00a77 BBBBBBB");
+        GOOPCManager.enableLiteVersions(getConfig());
         //endregion
+
 
         //region World Guard Compatibility Attempt
         if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
@@ -431,18 +432,18 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         ContainersInteractionHandler.registerHandlers();
 
         // Register Events
-        getServer().getPluginManager().registerEvents(new DeathPrevent(), theMain);
-        getServer().getPluginManager().registerEvents(new CustomStructures(), theMain);
+        /*WUT*/getServer().getPluginManager().registerEvents(new DeathPrevent(), theMain);
+        /*WUT*/getServer().getPluginManager().registerEvents(new CustomStructures(), theMain);
         getServer().getPluginManager().registerEvents(new ScoreboardLinks(), theMain);
-        getServer().getPluginManager().registerEvents(new XBow_Rockets(), theMain);
-        getServer().getPluginManager().registerEvents(new GOOPCListener(), theMain);
-        getServer().getPluginManager().registerEvents(new GooP_FontUtils(), theMain);
-        getServer().getPluginManager().registerEvents(new SummonerClassUtils(), theMain);
-        getServer().getPluginManager().registerEvents(new GCL_Player(), theMain);
-        if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { getServer().getPluginManager().registerEvents(new JSONPlacerUtils(), theMain); }
+        /*WUT*/getServer().getPluginManager().registerEvents(new XBow_Rockets(), theMain);
+        /*WUT*/getServer().getPluginManager().registerEvents(new GOOPCListener(), theMain);
+        /*WUT*/getServer().getPluginManager().registerEvents(new GooP_FontUtils(), theMain);
+        /*WUT*/getServer().getPluginManager().registerEvents(new SummonerClassUtils(), theMain);
+        /*WUT*/getServer().getPluginManager().registerEvents(new GCL_Player(), theMain);
+        /*WUT*/if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { getServer().getPluginManager().registerEvents(new JSONPlacerUtils(), theMain); }
 
         if (foundMMOItems) { getServer().getPluginManager().registerEvents(new OnApplyCommand(), theMain); }
-        if (foundMythicMobs) { getServer().getPluginManager().registerEvents(new GooPMythicMobs(), theMain); }
+        /*WUT*/if (foundMythicMobs) { getServer().getPluginManager().registerEvents(new GooPMythicMobs(), theMain); }
 
         // Schedule insync
         Bukkit.getScheduler().scheduleSyncRepeatingTask(getPlugin(), ((Runnable) new SummonerClassUtils()), 40, 200);
@@ -754,24 +755,24 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         //region Translations
         translationsPair = GetConfigAt(null, "plugin-messages.yml", true, false);
-        if (translationsPair != null) { storageRoots.put(translationsPair.getStorage(), translationsPair); }
+        //STORE//i/f (translationsPair != null) { storageRoots.put(translationsPair.getStorage(), translationsPair); }
         //endregion
 
         //region OptiFine Glints
         optiFineGlintPair = GetConfigAt(null, "opti-fine-glints.yml", true, false);
-        if (optiFineGlintPair != null) { storageRoots.put(optiFineGlintPair.getStorage(), optiFineGlintPair); }
+        //STORE//if (optiFineGlintPair != null) { storageRoots.put(optiFineGlintPair.getStorage(), optiFineGlintPair); }
         //endregion
 
         //region List Placeholders MythicMobs stuff
         if (foundMythicMobs) {
             listPlaceholderPair = GetConfigAt(null, "list-placeholders.yml", true, false);
-            if (listPlaceholderPair != null) { storageRoots.put(listPlaceholderPair.getStorage(), listPlaceholderPair); }
+            //STORE//if (listPlaceholderPair != null) { storageRoots.put(listPlaceholderPair.getStorage(), listPlaceholderPair); }
         }
         //endregion
 
         //region Font Utils
         fontsPair = GetConfigAt(null, "font-codes.yml", true, false);
-        if (fontsPair != null) { storageRoots.put(fontsPair.getStorage(), fontsPair); }
+        //STORE//if (fontsPair != null) { storageRoots.put(fontsPair.getStorage(), fontsPair); }
         //endregion
 
         //region Enchantment Scourge
@@ -797,23 +798,23 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         //region Custom Structures
         customStructurePairs = GetConfigsAt("custom-structures");
-        for (FileConfigPair fcP : customStructurePairs) { storageRoots.put(fcP.getStorage(), fcP); }
+        //STORE//for (FileConfigPair fcP : customStructurePairs) { storageRoots.put(fcP.getStorage(), fcP); }
         //endregion
 
         //region Applicable Masks and Converter
         if (foundMMOItems) {
             applicableMasksPair = GetConfigAt(null, "onapply-masks.yml", true, false);
-            if (applicableMasksPair != null) { storageRoots.put(applicableMasksPair.getStorage(), applicableMasksPair); }
+            //STORE//if (applicableMasksPair != null) { storageRoots.put(applicableMasksPair.getStorage(), applicableMasksPair); }
 
             mmoitemsConverterPair = GetConfigAt(null, "mmoitems-converter.yml", true, false);
-            if (mmoitemsConverterPair != null) { storageRoots.put(mmoitemsConverterPair.getStorage(), mmoitemsConverterPair); }
+            //STORE//if (mmoitemsConverterPair != null) { storageRoots.put(mmoitemsConverterPair.getStorage(), mmoitemsConverterPair); }
         }
         //endregion
 
         //region Containers
         containerTemplatesPairs = GetConfigsAt("container-templates");
         containerTemplatesPairs.add(GetConfigAt(null, "container-templates.yml", false, true)); // Backward Compatibility.
-        for (FileConfigPair fcP : containerTemplatesPairs) { storageRoots.put(fcP.getStorage(), fcP); }
+        //STORE//for (FileConfigPair fcP : containerTemplatesPairs) { storageRoots.put(fcP.getStorage(), fcP); }
 
         GOOPCManager.updatePhysicalFormats(GetConfigsAt("container-instances/physical")); // Backward Compatibility
         GOOPCManager.updatePersonalFormats(GetConfigsAt("container-instances/personal")); // Backward Compatibility
@@ -830,7 +831,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //region Custom Model Data Link
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) {
             customModelDataLinkPair = GetConfigAt(null, "custom-model-data-links.yml", true, false);
-            if (customModelDataLinkPair != null) { storageRoots.put(customModelDataLinkPair.getStorage(), customModelDataLinkPair); }
+            //STORE//if (customModelDataLinkPair != null) { storageRoots.put(customModelDataLinkPair.getStorage(), customModelDataLinkPair); }
         }
         //endregion
 
@@ -851,7 +852,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         //region Unlockables
         goopUnlockables = GetConfigAt("persistent-data", "unlockdata.yml", false, true);
-        storageRoots.put(goopUnlockables.getStorage(), goopUnlockables);
+        //STORE//storageRoots.put(goopUnlockables.getStorage(), goopUnlockables);
         //endregion
 
         //region Reload what must be reloaded

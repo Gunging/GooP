@@ -94,7 +94,7 @@ public class SudoMinionsMechanic extends SkillMechanic implements IMetaSkill {
         if (targets != null && metaskill != null && castr != null) {
 
             // Get the minions
-            ArrayList<SummonerClassMinion> fellowMinions = SummonerClassUtils.GetMinionsOf(castr);
+            ArrayList<SummonerClassMinion> fellowMinions = new ArrayList<>(SummonerClassUtils.GetMinionsOf(castr));
 
             // Filter targets
             HashSet<AbstractEntity> fTargets = new HashSet<>();
@@ -138,7 +138,7 @@ public class SudoMinionsMechanic extends SkillMechanic implements IMetaSkill {
             String kindFilter = null;
             if (kindTargetting != null) { kindFilter = kindTargetting.get(data, data.getCaster().getEntity()); }
 
-            // FOreach
+            // Foreach
             for (SummonerClassMinion sudoedMinion : fellowMinions) {
 
                 // Succ

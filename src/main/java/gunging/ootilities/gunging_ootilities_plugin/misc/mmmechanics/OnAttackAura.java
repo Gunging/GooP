@@ -1,7 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
-import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.XBow_Rockets;
 import io.lumine.mythic.api.adapters.AbstractEntity;
@@ -12,9 +11,9 @@ import io.lumine.mythic.api.skills.placeholders.PlaceholderDouble;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.bukkit.utils.Events;
 import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.auras.Aura;
-import io.lumine.mythic.utils.Events;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Projectile;
@@ -25,9 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
-
-import static gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.OnShootAura.getName;
-import static gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.OnShootAura.logSkillData;
 
 public class OnAttackAura extends Aura implements ITargetedEntitySkill {
 
@@ -112,74 +108,74 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
         }
 
         public void auraStart() {
-            this.registerAuraComponent(Events.subscribe(EntityDamageByEntityEvent.class).filter((event) ->
-                    event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK ||
-                    event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE).filter((event) -> {
-
-                //SOM//OotilityCeption.Log("\u00a7cStep 3 \u00a77Subscribe Run: " + getName(event.getEntity()) + "\u00a77 vs " + getName(this.entity.get()) + "\u00a78 ~\u00a7e " + event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId()));
-
-
-                // Find the true entity
-                Entity trueDamager = event.getDamager();
-
-                // Get True Damager
-                if (traceSource) {
-                    if (event.getDamager() instanceof Projectile) {
-
-                        // If shooter is not null
-                        Projectile arrow = (Projectile) trueDamager;
-                        if (arrow.getShooter() instanceof Entity) {
-
-                            // Real damager is the one who fired this
-                            trueDamager = (Entity) arrow.getShooter();
-                        }
-                    }
-                    if (event.getDamager() instanceof Firework) {
-
-                        // If shooter is not null
-                        Firework arrow = (Firework) event.getDamager();
-                        if (XBow_Rockets.fireworkSources.containsKey(arrow.getUniqueId())) {
-
-                            // Real damager is the one who fired this
-                            trueDamager = XBow_Rockets.fireworkSources.get(arrow.getUniqueId());
-                        }
-                    }
-                }
+            this.registerAuraComponent(
+                     Events.subscribe(EntityDamageByEntityEvent.class)
+                            .filter((event) -> event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK || event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE)
+                            .filter((event) -> {
+                            //SOM//OotilityCeption.Log("\u00a7cStep 3 \u00a77Subscribe Run: " + getName(event.getEntity()) + "\u00a77 vs " + getName(this.entity.get()) + "\u00a78 ~\u00a7e " + event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId()));
 
 
-                return trueDamager.getUniqueId().equals(((AbstractEntity)this.entity.get()).getUniqueId());
+                            // Find the true entity
+                            Entity trueDamager = event.getDamager();
 
-            }).filter((event) -> {
-                Optional<Object> md = BukkitAdapter.adapt(event.getDamager()).getMetadata("doing-skill-damage");
-                return md.map(o -> !(Boolean) o).orElse(true);
+                            // Get True Damager
+                            if (traceSource) {
+                                if (event.getDamager() instanceof Projectile) {
 
-            }).handler((event) -> {
+                                    // If shooter is not null
+                                    Projectile arrow = (Projectile) trueDamager;
+                                    if (arrow.getShooter() instanceof Entity) {
 
-                // Clone, sure
-                SkillMetadata meta = this.skillMetadata.deepClone();
+                                        // Real damager is the one who fired this
+                                        trueDamager = (Entity) arrow.getShooter();
+                                    }
+                                }
+                                if (event.getDamager() instanceof Firework) {
 
-                // Target is target yea
-                AbstractEntity target = BukkitAdapter.adapt(event.getEntity());
-                meta.setTrigger(target);
+                                    // If shooter is not null
+                                    Firework arrow = (Firework) event.getDamager();
+                                    if (XBow_Rockets.fireworkSources.containsKey(arrow.getUniqueId())) {
 
-                // Refresh
-                if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(meta, meta.getCaster().getEntity()));}
+                                        // Real damager is the one who fired this
+                                        trueDamager = XBow_Rockets.fireworkSources.get(arrow.getUniqueId());
+                                    }
+                                }
+                            }
 
-                //SOM// OotilityCeption.Log("\u00a7cStep 4 \u00a77Aura Run:\u00a7d " + logSkillData(meta) + "\u00a7b " + metaskill.getInternalName());
+                            return trueDamager.getUniqueId().equals(((AbstractEntity)this.entity.get()).getUniqueId());
 
-                // Execute
-                if (this.executeAuraSkill(Optional.ofNullable(metaskill), meta)) {
-                    this.consumeCharge();
-                    if (OnAttackAura.this.cancelDamage) {
-                        event.setCancelled(true);
-                    } else if (OnAttackAura.this.modDamage) {
-                        double damage = OnAttackAura.this.calculateDamage(meta, target, event.getDamage());
-                        event.setDamage(damage);
-                    }
-                }
+                            }).filter((event) -> {
+                                Optional<Object> md = BukkitAdapter.adapt(event.getDamager()).getMetadata("doing-skill-damage");
+                                return md.map(o -> !(Boolean) o).orElse(true);
 
-            }));
-            this.executeAuraSkill(OnAttackAura.this.onStartSkill, this.skillMetadata);
+                            }).handler((event) -> {
+
+                                // Clone, sure
+                                SkillMetadata meta = this.skillMetadata.deepClone();
+
+                                // Target is target yea
+                                AbstractEntity target = BukkitAdapter.adapt(event.getEntity());
+                                meta.setTrigger(target);
+
+                                // Refresh
+                                if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(meta, meta.getCaster().getEntity()));}
+
+                                //SOM// OotilityCeption.Log("\u00a7cStep 4 \u00a77Aura Run:\u00a7d " + logSkillData(meta) + "\u00a7b " + metaskill.getInternalName());
+
+                                // Execute
+                                if (executeAuraSkill(Optional.ofNullable(metaskill), meta)) {
+                                    consumeCharge();
+                                    if (cancelDamage) {
+                                        event.setCancelled(true);
+                                    } else if (modDamage) {
+                                        double damage = calculateDamage(meta, target, event.getDamage());
+                                        event.setDamage(damage);
+                                    }
+                                }
+
+                            }));
+
+            executeAuraSkill(OnAttackAura.this.onStartSkill, this.skillMetadata);
         }
     }
 }

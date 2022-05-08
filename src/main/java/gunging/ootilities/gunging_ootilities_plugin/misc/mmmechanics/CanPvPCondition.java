@@ -15,6 +15,9 @@ public class CanPvPCondition extends CustomMMCondition implements IEntityCompari
 
     public boolean check(AbstractEntity entity, AbstractEntity target) {
 
+        // Cancel if event in progress, to prevent StackOverflow
+        if (counterEvent) { return false; }
+
         // Must exist, the entity
         if (target == null) {
             //MM//OotilityCeption.Log("\u00a76AC\u00a77 Failed:\u00a7c No target");
@@ -30,10 +33,13 @@ public class CanPvPCondition extends CustomMMCondition implements IEntityCompari
         Entity victim = target.getBukkitEntity();
 
         // Run event
+        counterEvent = true;
         EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(attacker, victim, EntityDamageEvent.DamageCause.ENTITY_ATTACK, 0);
-        try { Bukkit.getPluginManager().callEvent(event); } catch (IllegalStateException ignored) { return false; }
+        try { Bukkit.getPluginManager().callEvent(event); counterEvent = false; } catch (IllegalStateException ignored) { counterEvent = false; return false; }
 
         // Did it get cancelled?
         return !event.isCancelled();
     }
+
+    static boolean counterEvent;
 }

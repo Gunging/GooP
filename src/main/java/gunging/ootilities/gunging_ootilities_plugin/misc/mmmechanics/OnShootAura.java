@@ -1,7 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
-import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
@@ -10,9 +9,10 @@ import io.lumine.mythic.api.skills.*;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.bukkit.utils.Events;
+import io.lumine.mythic.bukkit.utils.terminable.Terminable;
 import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.auras.Aura;
-import io.lumine.mythic.utils.Events;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -82,33 +82,34 @@ public class OnShootAura extends Aura implements ITargetedEntitySkill {
         }
 
         public void auraStart() {
-            this.registerAuraComponent(Events.subscribe(EntityShootBowEvent.class).filter((event) -> {
+            this.registerAuraComponent((Terminable)
+                    Events.subscribe(EntityShootBowEvent.class).filter((event) -> {
 
-                //SOM//OotilityCeption.Log("\u00a7cStep 3 \u00a77Subscribe Run: " + getName(event.getEntity()) + "\u00a77 vs " + getName(this.entity.get()) + "\u00a78 ~\u00a7e " + event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId()));
+                    //SOM//OotilityCeption.Log("\u00a7cStep 3 \u00a77Subscribe Run: " + getName(event.getEntity()) + "\u00a77 vs " + getName(this.entity.get()) + "\u00a78 ~\u00a7e " + event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId()));
 
-                return event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId());
+                    return event.getEntity().getUniqueId().equals(this.entity.get().getUniqueId());
 
-            }).handler((event) -> {
+                    }).handler((event) -> {
 
-                // Clone metadata
-                SkillMetadata meta = this.skillMetadata.deepClone();
+                        // Clone metadata
+                        SkillMetadata meta = this.skillMetadata.deepClone();
 
-                // Target obviously the projectile
-                AbstractEntity projectile = BukkitAdapter.adapt(event.getProjectile());
-                meta.setTrigger(projectile);
+                        // Target obviously the projectile
+                        AbstractEntity projectile = BukkitAdapter.adapt(event.getProjectile());
+                        meta.setTrigger(projectile);
 
-                // Refresh
-                if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(meta, meta.getCaster().getEntity()));}
+                        // Refresh
+                        if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(meta, meta.getCaster().getEntity()));}
 
-                //SOM//OotilityCeption.Log("\u00a7cStep 4 \u00a77Aura Run:\u00a7d " + logSkillData(meta) + "\u00a7b " + metaskill.getInternalName());
-                if (this.executeAuraSkill(Optional.ofNullable(metaskill), meta)) {
+                        //SOM//OotilityCeption.Log("\u00a7cStep 4 \u00a77Aura Run:\u00a7d " + logSkillData(meta) + "\u00a7b " + metaskill.getInternalName());
+                        if (this.executeAuraSkill(Optional.ofNullable(metaskill), meta)) {
 
-                    this.consumeCharge();
+                            this.consumeCharge();
 
-                    if (cancelEvent) { event.setCancelled(true); }
-                }
+                            if (cancelEvent) { event.setCancelled(true); }
+                        }
 
-            }));
+                    }));
             this.executeAuraSkill(OnShootAura.this.onStartSkill, this.skillMetadata);
         }
     }

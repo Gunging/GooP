@@ -1,19 +1,11 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.adapters.AbstractVector;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderFloat;
-import io.lumine.mythic.bukkit.MythicBukkit;
-import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.mechanics.ParticleEffect;
 import org.jetbrains.annotations.NotNull;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-
 /**
  * The transformed co-ordinates particle effect, it
  * generates a vector between the caster and the target
@@ -22,14 +14,14 @@ import java.util.HashSet;
  *
  * @author Gunging
  */
-public class TCPEffect extends ParticleEffect {
-    @NotNull public final PlaceholderFloat radius, rotation, fOff, sOff, vOff, xOff, yOff, zOff;
-    @NotNull public final PlaceholderFloat fScale, sScale, vScale, xScale, yScale, zScale;
+public class TCPEffect {
+    @NotNull public PlaceholderFloat slashRadius, rotation, fOff, sOff, vOff, xOff, yOff, zOff;
+    @NotNull public PlaceholderFloat fScale, sScale, vScale, xScale, yScale, zScale;
+    public final boolean fromOrigin, fromTrigger;
 
     boolean useDegrees;
 
-    public TCPEffect(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    public TCPEffect(@NotNull MythicLineConfig mlc) {
 
         this.fOff =   mlc.getPlaceholderFloat(new String[]{"fOff"}, 0.0F);
         this.sOff =   mlc.getPlaceholderFloat(new String[]{"sOff"}, 0.0F);
@@ -45,10 +37,13 @@ public class TCPEffect extends ParticleEffect {
         this.yScale =   mlc.getPlaceholderFloat(new String[]{"yScale"}, 1.0F);
         this.zScale =   mlc.getPlaceholderFloat(new String[]{"zScale"}, 1.0F);
 
-        this.radius = mlc.getPlaceholderFloat(new String[]{"radius", "r"}, 5.0F);
+        this.slashRadius = mlc.getPlaceholderFloat(new String[]{"slashRadius", "sr"}, null);
+        if (slashRadius == null) { this.slashRadius = mlc.getPlaceholderFloat(new String[]{"r", "radius"}, 5.0F); }
         this.rotation = mlc.getPlaceholderFloat(new String[]{"rotation", "rot"}, 0F);
 
         this.useDegrees = mlc.getBoolean(new String[]{"useDegrees", "degrees", "ud"}, true);
+        this.fromOrigin = mlc.getBoolean(new String[]{"fromOrigin", "fo", "fOrigin"}, false);
+        this.fromTrigger = mlc.getBoolean(new String[]{"fromTrigger", "ft", "fTrigger"}, false);
     }
 
     /**
@@ -78,8 +73,14 @@ public class TCPEffect extends ParticleEffect {
      *         origin of the projectile and display.
      */
     @SuppressWarnings("UnnecessaryLocalVariable")
-    public AbstractVector transform(@NotNull SkillMetadata data, @NotNull AbstractLocation target, double hor, double ver, double fro) {
-        AbstractLocation source = data.getCaster().getLocation();
+    @NotNull public AbstractVector transform(@NotNull SkillMetadata data, @NotNull AbstractLocation target, double hor, double ver, double fro) {
+        AbstractLocation source =
+
+                // Trigger exists and from trigger? Use that location
+                (fromTrigger && data.getTrigger() != null) ? data.getTrigger().getLocation() :
+
+                        // From origin? or use caster location
+                        fromOrigin ? data.getOrigin() : data.getCaster().getLocation();
 
         // Prevent singularities
         if (source.getX() == target.getX() && source.getY() == target.getY() && source.getZ() == target.getZ()) {
@@ -87,7 +88,7 @@ public class TCPEffect extends ParticleEffect {
             // Target will be right above source
             target = source.clone().add(new AbstractVector(0, 0.001, 0)); }
 
-        double r = radius.get(data);
+        double r = slashRadius.get(data);
 
         // Rotate input relatives about the relative forward axis
         double o = (hor * sScale.get(data)) + (sOff.get(data) / r);
@@ -128,23 +129,6 @@ public class TCPEffect extends ParticleEffect {
         t_y += (yOff.get(data) / r);
         t_z += (zOff.get(data) / r);
 
-        return (new AbstractVector(t_x, t_y, t_z)).multiply(radius.get(data));
-    }
-
-    public HashSet<AbstractEntity> get(SkillMetadata data) {
-        return new HashSet<>(MythicBukkit.inst().getEntityManager().getPlayers(data.getCaster().getEntity().getWorld()));
-    }
-
-    /**
-     * Idk how audiences work and honestly its just a bunch of implementation problems.
-     * This gets all players within 48 blocks of epicenter.
-     *
-     * @param target Target Location
-     * @return Payers nearby that should be able to see the particle effect.
-     */
-    Collection<AbstractEntity> GetAudience(@NotNull AbstractLocation target) {
-
-        // Literally just return all players within 48 blocks
-        return new ArrayList<>(target.getWorld().getPlayersNearLocation(target, 48));
+        return (new AbstractVector(t_x, t_y, t_z)).multiply(slashRadius.get(data));
     }
 }

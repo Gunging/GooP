@@ -9,9 +9,10 @@ import io.lumine.mythic.api.skills.*;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.bukkit.utils.Events;
+import io.lumine.mythic.bukkit.utils.terminable.Terminable;
 import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.auras.Aura;
-import io.lumine.mythic.utils.Events;
 import org.bukkit.entity.Mob;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -94,40 +95,41 @@ public class HideAura extends Aura implements ITargetedEntitySkill {
         public void auraStart() {
 
             // Entity target event tracker, target must not be null
-            this.registerAuraComponent(Events.subscribe(EntityTargetEvent.class).filter((event) -> {
+            this.registerAuraComponent( (Terminable)
+                    Events.subscribe(EntityTargetEvent.class).filter((event) -> {
 
-                // Filter out null target
-                if (event.getTarget() == null) { return false; }
+                    // Filter out null target
+                    if (event.getTarget() == null) { return false; }
 
-                // Target must be the entity under the hide aura
-                return event.getTarget().getUniqueId().equals(((AbstractEntity)this.entity.get()).getUniqueId());
+                    // Target must be the entity under the hide aura
+                    return event.getTarget().getUniqueId().equals(((AbstractEntity)this.entity.get()).getUniqueId());
 
-            }).handler((event) -> {
+                    }).handler((event) -> {
 
-                // Consume Charge
-                this.consumeCharge();
+                        // Consume Charge
+                        this.consumeCharge();
 
-                // Cancel event
-                event.setCancelled(true);
+                        // Cancel event
+                        event.setCancelled(true);
 
-                // Refresh
-                if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(this.skillMetadata, this.skillMetadata.getCaster().getEntity()));}
+                        // Refresh
+                        if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(this.skillMetadata, this.skillMetadata.getCaster().getEntity()));}
 
-                // Run skill
-                if (metaskill != null) {
+                        // Run skill
+                        if (metaskill != null) {
 
-                    // Run Skill ig
-                    SkillMetadata meta = this.skillMetadata.deepClone();
+                            // Run Skill ig
+                            SkillMetadata meta = this.skillMetadata.deepClone();
 
-                    // Target is target yea
-                    AbstractEntity target = BukkitAdapter.adapt(event.getEntity());
-                    meta.setTrigger(target);
+                            // Target is target yea
+                            AbstractEntity target = BukkitAdapter.adapt(event.getEntity());
+                            meta.setTrigger(target);
 
-                    // Execute
-                    this.executeAuraSkill(Optional.ofNullable(metaskill), meta);
-                }
+                            // Execute
+                            this.executeAuraSkill(Optional.ofNullable(metaskill), meta);
+                        }
 
-            }));
+                    }));
             this.executeAuraSkill(HideAura.this.onStartSkill, this.skillMetadata);
         }
     }

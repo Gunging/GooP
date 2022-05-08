@@ -3,6 +3,7 @@ package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 import com.google.common.collect.Sets;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
 import gunging.ootilities.gunging_ootilities_plugin.events.GooP_FontUtils;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.CompactCodedValue;
@@ -177,6 +178,14 @@ public class GooPMythicMobs implements Listener {
             case "gooptag":
                 event.register(new TagTargeter(exec, mlc));
                 break;
+            case "locationsinslash":
+            case "slashlocations":
+                if (GOOPCManager.isLocationsInSlash()) { event.register(new LocationsInSlash(exec, mlc)); }
+                break;
+            case "entitiesinslash":
+            case "slashentities":
+                if (GOOPCManager.isEntitiesInSlash()) { event.register(new EntitiesInSlash(exec, mlc)); }
+                break;
             default: break;
         }
     }
@@ -280,9 +289,16 @@ public class GooPMythicMobs implements Listener {
             // If valid
             if (arg == null) { return "{missing dynamic code}"; }
 
+            // As numeric?
+            String defaultRet = "";
+            int dotLoc = arg.indexOf(".");
+            if (dotLoc > 0) {
+                defaultRet = arg.substring(0, dotLoc);
+                arg = arg.substring(dotLoc + 1); }
+
             // Get From Caster
             String value = ValueFromDynamic(metadata.getCaster().getEntity().getUniqueId(), arg);
-            if (value == null) { value = ""; }
+            if (value == null) { value = defaultRet; }
 
             // Return thay
             return value;
@@ -728,7 +744,7 @@ public class GooPMythicMobs implements Listener {
         return ExecuteMythicSkillAs(skillName, caster, trigger, targts, caster.getLocation(), vars);
     }
     public static Boolean ExecuteMythicSkillAs(String skillName, Entity caster, Entity trigger, ArrayList<Entity> targets, Location origin) { return ExecuteMythicSkillAs(skillName, caster, trigger, targets, origin, null); }
-    public static Boolean ExecuteMythicSkillAs(String skillName, Entity caster, Entity trigger, ArrayList<Entity> targets, Location origin, ArrayList<CompactCodedValue> vars) {
+    public static Boolean ExecuteMythicSkillAs(@Nullable String skillName, @Nullable Entity caster, @Nullable Entity trigger, @Nullable ArrayList<Entity> targets, @Nullable Location origin, @Nullable ArrayList<CompactCodedValue> vars) {
 
         // Fix vars
         if (vars == null) { vars = new ArrayList<>(); }
@@ -773,7 +789,6 @@ public class GooPMythicMobs implements Listener {
 
                             // Add entity and its location
                             skHash.add(BukkitAdapter.adapt(ent));
-                            skHashL.add(BukkitAdapter.adapt(ent.getLocation()));
                         }
                     }
                 }
@@ -784,7 +799,6 @@ public class GooPMythicMobs implements Listener {
 
                 // Targets is only the player
                 skHash.add(skCaEntity);
-                skHashL.add(skCaEntity);
             }
 
             // Cast!

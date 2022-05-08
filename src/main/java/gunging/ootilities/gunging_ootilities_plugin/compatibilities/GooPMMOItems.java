@@ -1961,11 +1961,13 @@ public class GooPMMOItems {
                     // Update
                     mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
 
-                    // Did the operation even work?
+                // Did the operation even work?
                 } else if (actuallyRemoved) {
+                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a77 Removing data from the Stat History....");
 
                     // Clearing?? :flushed:
                     if (clearMode) {
+                        //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a7b-CLEAR\u00a77 Clearing Stat History....");
 
                         // Removing EXSH
                         hist.clearExternalData();
@@ -1979,11 +1981,30 @@ public class GooPMMOItems {
                         // Finally, original data
                         ArrayList<String> lst = new ArrayList<>(((StringListData) hist.getOriginalData()).getList());
                         for (String str : lst) {
+                            //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a7b-CLEAR\u00a77 Removing\u00a7b " + str);
+
+                            // Remove via the provided methode
+                            try {
+                                /*CURRENT-MMOITEMS*/((StringListData) hist.getOriginalData()).remove(str);
+                                //YE-OLDEN-MMO//slData.getList().remove(unidentifiedValue);
+
+                                // That's not good
+                            } catch (Exception ex) {
+                                OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "\u00a7cCould not remove \u00a7e" + str + "\u00a77c from " + stat.getId() + " for unknown reasons.\u00a77 ");
+
+                                // Kap
+                                return null;
+                            }
+
                             /*CURRENT-MMOITEMS*/((StringListData) hist.getOriginalData()).remove(unidentifiedValue);
                             //YE-OLDEN-MMO//((StringListData) hist.getOriginalData()).getList().remove(unidentifiedValue);
                         }
 
+                        //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a7b-CLEAR\u00a77 Result");
+                        //STAT//for (String str : ((StringListData) hist.getOriginalData()).getList()) { OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a7b-CLEAR\u00a77 Data: \u00a7b " + str); }
+
                     } else {
+                        //STAT//OotilityCeption.Log("\u00a77STAT\u00a79 STL\u00a7b-REM\u00a77 Removing '\u00a7b" + unidentifiedValue + "' Stat History....");
 
                         boolean foundAndDestroyed = false;
 
@@ -3463,6 +3484,61 @@ public class GooPMMOItems {
     //endregion
 
     //region Identifying MMOItems
+    /**
+     * @param items List of items which tags to compare
+     *
+     * @return A graphic list of the tags the items had
+     */
+    @NotNull public static HashMap<String, HashMap<String, Integer>> compareNBTTags(@NotNull ArrayList<ItemStack> items) {
+
+        // Comparison map
+        HashMap<String, HashMap<String, Integer>> tagValues = new HashMap<>();
+        
+        // For every item
+        for (ItemStack item : items) {
+
+            // Skip air ffs
+            if (OotilityCeption.IsAirNullAllowed(item)) { continue; }
+
+            // Make NBT Tag compound
+            NBTItem nbt = NBTItem.get(item);
+
+            // Include all tags
+            for (String tag : nbt.getTags()) {
+
+                // Find value of tag
+                Object value = nbt.get(tag);
+                if (value == null) { continue; }
+
+                // Actual value
+                String val = String.valueOf(value);
+
+                // All right get current list
+                HashMap<String, Integer> list = tagValues.get(tag);
+                if (list == null) { list = new HashMap<>(); }
+
+                // Does the list contain the value already?
+                Integer count = list.get(val);
+                if (count == null) {
+
+                    // Include as count 1
+                    list.put(val, 1);
+
+                } else {
+
+                    // Increase count and put
+                    list.put(val, count + 1);
+                }
+
+                // Yeah
+                tagValues.put(tag, list);
+            }
+        }
+
+        // That is the result found
+        return tagValues;
+    }
+
     public static boolean IsUnidentified(@Nullable ItemStack item) {
 
         // Not unident

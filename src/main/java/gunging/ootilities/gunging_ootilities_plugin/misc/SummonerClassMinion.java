@@ -1,6 +1,7 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
+import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.GooPMinionSummonEvent;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
@@ -206,6 +207,8 @@ public class SummonerClassMinion {
      * Will register this minion in the ticking teleportation events and such.
      */
     public void Enable() {
+
+        OotilityCeption.Log("\u00a78SUMMONED");
 
         // Event
         GooPMinionSummonEvent event = new GooPMinionSummonEvent(this);

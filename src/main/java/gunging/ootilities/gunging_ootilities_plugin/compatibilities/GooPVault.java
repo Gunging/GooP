@@ -9,6 +9,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GooPVault {
 
@@ -34,7 +37,8 @@ public class GooPVault {
         return econ != null;
     }
 
-    public static double GetPlayerBalance(OfflinePlayer player) {
+    public static double GetPlayerBalance(@Nullable OfflinePlayer player) {
+        if (player == null) { return 0; }
 
         // Simple!
         return econ.getBalance(player);
@@ -46,7 +50,9 @@ public class GooPVault {
      * @param operation Operation to apply to the player's balance
      * @return True if the operation was a success. False otherwise.
      */
-    public static boolean SetPlayerBalance(OfflinePlayer player, PlusMinusPercent operation) {
+    public static boolean SetPlayerBalance(@Nullable OfflinePlayer player, @NotNull PlusMinusPercent operation) {
+        if (player == null) { return false; }
+
         return SetPlayerBalance(player, operation, false);
     }
 
@@ -57,7 +63,8 @@ public class GooPVault {
      * @param quietly ONLY SET TO TRUE if you really expect that the operation may be cancelled by some other plugin, so it wont spamm the failure.
      * @return True if the operation was a success. False otherwise.
      */
-    public static boolean SetPlayerBalance(OfflinePlayer player, PlusMinusPercent operation, boolean quietly) {
+    public static boolean SetPlayerBalance(@Nullable OfflinePlayer player, @NotNull PlusMinusPercent operation, boolean quietly) {
+        if (player == null) { return false; }
 
         // Get balance lma0
         double balance = GetPlayerBalance(player);
@@ -96,7 +103,9 @@ public class GooPVault {
     /**
      * Economy deposit but supports negative amounts lma0
      */
-    public static EconomyResponse Deposit(OfflinePlayer player, double amount) {
+    @Contract("null,_->null")
+    public static EconomyResponse Deposit(@Nullable OfflinePlayer player, double amount) {
+        if (player == null) { return null; }
 
         // Is it positive?
         if (amount >= 0) {
@@ -115,7 +124,9 @@ public class GooPVault {
     /**
      * Economy withdraw but supports negative amounts lma0
      */
-    public static EconomyResponse Withdraw(OfflinePlayer player, double amount) {
+    @Contract("null,_->null")
+    public static EconomyResponse Withdraw(@Nullable OfflinePlayer player, double amount) {
+        if (player == null) { return null; }
 
         // Is it positive?
         if (amount >= 0) {
