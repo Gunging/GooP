@@ -40,8 +40,8 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
         metaskill = GooPMythicMobs.GetSkill(skillName.get());
         this.cancelDamage = mlc.getBoolean(new String[]{"cancelevent", "ce", "canceldamage", "cd"}, false);
         this.traceSource = mlc.getBoolean(new String[]{"tracesource", "ts"}, true);
-        String damageAdd = mlc.getString(new String[]{"damageadd", "add", "a"}, (String)null, new String[0]);
-        String damageMult = mlc.getString(new String[]{"damagemultiplier", "multiplier", "m"}, (String)null, new String[0]);
+        String damageAdd = mlc.getString(new String[]{"damageadd", "add", "a"}, (String)null);
+        String damageMult = mlc.getString(new String[]{"damagemultiplier", "multiplier", "m"}, (String)null);
         if (damageAdd != null || damageMult != null) {
             this.modDamage = true;
         }

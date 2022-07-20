@@ -425,11 +425,15 @@ public class GungingOotilitiesTab implements TabCompleter {
                             case 3:
                                 Collections.addAll(tabM, OotilityCeption.itemNBTcharKeys);
                                 if (!Gunging_Ootilities_Plugin.foundMMOItems) { tabM.remove("m"); }
+                                if (!Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.remove("mm"); }
                                 break;
                             case 4:
                                 switch (args[2]){
                                     case "m":
-                                        if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_TypeNames(); } else { tabM = new ArrayList<String>(); }
+                                        if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_TypeNames(); } else { tabM = new ArrayList<>(); }
+                                        break;
+                                    case "mm":
+                                        if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM = GooPMythicMobs.GetMythicItemTypes(); } else { tabM = new ArrayList<>(); }
                                         break;
                                     case "e":
                                         tabM = enchantmentsTab;
@@ -453,6 +457,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         break;
                                     case "v":
                                     case "i":
+                                    case "mm":
                                         Collections.addAll(tabM, "0");
                                         break;
                                 }
@@ -476,11 +481,15 @@ public class GungingOotilitiesTab implements TabCompleter {
                             case 4:
                                 Collections.addAll(tabM, OotilityCeption.itemNBTcharKeys);
                                 if (!Gunging_Ootilities_Plugin.foundMMOItems) { tabM.remove("m"); }
+                                if (!Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.remove("mm"); }
                                 break;
                             case 5:
                                 switch (args[3]){
                                     case "m":
                                         if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_TypeNames(); } else { tabM = new ArrayList<String>(); }
+                                        break;
+                                    case "mm":
+                                        if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM = GooPMythicMobs.GetMythicItemTypes(); } else { tabM = new ArrayList<>(); }
                                         break;
                                     case "e":
                                         tabM = enchantmentsTab;
@@ -504,6 +513,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         break;
                                     case "v":
                                     case "i":
+                                    case "mm":
                                         Collections.addAll(tabM, "0");
                                         break;
                                 }
@@ -1257,11 +1267,15 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         case 5:
                                             Collections.addAll(tabM, OotilityCeption.itemNBTcharKeys); tabM.remove("e");
                                             if (!Gunging_Ootilities_Plugin.foundMMOItems) { tabM.remove("m"); }
+                                            if (!Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.remove("mm"); }
                                             break;
                                         case 6:
                                             switch (args[4]){
                                                 case "m":
                                                     if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_TypeNames(); } else { tabM = new ArrayList<String>(); }
+                                                    break;
+                                                case "mm":
+                                                    if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM = GooPMythicMobs.GetMythicItemTypes(); } else { tabM = new ArrayList<>(); }
                                                     break;
                                                 case "v":
                                                     tabM = vanillaMaterialsTab;
@@ -1275,6 +1289,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                     //if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_IDNames(args[4]); } else { tabM = new ArrayList<String>(); }
                                                     break;
                                                 case "v":
+                                                case "mm":
                                                     Collections.addAll(tabM, "0");
                                                     break;
                                             }
@@ -1410,6 +1425,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                                         case PRESSUREPLATE_ITEMS:
                                                                                             Collections.addAll(tabM, OotilityCeption.itemNBTcharKeys);
                                                                                             if (!Gunging_Ootilities_Plugin.foundMMOItems) { tabM.remove("m"); }
+                                                                                            if (!Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.remove("mm"); }
                                                                                             break;
                                                                                         case PRESSUREPLATE_MONSTERS:
                                                                                         case PRESSUREPLATE_ANIMALS:
@@ -1433,6 +1449,9 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                                             switch (args[7].toLowerCase()){
                                                                                                 case "m":
                                                                                                     if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_TypeNames(); } else { tabM = new ArrayList<String>(); }
+                                                                                                    break;
+                                                                                                case "mm":
+                                                                                                    if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM = GooPMythicMobs.GetMythicItemTypes(); } else { tabM = new ArrayList<>(); }
                                                                                                     break;
                                                                                                 case "e":
                                                                                                     tabM = enchantmentsTab;
@@ -1484,6 +1503,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                                                     break;
                                                                                                 case "v":
                                                                                                 case "i":
+                                                                                                case "mm":
                                                                                                     Collections.addAll(tabM, "0");
                                                                                                     break;
                                                                                             }
@@ -1528,6 +1548,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                                         case PRESSUREPLATE_ITEMS:
                                                                                             Collections.addAll(tabM, OotilityCeption.itemNBTcharKeys);
                                                                                             if (!Gunging_Ootilities_Plugin.foundMMOItems) { tabM.remove("m"); }
+                                                                                            if (!Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.remove("mm"); }
                                                                                             break;
                                                                                         case PRESSUREPLATE_MONSTERS:
                                                                                         case PRESSUREPLATE_ANIMALS:
@@ -1551,6 +1572,9 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                                             switch (args[8]) {
                                                                                                 case "m":
                                                                                                     if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM = GooPMMOItems.GetMMOItem_TypeNames(); } else { tabM = new ArrayList<String>(); }
+                                                                                                    break;
+                                                                                                case "mm":
+                                                                                                    if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM = GooPMythicMobs.GetMythicItemTypes(); } else { tabM = new ArrayList<>(); }
                                                                                                     break;
                                                                                                 case "e":
                                                                                                     tabM = enchantmentsTab;
@@ -1603,6 +1627,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                                                     break;
                                                                                                 case "v":
                                                                                                 case "i":
+                                                                                                case "mm":
                                                                                                     Collections.addAll(tabM, "0");
                                                                                                     break;
                                                                                             }
@@ -2250,6 +2275,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                             if (Gunging_Ootilities_Plugin.foundMMOItems) { tabM.add("tempEquip"); }
                             tabM.add("config");
                             tabM.add("unregister");
+                            tabM.add("playerinventory");
 
                         } else {
 
@@ -2348,6 +2374,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             break;
                                         case 4:
                                             for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            tabM.add("%player%");
                                             if (Gunging_Ootilities_Plugin.foundMythicMobs) {
                                                 tabM.add("<caster.name>");
                                                 tabM.add("<trigger.name>");
@@ -2374,6 +2401,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             break;
                                         case 5:
                                             for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            tabM.add("%player%");
                                             if (Gunging_Ootilities_Plugin.foundMythicMobs) {
                                                 tabM.add("<caster.name>");
                                                 tabM.add("<trigger.name>");
@@ -2896,18 +2924,18 @@ public class GungingOotilitiesTab implements TabCompleter {
                             case 4:
                                 //region w
                                 // Assuming it IS a player and not the console, console wont be considered.
-                                if (sender instanceof Player) {
-                                    if (tBlock != null) {
+                                if (tBlock != null) {
 
-                                        // Block exists, use thay
-                                        tabM.add(tBlock.getWorld().getName());
+                                    // Block exists, use thay
+                                    tabM.add(tBlock.getWorld().getName());
 
-                                    } else {
+                                } else {
 
-                                        // Default Shit: All
-                                        for (World wrld : Bukkit.getWorlds()) { tabM.add(wrld.getName()); }
-                                    }
+                                    // Default Shit: All
+                                    for (World wrld : Bukkit.getWorlds()) { tabM.add(wrld.getName()); }
                                 }
+
+                                if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.add("<caster.l.w>"); }
                                 //endregion
                                 break;
                             case 5:
@@ -2922,6 +2950,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                     // Default Shit: Player's Own X
                                     tabM.add(((Integer)((Player)sender).getLocation().getBlockX()).toString());
                                 }
+                                if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.add("<goop.projectile.origin.x>"); }
                                 //endregion
                                 break;
                             case 6:
@@ -2936,6 +2965,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                     // Default Shit: Player's Own Y
                                     tabM.add(((Integer)((Player)sender).getLocation().getBlockY()).toString());
                                 }
+                                if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.add("<goop.projectile.origin.y>"); }
                                 //endregion
                                 break;
                             case 7:
@@ -2950,12 +2980,14 @@ public class GungingOotilitiesTab implements TabCompleter {
                                     // Default Shit: Player's Own Z
                                     tabM.add(((Integer)((Player)sender).getLocation().getBlockZ()).toString());
                                 }
+                                if (Gunging_Ootilities_Plugin.foundMythicMobs) { tabM.add("<goop.projectile.origin.z>"); }
                                 //endregion
                                 break;
-                            case 8: Collections.addAll(tabM, "0", "1", "2", "3", "(break radius)"); break;
-                            case 9: Collections.addAll(tabM, "true", "false", "(as cuboid?)"); break;
+                            case 8: Collections.addAll(tabM, "0", "1", "2", "3", "(break-radius)"); break;
+                            case 9: Collections.addAll(tabM, "true", "false", "(as-cuboid?)"); break;
                             case 10: Collections.addAll(tabM, "0 (Hand)", "1 (Wood)", "2 (Stone)", "3 (Iron)", "4 (Diamond)", "5 (Netherite)"); break;
-                            case 11: Collections.addAll(tabM, "true", "false", "(break bedrock?)"); break;
+                            case 11: Collections.addAll(tabM, "true", "false", "(break-bedrock?)"); break;
+                            case 12: Collections.addAll(tabM, ((Player) sender).getWorld().getName(), "(reboot-key)"); break;
                         }
                         break;
 
@@ -3041,6 +3073,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                 // Adds online players
                                 for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                tabM.add("%player%");
                                 if (Gunging_Ootilities_Plugin.foundMythicMobs) {
                                     tabM.add("<caster.name>");
                                     tabM.add("<trigger.name>");
@@ -3080,6 +3113,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                 // Adds online players
                                 for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                tabM.add("%player%");
                                 if (Gunging_Ootilities_Plugin.foundMythicMobs) {
                                     tabM.add("<caster.name>");
                                     tabM.add("<trigger.name>");
@@ -3261,6 +3295,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                         if (args.length == 2) {
                             Collections.addAll(tabM, "console", "@p", "<Some UUID>");
                             for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                            tabM.add("%player%");
                             if (Gunging_Ootilities_Plugin.foundMythicMobs) {
                                 tabM.add("<caster.name>");
                                 tabM.add("<trigger.name>");
@@ -3411,6 +3446,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                 // Nonullify as player names
                 tabM = new ArrayList<>();
                 for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                tabM.add("%player%");
                 if (Gunging_Ootilities_Plugin.foundMythicMobs) {
                     tabM.add("<caster.name>");
                     tabM.add("<trigger.name>");

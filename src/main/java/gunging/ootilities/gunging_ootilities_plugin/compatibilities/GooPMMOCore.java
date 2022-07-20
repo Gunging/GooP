@@ -8,6 +8,9 @@ import net.Indyuce.mmocore.api.player.stats.StatType;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 public class GooPMMOCore {
 
     public GooPMMOCore() {}
@@ -107,12 +110,53 @@ public class GooPMMOCore {
         }
     }
 
+
+    static Boolean agonizing193 = null;
     public static Double CummulativeDoubleStat(Player target, StatType statName) {
 
         // Get Basic Organizational Classes
         PlayerData pData = PlayerData.get(target);
         PlayerStats pSats = pData.getStats();
-        return pSats.getStat(statName);
+
+        if (agonizing193 == null) {
+
+            try {
+                Method stringMethod = pSats.getClass().getMethod("getStat", String.class);
+
+                Double val = (Double) stringMethod.invoke(pSats, statName.toString());
+
+                agonizing193 = true;
+
+                return val;
+
+            } catch (NoSuchMethodError|NoSuchMethodException|IllegalAccessException|InvocationTargetException ignored) {
+
+                agonizing193 = false;
+
+                return pSats.getStat(statName);
+            }
+
+        } else {
+
+            if (agonizing193) {
+
+                try {
+
+                    Method stringMethod = pSats.getClass().getMethod("getStat", String.class);
+
+                    return (Double) stringMethod.invoke(pSats, statName.toString());
+
+                } catch (NoSuchMethodError|NoSuchMethodException|IllegalAccessException|InvocationTargetException ignored) {
+                    agonizing193 = false;
+
+                    return pSats.getStat(statName);
+                }
+
+            } else {
+
+                return pSats.getStat(statName);
+            }
+        }
 
         /*
         StatInstance pStat = pData.getStats().getInstance(statName);

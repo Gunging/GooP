@@ -6,12 +6,11 @@ import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
 import gunging.ootilities.gunging_ootilities_plugin.events.GooP_FontUtils;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
-import gunging.ootilities.gunging_ootilities_plugin.misc.CompactCodedValue;
-import gunging.ootilities.gunging_ootilities_plugin.misc.FileConfigPair;
-import gunging.ootilities.gunging_ootilities_plugin.misc.ListPlaceholder;
-import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
+import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplaceholders.*;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMRecipeUnlock;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMSilentTeleport;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.adapters.AbstractPlayer;
@@ -54,16 +53,32 @@ public class GooPMythicMobs implements Listener {
     public GooPMythicMobs() {}
     public void CompatibilityCheck() { MythicMob mbb = null; }
 
-    @EventHandler
-    public void OnRegisterCustomMechanics(MythicMechanicLoadEvent event) {
+    @EventHandler public void OnRegisterCustomMechanics(MythicMechanicLoadEvent event) {
         SkillExecutor exec = event.getContainer().getManager();
         String line = event.getConfig().getLine();
         MythicLineConfig config = event.getConfig();
 
         // Switch Mechanic ig
         switch (event.getMechanicName().toLowerCase()) {
+            case "recipeunlock":
+            case "recipelock":
+                event.register(new UCMRecipeUnlock(exec, line, config));
+                break;
+            case "silentteleport":
+            case "stp":
+                event.register(new UCMSilentTeleport(exec, line, config));
+                break;
             case "effect:particleslash":
                 event.register(new ParticleSlashEffect(exec, line, config));
+                break;
+            case "mmodamage":
+
+                // Replaces MythicLib MMODamage
+                if (!Gunging_Ootilities_Plugin.foundMythicLib && !Gunging_Ootilities_Plugin.foundMMOItems) {
+
+                    // Register own MMODamage
+                    event.register(new MMODamageReplacement(exec, line, config));
+                }
                 break;
             case "goopondamaged":
             case "gondamaged":
@@ -82,6 +97,12 @@ public class GooPMythicMobs implements Listener {
                 break;
             case "hideaura":
                 event.register(new HideAura(exec, line, config));
+                break;
+            case "rebootbreak":
+                event.register(new RebootBreak(exec, line, config));
+                break;
+            case "rebootrepair":
+                event.register(new RebootRepair(exec, line, config));
                 break;
             case "goopminion":
                 event.register(new MinionMechanic(exec, line, config));
@@ -119,8 +140,7 @@ public class GooPMythicMobs implements Listener {
             default: break;
         }
     }
-    @EventHandler
-    public void OnRegisterCustomConditions(MythicConditionLoadEvent event) {
+    @EventHandler public void OnRegisterCustomConditions(MythicConditionLoadEvent event) {
         //MM//OotilityCeption.Log("\u00a7aConditions Load Event");
         //MM//OotilityCeption.Log("\u00a77Name: \u00a76" + event.getConditionName());
         //MM//OotilityCeption.Log("\u00a72Line: \u00a7e" + event.getConfig().getLine());
@@ -137,6 +157,9 @@ public class GooPMythicMobs implements Listener {
             case "origindistance":
             case "gooporigindistance":
                 event.register(new DistanceFromOriginCondition(event.getConfig()));
+                break;
+            case "distancefromtrigger":
+                event.register(new DistanceFromTriggerCondition(event.getConfig()));
                 break;
             case "gooplayer":
             case "goopadmin":
@@ -158,13 +181,16 @@ public class GooPMythicMobs implements Listener {
             default: break;
         }
     }
-    @EventHandler
-    public void OnRegisterCustomTargeters(MythicTargeterLoadEvent event) {
+    @EventHandler public void OnRegisterCustomTargeters(MythicTargeterLoadEvent event) {
         SkillExecutor exec = event.getContainer().getManager();
         MythicLineConfig mlc = event.getConfig();
 
         // Switch Mechanic ig
         switch (event.getTargeterName().toLowerCase()) {
+            case "goopstructurecore":
+            case "goopcore":
+                event.register(new StructureCoreTargeter(exec, mlc));
+                break;
             case "goopminions":
             case "goopminion":
                 event.register(new MinionsTargeter(exec, mlc));
@@ -189,8 +215,7 @@ public class GooPMythicMobs implements Listener {
             default: break;
         }
     }
-    @EventHandler
-    public void OnMMReload(MythicReloadedEvent event) {
+    @EventHandler public void OnMMReload(MythicReloadedEvent event) {
 
         // Re-register I guess
         RegisterPlaceholders(Gunging_Ootilities_Plugin.foundMMOItems);
@@ -203,6 +228,10 @@ public class GooPMythicMobs implements Listener {
         for (MythicMob mb : MythicBukkit.inst().getMobManager().getMobTypes()) { ret.add(mb.getInternalName()); }
 
         return ret;
+    }
+    public static ArrayList<String> GetMythicItemTypes() {
+
+        return new ArrayList<>(MythicBukkit.inst().getItemManager().getItemNames());
     }
     public static void ReloadListPlaceholders(OotilityCeption oots) {
 
@@ -332,6 +361,7 @@ public class GooPMythicMobs implements Listener {
 
         }));
 
+        // Owner PAPI
         phm.register("goop.ownerpapi", Placeholder.meta((metadata, arg) -> {
             // If valid
             if (arg == null) { return "{missing placeholder name}"; }
@@ -355,150 +385,16 @@ public class GooPMythicMobs implements Listener {
 
         }));
 
-        // Ok so iof mmoitems loaded
-        if (withMMOItems) {
-
-            //region Register Cummulative Placeholders
-            phm.register("goop.castermmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mmostat name}"; }
-
-                // Get Player
-                Player tPlayer = Bukkit.getPlayer(metadata.getCaster().getEntity().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // A value to return
-                    Double result = GooPMMOLib.CDoubleStat(tPlayer, arg);
-
-                    // Adjust
-                    if (result == null) { return "00"; }
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                } else { return "0000"; }
-
-            }));
-
-            phm.register("goop.ownermmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mmostat name}"; }
-
-                // Get Player
-                Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // Not a player
-                    if (tPlayer instanceof Player) {
-
-                        // A value to return
-                        Double result = GooPMMOLib.CDoubleStat((Player) tPlayer, arg);
-
-                        // Adjust
-                        if (result == null) { return "00"; }
-
-                        return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                        // Zero I guess
-                    } else { return "000"; }
-
-                } else { return "0000"; }
-
-            }));
-
-            phm.register("goop.triggermmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mmostat name}"; }
-
-                // Get Player
-                Player tPlayer = Bukkit.getPlayer(metadata.getTrigger().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // A value to return
-                    Double result = GooPMMOLib.CDoubleStat(tPlayer, arg);
-
-                    // Adjust
-                    if (result == null) { return "00"; }
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                } else { return "0.000"; }
-
-            }));
-            //endregion
-        }
+        // List placeholders
+        phm.register("goop.castermmostat", MMPHMMOStat.getInst(MMPHMMOStatTarget.CASTER));
+        phm.register("goop.triggermmostat", MMPHMMOStat.getInst(MMPHMMOStatTarget.TRIGGER));
+        phm.register("goop.ownermmostat", MMPHMMOStat.getInst(MMPHMMOStatTarget.OWNER));
 
         // With McMMO?
         if (Gunging_Ootilities_Plugin.foundMCMMO) {
-
-            phm.register("goop.castermcmmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mcmmostat name}"; }
-
-                // Get Player
-                Player tPlayer = Bukkit.getPlayer(metadata.getCaster().getEntity().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // A value to return
-                    Double result = GooPMCMMO.MCMMODoubleStat(tPlayer, arg);
-
-                    // Adjust
-                    if (result == null) { return "00"; }
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                } else { return "0000"; }
-
-            }));
-
-            phm.register("goop.ownermcmmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mcmmostat name}"; }
-
-                // Get Player
-                Entity tPlayer = SummonerClassUtils.GetOwner(metadata.getCaster().getEntity().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    if (tPlayer instanceof Player) {
-
-                        // A value to return
-                        Double result = GooPMCMMO.MCMMODoubleStat((Player) tPlayer, arg);
-
-                        // Adjust
-                        if (result == null) { return "00"; }
-
-                        return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                    } else { return "000"; }
-
-                } else { return "0000"; }
-
-            }));
-
-            phm.register("goop.triggermcmmostat", Placeholder.meta((metadata, arg) -> {
-                // If valid
-                if (arg == null) { return "{missing mcmmostat name}"; }
-
-                // Get Player
-                Player tPlayer = Bukkit.getPlayer(metadata.getTrigger().getUniqueId());
-
-                if (tPlayer != null) {
-
-                    // A value to return
-                    Double result = GooPMCMMO.MCMMODoubleStat(tPlayer, arg);
-
-                    // Adjust
-                    if (result == null) { return "00"; }
-
-                    return OotilityCeption.RemoveDecimalZeros(String.valueOf(result));
-
-                } else { return "0000"; }
-
-            }));
+            phm.register("goop.castermcmmostat", MMPHMMOStat.getInst(MMPHMMOStatTarget.CASTER));
+            phm.register("goop.triggermcmmostat", MMPHMMOStat.getInst(MMPHMMOStatTarget.TRIGGER));
+            phm.register("goop.ownermcmmostat", MMPHMMOStat.getInst(MMPHMMOStatTarget.OWNER));
         }
     }
 
@@ -529,6 +425,17 @@ public class GooPMythicMobs implements Listener {
 
         // Yo is that a mythic item?
         return ct.containsKey(MYTHIC_TYPE);
+    }
+    @Nullable public static String getMythicType(@Nullable ItemStack stack) {
+
+        // If exists
+        if (stack == null) { return null; }
+
+        // Un parse it
+        CompoundTag ct = MythicBukkit.inst().getVolatileCodeHandler().getItemHandler().getNBTData(stack);
+
+        // Yo is that a mythic item?
+        return ct.getString(MYTHIC_TYPE);
     }
 
     // By caster and by code
@@ -746,6 +653,10 @@ public class GooPMythicMobs implements Listener {
     public static Boolean ExecuteMythicSkillAs(String skillName, Entity caster, Entity trigger, ArrayList<Entity> targets, Location origin) { return ExecuteMythicSkillAs(skillName, caster, trigger, targets, origin, null); }
     public static Boolean ExecuteMythicSkillAs(@Nullable String skillName, @Nullable Entity caster, @Nullable Entity trigger, @Nullable ArrayList<Entity> targets, @Nullable Location origin, @Nullable ArrayList<CompactCodedValue> vars) {
 
+        return ExecuteMythicSkillAs(skillName, caster, trigger, targets, null, origin, vars);
+    }
+    public static Boolean ExecuteMythicSkillAs(@Nullable String skillName, @Nullable Entity caster, @Nullable Entity trigger, @Nullable ArrayList<Entity> entityTargets, @Nullable ArrayList<Location> locationTargets, @Nullable Location origin, @Nullable ArrayList<CompactCodedValue> vars) {
+
         // Fix vars
         if (vars == null) { vars = new ArrayList<>(); }
 
@@ -777,18 +688,35 @@ public class GooPMythicMobs implements Listener {
             if (origin != null) { skLocation = BukkitAdapter.adapt(origin); } else { skLocation = skCaLocation; }
 
             // Some UUID I suppose
-            HashSet skHash = Sets.newHashSet(), skHashL = Sets.newHashSet();
-            if (targets != null) {
-                if (targets.size() > 0) {
+            HashSet<AbstractEntity> skHash = Sets.newHashSet();
+            HashSet<AbstractLocation> skHashL = Sets.newHashSet();
+            if (entityTargets != null) {
+                if (entityTargets.size() > 0) {
 
                     // Add every target
-                    for (Entity ent : targets) {
+                    for (Entity ent : entityTargets) {
 
                         // If non-null
                         if (ent != null) {
 
                             // Add entity and its location
                             skHash.add(BukkitAdapter.adapt(ent));
+                        }
+                    }
+                }
+            }
+
+            if (locationTargets != null) {
+                if (locationTargets.size() > 0) {
+
+                    // Add every target
+                    for (Location ent : locationTargets) {
+
+                        // If non-null
+                        if (ent != null) {
+
+                            // Add entity and its location
+                            skHashL.add(BukkitAdapter.adapt(ent));
                         }
                     }
                 }

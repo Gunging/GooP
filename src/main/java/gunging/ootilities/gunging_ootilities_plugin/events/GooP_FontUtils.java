@@ -156,6 +156,17 @@ public class GooP_FontUtils implements Listener {
      */
     public static void RegisterCode(String fCode, String fChar) {
 
+        // Fantastic alternate parsing I guess
+        String fAlt = null; int colon = fCode.indexOf(":");
+        if (colon > 0) {
+
+            // fAlt becomes after the parenthesis
+            fAlt = fCode.substring(colon + 1);
+            fCode = fCode.substring(0, colon);
+        } else {
+            fAlt =  ":" + fCode + ":";
+        }
+
         // Get code length
         Integer cLength = fCode.length();
 
@@ -167,7 +178,7 @@ public class GooP_FontUtils implements Listener {
         //DBG//OotilityCeption. Log("Registered code of length \u00a73" + cLength + "\u00a77 source \u00a7e" + fCode + "\u00a77 as \u00a7e" + fChar);
 
         // Remember inverse
-        reverseLinks.put(fChar, ":" + fCode + ":");
+        reverseLinks.put(fChar,fAlt);
     }
 
     /**

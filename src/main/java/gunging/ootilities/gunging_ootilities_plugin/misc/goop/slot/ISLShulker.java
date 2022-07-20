@@ -53,18 +53,21 @@ public class ISLShulker extends ItemStackLocation {
     @Override public @NotNull ISLShulker getShulker(int shulkerNumber) { return this; }
 
     @Override public @Nullable ItemStack getItem() {
-
+        //GET//OotilityCeption.Log("\u00a78ISL\u00a75 SKI\u00a77 Retrieving \u00a73#" + getSlot());
         if (getSlot() < 0 || getSlot() >= 27) { return null; }
 
         // Find the parent's item
         ItemStack shulker = getParent().getItem();
-        if (shulker == null || !OotilityCeption.IsShulkerBox(shulker.getType())) { return null; }
+        if (shulker == null || !OotilityCeption.IsShulkerBox(shulker.getType())) {
+            //GET//OotilityCeption.Log("\u00a78ISL\u00a75 SKI\u00a77 Parent item \u00a7cnot shulker\u00a77: " + OotilityCeption.GetItemName(shulker));
+            return null; }
 
         // If the shulker box name filter exists
         if (shulkerBoxNameFilter != null) {
 
             // Do the names of the item and filter match
             if (!OotilityCeption.ParseColour(OotilityCeption.GetItemName(shulker)).equals(OotilityCeption.ParseColour(shulkerBoxNameFilter))) {
+                //GET//OotilityCeption.Log("\u00a78ISL\u00a75 SKI\u00a77 Incoherent name filter '" + shulkerBoxNameFilter + "'");
 
                 // No item accepted.
                 return null;
@@ -74,6 +77,7 @@ public class ISLShulker extends ItemStackLocation {
         // Get Shulker inventory
         BlockStateMeta shulkerMeta = (BlockStateMeta) shulker.getItemMeta();
         ShulkerBox shulkerBox = (ShulkerBox) shulkerMeta.getBlockState();
+        //GET//OotilityCeption.Log("\u00a78ISL\u00a75 SKI\u00a77 Found " + OotilityCeption.GetItemName(shulkerBox.getInventory().getItem(getSlot()), true));
 
         // Retrieve Item
         return shulkerBox.getInventory().getItem(getSlot());

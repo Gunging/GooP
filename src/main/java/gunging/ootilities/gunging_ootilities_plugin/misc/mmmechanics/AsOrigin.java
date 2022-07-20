@@ -6,10 +6,7 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMo
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
-import io.lumine.mythic.api.skills.IMetaSkill;
-import io.lumine.mythic.api.skills.Skill;
-import io.lumine.mythic.api.skills.SkillMetadata;
-import io.lumine.mythic.api.skills.SkillResult;
+import io.lumine.mythic.api.skills.*;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.skills.SkillExecutor;
@@ -21,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
-public class AsOrigin extends SkillMechanic implements IMetaSkill {
+public class AsOrigin extends SkillMechanic implements ITargetedEntitySkill, ITargetedLocationSkill {
     boolean targetArmorStands;
     PlaceholderString skillName;
     Skill metaskill;
@@ -49,104 +46,50 @@ public class AsOrigin extends SkillMechanic implements IMetaSkill {
     }
 
     @Override
-    public SkillResult cast(@NotNull SkillMetadata data) {
+    public SkillResult castAtEntity(SkillMetadata skillMetadata, AbstractEntity abstractEntity) {
+        if (abstractEntity == null) { return SkillResult.INVALID_TARGET; }
 
-        // Get from placeholders :eyes1:
-        if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillName.get(data, data.getCaster().getEntity()));}
-        if (metaskill == null) {
-            //MM//OotilityCeption.Log("\u00a7c--- \u00a77Meta Skill not Found \u00a7c---");
-            return SkillResult.ERROR; }
-        //MM//OotilityCeption.Log("\u00a7b--- \u00a77Skill \u00a7f" + metaskill.getInternalName() + " \u00a7b---");
+        // Cast at that location
+        return castAtLocation(skillMetadata, abstractEntity.getLocation());
+    }
 
-        HashSet<AbstractLocation> locationTargets = new HashSet<>();
-        if (data.getLocationTargets() != null) { locationTargets = new HashSet<>(data.getLocationTargets()); }
+    @Override
+    public SkillResult castAtLocation(SkillMetadata skillMetadata, AbstractLocation abstractLocation) {
 
-        //MM//OotilityCeption.Log("\u00a73--- \u00a77Original Targets \u00a73---");
-        for (AbstractLocation t : locationTargets) {
-            if (t == null) { continue; }
+        // For every target
+        //MM//OotilityCeption.Log("\u00a73 >>> \u00a77Running for\u00a7b " + abstractLocation.getWorld() + " " + abstractLocation.getX() + " " + abstractLocation.getY() + " " + abstractLocation.getZ());
 
-            // For every target
-            //MM//OotilityCeption.Log("\u00a73 >>> \u00a77Running for\u00a7b " + t.getWorld() + " " + t.getX() + " " + t.getY() + " " + t.getZ());
+        // Copy data and replace caster
+        final SkillMetadata clonedData = skillMetadata.deepClone();
+        clonedData.setOrigin(abstractLocation);
 
-            // Copy data and replace caster
-            final SkillMetadata clonedData = data.deepClone();
-            clonedData.setOrigin(t);
+        // ??
+        if (!metaskill.isUsable(clonedData)) { return SkillResult.ERROR; }
+        //MM//OotilityCeption.Log("\u00a7a  + \u00a77Usable");
 
-            // ??
-            if (!metaskill.isUsable(clonedData)) { return SkillResult.ERROR; }
-            //MM//OotilityCeption.Log("\u00a7a  + \u00a77Usable");
+        // Run skill sync or async
+        if (forceSync) {
+            //MM//OotilityCeption.Log("\u00a7a  + \u00a77Running Async");
 
-            // Run skill sync or async
-            if (forceSync) {
-                //MM//OotilityCeption.Log("\u00a7a  + \u00a77Running Async");
+            clonedData.setIsAsync(false);
+            (new BukkitRunnable() {
+                public void run() {
 
-                clonedData.setIsAsync(false);
-                (new BukkitRunnable() {
-                    public void run() {
+                    // Run Async
+                    clonedData.setIsAsync(false);
+                    metaskill.execute(clonedData);
 
-                        // Run Async
-                        clonedData.setIsAsync(false);
-                        metaskill.execute(clonedData);
+                }
+            }).runTask(MythicBukkit.inst());
 
-                    }
-                }).runTask(MythicBukkit.inst());
+            // Forcing Sync
+        } else {
+            //MM//OotilityCeption.Log("\u00a7a  + \u00a77Running Sync");
 
-                // Forcing Sync
-            } else {
-                //MM//OotilityCeption.Log("\u00a7a  + \u00a77Running Sync");
-
-                // Run Sync
-                metaskill.execute(clonedData);
-            }
+            // Run Sync
+            metaskill.execute(clonedData);
         }
 
-        HashSet<AbstractEntity> entityTargets = new HashSet<>();
-        if (data.getEntityTargets() != null) { entityTargets = new HashSet<>(data.getEntityTargets()); }
-
-        //MM//OotilityCeption.Log("\u00a73--- \u00a77Original Targets \u00a73---");
-        for (AbstractEntity t : entityTargets) {
-            if (t == null) { continue; }
-
-            // For every target
-            //MM//OotilityCeption.Log("\u00a73 >>> \u00a77Running for " + t.getName());
-
-            // Include?
-            if ((t.getBukkitEntity() instanceof ArmorStand) && !targetArmorStands) {
-                //MM//OotilityCeption.Log("\u00a7c >>> \u00a77Skipped: Armor Stand");
-                continue; }
-
-            // Copy data and replace caster
-            final SkillMetadata clonedData = data.deepClone();
-            clonedData.setOrigin(t.getLocation());
-
-            // ??
-            if (!metaskill.isUsable(clonedData)) { return SkillResult.ERROR; }
-            //MM//OotilityCeption.Log("\u00a7a  + \u00a77Usable");
-
-            // Run skill sync or async
-            if (forceSync) {
-                //MM//OotilityCeption.Log("\u00a7a  + \u00a77Running Async");
-
-                clonedData.setIsAsync(false);
-                (new BukkitRunnable() {
-                    public void run() {
-
-                        // Run Async
-                        clonedData.setIsAsync(false);
-                        metaskill.execute(clonedData);
-
-                    }
-                }).runTask(MythicBukkit.inst());
-
-                // Forcing Sync
-            } else {
-                //MM//OotilityCeption.Log("\u00a7a  + \u00a77Running Sync");
-
-                // Run Sync
-                metaskill.execute(clonedData);
-            }
-        }
-        // Success I guess
         return SkillResult.SUCCESS;
     }
 }

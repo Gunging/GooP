@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,12 +26,16 @@ public class ConverterTypes {
 
     public static ArrayList<ConverterTypeNames> convertingTypes = new ArrayList<>();
 
+    @NotNull public static final HashMap<Material, String> mTypeOverrides = new HashMap<>();
+    @NotNull public static final HashMap<Material, String> mIdOverrides = new HashMap<>();
+
     @Nullable public static String typePrefix = null;
     public static boolean preciseIDConversion = false;
     public static boolean blockMythicMobs = false;
     public static boolean smithEnchants = false;
     public static boolean smithUpgrades = false;
     public static boolean smithGemstones = false;
+    public static boolean generateTemplates = false;
 
     @NotNull public static String GenerateConverterID(@NotNull Material mat, @Nullable String tier) {
 
@@ -39,31 +44,41 @@ public class ConverterTypes {
         String tierPost = "";
         if (tier != null) { tierPost = "_" + tier.toUpperCase(); }
 
-        String material = "";
-        if (OotilityCeption.IsNetherite(mat)) { material = "_NETHERITE"; }
-        else if (OotilityCeption.IsDiamond(mat)) { material = "_DIAMOND"; }
-        else if (OotilityCeption.IsGold(mat)) { material = "_GOLDEN"; }
-        else if (OotilityCeption.IsIron(mat)) { material = "_IRON"; }
-        else if (OotilityCeption.IsLeather(mat)) { material = "_LEATHER"; }
-        else if (OotilityCeption.IsChainmail(mat)) { material = "_CHAINMAIL"; }
-        else if (OotilityCeption.IsStone(mat)) { material = "_STONE"; }
-        else if (OotilityCeption.IsWooden(mat)) { material = "_WOODEN"; }
-        else if (mat == Material.TURTLE_HELMET) { material = "_TURTLE"; }
+        // Get ID Override
+        String idTierless = mIdOverrides.get(mat);
+        if (idTierless == null) {
 
-        String equipment = "";
-        if (OotilityCeption.IsBoots(mat)) { equipment = "_BOOTS"; }
-        else if (OotilityCeption.IsLeggings(mat)) { equipment = "_LEGGINGS"; }
-        else if (OotilityCeption.IsChestplate(mat)) { equipment = "_CHESTPLATE"; }
-        else if (OotilityCeption.IsHelmet(mat)) { equipment = "_HELMET"; }
-        else if (mat == Material.BOW) { equipment = "_BOW"; }
-        else if (mat == Material.CROSSBOW) { equipment = "_GUN"; }
-        else if (OotilityCeption.IsHoe(mat)) { equipment = "_HOE"; }
-        else if (OotilityCeption.IsShovel(mat)) { equipment = "_SHOVEL"; }
-        else if (OotilityCeption.IsPickaxe(mat)) { equipment = "_PICKAXE"; }
-        else if (OotilityCeption.IsAxe(mat)) { equipment = "_AXE"; }
-        else if (OotilityCeption.IsSword(mat)) { equipment = "_SWORD"; }
+            String material;
+            if (OotilityCeption.IsNetherite(mat)) { material = "_NETHERITE"; }
+            else if (OotilityCeption.IsDiamond(mat)) { material = "_DIAMOND"; }
+            else if (OotilityCeption.IsGold(mat)) { material = "_GOLDEN"; }
+            else if (OotilityCeption.IsIron(mat)) { material = "_IRON"; }
+            else if (OotilityCeption.IsLeather(mat)) { material = "_LEATHER"; }
+            else if (OotilityCeption.IsChainmail(mat)) { material = "_CHAINMAIL"; }
+            else if (OotilityCeption.IsStone(mat)) { material = "_STONE"; }
+            else if (OotilityCeption.IsWooden(mat)) { material = "_WOODEN"; }
+            else if (mat == Material.TURTLE_HELMET) { material = "_TURTLE"; }
+            else { material = "_" + mat.toString(); }
 
-        return "GENERIC" + equipment + material + tierPost;
+            // Per equipment
+            String equipment = "";
+            if (OotilityCeption.IsBoots(mat)) { equipment = "_BOOTS"; }
+            else if (OotilityCeption.IsLeggings(mat)) { equipment = "_LEGGINGS"; }
+            else if (OotilityCeption.IsChestplate(mat)) { equipment = "_CHESTPLATE"; }
+            else if (OotilityCeption.IsHelmet(mat)) { equipment = "_HELMET"; }
+            else if (OotilityCeption.IsHoe(mat)) { equipment = "_HOE"; }
+            else if (mat == Material.BOW) { equipment = "_BOW"; }
+            else if (OotilityCeption.IsShovel(mat)) { equipment = "_SHOVEL"; }
+            else if (OotilityCeption.IsPickaxe(mat)) { equipment = "_PICKAXE"; }
+            else if (OotilityCeption.IsAxe(mat)) { equipment = "_AXE"; }
+            else if (OotilityCeption.IsSword(mat)) { equipment = "_SWORD"; }
+
+            // Build Tierless ID
+            idTierless = "GENERIC" + equipment + material;
+        }
+
+        // That's the thing
+        return idTierless + tierPost;
     }
 
     public static void ConverterReload() {
@@ -81,6 +96,7 @@ public class ConverterTypes {
 
             typePrefix = ofgStorage.getString("MMOItems_Type_Prefix", null);
             preciseIDConversion = ofgStorage.getBoolean("Differentiate_Items", false);
+            generateTemplates = ofgStorage.getBoolean("Generate_Templates", false);
             blockMythicMobs = !(ofgStorage.getBoolean("Allow_MythicItems", true));
 
             ConfigurationSection keepKeep = ofgStorage.getConfigurationSection("Smithing");
@@ -90,6 +106,40 @@ public class ConverterTypes {
                 smithEnchants = keepKeep.getBoolean("Enchantments", false);
                 smithUpgrades = keepKeep.getBoolean("Upgrades", false);
                 smithGemstones = keepKeep.getBoolean("Gems", false);
+            }
+
+            // Clear and re-read override arrays
+            mIdOverrides.clear();
+            mTypeOverrides.clear();
+            List<String> overrideKeep = ofgStorage.getStringList("OverrideConverterTypes");
+            for (String over : overrideKeep) {
+
+                // Split by spaces
+                if (!over.contains(" ")) {
+                    Gunging_Ootilities_Plugin.theOots.CPLog("\u00a77Could not load Converter Type Override '\u00a7e" + over + "\u00a77'. ");
+                    continue; }
+
+                String[] overSplit = over.split(" ");
+                Material mat = OotilityCeption.getMaterial(overSplit[0].toUpperCase());
+
+                // Invalid material
+                if (mat == null)  {
+                    Gunging_Ootilities_Plugin.theOots.CPLog("\u00a77Unknown material '\u00a7e" + overSplit[0].toUpperCase() + "\u00a77' in the Converter Type Override list. ");
+                    continue; }
+
+                // Well that's the type all right
+                if (overSplit[1].contains(".")) {
+                    String[] overSplitSplit = overSplit[1].split("\\.");
+
+                    // Type and ID
+                    mTypeOverrides.put(mat, overSplitSplit[0]);
+                    mIdOverrides.put(mat, overSplitSplit[1]);
+
+                } else {
+
+                    // Just Type
+                    mTypeOverrides.put(mat, overSplit[1]);
+                }
             }
 
             // Compile Converter Types
@@ -355,6 +405,8 @@ public class ConverterTypes {
                     if (!str.equals("MMOITEMS_TYPE_PREFIX") &&
                         !str.equals("DIFFERENTIATE_ITEMS") &&
                         !str.equals("ALLOW_MYTHICITEMS") &&
+                        !str.equals("GENERATE_TEMPLATES") &&
+                        !str.equals("OVERRIDECONVERTERTYPES") &&
                         !str.equals("SMITHING") &&
                         !str.equals("CONVERT_INTO_MMOITEMS")) {
 
@@ -451,6 +503,14 @@ public class ConverterTypes {
                     break;
             }
         }
+
+        // Only if it has a type ovverride then
+        if (mTypeOverrides.containsKey(type)) {
+            if (appliesto != null) { appliesto.setValue(ConverterTypeNames.MISC); }
+
+            return true;
+        }
+
         return false;
     }
 }

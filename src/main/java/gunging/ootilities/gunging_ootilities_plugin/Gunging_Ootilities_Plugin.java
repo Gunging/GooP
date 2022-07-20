@@ -2,8 +2,8 @@ package gunging.ootilities.gunging_ootilities_plugin;
 
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.*;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
-import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCListener;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCCommands;
 import gunging.ootilities.gunging_ootilities_plugin.containers.interaction.ContainersInteractionHandler;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Player;
@@ -12,6 +12,7 @@ import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.C
 import gunging.ootilities.gunging_ootilities_plugin.events.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.RebootBreak;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypes;
 import org.bukkit.Bukkit;
@@ -31,6 +32,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Listener {
@@ -55,6 +59,8 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
     boolean loading = false;
     boolean loaded = false;
+    boolean enabling = false;
+    boolean enabled = false;
 
     // Compatibilities
     public static Boolean foundWorldGuard = false;
@@ -131,9 +137,6 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             GOOPCManager.enable();
 
         } catch (Throwable ignored) {}
-
-        Gunging_Ootilities_Plugin.theOots.CLog("\u00a78EES\u00a7c INVALID\u00a77 BBBBBBB");
-        GOOPCManager.enableLiteVersions(getConfig());
         //endregion
 
 
@@ -288,7 +291,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         if (foundMMOItems) {
 
             // Register Stats
-            GooPMMOItems.RegisterCustomStats(getConfig().getInt("MiscStatAmount", 3));
+            GooPMMOItems.RegisterCustomStats(getConfig().getInt("MiscStatAmount", 3), getConfig().getInt("MiscStrStatAmount", 1));
         }
         //endregion
         //endregion
@@ -385,8 +388,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         loaded = true;
     }
+
     public boolean HasLoaded() { return loaded; }
     public boolean IsLoading() { return loading; }
+    public boolean HasEnabled() { return enabled; }
+    public boolean IsEnabling() { return enabling; }
 
     /**
      * @param name Plugin name
@@ -402,6 +408,8 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     }
 
     @Override public void onEnable() {
+
+        enabling = true;
 
         //region Re-enable or Re-disable plugins in case they crashed in their OnEnable
         if (foundWorldGuard) { foundWorldGuard = isPluginEnabled("WorldGuard"); }
@@ -437,13 +445,13 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         getServer().getPluginManager().registerEvents(new ScoreboardLinks(), theMain);
         /*WUT*/getServer().getPluginManager().registerEvents(new XBow_Rockets(), theMain);
         /*WUT*/getServer().getPluginManager().registerEvents(new GOOPCListener(), theMain);
-        /*WUT*/getServer().getPluginManager().registerEvents(new GooP_FontUtils(), theMain);
-        /*WUT*/getServer().getPluginManager().registerEvents(new SummonerClassUtils(), theMain);
-        /*WUT*/getServer().getPluginManager().registerEvents(new GCL_Player(), theMain);
-        /*WUT*/if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { getServer().getPluginManager().registerEvents(new JSONPlacerUtils(), theMain); }
+        getServer().getPluginManager().registerEvents(new GooP_FontUtils(), theMain);
+        getServer().getPluginManager().registerEvents(new SummonerClassUtils(), theMain);
+        getServer().getPluginManager().registerEvents(new GCL_Player(), theMain);
+        if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { getServer().getPluginManager().registerEvents(new JSONPlacerUtils(), theMain); }
 
         if (foundMMOItems) { getServer().getPluginManager().registerEvents(new OnApplyCommand(), theMain); }
-        /*WUT*/if (foundMythicMobs) { getServer().getPluginManager().registerEvents(new GooPMythicMobs(), theMain); }
+        if (foundMythicMobs) { getServer().getPluginManager().registerEvents(new GooPMythicMobs(), theMain); }
 
         // Schedule insync
         Bukkit.getScheduler().scheduleSyncRepeatingTask(getPlugin(), ((Runnable) new SummonerClassUtils()), 40, 200);
@@ -468,6 +476,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         GungingOotilitiesTab.Start();
 
         //region Announce compatibilities
+        GOOPCManager.enableLiteVersions(getConfig());
 
         theOots.CPLog("Checking for Premium Modules...");
         if (CustomStructures.IsPremiumEnabled()) {
@@ -594,9 +603,15 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             }
 
         }).runTaskLaterAsynchronously(Gunging_Ootilities_Plugin.theMain, 2L);
+
+        enabling = false;
+        enabled = true;
     }
 
     public void Reload(boolean reloadInstances) {
+
+        // Reboot Un-break
+        GooPGriefEvent.reboot();
 
         // Retrieve Config Values
         saveDefaultConfig();
@@ -993,9 +1008,20 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
      * @return {@link NotNull} unless there was a <b>parsing error reading the file</b>.
      */
     @Contract("_,_,_,true->!null")
-    @Nullable public FileConfigPair GetConfigAt(@Nullable String parentPath, @NotNull String name, boolean exampleResource, boolean expectInvalid) {
+    @Nullable public FileConfigPair GetConfigAt(@Nullable String parentPath, @NotNull String name, boolean exampleResource, boolean expectInvalid) { return GetConfigAt(getDataFolder(), parentPath, name, exampleResource, expectInvalid); }
+    /**
+     * Will create directory if it doesnt exist
+     *
+     * @param parentPath Path of folder
+     * @param name Name of file (include extension plz)
+     * @param exampleResource Is there an example resource that should be saved in this place if it doesnt exist yet?
+     * @param expectInvalid If it wasn't supposed to be invalid, the creation of it will be logged into the console
+     *
+     * @return {@link NotNull} unless there was a <b>parsing error reading the file</b>.
+     */
+    @Contract("_,_,_,true->!null")
+    @Nullable public FileConfigPair GetConfigAt(@NotNull File parentDir, @Nullable String parentPath, @NotNull String name, boolean exampleResource, boolean expectInvalid) {
         // Make parent location (if exists)
-        File parentDir = getDataFolder();
         if (parentPath != null) {
 
             // Retrieve ig
@@ -1041,7 +1067,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             // Valid YML
             valueYML.load(keyFile);
 
-        // Invalid YML for OptiFine Glints
+            // Invalid YML for OptiFine Glints
         } catch (IOException | InvalidConfigurationException e) {
 
             // Announce
@@ -1152,8 +1178,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     @Override
     public void onDisable() {
 
-        // Save config?
-        saveConfig();
+        // Reboot Un-break
+        GooPGriefEvent.reboot();
+
+        // Retrieve Config Values
+        reloadConfig();
 
         // Save all files
         shutDown = true;

@@ -121,6 +121,7 @@ public class TargetedItems {
 
             // Success?
             if (condition.isSuccess(iSource)) {
+                //TRG//OotilityCeption.Log("\u00a78TGI\u00a7a SCS\u00a77 Succeeded for\u00a7f " + OotilityCeption.GetItemName(iSource.getOriginal()));
 
                 // Obtain entity
                 SuccessibleInformation sInfo = successStuff.get(iSource.getEntity());
@@ -143,7 +144,10 @@ public class TargetedItems {
                 /*
                  * Build the slots of success that succeed from this command.
                  */
-                if (chained && iSource.type == TargetedItemType.PLAYER) { OotilityCeption.Slot4Success(sInfo.getSlots4Success(), iSource.player_slot, OotilityCeption.comma); }
+                if (chained && iSource.type == TargetedItemType.PLAYER) {
+                    //TRG//OotilityCeption.Log("\u00a78TGI\u00a7a SCS\u00a77 Building slots of success\u00a7f " + iSource.player_slot.toString());
+
+                    OotilityCeption.Slot4Success(sInfo.getSlots4Success(), iSource.player_slot, OotilityCeption.comma); }
 
                 // Update
                 successStuff.put(iSource.getEntity(), sInfo);
@@ -218,6 +222,7 @@ public class TargetedItems {
 
                     // Chain as player
                     if (asPlayer) {
+                        //TRG//OotilityCeption.Log("\u00a78TGI\u00a7a SCS\u00a77 Produced slots of success\u00a7f " + sInfo.getSlots4Success().toString());
 
                         String localChain = OotilityCeption.ReplaceFirst(chainedCommand, "@t", sInfo.getSlots4Success().toString());
                         OotilityCeption.SendAndParseConsoleCommand((Player) ent, localChain, sender, null, null, null);

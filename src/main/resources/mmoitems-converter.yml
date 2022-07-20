@@ -65,6 +65,40 @@ MMOItems_Type_Prefix: ""
 #
 Differentiate_Items: false
 
+# ---------------------------- Generate_Templates
+#   Advanced Item Conversion, use with Differentiate_Items option enabled.
+#
+#   Will create MMOItem templates that would match Differentiate_Items' IDs
+#   if they don't yet exist.
+#
+Generate_Templates: false
+
+# ---------------------------- OverrideConverterTypes
+#   Advanced Item Conversion, allows to convert any items.
+#   Any material specified here will be converted by the MMOItems converter,
+#   not included in the 'ALL' category, they fall in the 'MISC' category.
+#
+#   Format:
+#       '[Material] [Type]'
+#
+#   Example:
+#       'GOLDEN_APPLE CONSUMABLE'
+#       Will convert Golden Apples into 'Consumable' MMOItem Type: m CONSUMABLE GENERIC_GOLDEN_APPLE
+#
+#   _____
+#   Also allows to specify IDs
+#       '[Material] [Type].[Id]'
+#
+#   Example:
+#       'END_ROD MISCELLANEOUS.SUPREME_ROD'
+#       Will convert End Rods MMOItems: m MISCELLANEOUS SUPREME_ROD
+#
+###
+###OverrideConverterTypes:
+###  - 'charcoal MISCELLANEOUS'
+###  - 'eNd_RoD ARMOR.UNICORN_HORN'
+###
+
 # (When differentiating items)
 # Which of these to transfer when smithing diamond gear into netherite?
 Smithing:
@@ -87,22 +121,34 @@ Smithing:
 Allow_MythicItems: true
 
 #####
-##### You may specify a few conversion settings, and when to apply ( OnCraft / OnPickup )
+##### You may specify a few conversion settings, and when to apply ( OnCraft / OnPickup / OnLootGen / OnTrade )
 #####
 ###
 ###  [CATEGORY]:
 ###    OnCraft:
 ###      Tier:
-###        - COMMON 3
-###        - UNCOMMON 3
+###        - COMMON 36
+###        - UNCOMMON 6
 ###        - RARE 3
-###        - EPIC 3
+###        - EPIC 1
 ###    OnPickup:
 ###      Tier:
-###        - COMMON 3
-###        - UNCOMMON 3
+###        - UNCOMMON 80
 ###        - RARE 3
 ###        - EPIC 3
+###    OnLootGen:
+###      Tier:
+###        - RARE 5
+###        - EPIC 3
+###    OnTrade:
+###      Tier:
+###        - COMMON 18
+###        - UNCOMMON 5
+###        - RARE 1
+###      UNCOMMON:
+###        Price: '1500%'
+###      RARE:
+###        Price: 'm MATERIAL FIRE_ESSENCE 200%'
 ###
 ###
 ###

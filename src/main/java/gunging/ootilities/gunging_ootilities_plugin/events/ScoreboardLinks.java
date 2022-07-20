@@ -707,6 +707,9 @@ public class ScoreboardLinks implements Listener {
                         // Was it allowed?
                         if (!evL.isCancelled()) {
 
+                            // Reboot break
+                            if (event.getRebootKey() != null) { GooPGriefEvent.rebootBreak(bkk, event.getRebootKey()); }
+
                             // Well then, break block I guess
                             bkk.setType(Material.AIR);
                         }
@@ -720,6 +723,9 @@ public class ScoreboardLinks implements Listener {
 
                         // Was it allowed?
                         if (!evM.isCancelled()) {
+
+                            // Rebot break
+                            if (event.getRebootKey() != null) { GooPGriefEvent.rebootBreak(bkk, event.getRebootKey()); }
 
                             // Well then, break block I guess
                             bkk.breakNaturally(event.getTool());

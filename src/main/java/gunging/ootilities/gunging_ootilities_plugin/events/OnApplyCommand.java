@@ -35,6 +35,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -56,10 +57,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class OnApplyCommand implements Listener {
 
@@ -148,12 +146,15 @@ public class OnApplyCommand implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void OnLootGen(LootGenerateEvent event) {
-
-        // If it wasn't cancelled and the picker upper was a player
-        if (event.isCancelled()) { return; }
+    public void OnLootGen(@NotNull LootGenerateEvent event) {
 
         //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Generating Loot!");
+
+        // If it wasn't cancelled and the picker upper was a player
+        if (event.isCancelled()) {
+            //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a7c Event Cancelled");
+            return; }
+
         //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Entity:\u00a7e " + (event.getEntity() == null ? "null" : event.getEntity().getType().toString()));
         //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Killer:\u00a7e " + (event.getLootContext().getKiller() == null ? "null" : event.getLootContext().getKiller().getType().toString()));
         //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Holder Entity:\u00a7e " + (event.getInventoryHolder() instanceof Entity ? ((Entity) event.getInventoryHolder()).getType().toString() : null));
@@ -161,23 +162,26 @@ public class OnApplyCommand implements Listener {
         //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Location:\u00a7e " + OotilityCeption.BlockLocation2String(event.getLootContext().getLocation()));
         //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Looted:\u00a7e " + (event.getLootContext().getLootedEntity() == null ? "null" : event.getLootContext().getLootedEntity().getType().toString()));
 
-        if (event.getLootContext().getKiller() != null) { return; }
-        if (event.getEntity() != null) { return; }
+        if (event.getLootContext().getKiller() != null) {
+            //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a7c Killer Exists (not world gen)\u00a7f " + event.getLootContext().getKiller().getName());
+            return; }
 
-        Player parser = null;
+        Player parser = event.getEntity() instanceof Player ? (Player) event.getEntity() : null;
 
         // Players in world...
-        Location loc = event.getLootContext().getLocation();
-        double bestDistance = 30;
-        for (Player player : loc.getWorld().getNearbyPlayers(loc, 30)) {
-            double currentDistance = player.getLocation().distance(loc);
+        if (parser == null) { 
+            Location loc = event.getLootContext().getLocation();
+            double bestDistance = 30;
+            for (Player player : loc.getWorld().getNearbyPlayers(loc, 30)) {
+                double currentDistance = player.getLocation().distance(loc);
 
-            // Are they closer?
-            if (currentDistance < bestDistance) {
+                // Are they closer?
+                if (currentDistance < bestDistance) {
 
-                // Accept
-                bestDistance = currentDistance;
-                parser = player;
+                    // Accept
+                    bestDistance = currentDistance;
+                    parser = player;
+                }
             }
         }
 
@@ -187,8 +191,16 @@ public class OnApplyCommand implements Listener {
         for (ItemStack item : event.getLoot()) {
 
             ItemStack converted = convertOrNull(item, parser, ConvertingReason.LOOT_GEN, null);
-            if (converted == null) { convertedItems.add(item); } else { convertedItems.add(converted); }
+            if (converted == null) {
+                //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Skipped " + OotilityCeption.GetItemName(item));
+                convertedItems.add(item);
+            } else {
+
+                //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Converted " + OotilityCeption.GetItemName(converted));
+                convertedItems.add(converted); }
         }
+
+        //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Converted Loot items \u00a73x" + convertedItems.size());
 
         // Set items
         event.setLoot(convertedItems);
@@ -197,11 +209,17 @@ public class OnApplyCommand implements Listener {
     @NotNull ItemStack DisplayConvert(@NotNull ItemStack stacc, @Nullable ConverterTypeSettings set, @Nullable Player p, @NotNull ConvertingReason asPickup) {
         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 Converting for Display");
 
+        String typePrefix = ConverterTypes.mTypeOverrides.get(stacc.getType());
+        boolean asOverriddenType = false;
+        if (typePrefix == null) { typePrefix = ConverterTypes.typePrefix; }
+        else { asOverriddenType = true; }
+
         // Convert
         ItemStack result = GooPMMOItems.ConvertVanillaToMMOItem(
                 stacc,
-                ConverterTypes.typePrefix,
-                ConverterTypes.GenerateConverterID(stacc.getType(), set == null ? null : set.getNullTierName(asPickup)));
+                typePrefix,
+                ConverterTypes.GenerateConverterID(stacc.getType(), set == null ? null : set.getNullTierName(asPickup)),
+                asOverriddenType);
 
         // Obtain internals
         RefSimulator<String> miID = new RefSimulator<>(null), miType = new RefSimulator<>(null);
@@ -216,7 +234,7 @@ public class OnApplyCommand implements Listener {
             if (mType != null) {
 
                 // Find loaded MMOItem
-                MMOItem browse = MMOItems.plugin.getMMOItem(mType, miID.getValue());
+                MMOItem browse = ConverterTypes.generateTemplates ? GooPMMOItems.getOrCreate(mType, miID.getValue(), stacc.getType()) : MMOItems.plugin.getMMOItem(mType, miID.getValue());
 
                 // Found the appropriate MMOItem?
                 if (browse != null) {
@@ -226,6 +244,7 @@ public class OnApplyCommand implements Listener {
                     // Build for display
                     return browse.newBuilder().build(true);
                 }
+
             }
         }
 
@@ -273,7 +292,7 @@ public class OnApplyCommand implements Listener {
             if (!GooPMMOItems.VANILLA_MIID.equals(mID)) {
 
                 // Find loaded MMOItem
-                MMOItem browse = MMOItems.plugin.getMMOItem(mType, mID);
+                MMOItem browse = ConverterTypes.generateTemplates ? GooPMMOItems.getOrCreate(mType, mID, netheritizedResult.getType()) : MMOItems.plugin.getMMOItem(mType, mID);
 
                 // Found the appropriate MMOItem?
                 if (browse != null) {
@@ -458,12 +477,17 @@ public class OnApplyCommand implements Listener {
             }
         }
 
+        String typePrefix = ConverterTypes.mTypeOverrides.get(stacc.getType());
+        boolean asOverriddenType = false;
+        if (typePrefix == null) { typePrefix = ConverterTypes.typePrefix; }
+        else { asOverriddenType = true; }
+
         // Convert
         ItemStack result = GooPMMOItems.ConvertVanillaToMMOItem(
                 stacc,
-                ConverterTypes.typePrefix,
-                ConverterTypes.GenerateConverterID(stacc.getType(), preChosenTier));
-
+                typePrefix,
+                ConverterTypes.GenerateConverterID(stacc.getType(), preChosenTier),
+                asOverriddenType);
 
         // Obtain internals
         RefSimulator<String> miID = new RefSimulator<>(null), miType = new RefSimulator<>(null);
@@ -477,14 +501,26 @@ public class OnApplyCommand implements Listener {
             if (mType != null) {
 
                 // Find loaded MMOItem
-                MMOItem browse = MMOItems.plugin.getMMOItem(mType, miID.getValue());
+                MMOItem browse = ConverterTypes.generateTemplates ? GooPMMOItems.getOrCreate(mType, miID.getValue(), stacc.getType()) : MMOItems.plugin.getMMOItem(mType, miID.getValue());
 
                 // Found the appropriate MMOItem?
                 if (browse != null) {
                     //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a73CONVERT\u00a77 True Existed. \u00a7aBuilding");
 
-                    // Build for display
+                    // Build
                     ItemStack ret = browse.newBuilder().build();
+
+                    // Copy enchantments over if the item is enchantable
+                    if (!browse.hasData(ItemStats.DISABLE_ENCHANTING)) {
+
+                        // Copy enchantments over
+                        for (Map.Entry<Enchantment, Integer> enchantment : stacc.getEnchantments().entrySet()) {
+
+                            // Add it
+                            ret.addEnchantment(enchantment.getKey(), enchantment.getValue()); }
+                    }
+
+                    // That's good
                     if (ret != null) { if (cptRet != null) {  cptRet.setValue(set != null ? set.getPerTierSettings(preChosenTier, asPickup) : null); } return ret; }
                 }
             }
@@ -941,26 +977,24 @@ public class OnApplyCommand implements Listener {
             RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
 
             // If the item picked up is marked as convertible
-            if (ConverterTypes.IsConvertable(event.getItem().getItemStack(), convName)) {
+            if (!ConverterTypes.IsConvertable(event.getItem().getItemStack(), convName)) { return; }
 
-                // If it is not a MMOItem
-                if (!GooPMMOItems.IsMMOItem(event.getItem().getItemStack())) {
+            // If it is not a MMOItem
+            if (GooPMMOItems.IsMMOItem(event.getItem().getItemStack())) { return; }
 
-                    // Prepare result
-                    ItemStack result = FullConvert(event.getItem().getItemStack(), ConverterTypeSettings.PertainingTo(convName.getValue()), (Player) event.getEntity(), ConvertingReason.PICKUP);
+            // Prepare result
+            ItemStack result = FullConvert(event.getItem().getItemStack(), ConverterTypeSettings.PertainingTo(convName.getValue()), (Player) event.getEntity(), ConvertingReason.PICKUP);
 
-                    // Well, override it I suppose. Drop another entity with the qualifications
-                    Item e = event.getEntity().getWorld().dropItem(event.getEntity().getLocation(), result);
-                    e.setVelocity(new Vector(0, 0, 0));
-                    e.setPickupDelay(0);
+            // Well, override it I suppose. Drop another entity with the qualifications
+            Item e = event.getEntity().getWorld().dropItem(event.getEntity().getLocation(), result);
+            e.setVelocity(new Vector(0, 0, 0));
+            e.setPickupDelay(0);
 
-                    // Cancel this event so player doesnt pick up original
-                    event.setCancelled(true);
+            // Cancel this event so player doesnt pick up original
+            event.setCancelled(true);
 
-                    // Remove original
-                    event.getItem().remove();
-                }
-            }
+            // Remove original
+            event.getItem().remove();
         }
     }
 

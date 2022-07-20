@@ -18,5 +18,7 @@ public enum ConverterTypeNames {
     AXE,
     BOW,
     CROSSBOW,
-    TRIDENT
+    TRIDENT,
+
+    MISC        // Does not fall in any other category
 }

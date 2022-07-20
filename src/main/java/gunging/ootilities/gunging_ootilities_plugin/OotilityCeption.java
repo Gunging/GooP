@@ -37,7 +37,9 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -899,7 +901,8 @@ public class OotilityCeption {
      */
     public static boolean IsAirNullAllowed(Block iTarget) {
         if (iTarget == null) return true;
-        return IsAir(iTarget.getType());
+        Material target = iTarget.getType();
+        return target == Material.AIR || target == Material.CAVE_AIR || target == Material.VOID_AIR;
     }
     public static boolean IsButton(@NotNull Material target) {
         return (target == Material.ACACIA_BUTTON) ||
@@ -2063,26 +2066,26 @@ public class OotilityCeption {
 
         // Does it have colons bruh
         if (performOperation) {
-           //NEK*/Log("\u00a7e>>>>>>>>> \u00a76Performing Naming Operaions:");
-           //NEK*/Log("\u00a7e>>>> \u00a77Operation:\u00a73 " + nvOperation.asOperation);
-           //NEK*/Log("\u00a7e>>>> \u00a77Source:\u00a73 " + iSource);
+           //NEK//Log("\u00a7e>>>>>>>>> \u00a76Performing Naming Operaions:");
+           //NEK//Log("\u00a7e>>>> \u00a77Operation:\u00a73 " + nvOperation.asOperation);
+           //NEK//Log("\u00a7e>>>> \u00a77Source:\u00a73 " + iSource);
 
             // Build the string to build
             String iOperation = "";
 
             // If its just updating the placeholders, the operation is just the source ffs
             if (nvOperation.isReplaceholder()) {
-               //NEK*/Log("\u00a7cPerforming as Placeholder");
+               //NEK//Log("\u00a7cPerforming as Placeholder");
 
                 // Nothing special
                 iOperation = DenameNameVariables(iSource);
-               //NEK*/Log("\u00a7fOperation: \u00a73" + iOperation);
+               //NEK//Log("\u00a7fOperation: \u00a73" + iOperation);
 
             } else {
 
                 // Extrakt all the existing variable values
                 String rawSource = DenameNameVariables(iSource);
-               //NEK*/Log("Denamed: " + rawSource);
+               //NEK//Log("Denamed: " + rawSource);
 
                 // Organize Values
                 HashMap<String, NameVariable> preRNV = new HashMap<>();
@@ -2093,15 +2096,15 @@ public class OotilityCeption {
                 boolean kounterAppend = true;
                 boolean nameDefined = false;
 
-               //NEK*/Log(" \u00a7e----------------- \u00a77Evaluating Source \u00a7e-----------------");
+               //NEK//Log(" \u00a7e----------------- \u00a77Evaluating Source \u00a7e-----------------");
                 // Evaluate each ig
                 for (String str : kourse) {
-                   //NEK*/Log("\u00a7e>>>\u00a77 " + str);
+                   //NEK//Log("\u00a7e>>>\u00a77 " + str);
 
                     // Has it a code
                     NameVariable code = null;
                     if (!kounterAppend) {
-                       //NEK*/Log("\u00a7b     +\u00a77 Could be Variable");
+                       //NEK//Log("\u00a7b     +\u00a77 Could be Variable");
 
                         // Valid as a name varialbe?
                         code = GetNameVariable(str);
@@ -2109,19 +2112,19 @@ public class OotilityCeption {
 
                     // Did it exist?
                     if (code != null) {
-                       //NEK*/Log("\u00a73     +\u00a77 Found Variable");
-                       //NEK*/Log("\u00a7e     vari>\u00a77 " + code.getIdentifier());
-                       //NEK*/Log("\u00a76     valu>\u00a77 " + code.getValue());
+                       //NEK//Log("\u00a73     +\u00a77 Found Variable");
+                       //NEK//Log("\u00a7e     vari>\u00a77 " + code.getIdentifier());
+                       //NEK//Log("\u00a76     valu>\u00a77 " + code.getValue());
 
                         // Register varialbe if new
                         NameVariable oused = preRNV.get(code.getIdentifier());
                         if (oused == null) { preRNV.put(code.getIdentifier(), code);
                         if (code.getIdentifier().equals("name")) { nameDefined = true; } }
-                       //NEK*/Log("\u00a7c     valf>\u00a77 " + preRNV.get(code.getIdentifier()).getValue());
+                       //NEK//Log("\u00a7c     valf>\u00a77 " + preRNV.get(code.getIdentifier()).getValue());
 
                         // Add it regardless
                         preRNA.add(code);
-                       //NEK*/Log("\u00a7c + " + code.getIdentifier() + "\u00a77." + code.getValue());
+                       //NEK//Log("\u00a7c + " + code.getIdentifier() + "\u00a77." + code.getValue());
 
                         // Counter next colon append
                         kounterAppend = true;
@@ -2135,7 +2138,7 @@ public class OotilityCeption {
                             // Append as a simple string
                             if (str.length() > 0) {
                                 preRNA.add(new NameVariable(null, "@" + str));
-                               //NEK*/Log("\u00a7c +\u00a77 @" + str);
+                               //NEK//Log("\u00a7c +\u00a77 @" + str);
                             }
 
                         } else {
@@ -2146,7 +2149,7 @@ public class OotilityCeption {
                             // Append as a simple string
                             if (str.length() > 0) {
                                 preRNA.add(new NameVariable(null, str));
-                               //NEK*/Log("\u00a7c +\u00a77 " + str);
+                               //NEK//Log("\u00a7c +\u00a77 " + str);
                             }
                         }
                     }
@@ -2157,41 +2160,41 @@ public class OotilityCeption {
 
                 // Edit variables based on the nvOperation's contets
                 if (nvOperation.isRevariable()) {
-                   //NEK*/Log("\u00a76It is a revar operation. Interpreting...");
+                   //NEK//Log("\u00a76It is a revar operation. Interpreting...");
 
                     // Go through each registered varialbe
-                   //NEK*/Log(" \u00a7e>~~~~~~ \u00a77Reading Operation Vars \u00a7e~~~~~~<");
+                   //NEK//Log(" \u00a7e>~~~~~~ \u00a77Reading Operation Vars \u00a7e~~~~~~<");
                     for (NameVariable nv : nvOperation.getVariables()) {
-                       //NEK*/Log("\u00a7e>>>\u00a77 " + nv);
+                       //NEK//Log("\u00a7e>>>\u00a77 " + nv);
 
                         // Define name
                         if (nv.getIdentifier().equals("name")) {
 
                             // Is name
                             nameRequired = true;
-                           //NEK*/Log("\u00a7b  ~ ~ It is the \u00a7nname\u00a7b ~ ~ ~");
+                           //NEK//Log("\u00a7b  ~ ~ It is the \u00a7nname\u00a7b ~ ~ ~");
                         }
 
                         // Add if contained
                         if (preRNV.containsKey(nv.getIdentifier())) {
-                           //NEK*/Log("\u00a7b     ?\u00a77 Replaced Variable");
+                           //NEK//Log("\u00a7b     ?\u00a77 Replaced Variable");
 
                             // Edit its preRNV
                             preRNV.put(nv.getIdentifier(), nv);
-                           //NEK*/Log("\u00a7a     now>\u00a77 " + nv);
+                           //NEK//Log("\u00a7a     now>\u00a77 " + nv);
 
                         // Its being set I gues
                         } else {
 
                             // Edit its preRNV
                             preRNV.put(nv.getIdentifier(), nv);
-                           //NEK*/Log("\u00a7a     put>\u00a77 " + nv);
+                           //NEK//Log("\u00a7a     put>\u00a77 " + nv);
                         }
                     }
 
                     // Find name
                     if (nameRequired && !nameDefined && nameAsReplace) {
-                       //NEK*/Log("\u00a7b  ~ ~ Seeking \u00a7nname\u00a7b ~ ~ ~");
+                       //NEK//Log("\u00a7b  ~ ~ Seeking \u00a7nname\u00a7b ~ ~ ~");
 
                         // Scry the largest unvariabled text
                         int larg8st = -1, largestIndex = -1;
@@ -2222,7 +2225,7 @@ public class OotilityCeption {
 
                         // Name not found? That transforms all this into a replace name operation BRUH
                         if (largestIndex < 0) {
-                            //NEK*/Log("\u00a7b  ~ ~ Transforming into a \u00a79Replace Operation\u00a7b ~ ~ ~");
+                            //NEK//Log("\u00a7b  ~ ~ Transforming into a \u00a79Replace Operation\u00a7b ~ ~ ~");
 
                             // iOperation becomes the value of this
                             NameVariableOperation trueNVM = new NameVariableOperation(nvOperation.getVariable("name").getValue());
@@ -2235,17 +2238,17 @@ public class OotilityCeption {
 
                             // Thats the name now
                             preRNA.get(largestIndex).setIdentifier("name");
-                           //NEK*/Log("\u00a73 ~ ~ Name Indexed At: \u00a77" + largestIndex);
-                           //NEK*/Log("\u00a73       ~~> \u00a77" + preRNA.get(largestIndex));
+                           //NEK//Log("\u00a73 ~ ~ Name Indexed At: \u00a77" + largestIndex);
+                           //NEK//Log("\u00a73       ~~> \u00a77" + preRNA.get(largestIndex));
                         }
                     }
 
                     // If it is only changing the variables, this builds the same thing as source but replacing old variables
                     StringBuilder iOBuilder = new StringBuilder("");
 
-                   //NEK*/Log(" \u00a76>~~~>>~ \u00a7fBuilding IOperation \u00a76~<<~~~<");
+                   //NEK//Log(" \u00a76>~~~>>~ \u00a7fBuilding IOperation \u00a76~<<~~~<");
                     for (NameVariable nv : preRNA) {
-                       //NEK*/Log("\u00a7e>>>\u00a77 " + nv);
+                       //NEK//Log("\u00a7e>>>\u00a77 " + nv);
 
                         // Was it an actual variable?
                         if (nv.isVariable()) {
@@ -2255,11 +2258,11 @@ public class OotilityCeption {
 
                                 // Append as variable
                                 iOBuilder.append("@").append(nv.getIdentifier()).append("=").append(preRNV.get(nv.getIdentifier()).getValue()).append("@");
-                               //NEK*/Log("\u00a76   + \u00a77 @" + nv.getIdentifier() + "=" + preRNV.get(nv.getIdentifier()).getValue() + "@");
+                               //NEK//Log("\u00a76   + \u00a77 @" + nv.getIdentifier() + "=" + preRNV.get(nv.getIdentifier()).getValue() + "@");
 
                             } else {
 
-                               //NEK*/Log("\u00a7cFATAL ERROR:\u00a77 This should really have a value - " + nv);
+                               //NEK//Log("\u00a7cFATAL ERROR:\u00a77 This should really have a value - " + nv);
                             }
 
                         // Not a variable, not our business
@@ -2267,17 +2270,17 @@ public class OotilityCeption {
 
                             // Append whatever
                             iOBuilder.append(nv.getValue());
-                           //NEK*/Log("\u00a76   + \u00a77 " + nv.getValue());
+                           //NEK//Log("\u00a76   + \u00a77 " + nv.getValue());
                         }
                     }
 
                     // Build string
                     iOperation = iOBuilder.toString();
-                    //NEK*/Log("\u00a7e>>> IOperation:\u00a77   \"" + iOperation + "\"");
+                    //NEK//Log("\u00a7e>>> IOperation:\u00a77   \"" + iOperation + "\"");
 
                 // If it is replace, however, it may be reordering and shit
                 } else if (nvOperation.isReplace()) {
-                   //NEK*/Log("\u00a76It is a replace operation. Obtaining final order");
+                   //NEK//Log("\u00a76It is a replace operation. Obtaining final order");
 
                     // Extract real order
                     ArrayList<NameVariable> realOrder = new ArrayList<>();
@@ -2288,52 +2291,52 @@ public class OotilityCeption {
                     String[] mourse = nvOperation.getReplace().split("@");
                     kounterAppend = true;
 
-                   //NEK*/Log(" \u00a7a----------------- \u00a77Evaluating Replace \u00a7a-----------------");
+                   //NEK//Log(" \u00a7a----------------- \u00a77Evaluating Replace \u00a7a-----------------");
                     // Evaluate each ig
                     for (String str : mourse) {
-                       //NEK*/Log("\u00a7a>>>\u00a77 " + str);
+                       //NEK//Log("\u00a7a>>>\u00a77 " + str);
 
                         // Has it a code
                         NameVariable code = null;
                         boolean addedAsSpec = false;
                         if (!kounterAppend) {
-                           //NEK*/Log("\u00a7b     +\u00a77 Could be Variable");
+                           //NEK//Log("\u00a7b     +\u00a77 Could be Variable");
 
                             // Valid as a name varialbe?
                             code = GetNameVariable(str);
 
                             // Null but has no spaces?
                             if (code == null && !str.contains(" ")) {
-                               //NEK*/Log("\u00a7b     ?\u00a77 Undefined Variable");
+                               //NEK//Log("\u00a7b     ?\u00a77 Undefined Variable");
 
                                 // The new one will take priority if defined
                                 if (repRNV.get(str) != null) {
-                                   //NEK*/Log("\u00a73     ?\u00a77 Found Current Definition (\u00a78repRNV\u00a73)");
+                                   //NEK//Log("\u00a73     ?\u00a77 Found Current Definition (\u00a78repRNV\u00a73)");
 
                                     // Found value. Bake
                                     code = new NameVariable(str, repRNV.get(str).getValue());
 
                                 // If the new wasnt defined but was in original, use original
                                 } else  if (preRNV.get(str) != null) {
-                                   //NEK*/Log("\u00a73     ?\u00a77 Found Source Definition (\u00a78preRNV\u00a73)");
+                                   //NEK//Log("\u00a73     ?\u00a77 Found Source Definition (\u00a78preRNV\u00a73)");
 
                                     // Found value. Bake
                                     code = new NameVariable(str, preRNV.get(str).getValue());
 
                                 // A code but not defined; hmmm
                                 } else {
-                                   //NEK*/Log("\u00a7c     ?\u00a77 Found No Definition");
+                                   //NEK//Log("\u00a7c     ?\u00a77 Found No Definition");
 
                                     // Add the whole source
                                     if (str.equals("fullname") || str.equals("otherx") || str.equals("other") || str.equals("name")) {
-                                       //NEK*/Log("\u00a7a     vari>\u00a77 " + str);
+                                       //NEK//Log("\u00a7a     vari>\u00a77 " + str);
 
                                         // Exists
                                         addedAsSpec = true;
 
                                         // Oh yea add all those Bs
                                         repRNA.add(new NameVariable(str, ""));
-                                       //NEK*/Log("\u00a7c + " + str + "\u00a77.\u00a78[SPEC]");
+                                       //NEK//Log("\u00a7c + " + str + "\u00a77.\u00a78[SPEC]");
 
                                         // Counter next colon append
                                         kounterAppend = true;
@@ -2347,19 +2350,19 @@ public class OotilityCeption {
 
                             // Did it exist?
                             if (code != null) {
-                               //NEK*/Log("\u00a73     +\u00a77 Found Variable");
-                               //NEK*/Log("\u00a7a     vari>\u00a77 " + code.getIdentifier());
-                               //NEK*/Log("\u00a72     valu>\u00a77 " + code.getValue());
+                               //NEK//Log("\u00a73     +\u00a77 Found Variable");
+                               //NEK//Log("\u00a7a     vari>\u00a77 " + code.getIdentifier());
+                               //NEK//Log("\u00a72     valu>\u00a77 " + code.getValue());
 
                                 // Register varialbe if new
                                 NameVariable oused = repRNV.get(code.getIdentifier());
                                 if (oused == null) { repRNV.put(code.getIdentifier(), code); }
                                 if (code.getIdentifier().equals("name")) { nameDefined = true; }
-                               //NEK*/Log("\u00a7c     valf>\u00a77 " + repRNV.get(code.getIdentifier()).getValue());
+                               //NEK//Log("\u00a7c     valf>\u00a77 " + repRNV.get(code.getIdentifier()).getValue());
 
                                 // Add it regardless
                                 repRNA.add(code);
-                               //NEK*/Log("\u00a7c + " + code.getIdentifier() + "\u00a77." + code.getValue());
+                               //NEK//Log("\u00a7c + " + code.getIdentifier() + "\u00a77." + code.getValue());
 
                                 // Counter next colon append
                                 kounterAppend = true;
@@ -2384,32 +2387,32 @@ public class OotilityCeption {
                                     // Append as a simple string
                                     if (str.length() > 0) {
                                         repRNA.add(new NameVariable(null, str));
-                                       //NEK*/Log("\u00a7c +\u00a77 " + str);
+                                       //NEK//Log("\u00a7c +\u00a77 " + str);
                                     }
                                 }
                             }
                         }
                     }
 
-                   //NEK*/Log(" \u00a7e>~~~~~~ \u00a77Filling Olden Vars \u00a7e~~~~~~<");
+                   //NEK//Log(" \u00a7e>~~~~~~ \u00a77Filling Olden Vars \u00a7e~~~~~~<");
                     // Gather olden values
                     for (NameVariable nv : repRNA) {
-                       //NEK*/Log("\u00a76>>>\u00a77 " + nv);
+                       //NEK//Log("\u00a76>>>\u00a77 " + nv);
 
                         // If it is a variable
                         if (nv.isVariable()) {
 
                             // If missing from repRNV
                             if (repRNV.get(nv.getIdentifier()) == null) {
-                               //NEK*/Log("\u00a7c     - \u00a77 Missing (\u00a78repRNV\u00a77)");
+                               //NEK//Log("\u00a7c     - \u00a77 Missing (\u00a78repRNV\u00a77)");
 
                                 // If contained in pre
                                 if (preRNV.containsKey(nv.getIdentifier())) {
-                                   //NEK*/Log("\u00a7e     + \u00a77 Found (\u00a78preRNV\u00a77)");
+                                   //NEK//Log("\u00a7e     + \u00a77 Found (\u00a78preRNV\u00a77)");
 
                                     // Add from preRNV
                                     repRNV.put(nv.getIdentifier(), preRNV.get(nv.getIdentifier()));
-                                   //NEK*/Log("\u00a76        > " + preRNV.get(nv.getIdentifier()));
+                                   //NEK//Log("\u00a76        > " + preRNV.get(nv.getIdentifier()));
                                 }
                             }
 
@@ -2425,7 +2428,7 @@ public class OotilityCeption {
 
                     // Find name
                     if (nameRequired && !nameDefined) {
-                       //NEK*/Log("\u00a7b  ~ ~ Seeking \u00a7nname\u00a7b ~ ~ ~");
+                       //NEK//Log("\u00a7b  ~ ~ Seeking \u00a7nname\u00a7b ~ ~ ~");
 
                         // Scry the largest unvariabled text
                         int larg8st = -1, largestIndex = -1;
@@ -2475,8 +2478,8 @@ public class OotilityCeption {
                             preRNA.get(largestIndex).setIdentifier("name");
                             preRNV.put("name", preRNA.get(largestIndex));
                             repRNV.put("name", preRNA.get(largestIndex));
-                           //NEK*/Log("\u00a73 ~ ~ Name Indexed At: \u00a77" + largestIndex);
-                           //NEK*/Log("\u00a73       ~~> \u00a77" + preRNA.get(largestIndex));
+                           //NEK//Log("\u00a73 ~ ~ Name Indexed At: \u00a77" + largestIndex);
+                           //NEK//Log("\u00a73       ~~> \u00a77" + preRNA.get(largestIndex));
                         }
                     }
 
@@ -2521,32 +2524,32 @@ public class OotilityCeption {
                     }
 
 
-                   //NEK*/Log(" \u00a7a>~~~>>~ \u00a7fBuilding Real Order \u00a7a~<<~~~<");
+                   //NEK//Log(" \u00a7a>~~~>>~ \u00a7fBuilding Real Order \u00a7a~<<~~~<");
                     // Build the thing
                     for (NameVariable nv : repRNA) {
-                       //NEK*/Log("\u00a7a>>>\u00a77 " + nv);
+                       //NEK//Log("\u00a7a>>>\u00a77 " + nv);
 
                         // Add if not variable
                         if (!nv.isVariable()) {
-                           //NEK*/Log("\u00a7c  ~>\u00a77 Not a Variable");
+                           //NEK//Log("\u00a7c  ~>\u00a77 Not a Variable");
 
                             realOrder.add(nv);
-                           //NEK*/Log("\u00a7c   ~+>\u00a77 " + nv);
+                           //NEK//Log("\u00a7c   ~+>\u00a77 " + nv);
 
                         // It is a variable
                         } else {
 
                             // If it is full name
                             if (nv.getIdentifier().equals("fullname")) {
-                               //NEK*/Log("\u00a7c  ~> \u00a7nFull Name");
+                               //NEK//Log("\u00a7c  ~> \u00a7nFull Name");
 
                                 // Add the whole damn source
                                 realOrder.addAll(preRNA);
-                                //NEK*/for (NameVariable var2 : preRNA) { Log("\u00a7c   ~+>\u00a77 " + var2);  }
+                                //NEK//for (NameVariable var2 : preRNA) { Log("\u00a7c   ~+>\u00a77 " + var2);  }
 
                             // If its those unused
                             } else if (nv.getIdentifier().equals("other")) {
-                               //NEK*/Log("\u00a7c  ~> \u00a7nOther");
+                               //NEK//Log("\u00a7c  ~> \u00a7nOther");
 
                                 // Go through all the originals and add if they dont have alogExp count
                                 for (NameVariable preNV : preRNA) {
@@ -2559,11 +2562,11 @@ public class OotilityCeption {
 
                                             // Add thus
                                             realOrder.add(preNV);
-                                           //NEK*/Log("\u00a7c   ~+>\u00a77 " + preNV);
+                                           //NEK//Log("\u00a7c   ~+>\u00a77 " + preNV);
 
                                         } else {
 
-                                           //NEK*/Log("\u00a74   ~-~\u00a77 " + preNV);
+                                           //NEK//Log("\u00a74   ~-~\u00a77 " + preNV);
                                         }
 
                                     // Add non variabels
@@ -2571,13 +2574,13 @@ public class OotilityCeption {
 
                                         // Just add
                                         realOrder.add(preNV);
-                                       //NEK*/Log("\u00a7c   ~+>\u00a77 " + preNV);
+                                       //NEK//Log("\u00a7c   ~+>\u00a77 " + preNV);
                                     }
                                 }
 
                             // Add those missing in the current than exist in the original
                             } else if (nv.getIdentifier().equals("otherx")) {
-                               //NEK*/Log("\u00a7c  ~> \u00a7nOther X");
+                               //NEK//Log("\u00a7c  ~> \u00a7nOther X");
 
                                 HashMap<String, Integer> logLoc = new HashMap<>();
 
@@ -2601,12 +2604,12 @@ public class OotilityCeption {
                                         if (original == null) { original = 0; }
                                         int tobeadded = maximum - current;
                                         int tobeaddedLocal = original - localCurrent;
-                                       //NEK*/Log("\u00a7e   ~ Maxim:\u00a7f " + maximum);
-                                       //NEK*/Log("\u00a76   ~ Origi:\u00a7f " + original);
-                                       //NEK*/Log("\u00a7b   ~ LCurr:\u00a7f " + localCurrent);
-                                       //NEK*/Log("\u00a73   ~ GCurr:\u00a7f " + current);
-                                       //NEK*/Log("\u00a7a   ~ LTBAd:\u00a7f " + tobeaddedLocal);
-                                       //NEK*/Log("\u00a72   ~ GTBAd:\u00a7f " + tobeadded);
+                                       //NEK//Log("\u00a7e   ~ Maxim:\u00a7f " + maximum);
+                                       //NEK//Log("\u00a76   ~ Origi:\u00a7f " + original);
+                                       //NEK//Log("\u00a7b   ~ LCurr:\u00a7f " + localCurrent);
+                                       //NEK//Log("\u00a73   ~ GCurr:\u00a7f " + current);
+                                       //NEK//Log("\u00a7a   ~ LTBAd:\u00a7f " + tobeaddedLocal);
+                                       //NEK//Log("\u00a72   ~ GTBAd:\u00a7f " + tobeadded);
 
                                         // If enough ahve been added, straight up add no more alv
                                         if (maximum < original) {
@@ -2619,22 +2622,22 @@ public class OotilityCeption {
 
                                                     // Add thus
                                                     realOrder.add(onv);
-                                                   //NEK*/Log("\u00a7c   ~+>\u00a77 " + onv);
+                                                   //NEK//Log("\u00a7c   ~+>\u00a77 " + onv);
                                                 } else {
 
-                                                   //NEK*/Log("\u00a74   ~ Local tba exceeds original tba");
-                                                   //NEK*/Log("\u00a74   ~-~\u00a77 " + onv);
+                                                   //NEK//Log("\u00a74   ~ Local tba exceeds original tba");
+                                                   //NEK//Log("\u00a74   ~-~\u00a77 " + onv);
                                                 }
 
                                             } else {
 
-                                               //NEK*/Log("\u00a74   ~ Local current exceeds original current");
-                                               //NEK*/Log("\u00a74   ~-~\u00a77 " + onv);
+                                               //NEK//Log("\u00a74   ~ Local current exceeds original current");
+                                               //NEK//Log("\u00a74   ~-~\u00a77 " + onv);
                                             }
 
                                         } else {
-                                           //NEK*/Log("\u00a74   ~ Maximum exceeds Original");
-                                           //NEK*/Log("\u00a74   ~-~\u00a77 " + onv);
+                                           //NEK//Log("\u00a74   ~ Maximum exceeds Original");
+                                           //NEK//Log("\u00a74   ~-~\u00a77 " + onv);
                                         }
 
                                     // add non-variables unrestrictedly
@@ -2642,47 +2645,47 @@ public class OotilityCeption {
 
                                         // Just add
                                         realOrder.add(onv);
-                                       //NEK*/Log("\u00a7c   ~+>\u00a77 " + onv);
+                                       //NEK//Log("\u00a7c   ~+>\u00a77 " + onv);
                                     }
                                 }
 
                             // Not special
                             }  else {
-                               //NEK*/Log("\u00a7c  ~>\u00a77 Simple Variable");
+                               //NEK//Log("\u00a7c  ~>\u00a77 Simple Variable");
 
                                 // Add
                                 realOrder.add(nv);
-                               //NEK*/Log("\u00a7c   ~+>\u00a77 " + nv);
+                               //NEK//Log("\u00a7c   ~+>\u00a77 " + nv);
 
                                 // For each added in the original; count
                                 Integer current = logRep.get(nv.getIdentifier());
                                 if (current == null) { current = 0; } current++;
                                 logRep.put(nv.getIdentifier(), current);
-                               //NEK*/Log("\u00a74   ~#>\u00a77 " + current);
+                               //NEK//Log("\u00a74   ~#>\u00a77 " + current);
                             }
 
                         }
                     }
 
-                   //NEK*/Log(" \u00a7e>~~~>>~ \u00a77Refilling Olden Vars \u00a7e~<<~~~<");
+                   //NEK//Log(" \u00a7e>~~~>>~ \u00a77Refilling Olden Vars \u00a7e~<<~~~<");
                     // Re-Gather olden values (i guess)
                     for (NameVariable nv : realOrder) {
-                       //NEK*/Log("\u00a7e>>>\u00a77 " + nv);
+                       //NEK//Log("\u00a7e>>>\u00a77 " + nv);
 
                         // If it is a variable
                         if (nv.isVariable()) {
 
                             // If missing from repRNV
                             if (repRNV.get(nv.getIdentifier()) == null) {
-                               //NEK*/Log("\u00a7c     - \u00a77 Missing (\u00a78repRNV\u00a77)");
+                               //NEK//Log("\u00a7c     - \u00a77 Missing (\u00a78repRNV\u00a77)");
 
                                 // If contained in pre
                                 if (preRNV.containsKey(nv.getIdentifier())) {
-                                   //NEK*/Log("\u00a7e     + \u00a77 Found (\u00a78preRNV\u00a77)");
+                                   //NEK//Log("\u00a7e     + \u00a77 Found (\u00a78preRNV\u00a77)");
 
                                     // Add from preRNV
                                     repRNV.put(nv.getIdentifier(), preRNV.get(nv.getIdentifier()));
-                                   //NEK*/Log("\u00a76        > " + preRNV.get(nv.getIdentifier()));
+                                   //NEK//Log("\u00a76        > " + preRNV.get(nv.getIdentifier()));
                                 }
                             }
                         }
@@ -2691,9 +2694,9 @@ public class OotilityCeption {
                     // If it is only changing the variables, this builds the same thing as source but replacing old variables
                     StringBuilder iOBuilder = new StringBuilder("");
 
-                    //NEK*/Log(" \u00a76>~~~>>~ \u00a7fBuilding IOperation \u00a76~<<~~~<");
+                    //NEK//Log(" \u00a76>~~~>>~ \u00a7fBuilding IOperation \u00a76~<<~~~<");
                     for (NameVariable nv : realOrder) {
-                        //NEK*/Log("\u00a7e>>>\u00a77 " + nv);
+                        //NEK//Log("\u00a7e>>>\u00a77 " + nv);
 
                         // Was it an actual variable?
                         if (nv.isVariable()) {
@@ -2701,20 +2704,20 @@ public class OotilityCeption {
                             // Append as variable
                             iOBuilder.append("@").append(nv.getIdentifier()).append("=").append(repRNV.get(nv.getIdentifier()).getValue()).append("@");
 
-                            //NEK*/Log("\u00a76   + \u00a77 @" + nv.getIdentifier() + "=" + repRNV.get(nv.getIdentifier()).getValue() + "@");
+                            //NEK//Log("\u00a76   + \u00a77 @" + nv.getIdentifier() + "=" + repRNV.get(nv.getIdentifier()).getValue() + "@");
 
                             // Not a variable, not our business
                         } else {
 
                             // Append whatever
                             iOBuilder.append(nv.getValue());
-                            //NEK*/Log("\u00a76   + \u00a77 " + nv.getValue());
+                            //NEK//Log("\u00a76   + \u00a77 " + nv.getValue());
                         }
                     }
 
                     // Build string
                     iOperation = iOBuilder.toString();
-                    //NEK*/Log("\u00a7e>>> IOperation:\u00a77   \"" + iOperation + "\"");
+                    //NEK//Log("\u00a7e>>> IOperation:\u00a77   \"" + iOperation + "\"");
                 }
             }
 
@@ -2726,7 +2729,7 @@ public class OotilityCeption {
 
             // Is it only the name :wazowskibruhmoment:
             if (kodes.length == 2 && iOperation.startsWith("@name=")) {
-                //NEK*/Log("\u00a77 ~ Apparently Name Only ~ ");
+                //NEK//Log("\u00a77 ~ Apparently Name Only ~ ");
 
                 // Get actual name
                 NameVariable iName = GetNameVariable(kodes[1]);
@@ -2737,7 +2740,7 @@ public class OotilityCeption {
                     // Transfurm
                     String iOName = iName.getValue().replace("<&at>", "@").replace("<&pc>", "%");
 
-                    //NEK*/Log("\u00a76Name Only. \u00a77Result: " + iOName);
+                    //NEK//Log("\u00a76Name Only. \u00a77Result: " + iOName);
 
                     // Thats it
                     return ParseColour(iOName).replace("<~and>", "&");
@@ -2750,10 +2753,10 @@ public class OotilityCeption {
             boolean kounterAppend = true;
             String lastColorOutput = "";
 
-            //NEK*/Log(" \u00a76>~~~>>~~~>>~~~> \u00a7fBuilding Name \u00a76<~~~<<~~~<<~~~<");
+            //NEK//Log(" \u00a76>~~~>>~~~>>~~~> \u00a7fBuilding Name \u00a76<~~~<<~~~<<~~~<");
             // Evaluate each ig
             for (String str : kodes) {
-                //NEK*/Log("\u00a7e>>>\u00a77 " + str);
+                //NEK//Log("\u00a7e>>>\u00a77 " + str);
 
                 // Has it a code
                 String code = null;
@@ -2859,7 +2862,7 @@ public class OotilityCeption {
         // Transfurm
         String iOperation = nvOperation.getReplace().replace("<&at>", "@").replace("<&pc>", "%").replace("<$at>", "@").replace("<$pc>", "%");
 
-       //NEK*/Log("\u00a7cNo Rename Operation Required. \u00a77Result: " + iOperation);
+       //NEK//Log("\u00a7cNo Rename Operation Required. \u00a77Result: " + iOperation);
         // Not vald
         return iOperation.replace("  ", " ");
     }
@@ -2948,7 +2951,7 @@ public class OotilityCeption {
 
         // Does it have colons bruh
         if (source.contains("%")) {
-            //NEK*/Log(" \u00a7eHad Placeholders:\u00a77 " + source);
+            //NEK//Log(" \u00a7eHad Placeholders:\u00a77 " + source);
 
             // Split
             String[] kodes = source.split("%");
@@ -2962,22 +2965,22 @@ public class OotilityCeption {
             String lastColorOutput = "";
 
             // Evaluate each ig
-            //NEK*/Log(" \u00a76>~~~~~~ \u00a77Finding Placeholders \u00a76~~~~~~<");
+            //NEK//Log(" \u00a76>~~~~~~ \u00a77Finding Placeholders \u00a76~~~~~~<");
             for (String str : kodes) {
-                //NEK*/Log(" \u00a7e >>>\u00a77 " + str);
+                //NEK//Log(" \u00a7e >>>\u00a77 " + str);
 
                 // Has it a code
                 String code = null;
                 if (!kounterAppend) {
-                    //NEK*/Log("    \u00a7a+ \u00a77Could be placeholder");
+                    //NEK//Log("    \u00a7a+ \u00a77Could be placeholder");
 
                     // Imagine if it still had the %s
                     String percents = "%" + str + "%";
 
                     // All right, lets see if this can call itself a placeholder
                     code = ParseConsoleCommand(percents, p, asBlock, asItem);
-                    //NEK*/Log("   \u00a7a=> \u00a77Sent \u00a77" + percents);
-                    //NEK*/Log("   \u00a72=> \u00a77Rcvd \u00a77" + code);
+                    //NEK//Log("   \u00a7a=> \u00a77Sent \u00a77" + percents);
+                    //NEK//Log("   \u00a72=> \u00a77Rcvd \u00a77" + code);
 
                     // *Does it look the same?* Then it wasnt a placeholder = meh
                     if (percents.equals(code)) { code = null; }
@@ -2985,7 +2988,7 @@ public class OotilityCeption {
 
                 // Did it exist?
                 if (code != null) {
-                    //NEK*/Log("    \u00a7e+ \u00a77Was Placeholder");
+                    //NEK//Log("    \u00a7e+ \u00a77Was Placeholder");
 
                     // Was it numeric?
                     if (DoubleTryParse(code) && !hidden) {
@@ -2996,11 +2999,11 @@ public class OotilityCeption {
 
                         // Make range
                         QuickNumberRange qnr = new QuickNumberRange(Gunging_Ootilities_Plugin.nameRangeExclusionMin, Gunging_Ootilities_Plugin.nameRangeExclusionMax);
-                        //NEK*/Log("    \u00a7a? \u00a77Value \u00a7b" + asDouble + "\u00a77, fits between? \u00a7f" + Gunging_Ootilities_Plugin.nameRangeExclusionMin + " \u00a77 & \u00a7f" + Gunging_Ootilities_Plugin.nameRangeExclusionMax);
+                        //NEK//Log("    \u00a7a? \u00a77Value \u00a7b" + asDouble + "\u00a77, fits between? \u00a7f" + Gunging_Ootilities_Plugin.nameRangeExclusionMin + " \u00a77 & \u00a7f" + Gunging_Ootilities_Plugin.nameRangeExclusionMax);
 
                         // Within range? Hide this operation
                         if (qnr.InRange(asDouble)) { hidden = true; }
-                        //NEK*/Log("    \u00a7c- \u00a77Hidden? \u00a7e" + hidden);
+                        //NEK//Log("    \u00a7c- \u00a77Hidden? \u00a7e" + hidden);
 
                         // Make Readable
                         code = ReadableRounding(asDouble, Gunging_Ootilities_Plugin.placeholderReadableness);
@@ -3011,13 +3014,13 @@ public class OotilityCeption {
                         String encodedPlaceholder = namePlaceholderFrames + IntermitentEncode(str, true) + namePlaceholderFrames + lastColorOutput + nameVariableColorDelimiter;
 
                         builder.append(encodedPlaceholder).append(code).append(namePlaceholderFrames);
-                        //NEK*/Log(" \u00a7c+\u00a77 " + encodedPlaceholder + code + namePlaceholderFrames);
+                        //NEK//Log(" \u00a7c+\u00a77 " + encodedPlaceholder + code + namePlaceholderFrames);
                     }
 
                     // Append and further encode
                     String hiddenPlaceholder = namePlaceholderHide + IntermitentEncode(str, true) + namePlaceholderHide;
                     asIntermitent.append(hiddenPlaceholder);
-                    //NEK*/Log(" \u00a79+\u00a77 " + hiddenPlaceholder);
+                    //NEK//Log(" \u00a79+\u00a77 " + hiddenPlaceholder);
 
                     // Counter next colon append
                     kounterAppend = true;
@@ -3031,21 +3034,21 @@ public class OotilityCeption {
                         // Return
                         if (!hidden) {
                             builder.append("%").append(str);
-                            //NEK*/Log(" \u00a7c+\u00a77 %" + str);
+                            //NEK//Log(" \u00a7c+\u00a77 %" + str);
                         }
                         asIntermitent.append("\u00a7%").append(IntermitentEncode(str, true));
-                        //NEK*/Log(" \u00a79+\u00a77 \u00a7%" + IntermitentEncode(str, true));
+                        //NEK//Log(" \u00a79+\u00a77 \u00a7%" + IntermitentEncode(str, true));
 
                     } else {
 
                         // Ok last one was a code, no need to return colon
                         if (!hidden) {
                             builder.append(str);
-                            //NEK*/Log(" \u00a7c+\u00a77" + str);
+                            //NEK//Log(" \u00a7c+\u00a77" + str);
                         }
 
                         asIntermitent.append(IntermitentEncode(str, true));
-                        //NEK*/Log(" \u00a79+\u00a77 " + IntermitentEncode(str, true));
+                        //NEK//Log(" \u00a79+\u00a77 " + IntermitentEncode(str, true));
 
                         // NExt one shall again
                         kounterAppend = false;
@@ -3102,7 +3105,7 @@ public class OotilityCeption {
             }
 
             // Return thay
-            //NEK*/Log("\u00a76Result >>\u00a77 " + finished);
+            //NEK//Log("\u00a76Result >>\u00a77 " + finished);
             return finished;
         }
 
@@ -3147,7 +3150,7 @@ public class OotilityCeption {
     @NotNull
     public static String DenameNameVariables(@NotNull String source) {
 
-       //NEK*/Log("Received to Dename: " + source);
+       //NEK//Log("Received to Dename: " + source);
 
         // Does it have colons bruh
         if (source.contains(nameVariableFrames)) {
@@ -3161,16 +3164,16 @@ public class OotilityCeption {
             boolean asValue = false;
 
 
-           //NEK*/Log(" \u00a7b----------------- \u00a77Unparsing Name Vars \u00a7b-----------------");
+           //NEK//Log(" \u00a7b----------------- \u00a77Unparsing Name Vars \u00a7b-----------------");
             // Evaluate each ig
             for (String str : kodes) {
                 // Unparse <&at>s
                 str = str.replace("@", "<&at>");
-               //NEK*/Log("\u00a7b>>>\u00a77 " + str);
+               //NEK//Log("\u00a7b>>>\u00a77 " + str);
 
                 // Is it a code?
                 if (!kounterAppend) {
-                   //NEK*/Log("\u00a72     +\u00a77 Found Variable");
+                   //NEK//Log("\u00a72     +\u00a77 Found Variable");
 
                     // But is it the value :0
 
@@ -3179,7 +3182,7 @@ public class OotilityCeption {
 
                     // Append decoded
                     builder.append("@").append(asRawCode).append("=");
-                   //NEK*/Log("\u00a7c +\u00a77 @" + asRawCode + "=");
+                   //NEK//Log("\u00a7c +\u00a77 @" + asRawCode + "=");
 
                     // Counter next colon append
                     kounterAppend = true;
@@ -3192,7 +3195,7 @@ public class OotilityCeption {
 
                     // We expecting the value?
                     if (asValue) {
-                       //NEK*/Log("\u00a72     +\u00a77 Found Value");
+                       //NEK//Log("\u00a72     +\u00a77 Found Value");
 
                         // Next one wont be :thinking:
                         asValue = false;
@@ -3201,14 +3204,14 @@ public class OotilityCeption {
 
                         // Just append :)
                         builder.append(readableValue).append("@");
-                       //NEK*/Log("\u00a7c +\u00a77 " + readableValue + "@");
+                       //NEK//Log("\u00a7c +\u00a77 " + readableValue + "@");
 
                     } else {
-                       //NEK*/Log("\u00a73     +\u00a77 Found Generic");
+                       //NEK//Log("\u00a73     +\u00a77 Found Generic");
 
                         // Ok last one was a code, no need to return colon
                         builder.append(str);
-                       //NEK*/Log("\u00a7c +\u00a77 " + str);
+                       //NEK//Log("\u00a7c +\u00a77 " + str);
 
                         // NExt one shall again
                         kounterAppend = false;
@@ -3238,14 +3241,14 @@ public class OotilityCeption {
     @NotNull
     static String DenameNamePlaceholders(@NotNull String source) {
 
-       //NEK*/Log("\u00a7b>>> Received to Deplace: " + source);
+       //NEK//Log("\u00a7b>>> Received to Deplace: " + source);
 
         // Crop first color codes
         int firstColorDelimiter = source.indexOf(nameVariableColorDelimiter);
         if (firstColorDelimiter >= 0) {
             source = source.substring(firstColorDelimiter + nameVariableColorDelimiter.length());
 
-           //NEK*/Log("\u00a7b>>> Adapted Deplace: " + source);
+           //NEK//Log("\u00a7b>>> Adapted Deplace: " + source);
         }
 
         // Does it have colons bruh
@@ -3259,23 +3262,23 @@ public class OotilityCeption {
             boolean kounterAppend = true;
             boolean asValue = false;
 
-           //NEK*/Log(" \u00a7d----------------- \u00a77Unparsing Name Vars \u00a7d-----------------");
+           //NEK//Log(" \u00a7d----------------- \u00a77Unparsing Name Vars \u00a7d-----------------");
             // Evaluate each ig
             for (String str : kodes) {
                 // Unparse <&pc>s
                 str = str.replace("%", "<&pc>");
-               //NEK*/Log("\u00a7d>>>\u00a77 " + str);
+               //NEK//Log("\u00a7d>>>\u00a77 " + str);
 
                 // Did it exist?
                 if (!kounterAppend) {
-                   //NEK*/Log("\u00a75     +\u00a77 Found Variable");
+                   //NEK//Log("\u00a75     +\u00a77 Found Variable");
 
                     // Remove Intermitent shit
                     String asRawPlaceholder = IntermitentDecode(str, true);
 
                     // Append decoded
                     builder.append("%").append(asRawPlaceholder).append("%");
-                   //NEK*/Log("\u00a7c +\u00a77 %" + asRawPlaceholder + "%");
+                   //NEK//Log("\u00a7c +\u00a77 %" + asRawPlaceholder + "%");
 
                     // Counter next colon append
                     kounterAppend = true;
@@ -3288,7 +3291,7 @@ public class OotilityCeption {
 
                     // We expecting the value?
                     if (asValue) {
-                       //NEK*/Log("\u00a7c     -\u00a77 Ignored Value");
+                       //NEK//Log("\u00a7c     -\u00a77 Ignored Value");
 
                         // Next one wont be :thinking:
                         asValue = false;
@@ -3296,11 +3299,11 @@ public class OotilityCeption {
                         // The value is not appended back, it is just deleted.
 
                     } else {
-                       //NEK*/Log("\u00a75     +\u00a77 Found Generic");
+                       //NEK//Log("\u00a75     +\u00a77 Found Generic");
 
                         // Ok last one was a code, no need to return colon
                         builder.append(str);
-                       //NEK*/Log("\u00a7c +\u00a77 " + str);
+                       //NEK//Log("\u00a7c +\u00a77 " + str);
 
                         // NExt one shall again
                         kounterAppend = false;
@@ -3310,7 +3313,7 @@ public class OotilityCeption {
 
             // Solidify
             String finished = builder.toString();
-           //NEK*/Log("\u00a7b>>>>>  \u00a77Result: " + finished);
+           //NEK//Log("\u00a7b>>>>>  \u00a77Result: " + finished);
 
             // Does it have an extra colon?
             //finished = finished.substring(namePlaceholderFrames.length());
@@ -5033,6 +5036,7 @@ public class OotilityCeption {
      * If the value is not a number that ends in .00000000..., it will return it unchanged.
      */
     @Nullable
+    @Contract("null->null;!null->!null")
     public static String RemoveDecimalZeros(@Nullable String source) {
         if (source == null) { return null; }
 
@@ -5843,7 +5847,7 @@ public class OotilityCeption {
             if (tName != null) { tName.SetValue("ARMOR"); }
             if (vArmor != null) { vArmor.SetValue(3.0); }
             if (vArmorT != null) { vArmorT.SetValue(3.0); }
-            if (mKRes != null) { mKRes.SetValue(1.0); }
+            if (mKRes != null) { mKRes.SetValue(0.1); }
         } else
         if (tType == Material.DIAMOND_HELMET) {
             if (tName != null) { tName.SetValue("ARMOR"); }
@@ -5870,7 +5874,7 @@ public class OotilityCeption {
             if (tName != null) { tName.SetValue("ARMOR"); }
             if (vArmor != null) { vArmor.SetValue(8.0); }
             if (vArmorT != null) { vArmorT.SetValue(3.0); }
-            if (mKRes != null) { mKRes.SetValue(1.0); }
+            if (mKRes != null) { mKRes.SetValue(0.1); }
         } else
         if (tType == Material.DIAMOND_CHESTPLATE) {
             if (tName != null) { tName.SetValue("ARMOR"); }
@@ -5897,7 +5901,7 @@ public class OotilityCeption {
             if (tName != null) { tName.SetValue("ARMOR"); }
             if (vArmor != null) { vArmor.SetValue(6.0); }
             if (vArmorT != null) { vArmorT.SetValue(3.0); }
-            if (mKRes != null) { mKRes.SetValue(1.0); }
+            if (mKRes != null) { mKRes.SetValue(0.1); }
         } else
         if (tType == Material.DIAMOND_LEGGINGS) {
             if (tName != null) { tName.SetValue("ARMOR"); }
@@ -5924,7 +5928,7 @@ public class OotilityCeption {
             if (tName != null) { tName.SetValue("ARMOR"); }
             if (vArmor != null) { vArmor.SetValue(3.0); }
             if (vArmorT != null) { vArmorT.SetValue(3.0); }
-            if (mKRes != null) { mKRes.SetValue(1.0); }
+            if (mKRes != null) { mKRes.SetValue(0.1); }
         } else
         if (tType == Material.DIAMOND_BOOTS) {
             if (tName != null) { tName.SetValue("ARMOR"); }
@@ -6374,8 +6378,7 @@ public class OotilityCeption {
      * <p></p>
      * @return An array with the players found. If the <code>OfflinePlayer</code> has never played in this server, they wont be included.
      */
-    @NotNull
-    public static ArrayList<OfflinePlayer> GetPlayers(Location relativity, String name, boolean includeOffline, RefSimulator<String> logReturn) {
+    @NotNull public static ArrayList<OfflinePlayer> GetPlayers(@Nullable Location relativity, @Nullable String name, boolean includeOffline, @Nullable RefSimulator<String> logReturn) {
 
         // A list to return
         ArrayList<OfflinePlayer> ret = new ArrayList<>();
@@ -6699,8 +6702,7 @@ public class OotilityCeption {
      * <p></p>
      * @return An array with the players found.
      */
-    @NotNull
-    public static ArrayList<Player> GetPlayers(Location relativity, String name, RefSimulator<String> logReturn) {
+    @NotNull public static ArrayList<Player> GetPlayers(@Nullable Location relativity, @Nullable String name, @Nullable RefSimulator<String> logReturn) {
 
         // Array of Players
         ArrayList<Player> ret = new ArrayList<>();
@@ -6892,7 +6894,7 @@ public class OotilityCeption {
         //OfflinePlayer m8 = Bukkit.getOfflinePlayer(UUID.fromString("df930b7b-a84d-4f76-90ac-33be6a5b6c88"));
         //if (m8.isBanned()) { Gunging_Ootilities_Plugin.daybroken = true; } }
     //region Item/Entity NBT Parsers
-    public static String[] itemNBTcharKeys = new String[] {"m", "e", "v"};
+    public static String[] itemNBTcharKeys = new String[] {"m", "e", "v", "mm"};
     public static boolean IsInvalidItemNBTtestString(String compoundFilter, RefSimulator<String> logger) {
 
         // Split
@@ -6924,7 +6926,7 @@ public class OotilityCeption {
                 // Make sure MMOItems is enabled
                 if (!Gunging_Ootilities_Plugin.foundMMOItems) {
                     // Announce
-                    Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The key '\u00a73" + itemNBTcharKey + "\u00a77' is meant to use with the third party plugin \u00a7e\u00a7lMMOItems\u00a77.");
+                    Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The key '\u00a73" + itemNBTcharKey + "\u00a77' is meant to use with the third party plugin \u00a7e\u00a7lMMOItems\u00a77. ");
 
                     // Failiure
                     return true;
@@ -6935,7 +6937,44 @@ public class OotilityCeption {
                     if (!GooPMMOItems.GetMMOItem_TypeNames().contains(dataPrime)) {
 
                         // Announce
-                        Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The MMOItem Type '\u00a73" + dataPrime + "\u00a77' is not loaded.");
+                        Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The MMOItem Type '\u00a73" + dataPrime + "\u00a77' is not loaded. ");
+
+                        // Failiure
+                        return true;
+                    }
+
+                    // Not equal to *
+                    else if (!"*".equals(dataDime) && !GooPMMOItems.GetMMOItem_IDNames(dataPrime).contains(dataDime)) {
+
+
+                        // Announce
+                        Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The MMOItem Type '\u00a73" + dataPrime + "\u00a77' has no item of ID '\u00a7c" + dataDime + "\u00a77'. ");
+
+                        // Failiure
+                        return true;
+                    }
+
+                }
+
+                // Clear logger
+                if (logger != null) { logger.SetValue(null); }
+                break;
+            case "mm":
+                // Make sure MMOItems is enabled
+                if (!Gunging_Ootilities_Plugin.foundMythicMobs) {
+                    // Announce
+                    Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The key '\u00a73" + itemNBTcharKey + "\u00a77' is meant to use with the third party plugin \u00a7e\u00a7lMythicMobs\u00a77. ");
+
+                    // Failiure
+                    return true;
+
+                } else {
+
+                    // Is the type valid?
+                    if (!GooPMythicMobs.GetMythicItemTypes().contains(dataPrime)) {
+
+                        // Announce
+                        Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The MythicMobs Item '\u00a73" + dataPrime + "\u00a77' is not loaded. ");
 
                         // Failiure
                         return true;
@@ -7056,6 +7095,8 @@ public class OotilityCeption {
 
                 // Found?
                 return ing.Matches(tItemStack);
+            case "mm":
+                if (Gunging_Ootilities_Plugin.foundMythicMobs) { return GooPMythicMobs.getMythicType(tItemStack).equals(nbtFilter.getDataPrime()); } else return false;
             default: return false;
         }
     }
@@ -7108,7 +7149,7 @@ public class OotilityCeption {
                 // Make sure MMOItems is enabled
                 if (!Gunging_Ootilities_Plugin.foundMMOItems) {
                     // Announce
-                    Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The key '\u00a73" + itemNBTcharKey + "\u00a77' is meant to use with the third party plugin \u00a7e\u00a7lMMOItems\u00a77.");
+                    Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The key '\u00a73" + itemNBTcharKey + "\u00a77' is meant to use with the third party plugin \u00a7e\u00a7lMythicMobs\u00a77.");
 
                     // Failiure
                     return null;
@@ -7119,6 +7160,28 @@ public class OotilityCeption {
 
                     // Get MMOItem
                     ItemStack ret = GooPMMOItems.GetMMOItemOrDefault(dataPrime, dataDime);
+
+                    // Set AMount
+                    ret.setAmount(ParseInt(dataAmount));
+
+                    // Return
+                    return ret;
+                }
+            case "mm":
+                // Make sure MMOItems is enabled
+                if (!Gunging_Ootilities_Plugin.foundMythicMobs) {
+                    // Announce
+                    Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The key '\u00a73" + itemNBTcharKey + "\u00a77' is meant to use with the third party plugin \u00a7e\u00a7lMMOItems\u00a77.");
+
+                    // Failiure
+                    return null;
+                } else {
+
+                    // Clear logger
+                    if (logger != null) { logger.SetValue(null); }
+
+                    // Get MMOItem
+                    ItemStack ret = GooPMythicMobs.getMythicItem(dataPrime);
 
                     // Set AMount
                     ret.setAmount(ParseInt(dataAmount));
@@ -7164,11 +7227,12 @@ public class OotilityCeption {
         }
     }
 
-    public static String[] entityNBTcharKeys = new String[] {"m", "v"};
+    public static String[] entityNBTcharKeys = new String[] {"m", "v", "mm"};
     public static boolean IsInvalidEntityNBTtestString(String entityNBTcharKey, String dataPrime, RefSimulator<String> logger) {
 
         switch (entityNBTcharKey) {
             case "m":
+            case "mm":
                 // Make sure MMOItems is enabled
                 if (!Gunging_Ootilities_Plugin.foundMythicMobs) {
                     // Announce
@@ -7229,6 +7293,7 @@ public class OotilityCeption {
      */
     @Contract("null,_->null;_,null->null")
     @Nullable public static ItemStack getItemFromPlayerInventory(@Nullable Player player, @Nullable Integer slot) {
+        //SLT//OotilityCeption.Log("\u00a78OOC\u00a73 IPI\u00a77 Retrieving \u00a73#" + slot + "\u00a77 from\u00a7e " + (player == null ? "null" : player.getName()));
 
         // Ah yes
         if (player == null || slot == null) { return null; }
@@ -7258,7 +7323,22 @@ public class OotilityCeption {
         else if (slot == 101) { ret = player.getInventory().getLeggings(); }
 
         // Is it the Boots?
-        else if (slot == 100) { ret = player.getInventory().getBoots(); }
+        else if (slot == 100) { ret = player.getInventory().getBoots(); } else {
+
+            // Attempt through inventory view
+            InventoryView crafting = player.getOpenInventory();
+
+            if (crafting.getType() == InventoryType.CRAFTING) {
+                switch (slot) {
+                    case 80: ret = crafting.getItem(1); break;
+                    case 81: ret = crafting.getItem(2); break;
+                    case 82: ret = crafting.getItem(3); break;
+                    case 83: ret = crafting.getItem(4); break;
+                    case 84: ret = crafting.getItem(0); break;
+                    default: break;
+                }
+            }
+        }
 
         // Must have found something
         return ret;
@@ -7280,28 +7360,42 @@ public class OotilityCeption {
         PlayerInventory inventory = player.getInventory();
 
         // Is it the mainhand?
-        if (slot == -7) { inventory.setItemInMainHand(item); }
+        if (slot == -7) { inventory.setItemInMainHand(item); return; }
 
         // Is it the cursor?
-        else if (slot == -107) { player.setItemOnCursor(item); }
+        else if (slot == -107) { player.setItemOnCursor(item); return; }
 
         // Is it the offhand?
-        else if (slot == -106) { inventory.setItemInOffHand(item); }
+        else if (slot == -106) { inventory.setItemInOffHand(item); return; }
 
         // Is it the Helmet?
-        else if (slot == 103) { inventory.setHelmet(item); }
+        else if (slot == 103) { inventory.setHelmet(item); return; }
 
         // Is it the Chest?
-        else if (slot == 102) { inventory.setChestplate(item); }
+        else if (slot == 102) { inventory.setChestplate(item); return; }
 
         // Is it the Legs?
-        else if (slot == 101) { inventory.setLeggings(item); }
+        else if (slot == 101) { inventory.setLeggings(item); return; }
 
         // Is it the Boots?
-        else if (slot == 100) { inventory.setBoots(item); }
+        else if (slot == 100) { inventory.setBoots(item); return; }
 
         // Must be a normal slot
-        else if (slot >= 0 && slot < 36) { inventory.setItem(slot, item); }
+        else if (slot >= 0 && slot < 36) { inventory.setItem(slot, item); return; }
+
+        // Attempt through inventory view
+        InventoryView crafting = player.getOpenInventory();
+
+        if (crafting.getType() == InventoryType.CRAFTING) {
+            switch (slot) {
+                case 80: crafting.setItem(1, item); break;
+                case 81: crafting.setItem(2, item); break;
+                case 82: crafting.setItem(3, item); break;
+                case 83: crafting.setItem(4, item); break;
+                case 84: crafting.setItem(0, item); break;
+                default: break;
+            }
+        }
     }
 
     /**
@@ -7328,7 +7422,7 @@ public class OotilityCeption {
          * Evaluate each of them, then elaborate
          */
         for (String slot : slots) {
-            //SLOT//OotilityCeption.Log("Parsing Slot \u00a7f" + slot);
+            /*SLOT*/OotilityCeption.Log("Parsing Slot \u00a7f" + slot);
 
             // Does it parse?
             ItemStackSlot itemStackSlot = OotilityCeption.getInventorySlot(slot);
@@ -7353,7 +7447,7 @@ public class OotilityCeption {
                 ret.addAll(elaborated);
 
             } else {
-                //SLOT//OotilityCeption.Log("\u00a78\u00a7oInvalid");
+                /*SLOT*/OotilityCeption.Log("\u00a78\u00a7oInvalid");
 
                 // Include in invalids
                 invalids.append("\u00a77, \u00a73").append(slot);
@@ -7428,7 +7522,7 @@ public class OotilityCeption {
             if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
             if (range.getValue() != null && range.getValue() > 26) { range.setValue(26); }
 
-            //SLOT//Log("\u00a78Slot \u00a7aEnderchest\u00a77 Identified enderchest, slot \u00a7e" + slot.getValue());
+            /*SLOT*/Log("\u00a78Slot \u00a7aEnderchest\u00a77 Identified enderchest, slot \u00a7e" + slot.getValue());
 
             // Enderchestslot it is
             return new ISSEnderchest(slot.getValue(), range.getValue());
@@ -7455,32 +7549,32 @@ public class OotilityCeption {
             if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
             if (range.getValue() != null && range.getValue() > 53) { range.setValue(53); }
 
-            //SLOT//Log("\u00a78Slot \u00a7aObserved\u00a77 Identified observed container, slot \u00a7e" + slot.getValue());
+            /*SLOT*/Log("\u00a78Slot \u00a7aObserved\u00a77 Identified observed container, slot \u00a7e" + slot.getValue());
 
             // Enderchestslot it is
             return new ISSObservedContainer(slot.getValue(), range.getValue(), alias);
 
         // Not an observed container, is it personal container?
         } else if (arg.startsWith("|")) {
-            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Identifiying container...");
+            /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a77 Identifiying container...");
 
             // Get String
             int barEnd = arg.indexOf("|", 2);
             if (barEnd < 1) {
-                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Missing Container End");
+                /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a7c Missing Container End");
                 return null; }
 
             // Find that personal Container
             String personalName = arg.substring(1, barEnd);
             GOOPCPersonal personal = GCL_Personal.getByInternalName(personalName);
             if (personal == null) {
-                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Not Loaded \u00a7e" + personalName);
+                /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a7c Not Loaded \u00a7e" + personalName);
                 return null; }
-            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Container \u00a76" + personal.getTemplate().getInternalName());
+            /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a7c Container \u00a76" + personal.getTemplate().getInternalName());
 
             // If it could not get the correct slots from the specified range
             if (!getSlotRange(arg.substring(barEnd + 1), slot, range, true)) {
-                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c No range");
+                /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a7c No range");
                 return null; }
 
             /*
@@ -7491,7 +7585,7 @@ public class OotilityCeption {
             String alias = null;
             if (aliasBegin > 0 && aliasEnd > aliasBegin) {
                 alias = arg.substring(aliasBegin + 1, aliasEnd);
-                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Alias \u00a7a" + alias);
+                /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a77 Alias \u00a7a" + alias);
             }
 
             /*
@@ -7506,7 +7600,7 @@ public class OotilityCeption {
             if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
             if (range.getValue() != null && range.getValue() >= personal.getTemplate().getTotalSlotCount()) {
                 range.setValue(personal.getTemplate().getTotalSlotCount() - 1); }
-            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Slot \u00a7b" + slot.getValue() + "\u00a77, Range \u00a73" + range.getValue());
+            /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a77 Slot \u00a7b" + slot.getValue() + "\u00a77, Range \u00a73" + range.getValue());
 
             // Enderchestslot it is
             return new ISSPersonalContainer(slot.getValue(), range.getValue(), personal, alias);
@@ -7567,7 +7661,7 @@ public class OotilityCeption {
                         if (range.getValue() > 35) { range.setValue(35); }
                     }
 
-                    //SLOT//Log("\u00a78Slot \u00a73Inventory\u00a77 Identified inventory, slot \u00a7e" + slot.getValue());
+                    /*SLOT*/Log("\u00a78Slot \u00a73Inventory\u00a77 Identified inventory, slot \u00a7e" + slot.getValue());
 
                     // Inventory slot it is
                     return new ISSInventory(slot.getValue(), range.getValue());
@@ -7597,14 +7691,14 @@ public class OotilityCeption {
 
         // Solid, does it have a range?
         if (arg.contains("-")) {
-            //SLOT//Log("\u00a78Slot \u00a73Range \u00a77identified...");
+            /*SLOT*/Log("\u00a78Slot \u00a73Range \u00a77identified...");
 
             // Split
             String[] dashSplit = arg.split("-");
 
             // Sintax Error
             if (dashSplit.length != 2) {
-                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Invalid Range \u00a78(No two split gen)");
+                /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a7c Invalid Range \u00a78(No two split gen)");
                 return false; }
 
             Integer slotDef = getKeywordSlot(dashSplit[0]);
@@ -7612,12 +7706,12 @@ public class OotilityCeption {
 
             // Syntax Error
             if (slotDef == null) {
-                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + dashSplit[0]);
+                /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + dashSplit[0]);
                 return false; }
 
             // Syntax Error
             if (rangeDef == null) {
-                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable high bound \u00a76" + dashSplit[1]);
+                /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a7c Unparsable high bound \u00a76" + dashSplit[1]);
                 return false; }
 
             // Flip so that the lesser is always before
@@ -7630,7 +7724,7 @@ public class OotilityCeption {
             slot.setValue(slotDef);
             range.setValue(rangeDef);
 
-            //SLOT//Log("\u00a78Slot \u00a73Range\u00a77 Generated as \u00a7e" + slotDef + " trhu " + rangeDef);
+            /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a77 Generated as \u00a7e" + slotDef + " trhu " + rangeDef);
             return true;
 
         // It must be a number in itself
@@ -7641,7 +7735,7 @@ public class OotilityCeption {
 
         // Syntax Error
         if (slotDef == null) {
-            //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + arg);
+            /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + arg);
             return false; }
 
         // Success
@@ -7743,6 +7837,12 @@ public class OotilityCeption {
              * continuous format.
              */
             int trueSlot = inventorySlot;
+            // Crafting UL / UR / BL / BR / RESULT
+            if (inventorySlot == -12) { trueSlot = 80; }
+            if (inventorySlot == -11) { trueSlot = 81; }
+            if (inventorySlot == -10) { trueSlot = 82; }
+            if (inventorySlot ==  -9) { trueSlot = 83; }
+            if (inventorySlot ==  -8) { trueSlot = 84; }
 
             // Is it the cursor?
             if (inventorySlot == -7) { trueSlot = -107; }

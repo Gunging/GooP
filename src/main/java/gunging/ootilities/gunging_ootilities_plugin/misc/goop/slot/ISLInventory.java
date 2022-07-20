@@ -1,6 +1,10 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot;
 
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
+import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCSlot;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Player;
+import gunging.ootilities.gunging_ootilities_plugin.containers.player.GOOPCPlayer;
 import gunging.ootilities.gunging_ootilities_plugin.misc.NBTFilter;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SearchLocation;
@@ -39,7 +43,21 @@ public class ISLInventory extends ItemStackLocation {
 
     @Override public @Nullable ItemStack getItem() { return OotilityCeption.getItemFromPlayerInventory(getOwner().getPlayer(), getSlot()); }
 
-    @Override public void setItem(@Nullable ItemStack item) { OotilityCeption.setItemFromPlayerInventory(getOwner().getPlayer(), getSlot(), item); }
+    @Override public void setItem(@Nullable ItemStack item) {
+        ItemStack displayingItem = item;
+
+        GOOPCPlayer r = GCL_Player.getInventoryFor(getOwner());
+        if (r != null) {
+
+            if (OotilityCeption.IsAirNullAllowed(displayingItem)) {
+                GOOPCSlot c = r.getTemplate().getSlotAt(getSlot());
+                if (c != null) { displayingItem = c.getContent(); } }
+
+            else if (r.getTemplate().isDisplaySlot(getSlot())) { displayingItem = GOOPCManager.toDefaultItem(displayingItem); }
+        }
+
+        OotilityCeption.setItemFromPlayerInventory(getOwner().getPlayer(), getSlot(), displayingItem == null ? null : displayingItem.clone());
+    }
 
     /**
      * Used to generate dummy ISLInventory to run semi-static

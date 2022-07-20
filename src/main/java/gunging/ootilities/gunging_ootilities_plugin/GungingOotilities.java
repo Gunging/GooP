@@ -65,6 +65,7 @@ public class GungingOotilities implements CommandExecutor {
                 args[i] = args[i].replace("<caster.name>", sender.getName());
                 args[i] = args[i].replace("<target.name>", sender.getName());
                 args[i] = args[i].replace("<trigger.name>", sender.getName());
+                args[i] = args[i].replace("%player%", sender.getName());
             }
         }
 
@@ -623,7 +624,7 @@ public class GungingOotilities implements CommandExecutor {
                                     toCompletion = args[6 + iAD].equals("comp");
 
                                     // Name filter??? (of one word)
-                                    scorelessNameFilterBegin = 6 + iAD;
+                                    scorelessNameFilterBegin = 6 + iAD + (toCompletion ? 1 : 0);
 
                                 // There is two optional arguments
                                 } else if (args.length == (8 + iAD)) {
@@ -742,6 +743,10 @@ public class GungingOotilities implements CommandExecutor {
                                 // If expected scoreboard, use the alternative
                                 if (scoreExpectedScoreboard) { trueNameFilter = nameFilterBegin; }
 
+                                //TSI//OotilityCeption.Log("\u00a78GOO\u00a7b TSI\u00a77 Args Length:\u00a79 " + args.length);
+                                //TSI//OotilityCeption.Log("\u00a78GOO\u00a7b TSI\u00a77 Scoreless F:\u00a73 " + scorelessNameFilterBegin);
+                                //TSI//OotilityCeption.Log("\u00a78GOO\u00a7b TSI\u00a77 True Name F:\u00a7b " + trueNameFilter);
+
                                 // If still can build the name
                                 if (args.length > trueNameFilter) {
 
@@ -753,7 +758,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                     // Build
                                     fltr = tot.toString();
-                                    //DBG//OotilityCeption.Log("Searching in boxes of name \u00a73" + fltr);
+                                    //TSI//OotilityCeption.Log("\u00a78GOO\u00a7b TSI\u00a77 Searching in boxes of name '" + fltr + "'");
                                 }
                             }
 
@@ -789,26 +794,24 @@ public class GungingOotilities implements CommandExecutor {
 
                                         // For every slot
                                         for (ItemStackSlot tSlot : slott) {
-                                            //SLT//OotilityCeption.Log("\u00a77Looking at \u00a7a " + tSlot.toString());
 
                                             // Time to get that item stack
                                             ItemStackLocation tISource = OotilityCeption.getItemFromPlayer(target, tSlot, fltr);
-                                            //SLOT//OotilityCeption. Log(("Looking at \u00a7e" + tSlot.getSlot() + "\u00a77: \u00a78(\u00a76" + tSlot.getLocation().toString() + "\u00a78)");
+                                            //TSI//OotilityCeption.Log("\u00a78GOO\u00a7b TSI\u00a77 Looking at \u00a7e" + tSlot.toString() + "\u00a77: \u00a78(\u00a76" + tSlot.getLocation().toString() + "\u00a78;\u00a79" + tISource.getClass().getSimpleName() + "\u00a78)");
 
                                             // If slot made sense
                                             if (tISource != null) {
-                                                //SLT//OotilityCeption.Log("\u00a77Found " + OotilityCeption.GetItemName(tISource.getItem()));
 
                                                 // Get Item
                                                 ItemStack targetItem = tISource.getItem();
+                                                //TSI//OotilityCeption.Log("\u00a78GOO\u00a7b TSI\u00a77 Found Item " + OotilityCeption.GetItemName(targetItem));
 
                                                 // If it is not null
                                                 if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
-                                                    //SLOT//OotilityCeption. Log(("Found \u00a73" + OotilityCeption.GetItemName(targetItem));
 
                                                     // Found something, does it match thoi?
                                                     if (OotilityCeption.MatchesItemNBTtestString(targetItem, args[3], args[4], args[5], logAddition)) {
-                                                        //SLOT//OotilityCeption. Log(("\u00a7a\u00a7oMatched");
+                                                        //TSI//OotilityCeption.Log("\u00a7a\u00a7oMatched");
 
                                                         // COunt
                                                         kount += targetItem.getAmount();
@@ -816,13 +819,15 @@ public class GungingOotilities implements CommandExecutor {
                                                         if (chained) { OotilityCeption.Slot4Success(successSlots, tSlot, OotilityCeption.comma); }
 
                                                         // Is this the whole damn thing? No? Then break it
-                                                        if ((asSlot || !uiAmount) && !toCompletion) { break; }
+                                                        if ((asSlot || !uiAmount) && !toCompletion) {
+                                                            //TSI//OotilityCeption.Log("\u00a7b\u00a7oCompletion Reached, breaking. ");
+                                                            break; }
 
                                                     }
 
                                                 // Item Stack is null or air, are we searching for that?
                                                 } else if (allowNull) {
-                                                    //SLOT//OotilityCeption. Log(("\u00a7a\u00a7oMatched");
+                                                    //TSI//OotilityCeption.Log("\u00a7a\u00a7oMatched");
 
                                                     // Count
                                                     kount++;
@@ -830,14 +835,16 @@ public class GungingOotilities implements CommandExecutor {
 
                                                     // Is this the whole damn thing? No? Then break it
                                                     slotS = tSlot.getSlot();
-                                                    if ((asSlot || !uiAmount) && !toCompletion) { break; }
+                                                    if ((asSlot || !uiAmount) && !toCompletion) {
+                                                        //TSI//OotilityCeption.Log("\u00a7b\u00a7oCompletion Reached, breaking. ");
+                                                        break; }
 
                                                 }
 
                                             // Null Item Stack Location? I guess thats air?
                                             } else if (allowNull) {
 
-                                                //SLOT//OotilityCeption. Log(("\u00a7a\u00a7oMatched");
+                                                //TSI//OotilityCeption.Log("\u00a7a\u00a7oMatched");
 
                                                 // Count
                                                 kount++;
@@ -845,7 +852,9 @@ public class GungingOotilities implements CommandExecutor {
                                                 if (chained) { OotilityCeption.Slot4Success(successSlots, tSlot, OotilityCeption.comma); }
 
                                                 // Is this the whole damn thing? No? Then break it
-                                                if ((asSlot || !uiAmount) && !toCompletion) { break; }
+                                                if ((asSlot || !uiAmount) && !toCompletion) {
+                                                    //TSI//OotilityCeption.Log("\u00a7b\u00a7oCompletion Reached, breaking. ");
+                                                    break; }
                                             }
                                         }
 
@@ -1058,6 +1067,8 @@ public class GungingOotilities implements CommandExecutor {
                                     }
                                 }
 
+                                Gunging_Ootilities_Plugin.theMain.reloadConfig();
+
                                 switch (args[1].toLowerCase()){
                                     case "sf":
                                     case "sendfeedback":
@@ -1117,6 +1128,9 @@ public class GungingOotilities implements CommandExecutor {
                                         if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Gamerule", "'\u00a73" + args[1] + "\u00a77' is not a valid gamerule! do \u00a7e/goop gamerule\u00a77 for the list of gamerules."));
                                         break;
                                 }
+
+                                // Maybe this!?
+                                if (Gunging_Ootilities_Plugin.saveGamerulesConfig) { Gunging_Ootilities_Plugin.theMain.saveConfig(); }
 
                             } else {
 
@@ -4673,9 +4687,9 @@ public class GungingOotilities implements CommandExecutor {
                 //endregion
                 //region grief
                 case grief:
-                    //   0     1     2       3     4 5 6 7      8            9               10                    11           args.Length
-                    // /goop grief <b|l> <player> <w x y z> <radius> [asCuboid = false] [pickaxe power] [bedrock break bypass]
-                    //   -     0     1       2     3 4 5 6      7            8               9                    10           args[n]
+                    //   0     1     2       3     4 5 6 7      8            9               10                    11               12          args.Length
+                    // /goop grief <b|l> <player> <w x y z> <radius> [asCuboid = false] [pickaxe power] [bedrock break bypass] [reboot key]
+                    //   -     0     1       2     3 4 5 6      7            8               9                    10                11          args[n]
 
                     // Check 5 Permission
                     if (senderIsPlayer) {
@@ -4691,14 +4705,47 @@ public class GungingOotilities implements CommandExecutor {
 
                             // CHeck for failure
                             boolean failure = false;
+                            boolean incBlocks = false, incLiquids = false;
+                            ArrayList<Material> matMask = new ArrayList<>();
+                            if (args[1].length() > 2) {
 
-                            boolean incBlocks = args[1].contains("b"), incLiquids = args[1].contains("l");
-                            if (!incBlocks && !incLiquids) {
-                                // Failure
-                                failure = true;
+                                // Cannot be legacy letters bruh
+                                ArrayList<String> griefs = new ArrayList<>();
+                                if (args[1].contains(",")) { for(String argGrief : args[1].split(",")) { griefs.add(argGrief); } } else { griefs.add(args[1]); }
 
-                                // Notify the error
-                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "You must specify if mining blocks (\u00a7bb\u00a77), liquids (\u00a7bl\u00a77), or both (\u00a7bbl\u00a77)!"));
+                                for (String griefMat : griefs) {
+                                    Material m = OotilityCeption.getMaterial(griefMat);
+                                    if (m != null) { matMask.add(m); } else {
+
+                                        // Notify the error
+                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "Unknown block material '\u00a7e" + griefMat + "\u00a77' "));
+                                    }
+                                }
+
+                                // Legacy letters fail condition
+                                if (matMask.size() == 0) {
+
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "You must specify which materials to break for this command. "));
+                                }
+
+                            } else {
+
+                                // Using legacy letters
+                                incBlocks = args[1].contains("b");
+                                incLiquids = args[1].contains("l");
+
+                                // Legacy letters fail condition
+                                if (!incBlocks && !incLiquids) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Grief", "You must specify if mining blocks (\u00a7bb\u00a77), liquids (\u00a7bl\u00a77), or both (\u00a7bbl\u00a77)!"));
+                                }
                             }
 
                             // Gets that player boi
@@ -4763,6 +4810,13 @@ public class GungingOotilities implements CommandExecutor {
                                 bedrockBypass = args[10].equals("true");
                             }
 
+                            String rebootKey = null;
+                            if (args.length >= 12) {
+
+                                // Get key
+                                rebootKey = args[11];
+                            }
+
                             // Foreach player
                             for (Player target : targets) {
 
@@ -4801,7 +4855,7 @@ public class GungingOotilities implements CommandExecutor {
                                             for (int zRl = (targetLocation.getBlockZ() - radii); zRl <= (targetLocation.getBlockZ() + radii); zRl++) {
 
                                                 // Ignore if outside the world
-                                                if (yRl >= 0 && yRl <= 255) {
+                                                if ((GooP_MinecraftVersions.GetMinecraftVersion() < 18 && yRl >= 0 && yRl <= 255) || (GooP_MinecraftVersions.GetMinecraftVersion() >= 18 && yRl >= -64 && yRl <= 319)) {
                                                     double range = Math.sqrt(Math.pow(xRl - targetLocation.getBlockX(), 2) + Math.pow(yRl - targetLocation.getBlockY(), 2) + Math.pow(zRl - targetLocation.getBlockZ(), 2));
 
                                                     // Ignore if outside the sphere region
@@ -4813,34 +4867,44 @@ public class GungingOotilities implements CommandExecutor {
                                                         // Include in array
                                                         if (!OotilityCeption.IsAirNullAllowed(tBlock)) {
 
-                                                            // If liquid
-                                                            if (tBlock.isLiquid() && incLiquids) {
+                                                            // Going by BL keywords
+                                                            if (incLiquids || incBlocks) {
 
-                                                                // Add as liquid
-                                                                bkks.add(tBlock);
-                                                            }
+                                                                // If liquid
+                                                                if (tBlock.isLiquid() && incLiquids) {
 
-                                                            // If solid
-                                                            if (!tBlock.isLiquid() && incBlocks) {
-
-                                                                // Bedrock-type block
-                                                                boolean canBreakAsBedrock = Gunging_Ootilities_Plugin.griefBreaksBedrock || bedrockBypass || tBlock.getType() != Material.BEDROCK;
-                                                                boolean unbreakableAtAll =
-                                                                        tBlock.getType() == Material.END_PORTAL_FRAME ||
-                                                                                tBlock.getType() == Material.END_PORTAL ||
-                                                                                tBlock.getType() == Material.COMMAND_BLOCK ||
-                                                                                tBlock.getType() == Material.CHAIN_COMMAND_BLOCK ||
-                                                                                tBlock.getType() == Material.REPEATING_COMMAND_BLOCK ||
-                                                                                tBlock.getType() == Material.STRUCTURE_BLOCK ||
-                                                                                tBlock.getType() == Material.STRUCTURE_VOID ||
-                                                                                tBlock.getType() == Material.BARRIER ||
-                                                                                tBlock.getType() == Material.END_GATEWAY;
-
-                                                                if (canBreakAsBedrock && !unbreakableAtAll) {
-
-                                                                    // Add as solid
+                                                                    // Add as liquid
                                                                     bkks.add(tBlock);
                                                                 }
+
+                                                                // If solid
+                                                                if (!tBlock.isLiquid() && incBlocks) {
+
+                                                                    // Bedrock-type block
+                                                                    boolean canBreakAsBedrock = Gunging_Ootilities_Plugin.griefBreaksBedrock || bedrockBypass || tBlock.getType() != Material.BEDROCK;
+                                                                    boolean unbreakableAtAll =
+                                                                            tBlock.getType() == Material.END_PORTAL_FRAME ||
+                                                                                    tBlock.getType() == Material.END_PORTAL ||
+                                                                                    tBlock.getType() == Material.COMMAND_BLOCK ||
+                                                                                    tBlock.getType() == Material.CHAIN_COMMAND_BLOCK ||
+                                                                                    tBlock.getType() == Material.REPEATING_COMMAND_BLOCK ||
+                                                                                    tBlock.getType() == Material.STRUCTURE_BLOCK ||
+                                                                                    tBlock.getType() == Material.STRUCTURE_VOID ||
+                                                                                    tBlock.getType() == Material.BARRIER ||
+                                                                                    tBlock.getType() == Material.END_GATEWAY;
+
+                                                                    if (canBreakAsBedrock && !unbreakableAtAll) {
+
+                                                                        // Add as solid
+                                                                        bkks.add(tBlock);
+                                                                    }
+                                                                }
+
+                                                            // Going by material mask
+                                                            } else {
+
+                                                                // Add if contained
+                                                                if (matMask.contains(tBlock.getType())) { bkks.add(tBlock); }
                                                             }
                                                         }
                                                     }
@@ -4857,6 +4921,9 @@ public class GungingOotilities implements CommandExecutor {
                                         switch (pickPower) {
                                             default:
                                                 t0l = new ItemStack(Material.STONE);
+                                                break;
+                                            case -1:
+                                                t0l = new ItemStack(Material.AIR);
                                                 break;
                                             case 1:
                                                 t0l = new ItemStack(Material.WOODEN_PICKAXE);
@@ -4876,7 +4943,7 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         // GOd damn run event
-                                        GooPGriefEvent evG = new GooPGriefEvent(target, bkks, t0l);
+                                        GooPGriefEvent evG = new GooPGriefEvent(target, bkks, t0l, rebootKey);
                                         Bukkit.getPluginManager().callEvent(evG);
 
                                         // Notify the success
@@ -4902,11 +4969,12 @@ public class GungingOotilities implements CommandExecutor {
                         } else if (args.length == 1) {
                             logReturn.add("\u00a7e______________________________________________");
                             logReturn.add("\u00a73Grief, \u00a77Simulates a player breaking blocks manually.");
-                            logReturn.add("\u00a73Usage: \u00a7e/goop grief <b|l> <w x y z> <player> <radius> [asCuboid] [pickaxe power] [bedrock break]");
+                            logReturn.add("\u00a73Usage: \u00a7e/goop grief <b|l> <player> <w x y z> <radius> [asCuboid] [pickaxe power] [bedrock break] [reboot key]");
                             logReturn.add("\u00a73 - \u00a7e<b|l> \u00a77Remove blocks and/or liquids?");
                             logReturn.add("\u00a73 --> \u00a73b \u00a77Only blocks");
                             logReturn.add("\u00a73 --> \u00a73l \u00a77Only liquids");
                             logReturn.add("\u00a73 --> \u00a73bl \u00a77Both");
+                            logReturn.add("\u00a73 --> \u00a77Or the comma separated list of blocks to destroy. ");
                             logReturn.add("\u00a73 - \u00a7e<player> \u00a77Break the blocks as whom.");
                             logReturn.add("\u00a73 - \u00a7e<w x y z> \u00a77Epicenter of the breaking");
                             logReturn.add("\u00a73 - \u00a7e<radius> \u00a77Size of grief.");
@@ -4919,10 +4987,11 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73 --> \u00a734 \u00a77Diamond \u00a78(default)");
                             logReturn.add("\u00a73 --> \u00a735 \u00a77Netherite");
                             logReturn.add("\u00a73 - \u00a7e[bedrock break] \u00a77If the '\u00a73Grief Breaks Bedrock\u00a77' gamerule is disabled, this command won't break vanilla-unbreakable blocks (bedrock, end portal frames...) unless this is set to \u00a7btrue\u00a77.");
+                            logReturn.add("\u00a73 - \u00a7e[reboot key] \u00a77This will repair the blocks next time goop reloads. ");
                         } else {
                             if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
                                 logReturn.add(OotilityCeption.LogFormat("Grief", "Incorrect usage. For info: \u00a7e/goop grief"));
-                                logReturn.add("\u00a73Usage: \u00a7e/goop grief <b|l> <player> <w x y z> <radius> [asCuboid] [pickaxePower] [bedrock break]");
+                                logReturn.add("\u00a73Usage: \u00a7e/goop grief <b|l> <player> <w x y z> <radius> [asCuboid] [pickaxePower] [bedrock break] [reboot key]");
                             }
                         }
 
@@ -5494,11 +5563,12 @@ public class GungingOotilities implements CommandExecutor {
                 //region tp
                 case tp:
                     //   0    1      2        3...      args.Length
-                    // /goop delay <time> <command...>
+                    // /goop tp [who] <where> [invis]
                     //   -    0      1        2...      args[n]
 
                     // Check 5 Permission
                     if (senderIsPlayer) {
+
                         // Solid check for permission
                         permission = sender.hasPermission("gunging_ootilities_plugin.tp");
                     }
@@ -5515,10 +5585,13 @@ public class GungingOotilities implements CommandExecutor {
                             // Identify args
                             String whoms = "";
                             String pW = null, pX = null, pY = null, pZ = null;
+                            String pYaw = null, pPitch = null;
                             Player pAt;
                             Location targetLocation = null;
 
-                            // Starts with parsing location
+                            //   0    1    [2]   [3]  2  [4]3  [5]4  [6]5   args.Length
+                            // /goop tp [player] <world>  <x>   <y>   <z>
+                            //   -    0    [1]   [2]  1  [3]2  [4]3  [5]4   args[n]
                             if (args.length >= 5) {
 
                                 // Starting from last
@@ -5538,14 +5611,10 @@ public class GungingOotilities implements CommandExecutor {
                                 targetLocation = OotilityCeption.ValidLocation(p, senderLocation, pW, pX, pY, pZ, logAddition);
 
                                 // Ret
-                                if (targetLocation == null) {
-                                    failure = true;
-                                }
+                                if (targetLocation == null) { failure = true; }
 
                                 // Add Log
-                                if (logAddition.GetValue() != null) {
-                                    logReturn.add(OotilityCeption.LogFormat("Tp", logAddition.GetValue()));
-                                }
+                                if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Tp", logAddition.GetValue())); }
                             }
 
                             // Not parsing locaton, last arg must be a player
@@ -6270,8 +6339,14 @@ public class GungingOotilities implements CommandExecutor {
                                         boolean wasOP = target.isOp();
                                         if (asOP) { target.setOp(true); }
 
-                                        // As Player
-                                        OotilityCeption.SendAndParseConsoleCommand(target, cmddd, target, null, null, null, null);
+                                        // Attempt to run command
+                                        try {
+
+                                            // Run as player
+                                            OotilityCeption.SendAndParseConsoleCommand(target, cmddd, target, null, null, null, null);
+
+                                        // You cannot escape me
+                                        } catch (Throwable ignored) { }
 
                                         // Revert
                                         if (asOP && !wasOP) { target.setOp(false); }

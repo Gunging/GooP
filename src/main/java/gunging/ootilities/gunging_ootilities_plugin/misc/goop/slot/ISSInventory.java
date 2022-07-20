@@ -1,6 +1,8 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot;
 
 import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISLPersonalContainer;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Player;
+import gunging.ootilities.gunging_ootilities_plugin.containers.player.GOOPCPlayer;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SearchLocation;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -37,11 +39,14 @@ public class ISSInventory extends ItemStackSlot {
         // Value to return
         ArrayList<ISSInventory> ret = new ArrayList<>();
 
+        GOOPCPlayer r = GCL_Player.getInventoryFor(getElaborator());
+
         // Include contained range of slots
-        for (Integer slot : super.elaboratedRange()) {
+        for (Integer s : super.elaboratedRange()) {
+            if (r != null && r.getTemplate().isEdgeSlot(s)) { continue; }
 
             // Add a slot of that number
-            ret.add(new ISSInventory(slot, null));
+            ret.add(new ISSInventory(s, null));
         }
 
         /*
@@ -53,12 +58,19 @@ public class ISSInventory extends ItemStackSlot {
          */
         if (isAny()) {
 
-            ret.add(new ISSInventory(103, null));
-            ret.add(new ISSInventory(102, null));
-            ret.add(new ISSInventory(101, null));
-            ret.add(new ISSInventory(100, null));
-            ret.add(new ISSInventory(-106, null));
-            ret.add(new ISSInventory(-107, null));
+            // Include contained range of slots
+            for (int s = 100; s <= 103; s++) {
+                if (r != null && r.getTemplate().isEdgeSlot(s)) { continue; }
+
+                // Add a slot of that number
+                ret.add(new ISSInventory(s, null));
+            }
+            for (int s = -107; s <= -106; s++) {
+                if (r != null && r.getTemplate().isEdgeSlot(s)) { continue; }
+
+                // Add a slot of that number
+                ret.add(new ISSInventory(s, null));
+            }
         }
 
         // That's it

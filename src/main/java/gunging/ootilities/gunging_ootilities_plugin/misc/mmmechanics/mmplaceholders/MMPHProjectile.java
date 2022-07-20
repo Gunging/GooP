@@ -2,6 +2,8 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplacehol
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import io.lumine.mythic.api.adapters.AbstractLocation;
+import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.core.skills.placeholders.Placeholder;
 import io.lumine.mythic.core.skills.placeholders.PlaceholderMeta;
 import io.lumine.mythic.core.skills.placeholders.types.MetaPlaceholder;
@@ -66,10 +68,10 @@ public class MMPHProjectile extends MMPlaceholder {
         if (kilo)   { product *= 1000D;  }
 
         double value = 0;
-        double valueNormalizer = 0;
+        double valueNormalizer = 1;
 
         //TIM//OotilityCeption.Log("\u00a78PROJ\u00a73 DT\u00a77 Arg\u00a7b " + args[0]);
-        //TIM//for (String str : fun) { OotilityCeption.Log("\u00a78PROJ\u00a73 DT\u00a7b + \u00a77 " + str); }
+        //TIM//for (String str : fun) {//ORG//OotilityCeption.Log("\u00a78PROJ\u00a73 DT\u00a7b + \u00a77 " + str); }
 
         // Snoozer time
         if ("time".equals(args[0])) {
@@ -83,10 +85,58 @@ public class MMPHProjectile extends MMPlaceholder {
                 value = metadata.getCaster().getGlobalCooldown();
 
             // System Time
-            } else {
+            } else  {
                 value = (System.currentTimeMillis() - Gunging_Ootilities_Plugin.getBootTime());
                 valueNormalizer = 0.001D;
             }
+
+        } else if ("origin".equals(args[0]) && metadata instanceof SkillMetadata) {
+           //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 Origin Placeholder");
+            AbstractLocation origin = ((SkillMetadata) metadata).getOrigin();
+            AbstractLocation target;
+            if (fun.contains("trigger")) {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 Using trigger");
+
+                // No trigger
+                if (metadata.getTrigger() == null) { return "000000"; }
+                target = metadata.getTrigger().getLocation();
+
+            } else {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 Using Caster");
+
+                // Yes, caster
+                target = metadata.getCaster().getLocation();
+            }
+
+            if (fun.contains("x")) {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 X");
+                value = origin.getX();
+
+            } else if (fun.contains("y")) {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 Y");
+                value = origin.getY();
+
+            } else if (fun.contains("z")) {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 Z");
+                value = origin.getZ();
+
+            } else if (fun.contains("dx")) {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 DX");
+                value = origin.getX() - target.getX();
+
+            } else if (fun.contains("dy")) {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 DY");
+                value = origin.getY() - target.getY();
+
+            } else if (fun.contains("dz")) {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 DZ");
+                value = origin.getZ() - target.getZ();
+
+            } else {
+               //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 Dist");
+                value = origin.distance(target);
+            }
+
         }
 
         //TIM//OotilityCeption.Log("\u00a78PROJ\u00a73 DT\u00a77 Preprocess \u00a7f " + value + "\u00a78 (norm\u00a73 " + valueNormalizer + "\u00a78)");

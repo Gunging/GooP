@@ -12,10 +12,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 
 public class DeathPrevent implements Listener {
 
-    OotilityCeption oots = new OotilityCeption();
-
-    public DeathPrevent() { }
-
     @EventHandler(priority = EventPriority.HIGHEST)
     public void OnDeathPrevent(PlayerDeathEvent event) {
         Player murdered = event.getEntity();
@@ -24,12 +20,11 @@ public class DeathPrevent implements Listener {
         if (Gunging_Ootilities_Plugin.foundWorldGuard) {
 
             // Are they in such flag?
-            GooPWorldGuard flagTester = new GooPWorldGuard();
-            if (flagTester.PlayerInCustomFlag(murdered, 0)) {
+            if (GooPWorldGuard.inStateFlag(murdered, 0)) {
 
                 // Notify of success
-                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) oots.CLog(OotilityCeption.LogFormat("Mortal Immortality", "Player \u00a73" + murdered.getName() + "\u00a77 was prevented from dying."));
-                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) oots.PLog(murdered, OotilityCeption.LogFormat("Mortal Immortality", "You was prevented from dying."));
+                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("Mortal Immortality", "Player \u00a73" + murdered.getName() + "\u00a77 was prevented from dying."));
+                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback && murdered.isOp()) Gunging_Ootilities_Plugin.theOots.PLog(murdered, OotilityCeption.LogFormat("Mortal Immortality", "You was prevented from dying."));
 
                 // Kill Denied
                 murdered.setHealth(1);
@@ -39,7 +34,7 @@ public class DeathPrevent implements Listener {
 
                     // Simulate Respawn
                     GooPGraveyards.SimulateGraveyardsRespawn(murdered);
-                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) oots.PLog(murdered, OotilityCeption.LogFormat("Mortal Immortality", "Graveyards Activated"));
+                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback && murdered.isOp()) Gunging_Ootilities_Plugin.theOots.PLog(murdered, OotilityCeption.LogFormat("Mortal Immortality", "Graveyards Activated"));
                 }
 
             }

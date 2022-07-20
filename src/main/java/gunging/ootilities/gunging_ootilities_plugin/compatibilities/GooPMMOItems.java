@@ -16,6 +16,7 @@ import io.lumine.mythic.lib.api.player.MMOPlayerData;
 import io.lumine.mythic.lib.api.util.ui.SilentNumbers;
 import net.Indyuce.mmoitems.ItemStats;
 import net.Indyuce.mmoitems.MMOItems;
+import net.Indyuce.mmoitems.api.ConfigFile;
 import net.Indyuce.mmoitems.api.ItemTier;
 import net.Indyuce.mmoitems.api.ReforgeOptions;
 import net.Indyuce.mmoitems.api.Type;
@@ -33,7 +34,7 @@ import net.Indyuce.mmoitems.api.item.template.TemplateModifier;
 import net.Indyuce.mmoitems.api.item.util.identify.IdentifiedItem;
 import net.Indyuce.mmoitems.api.player.PlayerData;
 import net.Indyuce.mmoitems.api.player.RPGPlayer;
-import net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem;
+import net.Indyuce.mmoitems.api.player.inventory.EquippedItem;
 import net.Indyuce.mmoitems.api.util.MMOItemReforger;
 import net.Indyuce.mmoitems.manager.TypeManager;
 import net.Indyuce.mmoitems.stat.data.*;
@@ -51,7 +52,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -59,6 +59,9 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -136,7 +139,7 @@ public class GooPMMOItems {
         ItemStack res = GetMMOItem(type, id);
 
         // Return 'Default'
-        if (res == null) { res = OotilityCeption.RenameItem(new ItemStack(Material.STRUCTURE_VOID), "\u00a7cInvalid MMOItem", null); }
+        if (res == null) { res = OotilityCeption.RenameItem(new ItemStack(Material.STRUCTURE_VOID), "\u00a7cInvalid MMOItem\u00a7e " + type + " " + id, null); }
 
         //DBG*/Gunging_Ootilities_Plugin.theOots.CLog("Providing " + OotilityCeption.GetItemName(res));
         //noinspection ConstantConditions
@@ -278,22 +281,28 @@ public class GooPMMOItems {
     public static ItemStat ONKILL_COMMAND;
     public static ItemStat ONHIT_COMMAND;
 
+    public static HashMap<String, ItemStat> STR_MISC = new HashMap<>();
+    static Material[] stringMats = new Material[]{Material.PAPER, Material.MAP, Material.FILLED_MAP, Material.NAME_TAG, Material.BOOK, Material.WRITTEN_BOOK, Material.WRITABLE_BOOK, Material.KNOWLEDGE_BOOK};
+
     public static HashMap<String, ItemStat> MISC = new HashMap<>();
     static Material[] miscMats = new Material[]{Material.PUFFERFISH_BUCKET, Material.TROPICAL_FISH_BUCKET, Material.SALMON_BUCKET, Material.COD_BUCKET, Material.WATER_BUCKET, Material.MILK_BUCKET, Material.LAVA_BUCKET, Material.BUCKET};
     static String[] miscOrder = new String[]{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
     @Nullable public static ItemStat GetMiscStat(@NotNull String key) {
 
         // Convert to nomenklature
-        String k = key.toUpperCase();
+        String k = key.toUpperCase(); boolean asSTR = false;
         if (k.startsWith("MISC")) { k = k.substring("MISC".length()); }
+        if (k.startsWith(strPrefix)) { asSTR = true; k = k.substring(strPrefix.length()); }
         if (k.startsWith(miscPrefix)) { k = k.substring(miscPrefix.length()); }
+        if (k.startsWith("STR_")) { asSTR = true; k = k.substring("STR_".length()); }
 
         // Find
-        return MISC.get(k);
+        return asSTR ? STR_MISC.get(k) : MISC.get(k);
     }
 
     static int currentMisc = 0, generation = 0, currentMat = 0;
     static final String miscPrefix = "GOOP_MISC_";
+    static final String strPrefix = "GOOP_MISC_STR_";
     public static void RegisterMiscStat() {
 
         // Get Name
@@ -313,6 +322,25 @@ public class GooPMMOItems {
         MISC.put(terminology, MISCC);
     }
 
+    public static void RegisterStrMiscStat() {
+
+        // Get Name
+        StringBuilder mOrder = new StringBuilder(strPrefix);
+        mOrder.append(miscOrder[currentMisc]);
+        if (generation > 0) { mOrder.append(generation); }
+        currentMisc++; if (currentMisc >= miscOrder.length) { currentMisc = 0; generation++; }
+        String name = mOrder.toString();
+        String terminology = name.substring(strPrefix.length());
+
+        // Get Material
+        Material mMat = stringMats[currentMat];
+        currentMat++; if (currentMat >= stringMats.length) { currentMat = 0; }
+
+        ItemStat MISCC = new StringStat(name, mMat, "Extra String Stat \u00a7l" + terminology, new String[]{"Doesnt do anything by itself.", "\u00a7a", "You can retrieve it in mythic", "skills though, using these:", "\u00a7e<goop.castermmostat.[slot]." + name.toUpperCase() + ">", "\u00a7e<goop.triggermmostat.[slot]." + name.toUpperCase() + ">"}, new String[]{"!consumable", "!miscellaneous", "all"});
+        RegisterStat(name, MISCC);
+        STR_MISC.put(terminology, MISCC);
+    }
+
     public static void ReloadMiscStatLore() {
 
         // Yes
@@ -326,7 +354,7 @@ public class GooPMMOItems {
         }
     }
 
-    public static void RegisterCustomStats(int miscAmount) {
+    public static void RegisterCustomStats(int miscAmount, int miscStrAmount) {
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) {
             XBOW_LOADED_STAT = new XBow_Loaded_Stat();
             RegisterStat(XBOW_LOADED_STAT); }
@@ -337,7 +365,10 @@ public class GooPMMOItems {
         HAT = new BooleanStat("GOOP_HAT", Material.CHAINMAIL_HELMET, "Hat / Helmet", new String[]{"This item will automatically equip", "in the head slot if:", "\u00a7a + \u00a77It is Shift+LeftClicked in inventory", "\u00a7a + \u00a77It is placed on the helmet slot.", "", "This will not:", "\u00a7c - \u00a77Prevent blocks from being placed (disable interactions for this)", "\u00a7c - \u00a77Equip it to the head if the item is right-clicked while held."}, new String[]{"all"});
         RegisterStat(HAT);
 
+        currentMisc = 0; generation = 0; currentMat = 0;
         for (int m = 1; m <= miscAmount; m++) { RegisterMiscStat(); }
+        currentMisc = 0; generation = 0; currentMat = 0;
+        for (int m = 1; m <= miscStrAmount; m++) { RegisterStrMiscStat(); }
 
         GROUND_POUND_STAT = new StringStat("GROUND_POUND_SKILL", Material.COARSE_DIRT, "Ground Pound Skill", new String[]{"When the item is dropped to the ground,", "what mythicmob skill to run when", "it hits the ground?", "", "\u00a76Player that dropped the item: \u00a7f@Self", "\u00a76Item Entity Itself: \u00a7e@Trigger"}, new String[]{"all"});
         RegisterStat(GROUND_POUND_STAT);
@@ -387,6 +418,9 @@ public class GooPMMOItems {
     //endregion
 
     //region Getting Values (as well as the cummulative forms)
+    static Method equipped = null;
+    static Method getitem = null;
+    static boolean usingEquippedPlayerItems = true;
 
     /**
      * Gets the MMOItems this player has equipped.
@@ -400,12 +434,63 @@ public class GooPMMOItems {
         PlayerData p;
         try { p = PlayerData.get(player); } catch (NullPointerException ignored) { return vot; }
 
-        // Yeah, add the equipped
-        for (EquippedPlayerItem e : p.getInventory().getEquipped()) {
+        // Find method
+        if (equipped == null) {
 
-            // Add
-            vot.add(e.getItem());
+            // Reflection or not
+            try {
+
+                // Identify Method
+                equipped = p.getInventory().getClass().getMethod("getEquipped");
+
+            // lol no
+            } catch (NoSuchMethodException ignored) { return vot; }
         }
+
+        try {
+
+            // Attempt to invoek
+            Object equippedItems = equipped.invoke(p.getInventory());
+
+            // Using Equipped Player Items?
+            if (usingEquippedPlayerItems) {
+
+                try {
+
+                    // Cast into list
+                    List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem> list = (List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem>) equippedItems;
+
+                    // Yeah, add the equipped
+                    for (net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem e : list) {
+
+                        // Add
+                        vot.add(e.getItem());
+                    }
+
+                } catch (NoClassDefFoundError ignored) { usingEquippedPlayerItems = false; }
+            }
+
+            // Cast into list
+            List<EquippedItem> list = (List<EquippedItem>) equippedItems;
+            for (EquippedItem e : list) {
+
+                // Find method
+                if (getitem == null) {
+
+                    // Reflection or not
+                    try {
+
+                        // Identify Method
+                        getitem = e.getClass().getMethod("getNBT");
+
+                        // lol no
+                    } catch (NoSuchMethodException ignored) { return vot; }
+                }
+
+                vot.add(new VolatileMMOItem((NBTItem) getitem.invoke(e)));
+            }
+
+        } catch (InvocationTargetException|IllegalAccessException ignored) { }
 
         // Return thay
         return vot;
@@ -1386,10 +1471,10 @@ public class GooPMMOItems {
     //region Converting from Vanilla to MMOItem
     public static String VANILLA_MIID = "VANILLA";
     @NotNull public static NBTItem ConvertVanillaToMMOItemAsNBT(@NotNull ItemStack base) {
-        return ConvertVanillaToMMOItemAsNBT(base, null, null);
+        return ConvertVanillaToMMOItemAsNBT(base, null, null, false);
     }
 
-    @NotNull public static NBTItem ConvertVanillaToMMOItemAsNBT(@NotNull ItemStack base, @Nullable String forcedTypePrefix, @Nullable String forcedIDFormat) {
+    @NotNull public static NBTItem ConvertVanillaToMMOItemAsNBT(@NotNull ItemStack base, @Nullable String forcedTypePrefix, @Nullable String forcedIDFormat, boolean forcedType) {
 
         // Lets very quickly add a display name to this boi
         OotilityCeption.RenameItem(base, OotilityCeption.GetItemName(base), null);
@@ -1430,7 +1515,7 @@ public class GooPMMOItems {
         }
 
         // Create the Item Tags
-        ItemTag tTypeMI = new ItemTag("MMOITEMS_ITEM_TYPE", forcedTypePrefix + tName);
+        ItemTag tTypeMI = new ItemTag("MMOITEMS_ITEM_TYPE", forcedType ? forcedTypePrefix : forcedTypePrefix + tName);
         ItemTag tID = new ItemTag("MMOITEMS_ITEM_ID", forcedIDFormat == null ? VANILLA_MIID : forcedIDFormat);
 
         // Add those tags
@@ -1482,9 +1567,9 @@ public class GooPMMOItems {
     }
 
     @NotNull public static ItemStack ConvertVanillaToMMOItem(@NotNull ItemStack base) {
-        return ConvertVanillaToMMOItem(base, null, null);
+        return ConvertVanillaToMMOItem(base, null, null, false);
     }
-    @NotNull public static ItemStack ConvertVanillaToMMOItem(@NotNull ItemStack base, @Nullable String forcedTypePrefix, @Nullable String forcedIDFormat) {
+    @NotNull public static ItemStack ConvertVanillaToMMOItem(@NotNull ItemStack base, @Nullable String forcedTypePrefix, @Nullable String forcedIDFormat, boolean forcedType) {
 
         // Store important nbt data
         int oCount = base.getAmount();
@@ -1495,7 +1580,7 @@ public class GooPMMOItems {
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (base.getItemMeta().hasCustomModelData()) { oCMD = base.getItemMeta().getCustomModelData(); } }
 
         // Convert it as NBT and then Build it
-        MMOItem mmoitem = LiveFromNBT(GooPMMOItems.ConvertVanillaToMMOItemAsNBT(base, forcedTypePrefix, forcedIDFormat));
+        MMOItem mmoitem = LiveFromNBT(GooPMMOItems.ConvertVanillaToMMOItemAsNBT(base, forcedTypePrefix, forcedIDFormat, forcedType));
         if (mmoitem == null) { return base; }
 
         //region Set Original Datas
@@ -1672,7 +1757,8 @@ public class GooPMMOItems {
                  * to be true, we will add an External Stat History (EXSH)
                  * of the difference between the current and desired
                  */
-                endData = new DoubleData(expectedData - current.getValue());
+                endData = (DoubleData) current.cloneData();
+                endData.setValue(expectedData - current.getValue());
 
                 //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Difference:\u00a7b " + endData.getValue());
 
@@ -3484,6 +3570,31 @@ public class GooPMMOItems {
     //endregion
 
     //region Identifying MMOItems
+    @NotNull public static MMOItem getOrCreate(@NotNull Type type, @NotNull String id, @NotNull Material base) {
+        id = id.toUpperCase().replace(" ", "_").replace("-", "_");
+
+        // Find template
+        MMOItemTemplate found = MMOItems.plugin.getTemplates().getTemplate(type, id);
+
+        // None found? create
+        if (found == null) {
+
+            // Create section
+            ConfigFile config = type.getConfigFile();
+            config.getConfig().set(id + ".base.material", base.name());
+            config.save();
+
+            // Register edition?
+            MMOItems.plugin.getTemplates().requestTemplateUpdate(type, id);
+
+            // Should now exist
+            found = MMOItems.plugin.getTemplates().getTemplate(type, id);
+        }
+
+        // Thats it apprently
+        return found.newBuilder().build();
+    }
+
     /**
      * @param items List of items which tags to compare
      *

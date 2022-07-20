@@ -208,8 +208,6 @@ public class SummonerClassMinion {
      */
     public void Enable() {
 
-        OotilityCeption.Log("\u00a78SUMMONED");
-
         // Event
         GooPMinionSummonEvent event = new GooPMinionSummonEvent(this);
         Bukkit.getPluginManager().callEvent(event);
