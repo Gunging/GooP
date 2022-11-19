@@ -112,7 +112,9 @@ public class GooPMMOCore {
 
 
     static Boolean agonizing193 = null;
+    static Method stringMethod = null;
     public static Double CummulativeDoubleStat(Player target, StatType statName) {
+        GooPMythicMobs.newenOlden = true;
 
         // Get Basic Organizational Classes
         PlayerData pData = PlayerData.get(target);
@@ -121,7 +123,7 @@ public class GooPMMOCore {
         if (agonizing193 == null) {
 
             try {
-                Method stringMethod = pSats.getClass().getMethod("getStat", String.class);
+                stringMethod = pSats.getClass().getMethod("getStat", String.class);
 
                 Double val = (Double) stringMethod.invoke(pSats, statName.toString());
 
@@ -133,7 +135,7 @@ public class GooPMMOCore {
 
                 agonizing193 = false;
 
-                return pSats.getStat(statName);
+                /*OLDEN*/return pSats.getStat(statName);
             }
 
         } else {
@@ -142,21 +144,23 @@ public class GooPMMOCore {
 
                 try {
 
-                    Method stringMethod = pSats.getClass().getMethod("getStat", String.class);
+                    stringMethod = pSats.getClass().getMethod("getStat", String.class);
 
                     return (Double) stringMethod.invoke(pSats, statName.toString());
 
                 } catch (NoSuchMethodError|NoSuchMethodException|IllegalAccessException|InvocationTargetException ignored) {
                     agonizing193 = false;
 
-                    return pSats.getStat(statName);
+                    /*OLDEN*/return pSats.getStat(statName);
                 }
 
             } else {
 
-                return pSats.getStat(statName);
+                /*OLDEN*/return pSats.getStat(statName);
             }
         }
+
+        //NEWEN//return null;
 
         /*
         StatInstance pStat = pData.getStats().getInstance(statName);

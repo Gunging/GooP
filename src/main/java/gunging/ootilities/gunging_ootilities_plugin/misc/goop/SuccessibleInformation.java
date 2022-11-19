@@ -20,6 +20,15 @@ public class SuccessibleInformation {
     @NotNull ArrayList<Objective> initializedObjectives = new ArrayList<>();
 
     /**
+     * Uses {@link String#valueOf(Object)}
+     *
+     * @param value Value used to replace the next @v in the successible command chain
+     */
+    public void setValueOfSuccess(@Nullable Object value) { valueOfSuccess = (value == null) ? null : String.valueOf(value); }
+    @Nullable String valueOfSuccess;
+    @Nullable public String getValueOfSuccess() { return valueOfSuccess; }
+
+    /**
      * Prevents new operations from being added to it, and sets
      * this operation as the last operation that will happen.
      *

@@ -28,6 +28,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
+import java.io.File;
 import java.util.Optional;
 
 public class SummonMinionMechanic extends SkillMechanic implements ITargetedLocationSkill, ITargetedEntitySkill {
@@ -43,8 +44,12 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
     boolean pvpBlock;
 
 
-    public SummonMinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    //NEWEN//public SummonMinionMechanic(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+        /*OLDEN*/public SummonMinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        /*OLDEN*/super(manager, skill, mlc);
+        GooPMythicMobs.newenOlden = true;
+
         mmName = mlc.getString(new String[] { "mob", "m", "type", "t" });
         leashRange = mlc.getPlaceholderDouble(new String[] { "leashrange", "lr" }, 20.0);
         amount = mlc.getPlaceholderDouble(new String[] { "amount", "a", "count", "c" }, 1D);

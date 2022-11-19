@@ -7645,7 +7645,7 @@ public class OotilityCeption {
                             && slot.getValue() != 103) {
 
                         if (slot.getValue() < 0) { slot.setValue(0); }
-                        if (slot.getValue() > 36) { slot.setValue(35); }
+                        if (slot.getValue() > 53) { slot.setValue(53); }
                     }
                     if (range.getValue() != null
                             && range.getValue() != -107
@@ -7658,7 +7658,7 @@ public class OotilityCeption {
                             && range.getValue() != 103) {
 
                         if (range.getValue() < 0) { range.setValue(0); }
-                        if (range.getValue() > 35) { range.setValue(35); }
+                        if (range.getValue() > 53) { range.setValue(53); }
                     }
 
                     /*SLOT*/Log("\u00a78Slot \u00a73Inventory\u00a77 Identified inventory, slot \u00a7e" + slot.getValue());

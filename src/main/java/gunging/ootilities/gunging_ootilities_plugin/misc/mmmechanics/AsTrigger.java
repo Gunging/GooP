@@ -17,6 +17,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.HashSet;
 
 public class AsTrigger extends SkillMechanic implements IMetaSkill {
@@ -24,8 +25,11 @@ public class AsTrigger extends SkillMechanic implements IMetaSkill {
     PlaceholderString skillName;
     Skill metaskill;
 
-    public AsTrigger(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    //NEWEN//public AsTrigger(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+        /*OLDEN*/public AsTrigger(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        /*OLDEN*/super(manager, skill, mlc);
+        GooPMythicMobs.newenOlden = true;
         targetArmorStands = mlc.getBoolean(new String[]{"targetarmorstands", "ta"}, false);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());

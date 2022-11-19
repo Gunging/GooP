@@ -35,7 +35,7 @@ public class CanPvPCondition extends CustomMMCondition implements IEntityCompari
         // Run event
         counterEvent = true;
         EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(attacker, victim, EntityDamageEvent.DamageCause.ENTITY_ATTACK, 0);
-        try { Bukkit.getPluginManager().callEvent(event); counterEvent = false; } catch (IllegalStateException ignored) { counterEvent = false; return false; }
+        try { Bukkit.getPluginManager().callEvent(event); counterEvent = false; } catch (Throwable ignored) { counterEvent = false; return false; }
 
         // Did it get cancelled?
         return !event.isCancelled();

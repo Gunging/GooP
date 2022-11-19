@@ -143,6 +143,27 @@
             <version>1.0.10</version>
         </dependency>
         <dependency>
+            <groupId>net.mmogroup.agger</groupId>
+            <artifactId>HUH</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/CMI.jar</systemPath>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>net.mmogroup.grrro</groupId>
+            <artifactId>HEUH</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/CMILib1.2.3.7.jar</systemPath>
+            <version>1.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.mmogroup.ess</groupId>
+            <artifactId>HEUH</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/Essentials.jar</systemPath>
+            <version>1.0.3</version>
+        </dependency>
+        <dependency>
             <groupId>io.lumine.graveyards</groupId>
             <artifactId>Graveyards</artifactId>
             <scope>system</scope>

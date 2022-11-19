@@ -1,6 +1,7 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
@@ -17,6 +18,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
+import java.io.File;
+
 public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkill {
     PlaceholderDouble leashRange;
     String mmSkill;
@@ -25,8 +28,14 @@ public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkil
     boolean pvpBlock;
 
 
-    public MinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    //NEWEN//public MinionMechanic(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+
+        /*OLDEN*/public MinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+            /*OLDEN*/super(manager, skill, mlc);
+
+        GooPMythicMobs.newenOlden = true;
+
         leashRange = mlc.getPlaceholderDouble(new String[] { "leashrange", "lr" }, 20.0);
         mmSkill = mlc.getString(new String[] { "skill", "s" });
         weight = mlc.getPlaceholderDouble(new String[] { "weight", "w", "minionweight", "mw" }, 1D);

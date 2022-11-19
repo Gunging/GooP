@@ -55,20 +55,6 @@ public class GungingOotilities implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args) {
         boolean senderIsPlayer = (sender instanceof Player);
 
-        // Parse funny <caster.name> placeholder sweet
-        if (senderIsPlayer) {
-
-            // Cook commands
-            for (int i = 0; i < args.length; i++) {
-
-                // Yes
-                args[i] = args[i].replace("<caster.name>", sender.getName());
-                args[i] = args[i].replace("<target.name>", sender.getName());
-                args[i] = args[i].replace("<trigger.name>", sender.getName());
-                args[i] = args[i].replace("%player%", sender.getName());
-            }
-        }
-
         // Strip location data
         Location senderLocation = null;
         String failMessage = null;
@@ -184,12 +170,6 @@ public class GungingOotilities implements CommandExecutor {
             // Check for permission
             boolean permission = true;
 
-            // Cook universal parsers
-            for (int c = 0; c < args.length; c++) {
-
-                args[c] = args[c].replace("<$nd>", "&");
-            }
-
             // Split the heck off the chain of commands
             ArrayList<String> trueArgs = new ArrayList<>(); boolean chained = false; StringBuilder chanedArgs = new StringBuilder();
             for (String obs : args) {
@@ -225,11 +205,15 @@ public class GungingOotilities implements CommandExecutor {
             String chainedNoLocation = null;
             RefSimulator<List<String>> logReturnUrn = new RefSimulator<>(null);
             if (chained) {
+
                 // Replace args
                 args = new String[trueArgs.size()];
                 for (int s = 0; s < args.length; s++) {
+
+                    // Parsed
                     args[s] = trueArgs.get(s);
-                    //CHN//OotilityCeption. Log("&cBaking true arg: \u00a7b" + args[s]);
+
+                    //CHN//OotilityCeption. Log("\u00a78GOOP\u00a7b OS=\u00a77 Baking true arg \u00a73#" + s + "\u00a77: \u00a7b" + args[s]);
                 }
 
                 // Yes. Chain
@@ -241,6 +225,48 @@ public class GungingOotilities implements CommandExecutor {
 
                 } else { chained = false; }
             }
+
+            String senderUUIDIG = senderIsPlayer ? ((Player) sender).getUniqueId().toString() : null;
+            for (int s = 0; s < args.length; s++) {
+                //CHN//OotilityCeption. Log("\u00a78GOOP\u00a7b OS=\u00a77 Cooking Arg \u00a73#" + s + "\u00a77: \u00a7b" + args[s]);
+                String rawTrueArg = args[s];
+
+                // Parse funny <caster.name> placeholder sweet
+                if (senderIsPlayer) {
+                    boolean playerParseAllowed = true;
+
+                    if (s > 3) {
+                        if (
+                                (args[0].toLowerCase().equals("customstructures") &&
+                                        args[1].toLowerCase().equals("edit")) ||
+
+                                        (args[0].toLowerCase().equals("containers") &&
+                                                args[1].toLowerCase().equals("config"))) {
+
+                            playerParseAllowed = false;
+                        }
+                    }
+
+                    if (playerParseAllowed) {
+                        rawTrueArg = rawTrueArg.replace("<caster.name>", sender.getName());
+                        rawTrueArg = rawTrueArg.replace("<target.name>", sender.getName());
+                        rawTrueArg = rawTrueArg.replace("<trigger.name>", sender.getName());
+                        rawTrueArg = rawTrueArg.replace("%player%", sender.getName());
+                        rawTrueArg = rawTrueArg.replace("%player_name%", sender.getName());
+
+                        rawTrueArg = rawTrueArg.replace("<caster.uuid>", senderUUIDIG);
+                        rawTrueArg = rawTrueArg.replace("<target.uuid>", senderUUIDIG);
+                        rawTrueArg = rawTrueArg.replace("<trigger.uuid>", senderUUIDIG);
+                    }
+                }
+                // Replace <$nd>
+                rawTrueArg = rawTrueArg.replace("<$nd>", "&");
+
+                // Replace
+                args[s] = rawTrueArg;
+                //CHN//OotilityCeption. Log("\u00a78GOOP\u00a7b OS=\u00a77 Result \u00a73#" + s + "\u00a77: \u00a7b" + args[s]);
+            }
+
 
             // Which command thoi?
             switch (cmd) {
@@ -587,6 +613,8 @@ public class GungingOotilities implements CommandExecutor {
 
                         // How many args this man got?
                         if (args.length >= 6) {
+                            Entity asDroppedItem = OotilityCeption.getEntityByUniqueId(args[1]);
+                            if (!(asDroppedItem instanceof Item)) { asDroppedItem = null; }
 
                             // Gets that player boi
                             ArrayList<Player> targets = OotilityCeption.GetPlayers(senderLocation, args[1], null);
@@ -669,7 +697,7 @@ public class GungingOotilities implements CommandExecutor {
                             boolean failure = false;
 
                             // Does the player exist?
-                            if (targets.size() == 0) {
+                            if (targets.size() == 0 && asDroppedItem == null) {
 
                                 // Failure
                                 failure = true;
@@ -764,6 +792,176 @@ public class GungingOotilities implements CommandExecutor {
 
                             // Everthing went all right?
                             if (!failure) {
+
+                                // Compare dropped item
+                                if (asDroppedItem != null) {
+                                    int kount = 0;
+                                    Integer slotS = null;
+
+                                    // Get Item
+                                    ItemStack targetItem = OotilityCeption.FromDroppedItem(asDroppedItem);
+                                    //TSI//OotilityCeption.Log("\u00a78GOO\u00a7b TSI\u00a77 Found Item " + OotilityCeption.GetItemName(targetItem));
+
+                                    // If it is not null
+                                    if (!OotilityCeption.IsAirNullAllowed(targetItem)) {
+
+                                        // Found something, does it match thoi?
+                                        if (OotilityCeption.MatchesItemNBTtestString(targetItem, args[3], args[4], args[5], logAddition)) {
+                                            //TSI//OotilityCeption.Log("\u00a7a\u00a7oMatched");
+
+                                            // COunt
+                                            kount += targetItem.getAmount();
+                                            slotS = 0;
+                                            if (chained) { OotilityCeption.Slot4Success(successSlots, new ISSInventory(0, null), OotilityCeption.comma); }
+
+                                            // Is this the whole damn thing? No? Then break it
+                                            if ((asSlot || !uiAmount) && !toCompletion) {
+                                                //TSI//OotilityCeption.Log("\u00a7b\u00a7oCompletion Reached, breaking. ");
+                                                break; }
+
+                                        }
+
+                                    // Item Stack is null or air, are we searching for that?
+                                    } else if (allowNull) {
+                                        //TSI//OotilityCeption.Log("\u00a7a\u00a7oMatched");
+
+                                        // Count
+                                        kount++;
+                                        slotS = 0;
+                                        if (chained) { OotilityCeption.Slot4Success(successSlots, new ISSInventory(0, null), OotilityCeption.comma); }
+
+                                        // Is this the whole damn thing? No? Then break it
+                                        if ((asSlot || !uiAmount) && !toCompletion) {
+                                            //TSI//OotilityCeption.Log("\u00a7b\u00a7oCompletion Reached, breaking. ");
+                                            break; }
+                                    }
+
+
+                                    boolean success;
+                                    String logrt;
+
+                                    // If found
+                                    if (kount > 0) {
+
+                                        logrt = "Item successfully detected, counted a total of \u00a7e" + kount + "\u00a77. ";
+
+                                        // Does it proc?
+                                        if (itemAmountTest != null) {
+
+                                            if (itemAmountTest.InRange(kount)) {
+
+                                                logrt += "Furthermore, the amount of stuff found (\u00a7b" + kount + "\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77.";
+                                                success = true;
+
+                                            } else {
+
+                                                logrt += "However, the amount of stuff found (\u00a7b" + kount + "\u00a77) \u00a7cdoes not\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. The command was forced to fail thus. ";
+                                                success = false;
+                                            }
+
+                                            // No amount to say anything, true by default
+                                        } else { success = true; }
+
+                                        // Still succeeded?
+                                        if (success) {
+
+                                            // Some objective operation will be undergone
+                                            if (targetObjective != null) {
+
+                                                // Provided an amount
+                                                if (asSlot) {
+
+                                                    if (slotS == null) { slotS = -32767; }
+
+                                                    // Iamount pmp
+                                                    double negativity = amountPMP.getValue();
+                                                    amountPMP.OverrideValue(slotS * negativity);
+
+                                                    // Done
+                                                    OotilityCeption.SetEntryScore(targetObjective, asDroppedItem.getUniqueId().toString(), amountPMP);
+                                                    logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + OotilityCeption.GetItemName(targetItem) + "\u00a77 is now \u00a73" + OotilityCeption.GetEntryScore(targetObjective, asDroppedItem.getUniqueId().toString()) + "\u00a77. ";
+
+                                                    // Provided a score
+                                                } else if (uiAmount) {
+
+                                                    // Iamount pmp
+                                                    double negativity = amountPMP.getValue();
+                                                    amountPMP.OverrideValue(kount * negativity);
+
+                                                    // Done
+                                                    OotilityCeption.SetEntryScore(targetObjective, asDroppedItem.getUniqueId().toString(), amountPMP);
+                                                    logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + OotilityCeption.GetItemName(targetItem) + "\u00a77 is now \u00a73" + OotilityCeption.GetEntryScore(targetObjective, asDroppedItem.getUniqueId().toString()) + "\u00a77. ";
+
+                                                    // Provided a score
+                                                } else if (score != null) {
+
+                                                    //Behold
+                                                    OotilityCeption.SetEntryScore(targetObjective, asDroppedItem.getUniqueId().toString(), score);
+                                                    logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + OotilityCeption.GetItemName(targetItem) + "\u00a77 is now \u00a73" + OotilityCeption.GetEntryScore(targetObjective, asDroppedItem.getUniqueId().toString()) + "\u00a77. ";
+                                                }
+                                            }
+
+                                            // Run Chain
+                                            if (chained) {
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@v", String.valueOf(kount));
+                                            }
+                                        }
+
+                                        // Nothing was found
+                                    } else {
+
+                                        logrt = "Nothing in \u00a73" + OotilityCeption.GetItemName(targetItem) + "\u00a77's slots \u00a7e" + args[2] + "\u00a77 matched \u00a7e" + args[3] + " " + args[4] + " " + args[5] + "\u00a77. ";
+                                        success = uiAmount && !asSlot;
+
+                                        // Does it proc?
+                                        if (itemAmountTest != null) {
+
+                                            if (itemAmountTest.InRange(0)) {
+
+                                                logrt += "However, the amount of stuff found (\u00a7b0\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. The command was forced to succeed thus.";
+                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@v", String.valueOf(0));
+                                                success = true;
+
+                                            } else {
+
+                                                logrt += "Furthermore, the amount of stuff found (\u00a7b0\u00a77) \u00a7cdoes not\u00a77 even fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. ";
+                                                success = false;
+                                            }
+                                        }
+
+                                        // Difference between amount and no amount
+                                        if (uiAmount && success) {
+
+                                            // Is there a target objective?
+                                            if (success && targetObjective != null) {
+
+                                                // Iamount pmp
+                                                amountPMP.OverrideValue(0.0D);
+
+                                                // Well nothing means 0 this time
+                                                OotilityCeption.SetEntryScore(targetObjective, asDroppedItem.getUniqueId().toString(), amountPMP);
+
+                                                // Log
+                                                logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + OotilityCeption.GetItemName(targetItem) + "\u00a77 is now \u00a730\u00a77. ";
+                                            }
+                                        }
+                                    }
+
+
+                                    // Well
+                                    if (success) {
+
+                                        // Run Chain
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", logrt));
+                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);}
+
+                                    } else {
+
+                                        // N00b
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", logrt));
+                                    }
+                                }
 
                                 // For every target
                                 for (Player target : targets) {
@@ -923,7 +1121,10 @@ public class GungingOotilities implements CommandExecutor {
                                                 }
 
                                                 // Run Chain
-                                                if (chained) { chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString()); }
+                                                if (chained) {
+                                                    chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
+                                                    chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@v", String.valueOf(kount));
+                                                }
                                             }
 
                                         // Nothing was found
@@ -938,6 +1139,7 @@ public class GungingOotilities implements CommandExecutor {
                                                 if (itemAmountTest.InRange(0)) {
 
                                                     logrt += "However, the amount of stuff found (\u00a7b0\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. The command was forced to succeed thus.";
+                                                    chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@v", String.valueOf(0));
                                                     success = true;
 
                                                 } else {
@@ -3436,8 +3638,8 @@ public class GungingOotilities implements CommandExecutor {
                                             logReturn.add("\u00a73 - \u00a7e[~<trigger.uuid>] \u00a77UUID of an entity to set as skill trigger.");
                                             logReturn.add("\u00a73 - \u00a7e[v[NAME]=[VALUE];[NAME2]=[VALUE2]] \u00a77Dynamic vars \u00a7b<goop.dynamic.[NAME]>");
                                             logReturn.add("\u00a73Examples:");
-                                            logReturn.add("\u00a77 /goop runSkillAs RadiantDiscThrow gunging @HexedHero");
-                                            logReturn.add("\u00a78 -> Caster is player 'gunging', target is player 'HexedHero'");
+                                            logReturn.add("\u00a77 /goop runSkillAs RadiantDiscThrow gunging @atuosto");
+                                            logReturn.add("\u00a78 -> Caster is player 'gunging', target is player 'atuosto'");
                                             logReturn.add("\u00a77 /goop runSkillAs Poison gunging ~cocopad @libraryaddict");
                                             logReturn.add("\u00a78 -> Caster is player 'gunging', target is player 'libraryaddict', trigger will be player 'cocopad'");
 
@@ -8187,6 +8389,9 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Add the individual stat values
                                                 sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_dob_a().getValue() * 10, true, false);
                                             }
+
+                                            // Succesible Value
+                                            sInfo.setValueOfSuccess(iSource.getRef_dob_a().getValue());
                                         }
                                 );
 
@@ -8333,6 +8538,9 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Add the individual stat values
                                                 sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_dob_a().getValue() * 10, true, false);
                                             }
+
+                                            // Succesible Value
+                                            sInfo.setValueOfSuccess(iSource.getRef_dob_a().getValue());
                                         }
                                 );
 
@@ -8559,6 +8767,9 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Add the individual stat values
                                                 sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_dob_a().getValue() * 10, true, false);
                                             }
+
+                                            // Succesible Value
+                                            sInfo.setValueOfSuccess(iSource.getRef_dob_a().getValue());
                                         }
                                 );
 
@@ -8708,6 +8919,9 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Add the individual stat values
                                                 sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_int_a().getValue() * 10, true, false);
                                             }
+
+                                            // Succesible Value
+                                            sInfo.setValueOfSuccess(iSource.getRef_int_a().getValue());
                                         }
                                     );
 
@@ -8939,6 +9153,9 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Add the individual stat values
                                                 sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_dob_a().getValue() * 10, true, false);
                                             }
+
+                                            // Succesible Value
+                                            sInfo.setValueOfSuccess(iSource.getRef_dob_a().getValue());
                                         }
                                 );
 

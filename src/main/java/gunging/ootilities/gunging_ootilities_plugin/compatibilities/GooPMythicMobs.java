@@ -9,8 +9,11 @@ import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplaceholders.*;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMCMIWarpTargeter;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMPortalCreateAura;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMRecipeUnlock;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMSilentTeleport;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.StrideMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.adapters.AbstractPlayer;
@@ -43,9 +46,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -53,23 +58,40 @@ public class GooPMythicMobs implements Listener {
     public GooPMythicMobs() {}
     public void CompatibilityCheck() { MythicMob mbb = null; }
 
+    public static boolean newenOlden = true;
     @EventHandler public void OnRegisterCustomMechanics(MythicMechanicLoadEvent event) {
         SkillExecutor exec = event.getContainer().getManager();
         String line = event.getConfig().getLine();
         MythicLineConfig config = event.getConfig();
+        //NEWEN//File file = event.getContainer().getFile();
 
         // Switch Mechanic ig
         switch (event.getMechanicName().toLowerCase()) {
             case "recipeunlock":
             case "recipelock":
-                event.register(new UCMRecipeUnlock(exec, line, config));
+                //NEWEN//event.register(new UCMRecipeUnlock(exec, file, line, config));
+                /*OLDEN*/event.register(new UCMRecipeUnlock(exec, line, config));
                 break;
             case "silentteleport":
             case "stp":
-                event.register(new UCMSilentTeleport(exec, line, config));
+                //NEWEN//event.register(new UCMSilentTeleport(exec, file, line, config));
+                /*OLDEN*/event.register(new UCMSilentTeleport(exec, line, config));
+                break;
+            case "goopstride":
+                //NEWEN//event.register(new StrideMechanic(exec, file, line, config));
+                /*OLDEN*/event.register(new StrideMechanic(exec, line, config));
+                break;
+            case "onportalcreateg":
+                //NEWEN//event.register(new UCMPortalCreateAura(exec, file, line, config));
+                /*OLDEN*/event.register(new UCMPortalCreateAura(exec, line, config));
+                break;
+            case "vexcharging":
+                //NEWEN//event.register(new VexChargingMechanic(exec, file, line, config));
+                /*OLDEN*/event.register(new VexChargingMechanic(exec, line, config));
                 break;
             case "effect:particleslash":
-                event.register(new ParticleSlashEffect(exec, line, config));
+                //NEWEN//event.register(new ParticleSlashEffect(exec, event.getContainer().getFile(), line, config));
+                /*OLDEN*/event.register(new ParticleSlashEffect(exec, line, config));
                 break;
             case "mmodamage":
 
@@ -77,65 +99,81 @@ public class GooPMythicMobs implements Listener {
                 if (!Gunging_Ootilities_Plugin.foundMythicLib && !Gunging_Ootilities_Plugin.foundMMOItems) {
 
                     // Register own MMODamage
-                    event.register(new MMODamageReplacement(exec, line, config));
+                    //NEWEN//event.register(new MMODamageReplacement(exec, file, line, config));
+                    /*OLDEN*/event.register(new MMODamageReplacement(exec, line, config));
                 }
                 break;
             case "goopondamaged":
             case "gondamaged":
             case "ondamagedg":
-                event.register(new OnDamagedAura(exec, line, config));
+                //NEWEN//event.register(new OnDamagedAura(exec, file, line, config));
+                /*OLDEN*/event.register(new OnDamagedAura(exec, line, config));
                 break;
             case "gooponshoot":
             case "gonshoot":
             case "onshootg":
-                event.register(new OnShootAura(exec, line, config));
+                //NEWEN//event.register(new OnShootAura(exec, file, line, config));
+                /*OLDEN*/event.register(new OnShootAura(exec, line, config));
                 break;
             case "gooponattack":
             case "gonattack":
             case "onattackg":
-                event.register(new OnAttackAura(exec, line, config));
+                //NEWEN//event.register(new OnAttackAura(exec, file, line, config));
+                /*OLDEN*/event.register(new OnAttackAura(exec, line, config));
                 break;
             case "hideaura":
-                event.register(new HideAura(exec, line, config));
+                //NEWEN//event.register(new HideAura(exec, file, line, config));
+                /*OLDEN*/event.register(new HideAura(exec, line, config));
                 break;
             case "rebootbreak":
-                event.register(new RebootBreak(exec, line, config));
+                //NEWEN//event.register(new RebootBreak(exec, file, line, config));
+                /*OLDEN*/event.register(new RebootBreak(exec, line, config));
                 break;
             case "rebootrepair":
-                event.register(new RebootRepair(exec, line, config));
+                //NEWEN//event.register(new RebootRepair(exec, file, line, config));
+                /*OLDEN*/event.register(new RebootRepair(exec, line, config));
                 break;
             case "goopminion":
-                event.register(new MinionMechanic(exec, line, config));
+                //NEWEN//event.register(new MinionMechanic(exec, file, line, config));
+                /*OLDEN*/event.register(new MinionMechanic(exec, line, config));
                 break;
             case "copycatequipment":
-                event.register(new CopyCatEquipmentMechanic(exec, line, config));
+                //NEWEN//event.register(new CopyCatEquipmentMechanic(exec, file, line, config));
+                /*OLDEN*/event.register(new CopyCatEquipmentMechanic(exec, line, config));
                 break;
             case "goopsettrigger":
             case "goopastrigger":
-                event.register(new AsTrigger(exec, line, config));
+                //NEWEN//event.register(new AsTrigger(exec, file, line, config));
+                /*OLDEN*/event.register(new AsTrigger(exec, line, config));
                 break;
             case "goopsetorigin":
             case "goopasorigin":
-                event.register(new AsOrigin(exec, line, config));
+                //NEWEN//event.register(new AsOrigin(exec, file, line, config));
+                /*OLDEN*/event.register(new AsOrigin(exec, line, config));
                 break;
             case "goopsummonminion":
             case "goopsummonminions":
-                event.register(new SummonMinionMechanic(exec, line, config));
+                //NEWEN//event.register(new SummonMinionMechanic(exec, file, line, config));
+                /*OLDEN*/event.register(new SummonMinionMechanic(exec, line, config));
                 break;
             case "goopreleaseminion":
             case "goopreleaseminions":
-                event.register(new MinionEmancipation(exec, line, config));
+                //NEWEN//event.register(new MinionEmancipation(exec, file, line, config));
+                /*OLDEN*/event.register(new MinionEmancipation(exec, line, config));
                 break;
             case "goopsudoowner":
-                event.register(new SudoOwnerMechanic(exec, line, config));
+                //NEWEN//event.register(new SudoOwnerMechanic(exec, file, line, config));
+                /*OLDEN*/event.register(new SudoOwnerMechanic(exec, line, config));
                 break;
             case "gooprally":
             case "rallyall":
-                event.register(new RallyAll(exec, line, config));
+                //NEWEN//event.register(new RallyAll(exec, file, line, config));
+                /*OLDEN*/event.register(new RallyAll(exec, line, config));
                 break;
             case "goopsudominions":
             case "goopsudominion":
-                event.register(new SudoMinionsMechanic(exec, line, config));
+                //NEWEN//event.register(new SudoMinionsMechanic(exec, file, line, config));
+                /*OLDEN*/event.register(new SudoMinionsMechanic(exec, line, config));
                 break;
             default: break;
         }
@@ -161,6 +199,10 @@ public class GooPMythicMobs implements Listener {
             case "distancefromtrigger":
                 event.register(new DistanceFromTriggerCondition(event.getConfig()));
                 break;
+            case "isvexcharging":
+            case "ischargingvex":
+                event.register(new VexChargingCondition(event.getConfig()));
+                break;
             case "gooplayer":
             case "goopadmin":
                 event.register(new AdminCondition(event.getConfig()));
@@ -169,6 +211,10 @@ public class GooPMythicMobs implements Listener {
             case "canpve":
             case "canattack":
                 event.register(new CanPvPCondition(event.getConfig()));
+                break;
+            case "goopvelocity":
+            case "goopmotion":
+                event.register(new AbsoluteMotionCondition(event.getConfig()));
                 break;
             case "isminion":
             case "isgoopminion":
@@ -201,6 +247,10 @@ public class GooPMythicMobs implements Listener {
             case "goopscore":
                 event.register(new ScoreboardTargeter(exec, mlc));
                 break;
+            case "cmiwarp":
+                if (Gunging_Ootilities_Plugin.foundCMI ||
+                    Gunging_Ootilities_Plugin.foundEssentials) { event.register(new UCMCMIWarpTargeter(exec, mlc)); }
+                break;
             case "gooptag":
                 event.register(new TagTargeter(exec, mlc));
                 break;
@@ -219,6 +269,9 @@ public class GooPMythicMobs implements Listener {
 
         // Re-register I guess
         RegisterPlaceholders(Gunging_Ootilities_Plugin.foundMMOItems);
+
+        // Reload Timers I Suppose
+        ReloadPlayerOnTimers();
     }
 
     public static ArrayList<String> GetMythicMobTypes() {
@@ -233,6 +286,97 @@ public class GooPMythicMobs implements Listener {
 
         return new ArrayList<>(MythicBukkit.inst().getItemManager().getItemNames());
     }
+
+    @NotNull public static HashMap<Integer, Skill> playerOnTimers = new HashMap<>();
+    public static void ReloadPlayerOnTimers() {
+        playerOnTimers.clear();
+
+        // If there were no parsing errors
+        if (Gunging_Ootilities_Plugin.theMain.playerOnTicks != null) {
+
+            // Read the file yeet
+            FileConfigPair ofgPair = Gunging_Ootilities_Plugin.theMain.playerOnTicks;
+            YamlConfiguration ofgStorage = ofgPair.getStorage();
+
+            // Log da shit
+            for(Map.Entry<String, Object> val : (ofgStorage.getValues(false)).entrySet()){
+
+                // Get LPH Name
+                String tName = val.getKey();
+
+                // Get Absolute List
+                List<String> rawList = ofgStorage.getStringList(tName);
+
+                // Accept sensible entries
+                for (String onTim : rawList) {
+
+                    // Split by spaces
+                    if (!onTim.contains(" ")) { continue; }
+                    String[] split = onTim.split(" ");
+
+                    // Try parse integer
+                    if (OotilityCeption.IntTryParse(split[1])) {
+
+                        // Parse integer
+                        Integer ticks = OotilityCeption.ParseInt(split[1]);
+
+                        // Find skill
+                        Skill tSkill = GooPMythicMobs.GetSkill(split[0]);
+
+                        // Validated?
+                        if (tSkill != null) {
+
+                            // Yea
+                            playerOnTimers.put(ticks, tSkill);
+
+                        // Gruno
+                        } else {
+
+                            // Notify
+                            Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("Player ~OnTimer","Error when loading Player ~OnTimer \u00a7b" + onTim + "\u00a77: Skill does not exist \u00a7e" + split[0]));
+                        }
+
+                    // Gruno
+                    } else {
+
+                        // Notify
+                        Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("Player ~OnTimer","Error when loading Player ~OnTimer \u00a7b" + onTim + "\u00a77: Ticks must be an integer number, not \u00a7e" + split[1]));
+                    }
+                }
+            }
+        }
+
+        // Attempt startup
+        GooPMythicMobs.startupOnTimers();
+    }
+
+    public static boolean startedOnTimers = false;
+    public static void  startupOnTimers() {
+        if (startedOnTimers) { return; }
+        startedOnTimers = true;
+
+        // Funny delayed startup
+        (new BukkitRunnable() { public void run() { GooPMythicMobs.runOnTimers(); } }).runTaskTimer(Gunging_Ootilities_Plugin.theMain, 1L, 10L);
+    }
+
+    public static void runOnTimers() {
+
+        // Simple eh
+        for (Map.Entry<Integer, Skill> pot : playerOnTimers.entrySet()) {
+
+            // If tick divisible by
+            if (Bukkit.getCurrentTick() % pot.getKey() == 0) {
+
+                // Run
+                for (Player p : Bukkit.getOnlinePlayers()) {
+
+                    // Run skill as player
+                    ExecuteMythicSkillAs(pot.getValue(), p, null, null, null, null, null);
+                }
+            }
+        }
+    }
+
     public static void ReloadListPlaceholders(OotilityCeption oots) {
 
         // If there were no parsing errors
@@ -279,6 +423,9 @@ public class GooPMythicMobs implements Listener {
                 }
             }
         }
+
+        // Reload Timers I Suppose
+        ReloadPlayerOnTimers();
     }
     public static void RegisterPlaceholders(boolean withMMOItems) {
         PlaceholderManager phm = MythicBukkit.inst().getPlaceholderManager();
@@ -657,84 +804,87 @@ public class GooPMythicMobs implements Listener {
     }
     public static Boolean ExecuteMythicSkillAs(@Nullable String skillName, @Nullable Entity caster, @Nullable Entity trigger, @Nullable ArrayList<Entity> entityTargets, @Nullable ArrayList<Location> locationTargets, @Nullable Location origin, @Nullable ArrayList<CompactCodedValue> vars) {
 
+        // Retrieve the skill
+        Skill mSkill = GetSkill(skillName);
+        if (mSkill == null) { return false; }
+
+        // Proceed as normal
+        return ExecuteMythicSkillAs(mSkill, caster, trigger, entityTargets, locationTargets, origin, vars);
+    }
+    public static Boolean ExecuteMythicSkillAs(@NotNull Skill mSkill, @Nullable Entity caster, @Nullable Entity trigger, @Nullable ArrayList<Entity> entityTargets, @Nullable ArrayList<Location> locationTargets, @Nullable Location origin, @Nullable ArrayList<CompactCodedValue> vars) {
+
         // Fix vars
         if (vars == null) { vars = new ArrayList<>(); }
 
-        // Retrieve the skill
-        Skill mSkill = GetSkill(skillName);
-
         if (caster == null) { return false; }
 
-        if (mSkill != null) {
+        // Foreach Compact Code
+        for (CompactCodedValue ccv : vars) {
 
-            // Foreach Compact Code
-            for (CompactCodedValue ccv : vars) {
+            // Register for caster lol
+            if (ccv != null) { RegisterDynamicCode(caster.getUniqueId(), ccv); }
+        }
 
-                // Register for caster lol
-                if (ccv != null) { RegisterDynamicCode(caster.getUniqueId(), ccv); }
-            }
+        // Caster - Adapt Player
+        AbstractEntity skCaEntity = BukkitAdapter.adapt(caster);
+        GenericCaster skCaster = new GenericCaster(skCaEntity);
+        AbstractLocation skCaLocation = BukkitAdapter.adapt(caster.getLocation());
 
-            // Caster - Adapt Player
-            AbstractEntity skCaEntity = BukkitAdapter.adapt(caster);
-            GenericCaster skCaster = new GenericCaster(skCaEntity);
-            AbstractLocation skCaLocation = BukkitAdapter.adapt(caster.getLocation());
+        // Trigger - Adapt Item
+        AbstractEntity skTrEntity = null;
+        if (trigger != null) { skTrEntity = BukkitAdapter.adapt(trigger); } else { skTrEntity = skCaEntity; }
 
-            // Trigger - Adapt Item
-            AbstractEntity skTrEntity = null;
-            if (trigger != null) { skTrEntity = BukkitAdapter.adapt(trigger); } else { skTrEntity = skCaEntity; }
+        // Origin - Adapt Item Location
+        AbstractLocation skLocation = null;
+        if (origin != null) { skLocation = BukkitAdapter.adapt(origin); } else { skLocation = skCaLocation; }
 
-            // Origin - Adapt Item Location
-            AbstractLocation skLocation = null;
-            if (origin != null) { skLocation = BukkitAdapter.adapt(origin); } else { skLocation = skCaLocation; }
+        // Some UUID I suppose
+        HashSet<AbstractEntity> skHash = Sets.newHashSet();
+        HashSet<AbstractLocation> skHashL = Sets.newHashSet();
+        if (entityTargets != null) {
+            if (entityTargets.size() > 0) {
 
-            // Some UUID I suppose
-            HashSet<AbstractEntity> skHash = Sets.newHashSet();
-            HashSet<AbstractLocation> skHashL = Sets.newHashSet();
-            if (entityTargets != null) {
-                if (entityTargets.size() > 0) {
+                // Add every target
+                for (Entity ent : entityTargets) {
 
-                    // Add every target
-                    for (Entity ent : entityTargets) {
+                    // If non-null
+                    if (ent != null) {
 
-                        // If non-null
-                        if (ent != null) {
-
-                            // Add entity and its location
-                            skHash.add(BukkitAdapter.adapt(ent));
-                        }
+                        // Add entity and its location
+                        skHash.add(BukkitAdapter.adapt(ent));
                     }
                 }
             }
+        }
 
-            if (locationTargets != null) {
-                if (locationTargets.size() > 0) {
+        if (locationTargets != null) {
+            if (locationTargets.size() > 0) {
 
-                    // Add every target
-                    for (Location ent : locationTargets) {
+                // Add every target
+                for (Location ent : locationTargets) {
 
-                        // If non-null
-                        if (ent != null) {
+                    // If non-null
+                    if (ent != null) {
 
-                            // Add entity and its location
-                            skHashL.add(BukkitAdapter.adapt(ent));
-                        }
+                        // Add entity and its location
+                        skHashL.add(BukkitAdapter.adapt(ent));
                     }
                 }
             }
+        }
 
-            // UUUuuuh idk what happens if targets size is 0
-            if (skHash.size() == 0) {
+        // UUUuuuh idk what happens if targets size is 0
+        if (skHash.size() == 0) {
 
-                // Targets is only the player
-                skHash.add(skCaEntity);
-            }
+            // Targets is only the player
+            skHash.add(skCaEntity);
+        }
 
-            // Cast!
-            mSkill.execute(SkillTriggers.API, skCaster, skTrEntity, skLocation, skHash, skHashL, 1);
+        // Cast!
+        mSkill.execute(SkillTriggers.API, skCaster, skTrEntity, skLocation, skHash, skHashL, 1);
 
-            return true;
+        return true;
 
-        } else return false;
     }
     //endregion
 }

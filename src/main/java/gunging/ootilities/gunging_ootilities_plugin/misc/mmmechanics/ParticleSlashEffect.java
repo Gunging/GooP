@@ -1,5 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
@@ -12,6 +13,7 @@ import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.mechanics.ParticleEffect;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,8 +22,11 @@ public class ParticleSlashEffect extends ParticleEffect implements ITargetedEnti
 
     @NotNull final SlashLocations<Boolean> particleEffect;
 
-    public ParticleSlashEffect(SkillExecutor manager, String skill, @NotNull MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+        //NEWEN//public ParticleSlashEffect(SkillExecutor manager, File file, String skill, @NotNull MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+        /*OLDEN*/ public ParticleSlashEffect(SkillExecutor manager, String skill, @NotNull MythicLineConfig mlc) {
+        /*OLDEN*/ super(manager, skill, mlc);
+        GooPMythicMobs.newenOlden = true;
 
         particleEffect = new SlashLocations<>(mlc, (data, slashedLocation, funnies) -> {
 

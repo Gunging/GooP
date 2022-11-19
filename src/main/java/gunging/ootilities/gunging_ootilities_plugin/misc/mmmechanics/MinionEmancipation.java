@@ -1,5 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
 import io.lumine.mythic.api.adapters.AbstractEntity;
@@ -13,6 +14,7 @@ import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -22,8 +24,14 @@ public class MinionEmancipation extends SkillMechanic implements ITargetedEntity
     static HashMap<UUID, Entity> minionToOldOwner = new HashMap<>();
     @Nullable public static Entity OldOwner(@NotNull UUID minion) { return minionToOldOwner.get(minion); }
 
-    public MinionEmancipation(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    //NEWEN//public MinionEmancipation(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+
+            /*OLDEN*/ public MinionEmancipation(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+            /*OLDEN*/ super(manager, skill, mlc);
+        GooPMythicMobs.newenOlden = true;
+
+        this.forceSync = true;
     }
 
     @Override

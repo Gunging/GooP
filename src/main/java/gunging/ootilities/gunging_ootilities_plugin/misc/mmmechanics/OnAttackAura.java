@@ -23,6 +23,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Optional;
 
 public class OnAttackAura extends Aura implements ITargetedEntitySkill {
@@ -34,8 +35,12 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
     protected boolean modDamage = false;
     protected PlaceholderDouble damageAdd;
     protected PlaceholderDouble damageMult;
-    public OnAttackAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    //NEWEN//public OnAttackAura(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+        /*OLDEN*/public OnAttackAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+            /*OLDEN*/super(manager, skill, mlc);
+        GooPMythicMobs.newenOlden = true;
+
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());
         this.cancelDamage = mlc.getBoolean(new String[]{"cancelevent", "ce", "canceldamage", "cd"}, false);

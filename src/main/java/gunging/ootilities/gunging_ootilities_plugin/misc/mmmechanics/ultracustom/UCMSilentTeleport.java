@@ -2,6 +2,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracusto
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.adapters.AbstractVector;
@@ -24,6 +25,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -32,8 +34,12 @@ import java.util.ArrayList;
  */
 public class UCMSilentTeleport extends SkillMechanic implements ITargetedEntitySkill, ITargetedLocationSkill {
 
-    public UCMSilentTeleport(SkillExecutor manager, String line, MythicLineConfig mlc) {
-        super(manager, line, mlc);
+    //NEWEN//public UCMSilentTeleport(SkillExecutor manager, File file, String line, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, line, mlc);
+        /*OLDEN*/public UCMSilentTeleport(SkillExecutor manager, String line, MythicLineConfig mlc) {
+            /*OLDEN*/super(manager, line, mlc);
+        GooPMythicMobs.newenOlden = true;
+
         this.forceSync = true;
         //targetArmorStands = mlc.getBoolean(new String[]{"targetarmorstands", "ta"}, false);
     }

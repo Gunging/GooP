@@ -425,7 +425,7 @@ public class ScoreboardLinks implements Listener {
 
             // Funny variables
             Location loc = event.getEntity().getLocation();
-            double distance = loc.distance(trueDamager.getLocation());
+            double distance = loc.getWorld() == trueDamager.getLocation().getWorld() ? loc.distance(trueDamager.getLocation()) : -1;
             double actualDamage = event.getFinalDamage(); boolean gracia = false;
             double helth = ((LivingEntity) event.getEntity()).getHealth();
             if (helth < actualDamage) { actualDamage = helth; gracia = true; }

@@ -457,6 +457,8 @@ public class GooPMMOItems {
 
                 try {
 
+                    GooPMythicMobs.newenOlden = true;
+                    //NEWEN///*
                     // Cast into list
                     List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem> list = (List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem>) equippedItems;
 
@@ -466,6 +468,12 @@ public class GooPMMOItems {
                         // Add
                         vot.add(e.getItem());
                     }
+
+                    // Right....
+                    return vot;
+                    // */
+
+                    //NEWEN//usingEquippedPlayerItems = false;
 
                 } catch (NoClassDefFoundError ignored) { usingEquippedPlayerItems = false; }
             }
@@ -5097,6 +5105,9 @@ public class GooPMMOItems {
                                                     // Add relevant values
                                                     sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_int_a().getValue(), true, false);
                                                 }
+
+                                                // Succesible Value
+                                                sInfo.setValueOfSuccess(iSource.getRef_int_a().getValue());
                                             }
                                     );
 
@@ -5254,6 +5265,9 @@ public class GooPMMOItems {
                                                     // Addition of Upgrade
                                                     sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_int_a().getValue(), true, false);
                                                 }
+
+                                                // Succesible Value
+                                                sInfo.setValueOfSuccess(iSource.getRef_int_a().getValue());
                                             }
                                         );
 
@@ -6229,6 +6243,16 @@ public class GooPMMOItems {
                                                         // Add the individual stat values
                                                         sInfo.addScoreboardOpp(finalTargetObjective, iSource.getRef_dob_a().getValue() * 100, true, false);
                                                     }
+                                                }
+
+                                                if (finalScoreOperation == null) {
+
+                                                    // Succesible Value
+                                                    sInfo.setValueOfSuccess(iSource.getRef_dob_a().getValue());
+                                                } else {
+
+                                                    // Succesible Value
+                                                    sInfo.setValueOfSuccess(finalScoreOperation.apply(0.0));
                                                 }
                                             }
                                     );

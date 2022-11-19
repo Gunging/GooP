@@ -1,11 +1,13 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.conditions.ISkillMetaCondition;
-import io.lumine.mythic.utils.numbers.RangedDouble;
+//NEWEN//import io.lumine.mythic.bukkit.utils.numbers.RangedDouble;
+/*OLDEN*/import io.lumine.mythic.utils.numbers.RangedDouble;
 
 public class DistanceFromTriggerCondition extends CustomMMCondition implements ISkillMetaCondition {
     protected RangedDouble distance;
@@ -15,6 +17,7 @@ public class DistanceFromTriggerCondition extends CustomMMCondition implements I
 
     public DistanceFromTriggerCondition(MythicLineConfig mlc) {
         super(mlc);
+        GooPMythicMobs.newenOlden = true;
         String d = mlc.getString(new String[]{"distance", "d"}, this.conditionVar);
         matchSelf = mlc.getBoolean(new String[]{"self", "s", "caster", "c"}, false);
         matchTarget = mlc.getBoolean(new String[]{"target", "targ", "t"}, !matchSelf);

@@ -225,6 +225,7 @@ public class TargetedItems {
                         //TRG//OotilityCeption.Log("\u00a78TGI\u00a7a SCS\u00a77 Produced slots of success\u00a7f " + sInfo.getSlots4Success().toString());
 
                         String localChain = OotilityCeption.ReplaceFirst(chainedCommand, "@t", sInfo.getSlots4Success().toString());
+                        if (sInfo.getValueOfSuccess() != null) { localChain = OotilityCeption.ReplaceFirst(localChain, "@v", sInfo.getValueOfSuccess()); }
                         OotilityCeption.SendAndParseConsoleCommand((Player) ent, localChain, sender, null, null, null);
 
                         // Chain as non-player

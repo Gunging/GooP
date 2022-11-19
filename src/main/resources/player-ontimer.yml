@@ -1,0 +1,22 @@
+####
+####    MythicMobs includes the ~onTimer trigger to run skills based off a timer.
+####
+####    To make players run skills on timer, one must:
+####    
+####      (A) Make a dummy invisible mob that sudoes the player to run the skill
+####    
+####      (B) Equip the player with an item that runs the skill on timer
+####    
+####    
+####    Honestly I find this a little inconvenient at times. This file allows to
+####    make players natively run MythicMobs skills onTimer
+####    
+####    Skills:
+####      - <SKILL> <TIMER>
+####    
+
+#Skills:
+
+  ## Imagine if you were writing...
+  ## - skill{s=GOOP_SmokeScreen} @None ~onTimer:5
+  #- GOOP_SmokeScreen 5

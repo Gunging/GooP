@@ -35,6 +35,9 @@ SuggestedGemstoneColours:
   - "Green"
   - "Yellow"
   - "Uncolored"
-
-# Number of Misc. Stats for MMOItems
+  -
+# Number of numeric MMOItems Misc Stats
 MiscStatAmount: 3
+
+# Number of text MMOItems Misc Stats
+MiscStrStatAmount: 1

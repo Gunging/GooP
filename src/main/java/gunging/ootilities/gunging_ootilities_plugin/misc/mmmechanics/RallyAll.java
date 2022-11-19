@@ -1,5 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
@@ -15,6 +16,8 @@ import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+
 /**
  * Rallies all targets towards the caster or trigger of the skill.
  *
@@ -24,8 +27,14 @@ public class RallyAll extends SkillMechanic implements ITargetedEntitySkill {
     protected boolean overwriteTarget;
     protected boolean rallyToTrigger;
 
-    public RallyAll(SkillExecutor manager, @NotNull String skill, @NotNull MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    //NEWEN//public RallyAll(SkillExecutor manager, File file, @NotNull String skill, @NotNull MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+
+        /*OLDEN*/public RallyAll(SkillExecutor manager, @NotNull String skill, @NotNull MythicLineConfig mlc) {
+            /*OLDEN*/super(manager, skill, mlc);
+
+        GooPMythicMobs.newenOlden = true;
+
         setAsyncSafe(false);
         this.overwriteTarget = mlc.getBoolean(new String[]{"overwritetarget", "ot"}, true);
         this.rallyToTrigger = mlc.getBoolean(new String[]{"rallytotrigger", "rt", "rtt"}, false);

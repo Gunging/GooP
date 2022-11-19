@@ -12,7 +12,6 @@ import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.C
 import gunging.ootilities.gunging_ootilities_plugin.events.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.RebootBreak;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ConverterTypes;
 import org.bukkit.Bukkit;
@@ -32,9 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Listener {
@@ -49,7 +45,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static boolean spamPunchingJSON = false;
     public static boolean useMMOLibDefenseConvert = false;
     public static boolean csPressurePlates = false;
-    public static Boolean devLogging = false;
+    public static Boolean devLogging = true;
     public static Player devPlayer = null;
     public static Double nameRangeExclusionMin = null;
     public static Double nameRangeExclusionMax = null;
@@ -76,6 +72,8 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static Boolean foundDiscordSRV = false;
     public static Boolean foundGriefPrevention = false;
     public static Boolean foundTowny = false;
+    public static Boolean foundCMI = false;
+    public static Boolean foundEssentials = false;
     public static Boolean asPaperSpigot = false;
 
     public static Boolean usingMMOItemShrubs = false;
@@ -89,7 +87,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static OotilityCeption theOots;
 
     // Persistent Data
-    public FileConfigPair optiFineGlintPair, translationsPair, mySQLHostInfo, customModelDataLinkPair, goopUnlockables, applicableMasksPair, mmoitemsConverterPair, globalContainerContents, listPlaceholderPair, fontsPair;
+    public FileConfigPair optiFineGlintPair, translationsPair, mySQLHostInfo, customModelDataLinkPair, goopUnlockables, applicableMasksPair, mmoitemsConverterPair, globalContainerContents, listPlaceholderPair, fontsPair, playerOnTicks;
     public ArrayList<FileConfigPair> customStructurePairs, containerTemplatesPairs, recipesPairs, ingredientsPairs;
     //STORE//public HashMap<YamlConfiguration, FileConfigPair> storageRoots = new HashMap<>();
 
@@ -268,6 +266,12 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         }
         //endregion
 
+        //region CMI Compatibility Attempt
+        foundCMI = (getServer().getPluginManager().getPlugin("CMI") != null);
+        foundEssentials = (getServer().getPluginManager().getPlugin("Essentials") != null);
+        if (foundEssentials) { new GooPEssentials((com.earth2me.essentials.Essentials) getServer().getPluginManager().getPlugin("Essentials")); }
+        //endregion
+
         //region MMOItems Compatibility Attempt
         if (getServer().getPluginManager().getPlugin("MMOItems") != null) {
             foundMMOItems = GooPMMOItems.RegisterContainersEquipment();
@@ -433,6 +437,8 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 foundVault = false;
             }
         }
+        if (foundCMI) {  foundCMI = isPluginEnabled("CMI"); }
+        if (foundEssentials) {  foundEssentials = isPluginEnabled("Essentials"); }
         //endregion
 
         // Startup pre warms
@@ -599,10 +605,11 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             public void run() {
 
                 // Basically Save
-                GooPMMOItems.ReloadMiscStatLore();
-            }
-
+                GooPMMOItems.ReloadMiscStatLore(); }
         }).runTaskLaterAsynchronously(Gunging_Ootilities_Plugin.theMain, 2L);
+
+        // Enabled POT?
+        if (foundMythicMobs) { GooPMythicMobs.startupOnTimers(); }
 
         enabling = false;
         enabled = true;
@@ -781,6 +788,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //region List Placeholders MythicMobs stuff
         if (foundMythicMobs) {
             listPlaceholderPair = GetConfigAt(null, "list-placeholders.yml", true, false);
+            playerOnTicks = GetConfigAt(null, "player-ontimer.yml", true, false);
             //STORE//if (listPlaceholderPair != null) { storageRoots.put(listPlaceholderPair.getStorage(), listPlaceholderPair); }
         }
         //endregion

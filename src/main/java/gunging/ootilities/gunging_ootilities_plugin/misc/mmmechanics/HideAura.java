@@ -19,6 +19,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Optional;
 
 /**
@@ -30,8 +31,11 @@ public class HideAura extends Aura implements ITargetedEntitySkill {
     @NotNull PlaceholderString skillName;
     @Nullable Skill metaskill;
 
-    public HideAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    //NEWEN//public HideAura(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+        /*OLDEN*/public HideAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+            /*OLDEN*/super(manager, skill, mlc);
+        GooPMythicMobs.newenOlden = true;
         hideFromMonsters = mlc.getBoolean(new String[] { "hideFromMonsters", "hfm" }, true);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());

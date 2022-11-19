@@ -2,6 +2,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracusto
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
@@ -17,7 +18,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.File;
 import java.util.Iterator;
 
 /**
@@ -40,12 +43,16 @@ public class UCMRecipeUnlock extends SkillMechanic implements ITargetedEntitySki
 
     PlaceholderString namespace, key;
 
-    public UCMRecipeUnlock(SkillExecutor manager, String line, MythicLineConfig mlc) {
-        super(manager, line, mlc);
+    //NEWEN//public UCMRecipeUnlock(SkillExecutor manager, File file, String line, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, line, mlc);
+        /*OLDEN*/public UCMRecipeUnlock(SkillExecutor manager, String line, MythicLineConfig mlc) {
+            /*OLDEN*/super(manager, line, mlc);
+        GooPMythicMobs.newenOlden = true;
+
         this.forceSync = true;
         lock = mlc.getBoolean(new String[]{"lock"}, false);
         printRecipes = mlc.getString(new String[]{"printRecipes", "pr"}, null);
-
+        this.forceSync = true;
         // yeah
         namespace = mlc.getPlaceholderString(new String[]{"namespace", "n"}, "minecraft");
         key = mlc.getPlaceholderString(new String[]{"key", "k"}, null);
@@ -133,16 +140,28 @@ public class UCMRecipeUnlock extends SkillMechanic implements ITargetedEntitySki
         // Cast
         Player player = (Player) kaster;
 
-        // Un-discover Recipe
-        player.undiscoverRecipe(nk);
-        //DBG//OotilityCeption.Log("\u00a78UCM\u00a7c RCU\u00a77 " + player.getName() + " Undiscovering:\u00a7b " + nk.toString());
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+
+                // Un-discover Recipe
+                player.undiscoverRecipe(nk);
+                //DBG//OotilityCeption.Log("\u00a78UCM\u00a7c RCU\u00a77 " + player.getName() + " Undiscovering:\u00a7b " + nk.toString());
+            }
+        }).runTask(Gunging_Ootilities_Plugin.theMain);
 
         // THats it
         if (lock) { return SkillResult.SUCCESS; }
 
-        // Discover again I guess
-        player.discoverRecipe(nk);
-        //DBG//OotilityCeption.Log("\u00a78UCM\u00a7c RCU\u00a77 " + player.getName() + " Discovering:\u00a7b " + nk.toString());
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+
+                // Discover again I guess
+                player.discoverRecipe(nk);
+                //DBG//OotilityCeption.Log("\u00a78UCM\u00a7c RCU\u00a77 " + player.getName() + " Discovering:\u00a7b " + nk.toString());
+            }
+        }).runTask(Gunging_Ootilities_Plugin.theMain);
 
         // Haha yes
         return SkillResult.SUCCESS;

@@ -31,6 +31,7 @@ import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.ItemStat;
 import net.Indyuce.mmoitems.stat.type.NameData;
 import net.Indyuce.mmoitems.stat.type.StatHistory;
+//NEWEN//import net.Indyuce.mmoitems.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -318,7 +319,12 @@ public class OnApplyCommand implements Listener {
                     if (ConverterTypes.smithGemstones) {
 
                         // Get enchants data
-                        ArrayList<MMOItem> gemstonesTherein = mmo.extractGemstones();
+                        /*OLDEN*/ArrayList<MMOItem> gemstonesTherein = mmo.extractGemstones();
+                        GooPMythicMobs.newenOlden = true;
+                        //NEWEN//ArrayList<MMOItem> gemstonesTherein = new ArrayList<>();
+                        //NEWEN//ArrayList<Pair<GemstoneData, MMOItem>> gemPairs = new ArrayList<>(mmo.extractGemstones());
+                        //NEWEN//for (Pair<GemstoneData, MMOItem> pair : gemPairs) { gemstonesTherein.add(pair.getValue()); }
+
                         ArrayList<ItemStack> remainingStones = new ArrayList<>();
                         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a7bGEMS\u00a77 Transferring stones \u00a73x" + gemstonesTherein.size());
 
@@ -511,13 +517,13 @@ public class OnApplyCommand implements Listener {
                     ItemStack ret = browse.newBuilder().build();
 
                     // Copy enchantments over if the item is enchantable
-                    if (!browse.hasData(ItemStats.DISABLE_ENCHANTING)) {
+                    if (!browse.hasData(ItemStats.DISABLE_ENCHANTING) && ret != null) {
 
                         // Copy enchantments over
                         for (Map.Entry<Enchantment, Integer> enchantment : stacc.getEnchantments().entrySet()) {
 
                             // Add it
-                            ret.addEnchantment(enchantment.getKey(), enchantment.getValue()); }
+                            ret.addUnsafeEnchantment(enchantment.getKey(), enchantment.getValue()); }
                     }
 
                     // That's good

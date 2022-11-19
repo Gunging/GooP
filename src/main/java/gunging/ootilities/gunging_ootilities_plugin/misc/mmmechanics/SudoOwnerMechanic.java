@@ -22,6 +22,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -33,8 +34,12 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
     PlaceholderString skillname;
     Skill metaskill;
 
-    public SudoOwnerMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+    //NEWEN//public SudoOwnerMechanic(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
+        //NEWEN//super(manager, file, skill, mlc);
+        /*OLDEN*/public SudoOwnerMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        /*OLDEN*/super(manager, skill, mlc);
+        GooPMythicMobs.newenOlden = true;
+
         casterAsTrigger = mlc.getBoolean(new String[]{"setcasterastrigger", "cat"}, false);
         String tmS = mlc.getString(new String[]{"targetownminions", "tom"}, "none");
         if (OotilityCeption.BoolTryParse(tmS)) { targetMinionsSelf = Boolean.parseBoolean(tmS); } else { targetMinionsSelf = null; }
