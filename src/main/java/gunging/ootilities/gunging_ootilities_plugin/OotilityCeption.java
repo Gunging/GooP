@@ -676,13 +676,12 @@ public class OotilityCeption {
     }
     @NotNull
     public static String ParseAsGoop(@NotNull Block asBlock,@NotNull  String cmd) {
-        cmd = cmd.replace("%structure-blockcenter-comma%", (asBlock.getX() + 0.5D) + "," + (asBlock.getY() + 0.5D) + "," + (asBlock.getZ() + 0.5D));
-        cmd = cmd.replace("%structure-blockcenter%", (asBlock.getX() + 0.5D) + " " + (asBlock.getY() + 0.5D) + " " + (asBlock.getZ() + 0.5D));
-        cmd = cmd.replace("%structure-center-comma%", (asBlock.getX()) + "," + (asBlock.getY()) + "," + (asBlock.getZ()));
-        cmd = cmd.replace("%structure-center%", (asBlock.getX()) + " " + (asBlock.getY()) + " " + (asBlock.getZ()));
         cmd = cmd.replace("%pos_x%",  String.valueOf(asBlock.getX()));
         cmd = cmd.replace("%pos_y%",  String.valueOf(asBlock.getY()));
         cmd = cmd.replace("%pos_z%",  String.valueOf(asBlock.getZ()));
+        cmd = cmd.replace("%block_x%",  String.valueOf(asBlock.getX()));
+        cmd = cmd.replace("%block_y%",  String.valueOf(asBlock.getY()));
+        cmd = cmd.replace("%block_z%",  String.valueOf(asBlock.getZ()));
         cmd = cmd.replace("%world%",  asBlock.getWorld().getName());
 
         return cmd;
@@ -7422,7 +7421,7 @@ public class OotilityCeption {
          * Evaluate each of them, then elaborate
          */
         for (String slot : slots) {
-            /*SLOT*/OotilityCeption.Log("Parsing Slot \u00a7f" + slot);
+            //SLOT//OotilityCeption.Log("Parsing Slot \u00a7f" + slot);
 
             // Does it parse?
             ItemStackSlot itemStackSlot = OotilityCeption.getInventorySlot(slot);
@@ -7447,7 +7446,7 @@ public class OotilityCeption {
                 ret.addAll(elaborated);
 
             } else {
-                /*SLOT*/OotilityCeption.Log("\u00a78\u00a7oInvalid");
+                //SLOT//OotilityCeption.Log("\u00a78\u00a7oInvalid");
 
                 // Include in invalids
                 invalids.append("\u00a77, \u00a73").append(slot);
@@ -7522,7 +7521,7 @@ public class OotilityCeption {
             if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
             if (range.getValue() != null && range.getValue() > 26) { range.setValue(26); }
 
-            /*SLOT*/Log("\u00a78Slot \u00a7aEnderchest\u00a77 Identified enderchest, slot \u00a7e" + slot.getValue());
+            //SLOT//Log("\u00a78Slot \u00a7aEnderchest\u00a77 Identified enderchest, slot \u00a7e" + slot.getValue());
 
             // Enderchestslot it is
             return new ISSEnderchest(slot.getValue(), range.getValue());
@@ -7549,32 +7548,32 @@ public class OotilityCeption {
             if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
             if (range.getValue() != null && range.getValue() > 53) { range.setValue(53); }
 
-            /*SLOT*/Log("\u00a78Slot \u00a7aObserved\u00a77 Identified observed container, slot \u00a7e" + slot.getValue());
+            //SLOT//Log("\u00a78Slot \u00a7aObserved\u00a77 Identified observed container, slot \u00a7e" + slot.getValue());
 
             // Enderchestslot it is
             return new ISSObservedContainer(slot.getValue(), range.getValue(), alias);
 
         // Not an observed container, is it personal container?
         } else if (arg.startsWith("|")) {
-            /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a77 Identifiying container...");
+            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Identifiying container...");
 
             // Get String
             int barEnd = arg.indexOf("|", 2);
             if (barEnd < 1) {
-                /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a7c Missing Container End");
+                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Missing Container End");
                 return null; }
 
             // Find that personal Container
             String personalName = arg.substring(1, barEnd);
             GOOPCPersonal personal = GCL_Personal.getByInternalName(personalName);
             if (personal == null) {
-                /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a7c Not Loaded \u00a7e" + personalName);
+                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Not Loaded \u00a7e" + personalName);
                 return null; }
-            /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a7c Container \u00a76" + personal.getTemplate().getInternalName());
+            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c Container \u00a76" + personal.getTemplate().getInternalName());
 
             // If it could not get the correct slots from the specified range
             if (!getSlotRange(arg.substring(barEnd + 1), slot, range, true)) {
-                /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a7c No range");
+                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a7c No range");
                 return null; }
 
             /*
@@ -7585,7 +7584,7 @@ public class OotilityCeption {
             String alias = null;
             if (aliasBegin > 0 && aliasEnd > aliasBegin) {
                 alias = arg.substring(aliasBegin + 1, aliasEnd);
-                /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a77 Alias \u00a7a" + alias);
+                //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Alias \u00a7a" + alias);
             }
 
             /*
@@ -7600,7 +7599,7 @@ public class OotilityCeption {
             if (range.getValue() != null && range.getValue() < 0) { range.setValue(0); }
             if (range.getValue() != null && range.getValue() >= personal.getTemplate().getTotalSlotCount()) {
                 range.setValue(personal.getTemplate().getTotalSlotCount() - 1); }
-            /*SLOT*/Log("\u00a78Slot \u00a7ePersonal\u00a77 Slot \u00a7b" + slot.getValue() + "\u00a77, Range \u00a73" + range.getValue());
+            //SLOT//Log("\u00a78Slot \u00a7ePersonal\u00a77 Slot \u00a7b" + slot.getValue() + "\u00a77, Range \u00a73" + range.getValue());
 
             // Enderchestslot it is
             return new ISSPersonalContainer(slot.getValue(), range.getValue(), personal, alias);
@@ -7661,7 +7660,7 @@ public class OotilityCeption {
                         if (range.getValue() > 53) { range.setValue(53); }
                     }
 
-                    /*SLOT*/Log("\u00a78Slot \u00a73Inventory\u00a77 Identified inventory, slot \u00a7e" + slot.getValue());
+                    //SLOT//Log("\u00a78Slot \u00a73Inventory\u00a77 Identified inventory, slot \u00a7e" + slot.getValue());
 
                     // Inventory slot it is
                     return new ISSInventory(slot.getValue(), range.getValue());
@@ -7691,14 +7690,14 @@ public class OotilityCeption {
 
         // Solid, does it have a range?
         if (arg.contains("-")) {
-            /*SLOT*/Log("\u00a78Slot \u00a73Range \u00a77identified...");
+            //SLOT//Log("\u00a78Slot \u00a73Range \u00a77identified...");
 
             // Split
             String[] dashSplit = arg.split("-");
 
             // Sintax Error
             if (dashSplit.length != 2) {
-                /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a7c Invalid Range \u00a78(No two split gen)");
+                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Invalid Range \u00a78(No two split gen)");
                 return false; }
 
             Integer slotDef = getKeywordSlot(dashSplit[0]);
@@ -7706,12 +7705,12 @@ public class OotilityCeption {
 
             // Syntax Error
             if (slotDef == null) {
-                /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + dashSplit[0]);
+                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + dashSplit[0]);
                 return false; }
 
             // Syntax Error
             if (rangeDef == null) {
-                /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a7c Unparsable high bound \u00a76" + dashSplit[1]);
+                //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable high bound \u00a76" + dashSplit[1]);
                 return false; }
 
             // Flip so that the lesser is always before
@@ -7724,7 +7723,7 @@ public class OotilityCeption {
             slot.setValue(slotDef);
             range.setValue(rangeDef);
 
-            /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a77 Generated as \u00a7e" + slotDef + " trhu " + rangeDef);
+            //SLOT//Log("\u00a78Slot \u00a73Range\u00a77 Generated as \u00a7e" + slotDef + " trhu " + rangeDef);
             return true;
 
         // It must be a number in itself
@@ -7735,7 +7734,7 @@ public class OotilityCeption {
 
         // Syntax Error
         if (slotDef == null) {
-            /*SLOT*/Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + arg);
+            //SLOT//Log("\u00a78Slot \u00a73Range\u00a7c Unparsable low bound \u00a76" + arg);
             return false; }
 
         // Success

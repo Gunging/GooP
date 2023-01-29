@@ -3,6 +3,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.XBow_Rockets;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCAuraMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.mobs.GenericCaster;
@@ -12,8 +13,8 @@ import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.utils.Events;
-import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.auras.Aura;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Projectile;
@@ -23,10 +24,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Optional;
 
-public class OnAttackAura extends Aura implements ITargetedEntitySkill {
+public class OnAttackAura extends BKCAuraMechanic implements ITargetedEntitySkill {
 
     @NotNull PlaceholderString skillName;
     @Nullable Skill metaskill;
@@ -35,11 +35,9 @@ public class OnAttackAura extends Aura implements ITargetedEntitySkill {
     protected boolean modDamage = false;
     protected PlaceholderDouble damageAdd;
     protected PlaceholderDouble damageMult;
-    //NEWEN//public OnAttackAura(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, skill, mlc);
-        /*OLDEN*/public OnAttackAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-            /*OLDEN*/super(manager, skill, mlc);
-        GooPMythicMobs.newenOlden = true;
+
+    public OnAttackAura(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
 
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());

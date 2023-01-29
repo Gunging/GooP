@@ -5,13 +5,6 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.Goo
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.containers.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISSObservedContainer;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Personal;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Physical;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Player;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Templates;
-import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerOpeningReason;
-import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerTypes;
-import gunging.ootilities.gunging_ootilities_plugin.containers.player.GCT_PlayerTemplate;
 import gunging.ootilities.gunging_ootilities_plugin.containers.restriction.*;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.*;
 import gunging.ootilities.gunging_ootilities_plugin.events.GooPGriefEvent;
@@ -23,7 +16,6 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ISSEnderchest
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ISSInventory;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackLocation;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackSlot;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -1589,7 +1581,7 @@ public class GungingOotilities implements CommandExecutor {
                                     }
                                     break;
                                     //endregion
-                                //region jsonNBT
+                                //region json
                                 case "togglejson":
                                     //   0      1        2        args.Length
                                     // /goop optifine toggleJSON
@@ -1793,7 +1785,7 @@ public class GungingOotilities implements CommandExecutor {
                 //endregion
                 //region unlocc
                 case unlockables:
-                    // Delegate onto NBT
+                    // Delegate onto
                     onCommand_GooPUnlock(sender, command, label, args, senderLocation, chained, chainedCommand, logReturnUrn, failMessage);
 
                     // Extract
@@ -1837,6 +1829,315 @@ public class GungingOotilities implements CommandExecutor {
                                     if (args.length >= 3) {
 
                                         switch (args[2].toLowerCase()) {
+                                            //region options
+                                            case "options":
+                                                //   0           1           2     3       4          5            args.Length
+                                                // /goop customstructures  edit options {action} <structure name>
+                                                //   -           0           1     2       3          4            args[n]
+
+                                                // Correct number of args?
+                                                if (args.length >= 5) {
+
+                                                    CSStructure csRef = null;
+                                                    if (!CSManager.csLoadedStructures.containsKey(args[4])) {
+
+                                                        // Fail
+                                                        failure = true;
+
+                                                        // Log
+                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Structure \u00a73" + args[4] + "\u00a77 not loaded."));
+
+                                                    } else {
+
+                                                        // Get
+                                                        csRef = CSManager.csLoadedStructures.get(args[4]);
+                                                    }
+
+                                                    switch (args[3].toLowerCase()) {
+                                                        //region vaultCost
+                                                        case "vaultcost":
+                                                            //   0           1          2     3         4          5            6       args.Length
+                                                            // /goop customstructures edit options vaultcost <structure name> <cost>
+                                                            //   -           0          1     2         3          4            5       args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 6) {
+
+                                                                Double cost = null;
+                                                                if (OotilityCeption.DoubleTryParse(args[5])) { cost = Double.parseDouble(args[5]); } else {
+
+                                                                    // Fail
+                                                                    failure = true;
+
+                                                                    // Log
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Value \u00a73" + args[5] + "\u00a77 is not a number! "));
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Edit
+                                                                    csRef.setVaultCost(cost);
+
+                                                                    // Get Logger
+                                                                    RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                    // Edit n Roll
+                                                                    CSManager.saveOptions(csRef, logAddition);
+
+                                                                    // Log Results
+                                                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", logAddition.GetValue()));}
+                                                                }
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Incorrect usage. For info: \u00a7e/goop customstructures edit options"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit options vaultCost <structure name> <cost>");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region omni-interactive
+                                                        case "omni":
+                                                        case "omniinteractive":
+                                                            //   0           1          2     3         4                   5          6       args.Length
+                                                            // /goop customstructures edit options omniinteractive <structure name> <omni?>
+                                                            //   -           0          1     2         3                   4          5       args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 6) {
+
+                                                                Boolean permutativitty = null;
+                                                                if (OotilityCeption.BoolTryParse(args[5])) { permutativitty = OotilityCeption.BoolParse(args[5]); } else {
+
+                                                                    // Fail
+                                                                    failure = true;
+
+                                                                    // Log
+                                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Value \u00a73" + args[5] + "\u00a77 must be either \u00a7btrue\u00a77 or \u00a7bfalse\u00a77. "));
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Edit
+                                                                    csRef.setAllowPermutations(permutativitty);
+                                                                    csRef.recalculatePermutations();
+
+                                                                    // Get Logger
+                                                                    RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                    // Edit n Roll
+                                                                    CSManager.saveOptions(csRef, logAddition);
+
+                                                                    // Log Results
+                                                                    if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", logAddition.GetValue()));}
+                                                                }
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Incorrect usage. For info: \u00a7e/goop customstructures edit options"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit options omni <structure name> <omni?>");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region blacklist
+                                                        case "blacklist":
+                                                        case "worldblacklist":
+                                                            //   0           1          2     3         4           5             6       args.Length
+                                                            // /goop customstructures edit options blacklist <structure name> [-][world]
+                                                            //   -           0          1     2         3           4             5       args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 6 || args.length == 5) {
+
+                                                                boolean removing = false;
+                                                                String worldName = null;
+
+                                                                // World operation
+                                                                if (args.length == 6) {
+
+                                                                    // Removing world or what
+                                                                    removing = args[5].startsWith("-");
+                                                                    worldName = removing ? args[5].substring(1) : args[5];
+
+                                                                    // World exists?
+                                                                    if (Bukkit.getWorld(worldName) == null) {
+
+                                                                        // Snooze
+                                                                        failure = true;
+
+                                                                        // Log
+                                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "World \u00a73" + worldName + "\u00a77 does not exist. "));
+                                                                    }
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Just displaying the world blacklist
+                                                                    if (worldName == null) {
+
+                                                                        logReturn.add("\u00a7e______________________________________________");
+                                                                        logReturn.add("\u00a77World Blacklist of Structure \u00a73" + args[4] + "\u00a77:");
+
+                                                                        if (csRef.getWorldsBlacklist().size() == 0) {
+                                                                            logReturn.add("\u00a73> \u00a77No Worlds Blacklisted \u00a73<");
+
+                                                                        } else { for (String wrld : csRef.getWorldsBlacklist()) {  logReturn.add("\u00a7c - \u00a77" + wrld); } }
+
+                                                                    } else {
+
+                                                                        boolean worky = false;
+                                                                        if (removing) { worky = csRef.unBlacklistWorld(worldName); } else if (!csRef.getWorldsBlacklist().contains(worldName)) { csRef.blacklistWorld(worldName); }
+
+                                                                        if (worky) {
+
+                                                                            // Get Logger
+                                                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                            // Edit n Roll
+                                                                            CSManager.saveOptions(csRef, logAddition);
+
+                                                                            // Log Results
+                                                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", logAddition.GetValue()));}
+
+                                                                        } else {
+                                                                            logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Nothing happened,\u00a73 " + worldName + (removing ? "\u00a77 was not in the blacklist. " : "\u00a77 was already blacklisted. ")));
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Incorrect usage. For info: \u00a7e/goop customstructures edit options"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit options blacklist <structure name> [-][world]");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region whitelist
+                                                        case "whitelist":
+                                                        case "worldwhitelist":
+                                                            //   0           1          2     3         4           5             6       args.Length
+                                                            // /goop customstructures edit options whitelist <structure name> [-][world]
+                                                            //   -           0          1     2         3           4             5       args[n]
+
+                                                            // Correct number of args?
+                                                            if (args.length == 6 || args.length == 5) {
+
+                                                                boolean removing = false;
+                                                                String worldName = null;
+
+                                                                // World operation
+                                                                if (args.length == 6) {
+
+                                                                    // Removing world or what
+                                                                    removing = args[5].startsWith("-");
+                                                                    worldName = removing ? args[5].substring(1) : args[5];
+
+                                                                    // World exists?
+                                                                    if (Bukkit.getWorld(worldName) == null) {
+
+                                                                        // Snooze
+                                                                        failure = true;
+
+                                                                        // Log
+                                                                        if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "World \u00a73" + worldName + "\u00a77 does not exist. "));
+                                                                    }
+                                                                }
+
+                                                                // Bice sintax
+                                                                if (!failure) {
+
+                                                                    // Just displaying the world blacklist
+                                                                    if (worldName == null) {
+
+                                                                        logReturn.add("\u00a7e______________________________________________");
+                                                                        logReturn.add("\u00a77World Whitelist of Structure \u00a73" + args[4] + "\u00a77:");
+
+                                                                        if (csRef.getWorldsBlacklist().size() == 0) {
+                                                                            logReturn.add("\u00a73> \u00a77No Worlds Whitelisted \u00a73<");
+
+                                                                        } else { for (String wrld : csRef.getWorldsBlacklist()) {  logReturn.add("\u00a7c - \u00a77" + wrld); } }
+
+                                                                    } else {
+
+                                                                        boolean worky = false;
+                                                                        if (removing) { worky = csRef.unWhitelistWorld(worldName); } else if (!csRef.getWorldsWhitelist().contains(worldName)) { csRef.whitelistWorld(worldName); }
+
+                                                                        if (worky) {
+
+                                                                            // Get Logger
+                                                                            RefSimulator<String> logAddition = new RefSimulator<>("");
+
+                                                                            // Edit n Roll
+                                                                            CSManager.saveOptions(csRef, logAddition);
+
+                                                                            // Log Results
+                                                                            if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", logAddition.GetValue()));}
+
+                                                                        } else {
+                                                                            logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Nothing happened,\u00a73 " + worldName + (removing ? "\u00a77 was not in the whitelist. " : "\u00a77 was already whitelisted. ")));
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            } else {
+
+                                                                // Notify
+                                                                if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                                    logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "Incorrect usage. For info: \u00a7e/goop customstructures edit options"));
+                                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit options whitelist <structure name> [-][world]");
+                                                                }
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        default:
+                                                            // I have no memory of that shit
+                                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Options", "'\u00a73" + args[2] + "\u00a77' is not a valid Custom Structures Edit Options action! do \u00a7e/goop customstructures edit options\u00a77 for the list of actions."));
+                                                            break;
+                                                    }
+
+                                                    // Incorrect number of args
+                                                } else if (args.length == 3) {
+
+                                                    logReturn.add("\u00a7e______________________________________________");
+                                                    logReturn.add("\u00a73Custom Structures - \u00a7bEdit Options, \u00a77Various options of the structure");
+                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit options {action}");
+                                                    logReturn.add("\u00a73 - \u00a7e{action} \u00a77What action to perform:");
+                                                    if (Gunging_Ootilities_Plugin.foundVault) {
+                                                        logReturn.add("\u00a73 --> \u00a7evaultCost <structure name> <cost>");
+                                                        logReturn.add("\u00a73      * \u00a77Currency cost of using the structure");  }
+                                                    logReturn.add("\u00a73 --> \u00a7eomniInteractive <structure name> <omni?>");
+                                                    logReturn.add("\u00a73      * \u00a77Usually structures activate only by interacting with");
+                                                    logReturn.add("\u00a73        \u00a77the structure core, but setting this to \u00a7btrue\u00a77 will");
+                                                    logReturn.add("\u00a73        \u00a77allow any block of the structure to activate it.");
+                                                    logReturn.add("\u00a73        \u00a7cIt is an exponential calculation, use at own risk.");
+                                                    logReturn.add("\u00a73 --> \u00a7eworldWhitelist <structure name> [-][world]");
+                                                    logReturn.add("\u00a73      * \u00a77Structure only triggers in this world.");
+                                                    logReturn.add("\u00a73      * \u00a77Use the \u00a7b-\u00a77 prefix to remove.");
+                                                    logReturn.add("\u00a73 --> \u00a7eworldBlacklist <structure name> [-][world]");
+                                                    logReturn.add("\u00a73      * \u00a77Structure never triggers in this world.");
+                                                    logReturn.add("\u00a73      * \u00a77Use the \u00a7b-\u00a77 prefix to remove.");
+
+                                                } else {
+
+                                                    // Notify
+                                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                        logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", "Incorrect usage. For info: \u00a7e/goop customstructures edit actions"));
+                                                        logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit actions {action}");
+                                                    }
+                                                }
+                                                break;
+                                            //endregion
                                             //region actions
                                             case "actions":
                                                 //   0           1           2     3       4          5            args.Length
@@ -1846,8 +2147,8 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Correct number of args?
                                                 if (args.length >= 5) {
 
-                                                    CustomStructure csRef = null;
-                                                    if (!CustomStructures.csLoadedStructures.containsKey(args[4])) {
+                                                    CSStructure csRef = null;
+                                                    if (!CSManager.csLoadedStructures.containsKey(args[4])) {
 
                                                         // Fail
                                                         failure = true;
@@ -1858,7 +2159,7 @@ public class GungingOotilities implements CommandExecutor {
                                                     } else {
 
                                                         // Get
-                                                        csRef = CustomStructures.csLoadedStructures.get(args[4]);
+                                                        csRef = CSManager.csLoadedStructures.get(args[4]);
                                                     }
 
                                                     switch (args[3].toLowerCase()) {
@@ -1939,7 +2240,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                             RefSimulator<String> logAddition = new RefSimulator<>("");
 
                                                                             // Edit n Roll
-                                                                            CustomStructures.EditStructureActions(args[4], csActions, logAddition);
+                                                                            CSManager.EditStructureActions(args[4], csActions, logAddition);
 
                                                                             // Log Results
                                                                             if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", logAddition.GetValue()));}
@@ -2011,7 +2312,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                             RefSimulator<String> logAddition = new RefSimulator<>("");
 
                                                                             // Edit n Roll
-                                                                            CustomStructures.EditStructureActions(args[4], csActions, logAddition);
+                                                                            CSManager.EditStructureActions(args[4], csActions, logAddition);
 
                                                                             // Log Results
                                                                             if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", logAddition.GetValue()));}
@@ -2069,7 +2370,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                     RefSimulator<String> logAddition = new RefSimulator<>("");
 
                                                                     // Edit n Roll
-                                                                    CustomStructures.EditStructureActions(args[4], csActions, logAddition);
+                                                                    CSManager.EditStructureActions(args[4], csActions, logAddition);
 
                                                                     // Log Results
                                                                     if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Actions", logAddition.GetValue()));}
@@ -2096,7 +2397,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                     logReturn.add("\u00a7e______________________________________________");
                                                     logReturn.add("\u00a73Custom Structures - \u00a7bEdit Actions, \u00a77What commands will the structure run when used?.");
-                                                    logReturn.add("\u00a73Usage: \u00a7e/goop edit commands actions {action}");
+                                                    logReturn.add("\u00a73Usage: \u00a7e/goop customstructures edit actions {action}");
                                                     logReturn.add("\u00a73 - \u00a7e{action} \u00a77What action to perform:");
                                                     logReturn.add("\u00a73 --> \u00a7elist <structure name>");
                                                     logReturn.add("\u00a73      * \u00a77Shows what commands are executed by a structure.");
@@ -2137,7 +2438,7 @@ public class GungingOotilities implements CommandExecutor {
                                                             if (args.length == 5) {
 
                                                                 // Is structure loaded?
-                                                                if (!CustomStructures.csLoadedStructures.containsKey(args[4])) {
+                                                                if (!CSManager.csLoadedStructures.containsKey(args[4])) {
 
                                                                     // Loaded strucutre of such name
                                                                     failure = true;
@@ -2150,7 +2451,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                 if (!failure) {
                                                                     logReturn.add("\u00a77Triggers of structure \u00a73" + args[4] + "\u00a77:");
 
-                                                                    ArrayList<CustomStructureTriggers> triggList = CustomStructures.csLoadedStructures.get(args[4]).getStructureTriggers();
+                                                                    ArrayList<CSTrigger> triggList = CSManager.csLoadedStructures.get(args[4]).getStructureTriggers();
 
                                                                     if (triggList == null) {
                                                                         logReturn.add("\u00a73> \u00a77No Triggers Defined \u00a73<");
@@ -2160,7 +2461,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                                     } else {
 
-                                                                        for (CustomStructureTriggers trig : triggList) { logReturn.add("\u00a7e - \u00a77" + trig); }
+                                                                        for (CSTrigger trig : triggList) { logReturn.add("\u00a7e - \u00a77" + trig); }
                                                                     }
                                                                 }
 
@@ -2208,7 +2509,7 @@ public class GungingOotilities implements CommandExecutor {
                                                             if (args.length == 6) {
 
                                                                 // Is structure loaded?
-                                                                if (!CustomStructures.csLoadedStructures.containsKey(args[4])) {
+                                                                if (!CSManager.csLoadedStructures.containsKey(args[4])) {
 
                                                                     // Loaded strucutre of such name
                                                                     failure = true;
@@ -2218,10 +2519,10 @@ public class GungingOotilities implements CommandExecutor {
                                                                 }
 
                                                                 // Is it an actual trigger
-                                                                CustomStructureTriggers trig = null;
+                                                                CSTrigger trig = null;
                                                                 try {
                                                                     // Yes, it seems to be
-                                                                    trig = CustomStructureTriggers.valueOf(args[5].toUpperCase());
+                                                                    trig = CSTrigger.valueOf(args[5].toUpperCase());
 
                                                                     // Not recognized
                                                                 } catch (IllegalArgumentException ex) {
@@ -2237,7 +2538,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                 if (!failure) {
 
                                                                     // Get the list of triggers
-                                                                    ArrayList<CustomStructureTriggers> eval = CustomStructures.csLoadedStructures.get(args[4]).getStructureTriggers();
+                                                                    ArrayList<CSTrigger> eval = CSManager.csLoadedStructures.get(args[4]).getStructureTriggers();
 
                                                                     // Cant remove if doesnt exist
                                                                     if (!eval.contains(trig)) {
@@ -2255,7 +2556,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                         RefSimulator<String> logAddition = new RefSimulator<>("");
 
                                                                         // Append
-                                                                        CustomStructures.EditStructureTriggers(args[4], eval, logAddition);
+                                                                        CSManager.EditStructureTriggers(args[4], eval, logAddition);
 
                                                                         // Mention
                                                                         if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Triggers", logAddition.GetValue())); }
@@ -2283,7 +2584,7 @@ public class GungingOotilities implements CommandExecutor {
                                                             if (args.length == 6) {
 
                                                                 // Is structure loaded?
-                                                                if (!CustomStructures.csLoadedStructures.containsKey(args[4])) {
+                                                                if (!CSManager.csLoadedStructures.containsKey(args[4])) {
 
                                                                     // Loaded strucutre of such name
                                                                     failure = true;
@@ -2293,10 +2594,10 @@ public class GungingOotilities implements CommandExecutor {
                                                                 }
 
                                                                 // Is it an actual trigger
-                                                                CustomStructureTriggers trig = null;
+                                                                CSTrigger trig = null;
                                                                 try {
                                                                     // Yes, it seems to be
-                                                                    trig = CustomStructureTriggers.valueOf(args[5].toUpperCase());
+                                                                    trig = CSTrigger.valueOf(args[5].toUpperCase());
 
                                                                     // Not recognized
                                                                 } catch (IllegalArgumentException ex) {
@@ -2312,7 +2613,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                 if (!failure) {
 
                                                                     // Get the list of triggers
-                                                                    ArrayList<CustomStructureTriggers> eval = CustomStructures.csLoadedStructures.get(args[4]).getStructureTriggers();
+                                                                    ArrayList<CSTrigger> eval = CSManager.csLoadedStructures.get(args[4]).getStructureTriggers();
 
                                                                     // No duplicate triggers
                                                                     if (eval.contains(trig)) {
@@ -2330,7 +2631,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                         RefSimulator<String> logAddition = new RefSimulator<>("");
 
                                                                         // Append
-                                                                        CustomStructures.EditStructureTriggers(args[4], eval, logAddition);
+                                                                        CSManager.EditStructureTriggers(args[4], eval, logAddition);
 
                                                                         // Mention
                                                                         if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Triggers", logAddition.GetValue())); }
@@ -2359,8 +2660,8 @@ public class GungingOotilities implements CommandExecutor {
                                                             if (args.length >= 7) {
 
                                                                 // Is structure loaded?
-                                                                CustomStructure csTarget = null;
-                                                                if (!CustomStructures.csLoadedStructures.containsKey(args[5])) {
+                                                                CSStructure csTarget = null;
+                                                                if (!CSManager.csLoadedStructures.containsKey(args[5])) {
 
                                                                     // Loaded strucutre of such name
                                                                     failure = true;
@@ -2370,14 +2671,14 @@ public class GungingOotilities implements CommandExecutor {
                                                                 } else {
 
                                                                     // Retrieve
-                                                                    csTarget = CustomStructures.csLoadedStructures.get(args[5]);
+                                                                    csTarget = CSManager.csLoadedStructures.get(args[5]);
                                                                 }
 
                                                                 // Is it an actual trigger
-                                                                CustomStructureTriggers trigr = null;
+                                                                CSTrigger trigr = null;
                                                                 try {
                                                                     // Yes, it seems to be
-                                                                    trigr = CustomStructureTriggers.valueOf(args[6].toUpperCase());
+                                                                    trigr = CSTrigger.valueOf(args[6].toUpperCase());
 
                                                                     // Not recognized
                                                                 } catch (IllegalArgumentException ex) {
@@ -2414,39 +2715,39 @@ public class GungingOotilities implements CommandExecutor {
                                                                                         logReturn.add("\u00a77This trigger doesnt support parameters!");
                                                                                         break;
                                                                                     case INTERACT:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.INTERACT);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.INTERACT);
                                                                                         logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they interact");
                                                                                         break;
                                                                                     case SNEAK_INTERACT:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.SNEAK_INTERACT);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.SNEAK_INTERACT);
                                                                                         logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they interact (while sneaking).");
                                                                                         break;
                                                                                     case PUNCH:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PUNCH);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.PUNCH);
                                                                                         logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they punch");
                                                                                         break;
                                                                                     case SNEAK_PUNCH:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.SNEAK_PUNCH);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.SNEAK_PUNCH);
                                                                                         logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they punch (while sneaking)");
                                                                                         break;
                                                                                     case PRESSUREPLATE_PLAYERS:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PRESSUREPLATE_PLAYERS);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.PRESSUREPLATE_PLAYERS);
                                                                                         logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they step on the plate");
                                                                                         break;
                                                                                     case SNEAK_PRESSUREPLATE_PLAYERS:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.SNEAK_PRESSUREPLATE_PLAYERS);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.SNEAK_PRESSUREPLATE_PLAYERS);
                                                                                         logReturn.add("\u00a7b\u00a7oThe item the player is holding must match these when they step on the plate (while sneaking)");
                                                                                         break;
                                                                                     case PRESSUREPLATE_ITEMS:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PRESSUREPLATE_ITEMS);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.PRESSUREPLATE_ITEMS);
                                                                                         logReturn.add("\u00a7b\u00a7oThe item dropped on the pressure plate must match these.");
                                                                                         break;
                                                                                     case PRESSUREPLATE_MONSTERS:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PRESSUREPLATE_MONSTERS);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.PRESSUREPLATE_MONSTERS);
                                                                                         logReturn.add("\u00a7b\u00a7oThe monsters that step on the pressure plate must match these.");
                                                                                         break;
                                                                                     case PRESSUREPLATE_ANIMALS:
-                                                                                        ret = csTarget.getTriggerParameters().get(CustomStructureTriggers.PRESSUREPLATE_ANIMALS);
+                                                                                        ret = csTarget.getTriggerParameters().get(CSTrigger.PRESSUREPLATE_ANIMALS);
                                                                                         logReturn.add("\u00a7b\u00a7oThe animals that step on the pressure plate must match these.");
                                                                                         break;
                                                                                 }
@@ -2544,7 +2845,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                                         // Index in range I guess I uh remove it?
                                                                                         ret.remove((int)indx);
 
-                                                                                        CustomStructures.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
+                                                                                        CSManager.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
 
                                                                                         if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Remove Trigger Parameters", logAddition.GetValue())); }
 
@@ -2643,7 +2944,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                                                                     ret.add(indx, fullParam.toString());
 
-                                                                                                    CustomStructures.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
+                                                                                                    CSManager.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
 
                                                                                                     if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", logAddition.GetValue())); }
 
@@ -2673,7 +2974,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                                                                 ret.add(indx, fullParam.toString());
 
-                                                                                                CustomStructures.EditStructureTriggerParameters(args[4], trigr, ret, logAddition);
+                                                                                                CSManager.EditStructureTriggerParameters(args[4], trigr, ret, logAddition);
 
                                                                                                 if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Trigger Parameters", logAddition.GetValue())); }
 
@@ -2767,7 +3068,7 @@ public class GungingOotilities implements CommandExecutor {
                                                                                                 }
 
                                                                                                 // Save
-                                                                                                CustomStructures.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
+                                                                                                CSManager.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
                                                                                             }
 
                                                                                             // Tell success or failure
@@ -2794,7 +3095,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                                                             if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", logAddition.GetValue())); }
 
-                                                                                            CustomStructures.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
+                                                                                            CSManager.EditStructureTriggerParameters(args[5], trigr, ret, logAddition);
                                                                                         }
 
                                                                                         if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Add Trigger Parameters", logAddition.GetValue())); }
@@ -2924,7 +3225,7 @@ public class GungingOotilities implements CommandExecutor {
                                                     }
 
                                                     // Is structure loaded?
-                                                    if (!CustomStructures.csLoadedStructures.containsKey(args[3])) {
+                                                    if (!CSManager.csLoadedStructures.containsKey(args[3])) {
 
                                                         // Loaded strucutre of such name
                                                         failure = true;
@@ -3014,22 +3315,22 @@ public class GungingOotilities implements CommandExecutor {
                                                     if (!failure) {
 
                                                         // Obtain composition
-                                                        ArrayList<CustomStructureBlock> comp = null;
+                                                        ArrayList<CSBlock> comp = null;
                                                         if (asSelection) {
 
                                                             // Get From Selecton
-                                                            comp = CustomStructures.GenerateStructureFromPlayerSelection(targetLocation.getBlock(), target);
+                                                            comp = CSManager.GenerateStructureFromPlayerSelection(targetLocation.getBlock(), target);
 
                                                         } else {
 
                                                             // Get From Radius
-                                                            comp = CustomStructures.GenerateStructureFromWorld(targetLocation.getBlock(), size);
+                                                            comp = CSManager.GenerateStructureFromWorld(targetLocation.getBlock(), size);
                                                         }
                                                         // Git Ref
                                                         RefSimulator<String> logAddition = new RefSimulator<>("");
 
                                                         // Ediet structure
-                                                        CustomStructures.EditStructureComposition(args[3], comp, logAddition);
+                                                        CSManager.EditStructureComposition(args[3], comp, logAddition);
 
                                                         // Log
                                                         if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Edit Composition", logAddition.GetValue())); }
@@ -3082,6 +3383,8 @@ public class GungingOotilities implements CommandExecutor {
                                         logReturn.add("\u00a73      * \u00a77Stuff regarding what makes the structure activate.");
                                         logReturn.add("\u00a73 --> \u00a7eactions {action}");
                                         logReturn.add("\u00a73      * \u00a77Manage what commands to run when the structure activates.");
+                                        logReturn.add("\u00a73 --> \u00a7eoption {action}");
+                                        logReturn.add("\u00a73      * \u00a77Tweaks for the functioning of the custom structure.");
 
                                     } else {
 
@@ -3103,11 +3406,11 @@ public class GungingOotilities implements CommandExecutor {
                                     if (args.length == 2) {
 
                                         logReturn.add("\u00a7e______________________________________________");
-                                        if (CustomStructures.loadedStructures.size() == 0) {
+                                        if (CSManager.loadedStructures.size() == 0) {
                                             logReturn.add("\u00a73Custom Structures - \u00a7bList, \u00a77Lists all loaded structures, there arent any right now though.");
                                         } else {
                                             logReturn.add("\u00a73Custom Structures - \u00a7bList, \u00a77All loaded structures:");
-                                            for (CustomStructure struct : CustomStructures.loadedStructures) { logReturn.add("\u00a73 - \u00a77" + struct.getStructureName()); }
+                                            for (CSStructure struct : CSManager.loadedStructures) { logReturn.add("\u00a73 - \u00a77" + struct.getStructureName()); }
                                         }
 
                                     } else {
@@ -3172,7 +3475,7 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         // Is structure loaded?
-                                        if (CustomStructures.csLoadedStructures.containsKey(args[2])) {
+                                        if (CSManager.csLoadedStructures.containsKey(args[2])) {
 
                                             // Loaded strucutre of such name
                                             failure = true;
@@ -3263,23 +3566,23 @@ public class GungingOotilities implements CommandExecutor {
                                         if (!failure) {
 
                                             // Obtain composition
-                                            ArrayList<CustomStructureBlock> comp = null;
+                                            ArrayList<CSBlock> comp = null;
                                             if (asSelection) {
 
                                                 // Get From Selecton
-                                                comp = CustomStructures.GenerateStructureFromPlayerSelection(targetLocation.getBlock(), target);
+                                                comp = CSManager.GenerateStructureFromPlayerSelection(targetLocation.getBlock(), target);
 
                                             } else {
 
                                                 // Get From Radius
-                                                comp = CustomStructures.GenerateStructureFromWorld(targetLocation.getBlock(), size);
+                                                comp = CSManager.GenerateStructureFromWorld(targetLocation.getBlock(), size);
                                             }
 
                                             // Git Ref
                                             RefSimulator<String> logAddition = new RefSimulator<>("");
 
                                             // Save structure
-                                            CustomStructures.SaveNewStructure(args[2], comp, null, null, logAddition);
+                                            CSManager.SaveNewStructure(args[2], comp, null, null, logAddition);
 
                                             // Log
                                             if (logAddition.GetValue() != null) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Import", logAddition.GetValue())); }
@@ -3365,7 +3668,7 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         // Is structure loaded?
-                                        if (!CustomStructures.csLoadedStructures.containsKey(args[2])) {
+                                        if (!CSManager.csLoadedStructures.containsKey(args[2])) {
 
                                             // No loaded strucutre of such name
                                             failure = true;
@@ -3416,7 +3719,7 @@ public class GungingOotilities implements CommandExecutor {
                                         if (!failure) {
 
                                             // Build at location
-                                            CustomStructures.csLoadedStructures.get(args[2]).generateAt(null, targetLocation, o,false, false, false);
+                                            CSManager.csLoadedStructures.get(args[2]).generateAt(null, targetLocation, o,false, false, false);
 
                                             // Mention success
                                             if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Custom Structures - Build","Successfuly Generated Structure \u00a73" + args[2] + "\u00a77 at \u00a7e " + OotilityCeption.BlockLocation2String(targetLocation))); }
@@ -4164,7 +4467,7 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         // Reasonable name
-                                        if (args[3].length() > 16)  {
+                                        if (args[3].length() > 16 && GooP_MinecraftVersions.GetMinecraftVersion() < 18)  {
 
                                             // Fail
                                             failure = true;
@@ -4416,7 +4719,7 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         // Reasonable name
-                                        if (args[3].length() > 16)  {
+                                        if (args[3].length() > 16 && GooP_MinecraftVersions.GetMinecraftVersion() < 18)  {
 
                                             // Fail
                                             failure = true;
@@ -4872,7 +5175,7 @@ public class GungingOotilities implements CommandExecutor {
                     //   -      0         1     args[n]
 
                     // To extract log return
-                    // Delegate onto NBT
+                    // Delegate onto
                     GOOPCCommands.onCommand_GooPContainers(sender, command, label, args, senderLocation, chained, chainedCommand, chainedNoLocation, logReturnUrn, failMessage);
 
                     // Extract
@@ -9472,8 +9775,8 @@ public class GungingOotilities implements CommandExecutor {
                 logReturn.add("\u00a73 --> \u00a7edamage <player> <slot> {nbt} [[±]<repair>[%]]");
                 logReturn.add("\u00a73      * \u00a77Modifies durability of item.");
                 logReturn.add("\u00a73      * \u00a73Can never break or go negative - will be set to 1 instead.");
-                logReturn.add("\u00a73 --> \u00a7erevar <player> <slot> <variable=value...>");
-                logReturn.add("\u00a73      * \u00a77Changes the value of a variable in the name/lore of an item");
+                //logReturn.add("\u00a73 --> \u00a7erevar <player> <slot> <variable=value...>");
+                //logReturn.add("\u00a73      * \u00a77Changes the value of a variable in the name/lore of an item");
                 logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Target slot in player's inventory.");
                 logReturn.add("\u00a73 --> \u00a77Possible slots: \u00a7bhead\u00a73, \u00a7bchest\u00a73, \u00a7blegs\u00a73, \u00a7bfeet\u00a73, \u00a7bmainhand\u00a73, \u00a7boffhand\u00a73, and any number \u00a7b0\u00a73-\u00a7b35\u00a73.");
                 if (Gunging_Ootilities_Plugin.foundMMOItems) logReturn.add("\u00a73 - \u00a7e[fv] \u00a77Forces vanilla lore operations (For MMOItems).");

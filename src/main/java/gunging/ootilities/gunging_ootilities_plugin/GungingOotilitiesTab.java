@@ -8,9 +8,9 @@ import gunging.ootilities.gunging_ootilities_plugin.containers.loader.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerTypes;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.KindRestriction;
 import gunging.ootilities.gunging_ootilities_plugin.containers.restriction.RestrictedBehaviour;
-import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructure;
-import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructureTriggers;
-import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructures;
+import gunging.ootilities.gunging_ootilities_plugin.customstructures.CSStructure;
+import gunging.ootilities.gunging_ootilities_plugin.customstructures.CSTrigger;
+import gunging.ootilities.gunging_ootilities_plugin.customstructures.CSManager;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.ApplicableMask;
 import org.bukkit.Bukkit;
@@ -45,7 +45,7 @@ public class GungingOotilitiesTab implements TabCompleter {
         for (Object goopAcommand : GooP_Commands.class.getEnumConstants()) { commandsTab.add(goopAcommand.toString()); commandsTab.add("sudop"); }
 
         // Get Loaded Triggers
-        for (Object goopAcsTrigger : CustomStructureTriggers.class.getEnumConstants()) { csTriggersTab.add(goopAcsTrigger.toString()); }
+        for (Object goopAcsTrigger : CSTrigger.class.getEnumConstants()) { csTriggersTab.add(goopAcsTrigger.toString()); }
         for (Object goopAcnType : ContainerTypes.class.getEnumConstants()) { cnTypesTab.add(goopAcnType.toString()); }
 
         // Get Materials
@@ -1350,10 +1350,95 @@ public class GungingOotilitiesTab implements TabCompleter {
                                         tabM.add("composition");
                                         tabM.add("triggers");
                                         tabM.add("actions");
+                                        tabM.add("options");
 
                                     } else {
 
                                         switch (args[2].toLowerCase()) {
+                                            //region options
+                                            case "options":
+                                                //   0           1           2     3       4          5            args.Length
+                                                // /goop customstructures  edit options {action} <structure name>
+                                                //   -           0           1     2       3          4            args[n]
+
+                                                if (args.length == 4) {
+                                                    tabM.add("whitelist");
+                                                    tabM.add("worldWhitelist");
+                                                    tabM.add("blacklist");
+                                                    tabM.add("worldBlacklist");
+                                                    tabM.add("vaultCost");
+                                                    tabM.add("omni");
+                                                    tabM.add("omniInteractable");
+
+                                                } else {
+
+                                                    switch (args[3].toLowerCase()) {
+                                                        //region whitelist / blacklist
+                                                        case "whitelist":
+                                                        case "worldwhitelist":
+                                                        case "blacklist":
+                                                        case "worldblacklist":
+                                                            //   0           1          2     3         4           5             6       args.Length
+                                                            // /goop customstructures edit options whitelist <structure name> [-][world]
+                                                            //   -           0          1     2         3           4             5       args[n]
+
+                                                            switch (args.length) {
+                                                                case 5:
+                                                                    // Adds all loaded structures
+                                                                    for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                    break;
+                                                                case 6:
+                                                                    // Adds all loaded worlds
+                                                                    for (World loadedWorld : Bukkit.getWorlds()) { tabM.add(loadedWorld.getName());tabM.add("-" + loadedWorld.getName()); }
+                                                                    break;
+                                                                default: break;
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region omni-interactive
+                                                        case "omni":
+                                                        case "omniinteractive":
+                                                            //   0           1          2     3         4                   5          6       args.Length
+                                                            // /goop customstructures edit options omniinteractive <structure name> <omni?>
+                                                            //   -           0          1     2         3                   4          5       args[n]
+
+                                                            switch (args.length) {
+                                                                case 5:
+                                                                    // Adds all loaded structures
+                                                                    for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                    break;
+                                                                case 6:
+                                                                    Collections.addAll(tabM,"true", "false");
+                                                                    break;
+                                                                default: break;
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        //region vaultcost
+                                                        case "vaultcost":
+                                                            //   0           1          2     3         4          5            6       args.Length
+                                                            // /goop customstructures edit options vaultcost <structure name> <cost>
+                                                            //   -           0          1     2         3          4            5       args[n]
+
+                                                            switch (args.length) {
+                                                                case 5:
+                                                                    // Adds all loaded structures
+                                                                    for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                    break;
+                                                                case 6:
+                                                                    Collections.addAll(tabM,"3", "6", "300", "5.99");
+                                                                    break;
+                                                                default: break;
+                                                            }
+                                                            break;
+                                                        //endregion
+                                                        default: break;
+                                                    }
+
+                                                }
+
+                                                break;
+                                            //endregion
                                             //region triggers
                                             case "triggers":
                                                 //   0           1           2     3       4          5            args.Length
@@ -1386,7 +1471,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                                         break;
                                                                     case 6:
                                                                         // Adds all loaded structures
-                                                                        for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                        for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
                                                                         break;
                                                                     case 7:
                                                                         // The suggestions are the Structure Triggers
@@ -1398,10 +1483,10 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                                             } else {
                                                                 // Is it an actual trigger
-                                                                CustomStructureTriggers trigr = null;
+                                                                CSTrigger trigr = null;
                                                                 try {
                                                                     // Yes, it seems to be
-                                                                    trigr = CustomStructureTriggers.valueOf(args[6]);
+                                                                    trigr = CSTrigger.valueOf(args[6]);
 
                                                                     // Not recognized
                                                                 } catch (IllegalArgumentException ex) { }
@@ -1655,7 +1740,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                             switch (args.length) {
                                                                 case 5:
                                                                     // Adds all loaded structures
-                                                                    for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                    for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
                                                                     break;
                                                                 case 6:
                                                                     // The suggestions are the Structure Triggers
@@ -1675,7 +1760,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                                             if (args.length == 5) {
                                                                 // Adds all loaded structures
-                                                                for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
                                                             }
 
                                                             break;
@@ -1711,7 +1796,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                             switch (args.length) {
                                                                 case 5:
                                                                     // Adds all loaded structures
-                                                                    for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                    for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
                                                                     break;
                                                                 case 6:
                                                                     // Suggests some reasonable radii
@@ -1733,7 +1818,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                             switch (args.length) {
                                                                 case 5:
                                                                     // Adds all loaded structures
-                                                                    for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                    for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
                                                                     break;
                                                                 case 6:
                                                                     // Suggests some reasonable radii
@@ -1753,7 +1838,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                             switch (args.length) {
                                                                 case 5:
                                                                     // Adds all loaded structures
-                                                                    for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                    for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
                                                                     break;
                                                                 case 6:
                                                                     // Suggests some reasonable radii
@@ -1778,7 +1863,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                                             if (args.length == 5) {
                                                                 // Adds all loaded structures
-                                                                for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                                for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
 
                                                             }
 
@@ -1812,7 +1897,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 switch (args.length) {
                                                     case 4:
                                                         // Adds all loaded structures
-                                                        for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                                        for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
                                                         break;
                                                     case 5:
                                                         // Suggests some reasonable radii
@@ -1912,7 +1997,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             Collections.addAll(tabM, "Fridge_Top", "Fridge_Bottom", "Baking_Oven", "Gold-Diamond_Transmutator", "Demon_Altar", "Stove");
 
                                             // Removes all loaded structures
-                                            for (CustomStructure struct : CustomStructures.loadedStructures) {
+                                            for (CSStructure struct : CSManager.loadedStructures) {
                                                 tabM.remove(struct.getStructureName());
                                             }
                                             break;
@@ -2002,7 +2087,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                     switch (args.length) {
                                         case 3:
                                             // Adds all loaded structures
-                                            for (CustomStructure struct : CustomStructures.loadedStructures) { tabM.add(struct.getStructureName()); }
+                                            for (CSStructure struct : CSManager.loadedStructures) { tabM.add(struct.getStructureName()); }
                                             break;
                                         case 4:
                                             //region w

@@ -2,6 +2,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCAuraMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.mobs.GenericCaster;
@@ -11,31 +12,28 @@ import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.utils.Events;
 import io.lumine.mythic.bukkit.utils.terminable.Terminable;
-import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.auras.Aura;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.Mob;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Optional;
 
 /**
  * Hides a player from monsters or players.
  */
-public class HideAura extends Aura implements ITargetedEntitySkill {
+public class HideAura extends BKCAuraMechanic implements ITargetedEntitySkill {
 
     boolean hideFromMonsters;
     @NotNull PlaceholderString skillName;
     @Nullable Skill metaskill;
 
-    //NEWEN//public HideAura(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, skill, mlc);
-        /*OLDEN*/public HideAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-            /*OLDEN*/super(manager, skill, mlc);
-        GooPMythicMobs.newenOlden = true;
+    public HideAura(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
+
         hideFromMonsters = mlc.getBoolean(new String[] { "hideFromMonsters", "hfm" }, true);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());

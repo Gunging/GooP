@@ -1,5 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
+import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ScoreRequirements;
@@ -27,7 +28,7 @@ public class ScoreboardTargeter extends IEntitySelector {
     public ScoreboardTargeter(SkillExecutor manager, MythicLineConfig mlc) {
         super(manager, mlc);
         sreQ = mlc.getPlaceholderString(new String[]{"scores", "score", "sc", "s"}, (String)null);
-        //DBG//OotilityCeption.Log("\u00a7b> > > > > > > > > > Loading \u00a73GooPScore");
+        //DBG//OotilityCeption.Log("\u00a7b> > > > > > > > > > Loading \u00a73GooPScore:\u00a7b " + sreQ);
     }
 
     public HashSet<AbstractEntity> getEntities(SkillMetadata skillMetadata) {
@@ -37,6 +38,7 @@ public class ScoreboardTargeter extends IEntitySelector {
 
         // Build sreq
         ArrayList<ScoreRequirements> sReq = ScoreRequirements.FromCompactString(sreQ.get(skillMetadata, skillMetadata.getCaster().getEntity()));
+        ArrayList<String> invalidated = new ArrayList<>();
 
         // FOreach
         for (Player min : Bukkit.getOnlinePlayers()) {
@@ -44,6 +46,7 @@ public class ScoreboardTargeter extends IEntitySelector {
 
             // fail?
             boolean failure = false;
+            boolean success = false;
 
             // Meets?
             for (ScoreRequirements sR : sReq) {
@@ -58,17 +61,33 @@ public class ScoreboardTargeter extends IEntitySelector {
                     //DBG//OotilityCeption.Log("\u00a7b  >> \u00a77" + pScore);
 
                     // Compare it
-                    failure = !sR.InRange(pScore + 0.0D) || failure;
+                    failure = !sR.InRange(pScore);
+
+                    /*
+                     * Only one valid objective needed for success
+                     *
+                     * This fixes the overlook when all scoreboard objectives are invalid,
+                     * which causes all players to always succeed regardless of score, which
+                     * is confusing and should instead be notified.
+                     */
+                    success = true;
+
+                // Might spam a bit
+                } else if (!invalidated.contains(sR.getObjectiveName())) {
+                    invalidated.add(sR.getObjectiveName());
+
+                    Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("@GooPScore", "Objective not found:\u00a7c " + sR.getObjectiveName()));
                 }
             }
 
             // No Fail
-            if (!failure) {
+            if (!failure && success) {
                 //DBG//OotilityCeption.Log("\u00a7a  > \u00a77Accepted");
 
                 // Adapt and Add
                 ret.add(BukkitAdapter.adapt((Entity) min));
             }
+
         }
 
         //DBG//OotilityCeption.Log("\u00a7a*\u00a77" + ret.size());

@@ -5,6 +5,7 @@ import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.mobs.GenericCaster;
@@ -12,19 +13,17 @@ import io.lumine.mythic.api.skills.*;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
-import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.SkillTargeter;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import io.lumine.mythic.core.skills.targeters.IEntitySelector;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.*;
 
-public class SudoMinionsMechanic extends SkillMechanic implements IMetaSkill {
+public class SudoMinionsMechanic extends BKCSkillMechanic implements IMetaSkill {
     boolean casterAsTrigger;
     Boolean targetMinionsSelf;
     boolean targetMinionsAny;
@@ -33,11 +32,9 @@ public class SudoMinionsMechanic extends SkillMechanic implements IMetaSkill {
     PlaceholderString kindTargetting;
     Skill metaskill;
 
-    //NEWEN//public SudoMinionsMechanic(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, skill, mlc);
-        /*OLDEN*/public SudoMinionsMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        /*OLDEN*/super(manager, skill, mlc);
-        GooPMythicMobs.newenOlden = true;
+    public SudoMinionsMechanic(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
+
         casterAsTrigger = mlc.getBoolean(new String[]{"setcasterastrigger", "cat"}, false);
         String tmS = mlc.getString(new String[]{"targetownminions", "tom"}, "none");
         if (OotilityCeption.BoolTryParse(tmS)) { targetMinionsSelf = Boolean.parseBoolean(tmS); } else { targetMinionsSelf = null; }

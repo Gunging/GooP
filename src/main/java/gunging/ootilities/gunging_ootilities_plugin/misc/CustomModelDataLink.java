@@ -325,9 +325,6 @@ public class CustomModelDataLink {
         // Create new
         ItemStack stack = new ItemStack(getParentMaterial());
 
-        // Meta?
-        if (!stack.hasItemMeta()) { return stack; }
-
         // Get meta
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) { return stack; }

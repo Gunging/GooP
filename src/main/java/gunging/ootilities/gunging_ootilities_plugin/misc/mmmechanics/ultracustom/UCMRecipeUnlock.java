@@ -2,15 +2,14 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracusto
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
-import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.SkillMechanic;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
@@ -20,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.io.File;
 import java.util.Iterator;
 
 /**
@@ -29,7 +27,7 @@ import java.util.Iterator;
  * <b>lock</b> Enabling this option will not re-unlock the recipe, effectively locking it.
  * <b>printRecipes</b> String to filter out recipes to show or debug. Use 'all' for no filter.
  */
-public class UCMRecipeUnlock extends SkillMechanic implements ITargetedEntitySkill {
+public class UCMRecipeUnlock extends BKCSkillMechanic implements ITargetedEntitySkill {
 
     /**
      * Locking the recipes will not unlock it after locking it....
@@ -43,11 +41,8 @@ public class UCMRecipeUnlock extends SkillMechanic implements ITargetedEntitySki
 
     PlaceholderString namespace, key;
 
-    //NEWEN//public UCMRecipeUnlock(SkillExecutor manager, File file, String line, MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, line, mlc);
-        /*OLDEN*/public UCMRecipeUnlock(SkillExecutor manager, String line, MythicLineConfig mlc) {
-            /*OLDEN*/super(manager, line, mlc);
-        GooPMythicMobs.newenOlden = true;
+    public UCMRecipeUnlock(CustomMechanic manager, String line, MythicLineConfig mlc) {
+        super(manager, line, mlc);
 
         this.forceSync = true;
         lock = mlc.getBoolean(new String[]{"lock"}, false);

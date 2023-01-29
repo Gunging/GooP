@@ -9,6 +9,7 @@ import gunging.ootilities.gunging_ootilities_plugin.events.ScoreboardLinks;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.TargetedItems;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.LuckStat;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.MiscRestrictionStat;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.XBow_Loaded_Stat;
 import io.lumine.mythic.lib.api.item.ItemTag;
 import io.lumine.mythic.lib.api.item.NBTItem;
@@ -47,6 +48,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -286,23 +288,30 @@ public class GooPMMOItems {
 
     public static HashMap<String, ItemStat> MISC = new HashMap<>();
     static Material[] miscMats = new Material[]{Material.PUFFERFISH_BUCKET, Material.TROPICAL_FISH_BUCKET, Material.SALMON_BUCKET, Material.COD_BUCKET, Material.WATER_BUCKET, Material.MILK_BUCKET, Material.LAVA_BUCKET, Material.BUCKET};
+
+    public static HashMap<String, ItemStat> RST_MISC = new HashMap<>();
+    static Material[] restMats = new Material[]{Material.RED_CONCRETE, Material.RED_CONCRETE_POWDER, Material.RED_GLAZED_TERRACOTTA, Material.RED_STAINED_GLASS, Material.RED_TERRACOTTA};
+
     static String[] miscOrder = new String[]{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
     @Nullable public static ItemStat GetMiscStat(@NotNull String key) {
 
         // Convert to nomenklature
-        String k = key.toUpperCase(); boolean asSTR = false;
+        String k = key.toUpperCase(); boolean asSTR = false, asRST = false;
         if (k.startsWith("MISC")) { k = k.substring("MISC".length()); }
         if (k.startsWith(strPrefix)) { asSTR = true; k = k.substring(strPrefix.length()); }
+        if (k.startsWith(rstPrefix)) { asRST = true; k = k.substring(rstPrefix.length()); }
         if (k.startsWith(miscPrefix)) { k = k.substring(miscPrefix.length()); }
         if (k.startsWith("STR_")) { asSTR = true; k = k.substring("STR_".length()); }
+        if (k.startsWith("RST_")) { asRST = true; k = k.substring("RST_".length()); }
 
         // Find
-        return asSTR ? STR_MISC.get(k) : MISC.get(k);
+        return asSTR ? STR_MISC.get(k) : asRST ? RST_MISC.get(k) : MISC.get(k);
     }
 
     static int currentMisc = 0, generation = 0, currentMat = 0;
     static final String miscPrefix = "GOOP_MISC_";
     static final String strPrefix = "GOOP_MISC_STR_";
+    static final String rstPrefix = "GOOP_MISC_RST_";
     public static void RegisterMiscStat() {
 
         // Get Name
@@ -341,6 +350,38 @@ public class GooPMMOItems {
         STR_MISC.put(terminology, MISCC);
     }
 
+    public static void RegisterRstMiscStat(@Nullable String rst) {
+        if (rst == null) { Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("MMOItems - Misc Restriction Stat", "Null entry in \u00a7econfig.yml\u00a77 list. ")); return; }
+
+        // Format is "[%YES% ... %HO% %HE%] 1..3"
+        String[] rstSplit;
+        if (rst.contains(" ")) { rstSplit = rst.split(" "); }
+        else { rstSplit = new String[] { rst }; }
+
+        // Parse the last
+        QuickNumberRange qnr = QuickNumberRange.FromString(rstSplit[rstSplit.length - 1]);
+        if (qnr == null) { Gunging_Ootilities_Plugin.theOots.CLog(OotilityCeption.LogFormat("MMOItems - Misc Restriction Stat", "Invalid number range '\u00a7c" + rst + "\u00a77' specified in \u00a7econfig.yml\u00a77 list. It must always end with a number range in the format \u00a7b4..28\u00a77 or whatever. ")); return; }
+
+        ArrayList<String> px = new ArrayList<>();
+        for (int i = 0; i < rstSplit.length - 1; i++) { px.add(rstSplit[i]); }
+
+        // Get Name
+        StringBuilder mOrder = new StringBuilder(rstPrefix);
+        mOrder.append(miscOrder[currentMisc]);
+        if (generation > 0) { mOrder.append(generation); }
+        currentMisc++; if (currentMisc >= miscOrder.length) { currentMisc = 0; generation++; }
+        String name = mOrder.toString();
+        String terminology = name.substring(rstPrefix.length());
+
+        // Get Material
+        Material mMat = restMats[currentMat];
+        currentMat++; if (currentMat >= restMats.length) { currentMat = 0; }
+
+        ItemStat MISCC = new MiscRestrictionStat(name, mMat, "Extra Restriction Stat \u00a7l" + terminology, new String[]{"Specify in the \u00a7econfig.yml\u00a77 the", "number range which this stat", "allows the item to be used. ", "\u00a73", "Allows use at range\u00a7e " + qnr.toString(), "Other config additions: \u00a7bx" + (rstSplit.length - 1), "\u00a78Changes require a server reboot. " }, new String[]{"!consumable", "!miscellaneous", "all"}, qnr, px);
+        RegisterStat(name, MISCC);
+        RST_MISC.put(terminology, MISCC);
+    }
+
     public static void ReloadMiscStatLore() {
 
         // Yes
@@ -354,7 +395,7 @@ public class GooPMMOItems {
         }
     }
 
-    public static void RegisterCustomStats(int miscAmount, int miscStrAmount) {
+    public static void RegisterCustomStats(int miscAmount, int miscStrAmount, @NotNull List<String> miscRstAmount) {
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) {
             XBOW_LOADED_STAT = new XBow_Loaded_Stat();
             RegisterStat(XBOW_LOADED_STAT); }
@@ -369,6 +410,8 @@ public class GooPMMOItems {
         for (int m = 1; m <= miscAmount; m++) { RegisterMiscStat(); }
         currentMisc = 0; generation = 0; currentMat = 0;
         for (int m = 1; m <= miscStrAmount; m++) { RegisterStrMiscStat(); }
+        currentMisc = 0; generation = 0; currentMat = 0;
+        for (int m = 1; m <= miscRstAmount.size(); m++) { RegisterRstMiscStat(miscRstAmount.get(m - 1)); }
 
         GROUND_POUND_STAT = new StringStat("GROUND_POUND_SKILL", Material.COARSE_DIRT, "Ground Pound Skill", new String[]{"When the item is dropped to the ground,", "what mythicmob skill to run when", "it hits the ground?", "", "\u00a76Player that dropped the item: \u00a7f@Self", "\u00a76Item Entity Itself: \u00a7e@Trigger"}, new String[]{"all"});
         RegisterStat(GROUND_POUND_STAT);
@@ -458,7 +501,7 @@ public class GooPMMOItems {
                 try {
 
                     GooPMythicMobs.newenOlden = true;
-                    //NEWEN///*
+                    /*NEWEN*//*
                     // Cast into list
                     List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem> list = (List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem>) equippedItems;
 
@@ -473,7 +516,7 @@ public class GooPMMOItems {
                     return vot;
                     // */
 
-                    //NEWEN//usingEquippedPlayerItems = false;
+                    /*NEWEN*/usingEquippedPlayerItems = false;
 
                 } catch (NoClassDefFoundError ignored) { usingEquippedPlayerItems = false; }
             }
@@ -1775,7 +1818,7 @@ public class GooPMMOItems {
 
                 // Register
                 hist.registerExternalData(endData);
-                hist.consolidateEXSH();
+                if (hist.getExternalData().size() > doubleHist) { hist.consolidateEXSH(); }
 
                 // Recalculate
                 mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
@@ -1927,6 +1970,7 @@ public class GooPMMOItems {
 
                 // Register
                 hist.registerExternalData(endData);
+                if (hist.getExternalData().size() > stringHist) { hist.consolidateEXSH(); }
 
                 // Recalculate
                 mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
@@ -2050,7 +2094,7 @@ public class GooPMMOItems {
 
                     // Register
                     hist.registerExternalData(endData);
-                    hist.consolidateEXSH();
+                    if (hist.getExternalData().size() > listHist) { hist.consolidateEXSH(); }
 
                     // Update
                     mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
@@ -2481,6 +2525,29 @@ public class GooPMMOItems {
         // Yeah that was a good run ngl
         return mmo.newBuilder().build();
     }
+
+    /**
+     * @param section Section of the GooP config 'StatHistories'
+     */
+    public static void readStatHistoryLimits(@Nullable ConfigurationSection section) {
+
+        // No section? Uuuh
+        if (section == null) {
+
+            // Reset
+            doubleHist = -1;
+            stringHist = -1;
+            listHist = -1;
+            return; }
+
+        // Read values
+        doubleHist = section.getInt("DoubleStat", -1);
+        stringHist = section.getInt("StringStat", -1);
+        listHist = section.getInt("StringListStat", -1);
+    }
+    static int doubleHist = -1;
+    static int stringHist = -1;
+    static int listHist = -1;
 
     /**
      * Upgrades a MMOItem to this level

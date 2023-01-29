@@ -37,13 +37,13 @@ public class LocationsInSlash extends ILocationSelector {
         HashSet<AbstractLocation> v = new HashSet<>();
 
         // For each location targets
-        if (skillMetadata.getLocationTargets() != null && GOOPCManager.isLocationsInSlash()) {
+        if (skillMetadata.getLocationTargets() != null) { // && GOOPCManager.isLocationsInSlash()
             for (AbstractLocation w : skillMetadata.getLocationTargets()) {
                 v.addAll(particleEffect.playParticleSlashEffect(skillMetadata, w)); }
         }
 
         // For each location targets
-        if (skillMetadata.getEntityTargets() != null && GOOPCManager.isLocationsInSlash()) {
+        if (skillMetadata.getEntityTargets() != null) { // && GOOPCManager.isLocationsInSlash()
             for (AbstractEntity w : skillMetadata.getEntityTargets()) {
                 if (w == null) { continue; }
                 v.addAll(particleEffect.playParticleSlashEffect(skillMetadata, w.getLocation())); }

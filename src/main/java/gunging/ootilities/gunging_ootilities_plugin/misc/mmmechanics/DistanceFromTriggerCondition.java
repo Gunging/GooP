@@ -6,8 +6,8 @@ import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.conditions.ISkillMetaCondition;
-//NEWEN//import io.lumine.mythic.bukkit.utils.numbers.RangedDouble;
-/*OLDEN*/import io.lumine.mythic.utils.numbers.RangedDouble;
+/*NEWEN*/import io.lumine.mythic.bukkit.utils.numbers.RangedDouble;
+//OLDEN//import io.lumine.mythic.utils.numbers.RangedDouble;
 
 public class DistanceFromTriggerCondition extends CustomMMCondition implements ISkillMetaCondition {
     protected RangedDouble distance;

@@ -2,11 +2,9 @@ package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import net.Indyuce.mmocore.api.player.PlayerData;
-import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.Indyuce.mmocore.api.player.stats.PlayerStats;
 import net.Indyuce.mmocore.api.player.stats.StatType;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -135,7 +133,7 @@ public class GooPMMOCore {
 
                 agonizing193 = false;
 
-                /*OLDEN*/return pSats.getStat(statName);
+                //OLDEN//return pSats.getStat(statName);
             }
 
         } else {
@@ -151,16 +149,16 @@ public class GooPMMOCore {
                 } catch (NoSuchMethodError|NoSuchMethodException|IllegalAccessException|InvocationTargetException ignored) {
                     agonizing193 = false;
 
-                    /*OLDEN*/return pSats.getStat(statName);
+                    //OLDEN//return pSats.getStat(statName);
                 }
 
             } else {
 
-                /*OLDEN*/return pSats.getStat(statName);
+                //OLDEN//return pSats.getStat(statName);
             }
         }
 
-        //NEWEN//return null;
+        /*NEWEN*/return null;
 
         /*
         StatInstance pStat = pData.getStats().getInstance(statName);

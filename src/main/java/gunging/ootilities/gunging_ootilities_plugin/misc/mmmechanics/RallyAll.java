@@ -1,6 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
@@ -8,32 +8,23 @@ import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.mobs.ActiveMob;
-import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-
 /**
  * Rallies all targets towards the caster or trigger of the skill.
  *
  * @author Gunging
  */
-public class RallyAll extends SkillMechanic implements ITargetedEntitySkill {
+public class RallyAll extends BKCSkillMechanic implements ITargetedEntitySkill {
     protected boolean overwriteTarget;
     protected boolean rallyToTrigger;
 
-    //NEWEN//public RallyAll(SkillExecutor manager, File file, @NotNull String skill, @NotNull MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, skill, mlc);
-
-        /*OLDEN*/public RallyAll(SkillExecutor manager, @NotNull String skill, @NotNull MythicLineConfig mlc) {
-            /*OLDEN*/super(manager, skill, mlc);
-
-        GooPMythicMobs.newenOlden = true;
+    public RallyAll(CustomMechanic manager, @NotNull String skill, @NotNull MythicLineConfig mlc) {
+        super(manager, skill, mlc);
 
         setAsyncSafe(false);
         this.overwriteTarget = mlc.getBoolean(new String[]{"overwritetarget", "ot"}, true);

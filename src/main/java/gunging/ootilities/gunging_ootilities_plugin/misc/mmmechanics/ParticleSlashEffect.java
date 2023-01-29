@@ -1,6 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCParticleEffect;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
@@ -9,24 +9,19 @@ import io.lumine.mythic.api.skills.ITargetedLocationSkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.MythicBukkit;
-import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.mechanics.ParticleEffect;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class ParticleSlashEffect extends ParticleEffect implements ITargetedEntitySkill, ITargetedLocationSkill {
+public class ParticleSlashEffect extends BKCParticleEffect implements ITargetedEntitySkill, ITargetedLocationSkill {
 
     @NotNull final SlashLocations<Boolean> particleEffect;
 
-        //NEWEN//public ParticleSlashEffect(SkillExecutor manager, File file, String skill, @NotNull MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, skill, mlc);
-        /*OLDEN*/ public ParticleSlashEffect(SkillExecutor manager, String skill, @NotNull MythicLineConfig mlc) {
-        /*OLDEN*/ super(manager, skill, mlc);
-        GooPMythicMobs.newenOlden = true;
+    public ParticleSlashEffect(CustomMechanic manager, String skill, @NotNull MythicLineConfig mlc) {
+        super(manager, skill, mlc);
 
         particleEffect = new SlashLocations<>(mlc, (data, slashedLocation, funnies) -> {
 

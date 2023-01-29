@@ -295,7 +295,7 @@ public class JSONPlacerUtils implements Listener {
         if (iSource == null) { return false; }
 
         // Unlink from origin and set amount to 1
-        iSource = OotilityCeption.SetAmount(new ItemStack(iSource), new PlusMinusPercent(1.0, false, false), null, null);
+        iSource = OotilityCeption.asQuantity(iSource, 1);
 
         // Success?
         boolean success = (asAuth == null);
@@ -332,7 +332,7 @@ public class JSONPlacerUtils implements Listener {
                 // If armour stand
                 if (ent instanceof ArmorStand) {
 
-                    // If not market
+                    // If not marker
                     if (!((ArmorStand) ent).isMarker()) {
 
                         success = false;
@@ -390,6 +390,10 @@ public class JSONPlacerUtils implements Listener {
 
             // Set Helm
             display.setItem(EquipmentSlot.HEAD, iSource);
+
+            // Call event
+            JSONFurniturePlaceEvent fep = new JSONFurniturePlaceEvent(iBlock, asAuth, iSource, armorstandForward);
+            Bukkit.getPluginManager().callEvent(fep);
 
             // Success
             return true;

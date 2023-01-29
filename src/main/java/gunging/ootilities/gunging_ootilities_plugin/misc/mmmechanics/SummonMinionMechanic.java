@@ -1,12 +1,12 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.GTL_SummonerClass;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
@@ -20,18 +20,15 @@ import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.mobs.MobExecutor;
-import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
-import java.io.File;
 import java.util.Optional;
 
-public class SummonMinionMechanic extends SkillMechanic implements ITargetedLocationSkill, ITargetedEntitySkill {
+public class SummonMinionMechanic extends BKCSkillMechanic implements ITargetedLocationSkill, ITargetedEntitySkill {
     String mmName;
     PlaceholderDouble leashRange;
     PlaceholderDouble kindLimit;
@@ -44,11 +41,8 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
     boolean pvpBlock;
 
 
-    //NEWEN//public SummonMinionMechanic(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, skill, mlc);
-        /*OLDEN*/public SummonMinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        /*OLDEN*/super(manager, skill, mlc);
-        GooPMythicMobs.newenOlden = true;
+    public SummonMinionMechanic(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
 
         mmName = mlc.getString(new String[] { "mob", "m", "type", "t" });
         leashRange = mlc.getPlaceholderDouble(new String[] { "leashrange", "lr" }, 20.0);

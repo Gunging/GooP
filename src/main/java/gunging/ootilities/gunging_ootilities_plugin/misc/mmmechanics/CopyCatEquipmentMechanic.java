@@ -1,33 +1,26 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.BukkitAdapter;
-import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EntityEquipment;
 
-import java.io.File;
-
 /**
  * Makes the caster copy the equipped items of the target.
  */
-public class CopyCatEquipmentMechanic extends SkillMechanic implements ITargetedEntitySkill {
+public class CopyCatEquipmentMechanic extends BKCSkillMechanic implements ITargetedEntitySkill {
 
     boolean helmet, chestplate, leggings, boots, mainhand, offhand;
 
-    //NEWEN//public CopyCatEquipmentMechanic(SkillExecutor manager, File file, String skill, MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, skill, mlc);
-        /*OLDEN*/public CopyCatEquipmentMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        /*OLDEN*/super(manager, skill, mlc);
-        GooPMythicMobs.newenOlden = true;
+    public CopyCatEquipmentMechanic(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
 
         helmet = mlc.getBoolean(new String[] { "helmet", "h", "helm", "head" }, true);
         chestplate = mlc.getBoolean(new String[] { "chestplate", "chest", "breastplate", "plate", "c", "p" }, true);

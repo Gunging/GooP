@@ -7,8 +7,8 @@ import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCCommands;
 import gunging.ootilities.gunging_ootilities_plugin.containers.interaction.ContainersInteractionHandler;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Player;
-import gunging.ootilities.gunging_ootilities_plugin.customstructures.CustomStructures;
-import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.CustomStructureMetaSource;
+import gunging.ootilities.gunging_ootilities_plugin.customstructures.CSManager;
+import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.CSMetaSource;
 import gunging.ootilities.gunging_ootilities_plugin.events.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
@@ -45,7 +45,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static boolean spamPunchingJSON = false;
     public static boolean useMMOLibDefenseConvert = false;
     public static boolean csPressurePlates = false;
-    public static Boolean devLogging = true;
+    public static Boolean devLogging = false;
     public static Player devPlayer = null;
     public static Double nameRangeExclusionMin = null;
     public static Double nameRangeExclusionMax = null;
@@ -113,30 +113,29 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         // Ready all materials!
         GooP_MinecraftVersions.InitializeMaterials();
 
-        //region Premium Custom Structures Attempt
-        try {
-            // Sweet, it is there
-            GooPP_CustomStructures premiumCSCheck = new GooPP_CustomStructures();
-
-            // Well
-            premiumCSCheck.CompatibilityCheck();
-            CustomStructures.Enable();
-
-        } catch (Throwable ignored) { }
-        //endregion
-
-        //region Premium Containers Attempt
-        try {
-            // Sweet, it is there
-            GooPP_Containers premiumCNCheck = new GooPP_Containers();
-
-            // Well
-            premiumCNCheck.CompatibilityCheck();
-            GOOPCManager.enable();
-
-        } catch (Throwable ignored) {}
-        //endregion
-
+//        //region Premium Custom Structures Attempt
+//        try {
+//            // Sweet, it is there
+//            GooPP_CustomStructures premiumCSCheck = new GooPP_CustomStructures();
+//
+//            // Well
+//            premiumCSCheck.CompatibilityCheck();
+//            CustomStructures.Enable();
+//
+//        } catch (Throwable ignored) { }
+//        //endregion
+//
+//        //region Premium Containers Attempt
+//        try {
+//            // Sweet, it is there
+//            GooPP_Containers premiumCNCheck = new GooPP_Containers();
+//
+//            // Well
+//            premiumCNCheck.CompatibilityCheck();
+//            GOOPCManager.enable();
+//
+//        } catch (Throwable ignored) {}
+//        //endregion
 
         //region World Guard Compatibility Attempt
         if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
@@ -286,6 +285,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 foundMMOItems = mmoitemsCheck.CompatibilityCheck();
 
             } catch (NoClassDefFoundError e) {
+
                 // Vr0
                 foundMMOItems = false;
             }
@@ -295,7 +295,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         if (foundMMOItems) {
 
             // Register Stats
-            GooPMMOItems.RegisterCustomStats(getConfig().getInt("MiscStatAmount", 3), getConfig().getInt("MiscStrStatAmount", 1));
+            GooPMMOItems.RegisterCustomStats(getConfig().getInt("MiscStatAmount", 3), getConfig().getInt("MiscStrStatAmount", 1), getConfig().getStringList("MiscRstStatAmount"));
         }
         //endregion
         //endregion
@@ -388,7 +388,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //endregion
 
         // Some us paper spigot methods some use plugin methods who knows
-        CustomStructureMetaSource.registerAll();
+        CSMetaSource.registerAll();
 
         loaded = true;
     }
@@ -439,6 +439,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         }
         if (foundCMI) {  foundCMI = isPluginEnabled("CMI"); }
         if (foundEssentials) {  foundEssentials = isPluginEnabled("Essentials"); }
+        if (!asPaperSpigot) { setupTickCounter(); }
         //endregion
 
         // Startup pre warms
@@ -447,7 +448,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         // Register Events
         /*WUT*/getServer().getPluginManager().registerEvents(new DeathPrevent(), theMain);
-        /*WUT*/getServer().getPluginManager().registerEvents(new CustomStructures(), theMain);
+        /*WUT*/getServer().getPluginManager().registerEvents(new CSManager(), theMain);
         getServer().getPluginManager().registerEvents(new ScoreboardLinks(), theMain);
         /*WUT*/getServer().getPluginManager().registerEvents(new XBow_Rockets(), theMain);
         /*WUT*/getServer().getPluginManager().registerEvents(new GOOPCListener(), theMain);
@@ -482,19 +483,19 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         GungingOotilitiesTab.Start();
 
         //region Announce compatibilities
-        GOOPCManager.enableLiteVersions(getConfig());
-
-        theOots.CPLog("Checking for Premium Modules...");
-        if (CustomStructures.IsPremiumEnabled()) {
-            theOots.CPLog(ChatColor.YELLOW + "Premium Custom Structures found\u00a77.");
-        } else {
-            theOots.CPLog(ChatColor.GOLD + "Premium Custom Structures not found\u00a77.");
-        }
-        if (GOOPCManager.isPremiumEnabled()) {
-            theOots.CPLog(ChatColor.YELLOW + "Premium Containers found\u00a77.");
-        } else {
-            theOots.CPLog(ChatColor.GOLD + "Premium Containers not found\u00a77.");
-        }
+//        GOOPCManager.enableLiteVersions(getConfig());
+//
+//        theOots.CPLog("Checking for Premium Modules...");
+//        if (CustomStructures.IsPremiumEnabled()) {
+//            theOots.CPLog(ChatColor.YELLOW + "Premium Custom Structures found\u00a77.");
+//        } else {
+//            theOots.CPLog(ChatColor.GOLD + "Premium Custom Structures not found\u00a77.");
+//        }
+//        if (GOOPCManager.isPremiumEnabled()) {
+//            theOots.CPLog(ChatColor.YELLOW + "Premium Containers found\u00a77.");
+//        } else {
+//            theOots.CPLog(ChatColor.GOLD + "Premium Containers not found\u00a77.");
+//        }
 
         theOots.CPLog("Enabling GooP Extensions...");
         if (usingMMOItemShrubs) {
@@ -650,6 +651,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             placeholderReadablenessRaw = getConfig().getString("NameNumberDecimals");
         if (getConfig().contains("SuggestedGemstoneColours"))
             GungingOotilitiesTab.gemstoneColours = getConfig().getStringList("SuggestedGemstoneColours");
+        if (Gunging_Ootilities_Plugin.foundMMOItems) { GooPMMOItems.readStatHistoryLimits(getConfig().getConfigurationSection("StatHistories")); }
 
         // Clear that
         commandFailDisclosures.clear();
@@ -896,7 +898,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         if (foundMythicMobs) { GooPMythicMobs.ReloadListPlaceholders(theOots); }
 
         // Reload the big ones gg
-        CustomStructures.ReloadStructures(theOots);
+        CSManager.ReloadStructures(theOots);
         GOOPCManager.reloadContainers();
         //endregion
     }
@@ -1135,10 +1137,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 ret.add(new FileConfigPair(csPath, csStorage));
 
             // Invalid YML for OptiFine Glints
-            } catch (IOException | InvalidConfigurationException e) {
+            } catch (Throwable e) {
 
                 // Announce
-                theOots.CPLog("Parsing error encountered when loading \u00a7c" + csPath.getName() + "\u00a77.");
+                theOots.CPLog("Error encountered when loading \u00a7c" + csPath.getName() + "\u00a78 ~ " + e.getClass().getName() + " " + e.getMessage());
             }
         }
 
@@ -1159,13 +1161,12 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         File outFile = new File(dataFolder, resourcePath);
         int lastIndex = resourcePath.lastIndexOf('/');
-        File outDir = new File(dataFolder, resourcePath.substring(0, lastIndex >= 0 ? lastIndex : 0));
+        File outDir = new File(dataFolder, resourcePath.substring(0, Math.max(lastIndex, 0)));
 
-        if (!outDir.exists()) {
-            outDir.mkdirs();
-        }
+        if (!outDir.exists()) { outDir.mkdirs(); }
 
         try {
+
             if (!outFile.exists() || replace) {
                 OutputStream out = new FileOutputStream(outFile);
                 byte[] buf = new byte[1024];
@@ -1175,11 +1176,9 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 }
                 out.close();
                 in.close();
-            } else {
-
             }
-        } catch (IOException ex) {
-        }
+
+        } catch (IOException ignored) { }
     }
 
     public boolean shutDown;
@@ -1207,7 +1206,27 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         // Plugin shutdown logic
         theOots.CPLog(ChatColor.RED + "Shut Down. Concluded.");
+        enabled = false;
     }
     public static void EnableMMOItemShrubs() { usingMMOItemShrubs = true; }
     public static void EnableCrossbow2RocketLauncher() { usingXBow2RocketLauncher = true; }
+
+
+    /**
+     * Only paper spigot counts ticks in the bukkit class,
+     * thus GooP takes on this tick counting task if non-paper.
+     */
+    public static int getCurrentTick() { return asPaperSpigot ? Bukkit.getCurrentTick() : nonPaperTickCounter; }
+    static int nonPaperTickCounter = 0;
+    /**
+     * It seems that paper spigot counts ticks for you, but
+     * non-paper doesn't, anyway this only works on non-paper
+     * and substitutes tick counting methodes.
+     */
+    public void setupTickCounter() {
+
+        // Anyway
+        (new BukkitRunnable() { public void run() { nonPaperTickCounter++; }
+        }).runTaskTimer(Gunging_Ootilities_Plugin.theMain, 0L, 1L);
+    }
 }

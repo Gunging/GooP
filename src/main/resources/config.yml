@@ -28,6 +28,7 @@ CustomStructures:
 
 JSONFurnitureSpamPunchingBreak: true
 
+#---------------------------------------------
 # Some MMOItems stuff, for the TAB complete
 SuggestedGemstoneColours:
   - "Blue"
@@ -35,9 +36,42 @@ SuggestedGemstoneColours:
   - "Green"
   - "Yellow"
   - "Uncolored"
-  -
+
+#---------------------------------------------
 # Number of numeric MMOItems Misc Stats
 MiscStatAmount: 3
 
 # Number of text MMOItems Misc Stats
 MiscStrStatAmount: 1
+
+# Number of restriction MMOItems Misc Stats
+MiscRstStatAmount:
+  - '0..10'   # To allow using this item, the value must be between 0 and 10
+  - '4..'     # To allow using this item, the value must be greater than four
+  - '20'      # To allow using this item, the value must be exactly 20
+
+  #
+  #
+  #
+  #- '%mmocore_mana% 0..10'
+  #- '%mmocore_mana% %player_y% 0..10'
+
+#---------------------------------------------
+#   The Stat History of MMOItems tracks all changes to a stat value.
+#   GooP commands make it very easy to change stat values, leading to huge
+#   NBT stacks as the 'External Data' [EXSH] of the Stat History fills up.
+#
+#   This is how many entries of NBT before the EXSH consolidates, freeing
+#   up memory: +2 +5 -2 +8 -3 => consolidate => +10
+#   Essentially, bundles up all information into a single entry.
+#
+StatHistories:
+
+  # Numeric Stats
+  DoubleStat: 0
+
+  # Text Stats
+  StringStat: 0
+
+  # List Stats
+  StringListStat: 0

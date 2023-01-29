@@ -73,7 +73,7 @@ public class EntitiesInSlash extends EntitiesInRadiusTargeter {
             }
 
             // For each location targets
-            if (skillMetadata.getLocationTargets() != null && GOOPCManager.isEntitiesInSlash()) {
+            if (skillMetadata.getLocationTargets() != null) { // && GOOPCManager.isEntitiesInSlash()
 
                 for (AbstractLocation w : skillMetadata.getLocationTargets()) {
                     ArrayList<Collection<AbstractEntity>> x = pEffect.playParticleSlashEffect(skillMetadata, w);
@@ -81,7 +81,7 @@ public class EntitiesInSlash extends EntitiesInRadiusTargeter {
             }
 
             // For each location targets
-            if (skillMetadata.getEntityTargets() != null && GOOPCManager.isEntitiesInSlash()) {
+            if (skillMetadata.getEntityTargets() != null) { // && GOOPCManager.isEntitiesInSlash()
 
                 for (AbstractEntity w : skillMetadata.getEntityTargets()) {
                     if (w == null) { continue; }

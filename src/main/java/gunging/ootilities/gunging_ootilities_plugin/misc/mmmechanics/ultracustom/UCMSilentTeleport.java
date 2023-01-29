@@ -1,8 +1,7 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom;
 
-import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.adapters.AbstractVector;
@@ -11,34 +10,27 @@ import io.lumine.mythic.api.skills.ITargetedEntitySkill;
 import io.lumine.mythic.api.skills.ITargetedLocationSkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
-import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.SkillMechanic;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.ArrayList;
 
 /**
  * Teleports the caster to the target, will teleport to somewhere hidden from the target,
  * apply invisibility, change gamemode to spectator, and set visible equipment to air.
  */
-public class UCMSilentTeleport extends SkillMechanic implements ITargetedEntitySkill, ITargetedLocationSkill {
+public class UCMSilentTeleport extends BKCSkillMechanic implements ITargetedEntitySkill, ITargetedLocationSkill {
 
-    //NEWEN//public UCMSilentTeleport(SkillExecutor manager, File file, String line, MythicLineConfig mlc) {
-        //NEWEN//super(manager, file, line, mlc);
-        /*OLDEN*/public UCMSilentTeleport(SkillExecutor manager, String line, MythicLineConfig mlc) {
-            /*OLDEN*/super(manager, line, mlc);
-        GooPMythicMobs.newenOlden = true;
+    public UCMSilentTeleport(CustomMechanic manager, String line, MythicLineConfig mlc) {
+        super(manager, line, mlc);
 
         this.forceSync = true;
         //targetArmorStands = mlc.getBoolean(new String[]{"targetarmorstands", "ta"}, false);

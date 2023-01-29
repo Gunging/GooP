@@ -25,6 +25,7 @@ public class GooPCMI {
      */
     @Nullable public static Location getWarp(@Nullable String warpName) {
 
+        /*
         CommandsHandler inst = getInstance().getCommandManager();
 
         try {
@@ -48,7 +49,6 @@ public class GooPCMI {
             if (instance != null) OotilityCeption.Log("\u00a78GOOPCMI\u00a7e WARP\u00a77 #" + instance.getWarpManager().getWarps().size());
 
             for (Map.Entry<String, CmiWarp> map : getInstance().getWarpManager().getWarps().entrySet()) {
-
                 OotilityCeption.Log("\u00a78GOOPCMI\u00a76 WARP\u00a7a +\u00a77" + map.getKey());
             }
         } catch (Exception ignored) {
@@ -68,11 +68,12 @@ public class GooPCMI {
 
             OotilityCeption.Log("\u00a78GOOPCMI\u00a76 WARP\u00a7a +\u00a77" + map.getKey());
         }
+        */
 
         // Sleeper warp
         CmiWarp found = getInstance().getWarpManager().getWarp(warpName);
         if (found == null) {
-            OotilityCeption.Log("\u00a78GOOPCMI\u00a76 WARP\u00a77 Warp not found");
+            //CMI//OotilityCeption.Log("\u00a78GOOPCMI\u00a76 WARP\u00a77 Warp not found");
             return null; }
 
         // Locate

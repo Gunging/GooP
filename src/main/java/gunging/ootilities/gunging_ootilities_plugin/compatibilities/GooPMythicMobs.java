@@ -34,6 +34,7 @@ import io.lumine.mythic.core.mobs.ActiveMob;
 import io.lumine.mythic.core.mobs.MobExecutor;
 import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.SkillTriggers;
+import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import io.lumine.mythic.core.skills.placeholders.Placeholder;
 import io.lumine.mythic.core.utils.jnbt.CompoundTag;
 import org.bukkit.Bukkit;
@@ -60,38 +61,31 @@ public class GooPMythicMobs implements Listener {
 
     public static boolean newenOlden = true;
     @EventHandler public void OnRegisterCustomMechanics(MythicMechanicLoadEvent event) {
-        SkillExecutor exec = event.getContainer().getManager();
+        CustomMechanic exec = event.getContainer();
         String line = event.getConfig().getLine();
         MythicLineConfig config = event.getConfig();
-        //NEWEN//File file = event.getContainer().getFile();
 
         // Switch Mechanic ig
         switch (event.getMechanicName().toLowerCase()) {
             case "recipeunlock":
             case "recipelock":
-                //NEWEN//event.register(new UCMRecipeUnlock(exec, file, line, config));
-                /*OLDEN*/event.register(new UCMRecipeUnlock(exec, line, config));
+                event.register(new UCMRecipeUnlock(exec, line, config));
                 break;
             case "silentteleport":
             case "stp":
-                //NEWEN//event.register(new UCMSilentTeleport(exec, file, line, config));
-                /*OLDEN*/event.register(new UCMSilentTeleport(exec, line, config));
+                event.register(new UCMSilentTeleport(exec, line, config));
                 break;
             case "goopstride":
-                //NEWEN//event.register(new StrideMechanic(exec, file, line, config));
-                /*OLDEN*/event.register(new StrideMechanic(exec, line, config));
+                event.register(new StrideMechanic(exec, line, config));
                 break;
             case "onportalcreateg":
-                //NEWEN//event.register(new UCMPortalCreateAura(exec, file, line, config));
-                /*OLDEN*/event.register(new UCMPortalCreateAura(exec, line, config));
+                event.register(new UCMPortalCreateAura(exec, line, config));
                 break;
             case "vexcharging":
-                //NEWEN//event.register(new VexChargingMechanic(exec, file, line, config));
-                /*OLDEN*/event.register(new VexChargingMechanic(exec, line, config));
+                event.register(new VexChargingMechanic(exec, line, config));
                 break;
             case "effect:particleslash":
-                //NEWEN//event.register(new ParticleSlashEffect(exec, event.getContainer().getFile(), line, config));
-                /*OLDEN*/event.register(new ParticleSlashEffect(exec, line, config));
+                event.register(new ParticleSlashEffect(exec, line, config));
                 break;
             case "mmodamage":
 
@@ -99,81 +93,66 @@ public class GooPMythicMobs implements Listener {
                 if (!Gunging_Ootilities_Plugin.foundMythicLib && !Gunging_Ootilities_Plugin.foundMMOItems) {
 
                     // Register own MMODamage
-                    //NEWEN//event.register(new MMODamageReplacement(exec, file, line, config));
-                    /*OLDEN*/event.register(new MMODamageReplacement(exec, line, config));
+                    event.register(new MMODamageReplacement(exec, line, config));
                 }
                 break;
             case "goopondamaged":
             case "gondamaged":
             case "ondamagedg":
-                //NEWEN//event.register(new OnDamagedAura(exec, file, line, config));
-                /*OLDEN*/event.register(new OnDamagedAura(exec, line, config));
+                event.register(new OnDamagedAura(exec, line, config));
                 break;
             case "gooponshoot":
             case "gonshoot":
             case "onshootg":
-                //NEWEN//event.register(new OnShootAura(exec, file, line, config));
-                /*OLDEN*/event.register(new OnShootAura(exec, line, config));
+                event.register(new OnShootAura(exec, line, config));
                 break;
             case "gooponattack":
             case "gonattack":
             case "onattackg":
-                //NEWEN//event.register(new OnAttackAura(exec, file, line, config));
-                /*OLDEN*/event.register(new OnAttackAura(exec, line, config));
+                event.register(new OnAttackAura(exec, line, config));
                 break;
             case "hideaura":
-                //NEWEN//event.register(new HideAura(exec, file, line, config));
-                /*OLDEN*/event.register(new HideAura(exec, line, config));
+                event.register(new HideAura(exec, line, config));
                 break;
             case "rebootbreak":
-                //NEWEN//event.register(new RebootBreak(exec, file, line, config));
-                /*OLDEN*/event.register(new RebootBreak(exec, line, config));
+                event.register(new RebootBreak(exec, line, config));
                 break;
             case "rebootrepair":
-                //NEWEN//event.register(new RebootRepair(exec, file, line, config));
-                /*OLDEN*/event.register(new RebootRepair(exec, line, config));
+                event.register(new RebootRepair(exec, line, config));
                 break;
             case "goopminion":
-                //NEWEN//event.register(new MinionMechanic(exec, file, line, config));
-                /*OLDEN*/event.register(new MinionMechanic(exec, line, config));
+                event.register(new MinionMechanic(exec, line, config));
                 break;
             case "copycatequipment":
-                //NEWEN//event.register(new CopyCatEquipmentMechanic(exec, file, line, config));
-                /*OLDEN*/event.register(new CopyCatEquipmentMechanic(exec, line, config));
+                event.register(new CopyCatEquipmentMechanic(exec, line, config));
                 break;
             case "goopsettrigger":
             case "goopastrigger":
-                //NEWEN//event.register(new AsTrigger(exec, file, line, config));
-                /*OLDEN*/event.register(new AsTrigger(exec, line, config));
+                event.register(new AsTrigger(exec, line, config));
+
                 break;
             case "goopsetorigin":
             case "goopasorigin":
-                //NEWEN//event.register(new AsOrigin(exec, file, line, config));
-                /*OLDEN*/event.register(new AsOrigin(exec, line, config));
+                event.register(new AsOrigin(exec, line, config));
                 break;
             case "goopsummonminion":
             case "goopsummonminions":
-                //NEWEN//event.register(new SummonMinionMechanic(exec, file, line, config));
-                /*OLDEN*/event.register(new SummonMinionMechanic(exec, line, config));
+                event.register(new SummonMinionMechanic(exec, line, config));
                 break;
             case "goopreleaseminion":
             case "goopreleaseminions":
-                //NEWEN//event.register(new MinionEmancipation(exec, file, line, config));
-                /*OLDEN*/event.register(new MinionEmancipation(exec, line, config));
+                event.register(new MinionEmancipation(exec, line, config));
                 break;
             case "goopsudoowner":
-                //NEWEN//event.register(new SudoOwnerMechanic(exec, file, line, config));
-                /*OLDEN*/event.register(new SudoOwnerMechanic(exec, line, config));
+                event.register(new SudoOwnerMechanic(exec, line, config));
                 break;
             case "gooprally":
             case "rallyall":
-                //NEWEN//event.register(new RallyAll(exec, file, line, config));
-                /*OLDEN*/event.register(new RallyAll(exec, line, config));
+                event.register(new RallyAll(exec, line, config));
                 break;
             case "goopsudominions":
             case "goopsudominion":
-                //NEWEN//event.register(new SudoMinionsMechanic(exec, file, line, config));
-                /*OLDEN*/event.register(new SudoMinionsMechanic(exec, line, config));
+                event.register(new SudoMinionsMechanic(exec, line, config));
                 break;
             default: break;
         }
@@ -256,11 +235,13 @@ public class GooPMythicMobs implements Listener {
                 break;
             case "locationsinslash":
             case "slashlocations":
-                if (GOOPCManager.isLocationsInSlash()) { event.register(new LocationsInSlash(exec, mlc)); }
+                // if (GOOPCManager.isLocationsInSlash()) { event.register(new LocationsInSlash(exec, mlc)); }
+                event.register(new LocationsInSlash(exec, mlc));
                 break;
             case "entitiesinslash":
             case "slashentities":
-                if (GOOPCManager.isEntitiesInSlash()) { event.register(new EntitiesInSlash(exec, mlc)); }
+                //if (GOOPCManager.isEntitiesInSlash()) { event.register(new EntitiesInSlash(exec, mlc)); }
+                event.register(new EntitiesInSlash(exec, mlc));
                 break;
             default: break;
         }
@@ -365,7 +346,7 @@ public class GooPMythicMobs implements Listener {
         for (Map.Entry<Integer, Skill> pot : playerOnTimers.entrySet()) {
 
             // If tick divisible by
-            if (Bukkit.getCurrentTick() % pot.getKey() == 0) {
+            if (Gunging_Ootilities_Plugin.getCurrentTick() % pot.getKey() == 0) {
 
                 // Run
                 for (Player p : Bukkit.getOnlinePlayers()) {
