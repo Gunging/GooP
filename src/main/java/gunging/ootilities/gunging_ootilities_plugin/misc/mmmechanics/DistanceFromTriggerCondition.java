@@ -1,27 +1,28 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
+import gunging.ootilities.gunging_ootilities_plugin.misc.QuickNumberRange;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.conditions.ISkillMetaCondition;
-/*NEWEN*/import io.lumine.mythic.bukkit.utils.numbers.RangedDouble;
-//OLDEN//import io.lumine.mythic.utils.numbers.RangedDouble;
 
 public class DistanceFromTriggerCondition extends CustomMMCondition implements ISkillMetaCondition {
-    protected RangedDouble distance;
+    protected QuickNumberRange distance;
 
     boolean matchSelf;
     boolean matchTarget;
 
     public DistanceFromTriggerCondition(MythicLineConfig mlc) {
         super(mlc);
-        GooPMythicMobs.newenOlden = true;
         String d = mlc.getString(new String[]{"distance", "d"}, this.conditionVar);
         matchSelf = mlc.getBoolean(new String[]{"self", "s", "caster", "c"}, false);
         matchTarget = mlc.getBoolean(new String[]{"target", "targ", "t"}, !matchSelf);
-        this.distance = new RangedDouble(d, true);
+
+        distance = QuickNumberRange.FromString(d);
+        if (distance == null) { distance = GooPMythicMobs.rangedDoubleToQNR(d); }
+        if (distance == null) { distance = new QuickNumberRange(0D, 0D); }
         //MM//OotilityCeption.Log("\u00a7aRegistered \u00a77DO Condition: \u00a7bS:" + matchSelf + "\u00a77, \u00a7bT:" + matchTarget + "\u00a77, \u00a7bTrig: " + matchTrigger);
     }
 
@@ -33,8 +34,8 @@ public class DistanceFromTriggerCondition extends CustomMMCondition implements I
         if (matchSelf && skillMetadata.getCaster() != null) {
 
             double diffSq = (float)origin.distanceSquared(skillMetadata.getCaster().getLocation());
-            //DO//OotilityCeption.Log("\u00a7aDO \u00a77DO Self Result: \u00a7e" + this.distance.equals(diffSq));
-            return this.distance.equals(diffSq);
+            //DO//OotilityCeption.Log("\u00a7aDO \u00a77DO Self Result: \u00a7e" + this.distance.InRange(diffSq));
+            return this.distance.InRange(diffSq);
 
         } else if (matchTarget) {
             if (skillMetadata.getEntityTargets() != null) {
@@ -42,7 +43,7 @@ public class DistanceFromTriggerCondition extends CustomMMCondition implements I
                     if (target == null) { continue; }
 
                     double diffSq = (float)origin.distanceSquared(target.getLocation());
-                    if (this.distance.equals(diffSq)) { return true; }
+                    if (this.distance.InRange(diffSq)) { return true; }
                 }
             }
 
@@ -52,7 +53,7 @@ public class DistanceFromTriggerCondition extends CustomMMCondition implements I
                     if (target == null) { continue; }
 
                     double diffSq = (float)origin.distanceSquared(target);
-                    if (this.distance.equals(diffSq)) { return true; }
+                    if (this.distance.InRange(diffSq)) { return true; }
                 }
             }
 
