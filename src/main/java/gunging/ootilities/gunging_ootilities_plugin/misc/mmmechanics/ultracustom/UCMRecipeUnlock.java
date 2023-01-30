@@ -2,13 +2,14 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracusto
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
@@ -23,11 +24,11 @@ import java.util.Iterator;
 
 /**
  * Locks and re-unlocks the bukkit recipe so it shows up as "Recipe Unlocked"
- *
+ * <p>
  * <b>lock</b> Enabling this option will not re-unlock the recipe, effectively locking it.
  * <b>printRecipes</b> String to filter out recipes to show or debug. Use 'all' for no filter.
  */
-public class UCMRecipeUnlock extends BKCSkillMechanic implements ITargetedEntitySkill {
+public class UCMRecipeUnlock extends SkillMechanic implements ITargetedEntitySkill {
 
     /**
      * Locking the recipes will not unlock it after locking it....
@@ -42,12 +43,21 @@ public class UCMRecipeUnlock extends BKCSkillMechanic implements ITargetedEntity
     PlaceholderString namespace, key;
 
     public UCMRecipeUnlock(CustomMechanic manager, String line, MythicLineConfig mlc) {
-        super(manager, line, mlc);
+        super(manager.getManager(), manager.getFile(), line, mlc);
+        construct(mlc);
+    }
 
-        this.forceSync = true;
+    public UCMRecipeUnlock(SkillExecutor manager, String line, MythicLineConfig mlc) {
+        super(manager, line, mlc);
+        construct(mlc);
+    }
+
+    void construct(MythicLineConfig mlc) {
+        setAsyncSafe(false);
+
         lock = mlc.getBoolean(new String[]{"lock"}, false);
         printRecipes = mlc.getString(new String[]{"printRecipes", "pr"}, null);
-        this.forceSync = true;
+
         // yeah
         namespace = mlc.getPlaceholderString(new String[]{"namespace", "n"}, "minecraft");
         key = mlc.getPlaceholderString(new String[]{"key", "k"}, null);

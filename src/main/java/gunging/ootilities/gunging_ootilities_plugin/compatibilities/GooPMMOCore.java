@@ -133,7 +133,7 @@ public class GooPMMOCore {
 
                 agonizing193 = false;
 
-                //OLDEN//return pSats.getStat(statName);
+                /*OLDEN*/return pSats.getStat(statName);
             }
 
         } else {
@@ -149,16 +149,16 @@ public class GooPMMOCore {
                 } catch (NoSuchMethodError|NoSuchMethodException|IllegalAccessException|InvocationTargetException ignored) {
                     agonizing193 = false;
 
-                    //OLDEN//return pSats.getStat(statName);
+                    /*OLDEN*/return pSats.getStat(statName);
                 }
 
             } else {
 
-                //OLDEN//return pSats.getStat(statName);
+                /*OLDEN*/return pSats.getStat(statName);
             }
         }
 
-        /*NEWEN*/return null;
+        //NEWEN//return null;
 
         /*
         StatInstance pStat = pData.getStats().getInstance(statName);

@@ -5,7 +5,6 @@ import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.mobs.GenericCaster;
@@ -13,6 +12,8 @@ import io.lumine.mythic.api.skills.*;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.SkillTargeter;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import io.lumine.mythic.core.skills.targeters.IEntitySelector;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class SudoOwnerMechanic extends BKCSkillMechanic implements IMetaSkill {
+public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
     boolean casterAsTrigger;
     Boolean targetMinionsSelf;
     boolean targetMinionsAny;
@@ -33,8 +34,15 @@ public class SudoOwnerMechanic extends BKCSkillMechanic implements IMetaSkill {
     Skill metaskill;
 
     public SudoOwnerMechanic(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager.getManager(), manager.getFile(), skill, mlc);
+        construct(mlc);
+    }
+    public SudoOwnerMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
         super(manager, skill, mlc);
+        construct(mlc);
+    }
 
+    void construct(MythicLineConfig mlc) {
         casterAsTrigger = mlc.getBoolean(new String[]{"setcasterastrigger", "cat"}, false);
         String tmS = mlc.getString(new String[]{"targetownminions", "tom"}, "none");
         if (OotilityCeption.BoolTryParse(tmS)) { targetMinionsSelf = Boolean.parseBoolean(tmS); } else { targetMinionsSelf = null; }

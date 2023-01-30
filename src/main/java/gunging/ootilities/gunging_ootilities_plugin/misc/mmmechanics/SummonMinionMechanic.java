@@ -6,7 +6,6 @@ import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.GTL_SummonerClass;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
@@ -20,6 +19,8 @@ import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.mobs.MobExecutor;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -28,7 +29,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Optional;
 
-public class SummonMinionMechanic extends BKCSkillMechanic implements ITargetedLocationSkill, ITargetedEntitySkill {
+public class SummonMinionMechanic extends SkillMechanic implements ITargetedLocationSkill, ITargetedEntitySkill {
     String mmName;
     PlaceholderDouble leashRange;
     PlaceholderDouble kindLimit;
@@ -42,8 +43,16 @@ public class SummonMinionMechanic extends BKCSkillMechanic implements ITargetedL
 
 
     public SummonMinionMechanic(CustomMechanic manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
+        super(manager.getManager(), manager.getFile(), skill, mlc);
+        construct(mlc);
+    }
 
+    public SummonMinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
+        construct(mlc);
+    }
+
+    void construct(MythicLineConfig mlc) {
         mmName = mlc.getString(new String[] { "mob", "m", "type", "t" });
         leashRange = mlc.getPlaceholderDouble(new String[] { "leashrange", "lr" }, 20.0);
         amount = mlc.getPlaceholderDouble(new String[] { "amount", "a", "count", "c" }, 1D);
@@ -103,7 +112,7 @@ public class SummonMinionMechanic extends BKCSkillMechanic implements ITargetedL
                             MobExecutor mm = MythicBukkit.inst().getMobManager();
                             Optional<MythicMob> mob = mm.getMythicMob(mmName);
 
-                            String mmName = mob.isPresent() ? (mob.get().getDisplayName() == null ? mob.get().getEntityType() : mob.get().getDisplayName().get(skillMetadata, skillMetadata.getCaster().getEntity())) : "\u00a74<invalid-mythicmob>";
+                            String mmName = mob.isPresent() ? (mob.get().getDisplayName() == null ? String.valueOf(mob.get().getEntityType()) : mob.get().getDisplayName().get(skillMetadata, skillMetadata.getCaster().getEntity())) : "\u00a74<invalid-mythicmob>";
                             message = message.replace("%minion_name%", mmName);
 
                             message = OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(message, summonner, (Player) summonner, null, null));

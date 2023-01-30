@@ -501,7 +501,7 @@ public class GooPMMOItems {
                 try {
 
                     GooPMythicMobs.newenOlden = true;
-                    /*NEWEN*//*
+                    //NEWEN///*
                     // Cast into list
                     List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem> list = (List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem>) equippedItems;
 
@@ -516,7 +516,7 @@ public class GooPMMOItems {
                     return vot;
                     // */
 
-                    /*NEWEN*/usingEquippedPlayerItems = false;
+                    //NEWEN//usingEquippedPlayerItems = false;
 
                 } catch (NoClassDefFoundError ignored) { usingEquippedPlayerItems = false; }
             }

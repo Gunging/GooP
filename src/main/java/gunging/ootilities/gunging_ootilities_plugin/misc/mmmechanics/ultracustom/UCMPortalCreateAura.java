@@ -3,7 +3,6 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracusto
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCAuraMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.mobs.GenericCaster;
@@ -12,6 +11,7 @@ import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.utils.Events;
+import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.auras.Aura;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.Material;
@@ -34,16 +34,24 @@ import java.util.Optional;
  * + when end portal is created by eye of ender placement
  * + when end platform is created because of entering end portal
  */
-public class UCMPortalCreateAura extends BKCAuraMechanic implements ITargetedEntitySkill {
+public class UCMPortalCreateAura extends Aura implements ITargetedEntitySkill {
 
     @NotNull PlaceholderString skillName;
     @Nullable Skill metaskill;
     protected boolean cancelDamage;
     protected boolean endPortal;
     protected boolean travel;
-    public UCMPortalCreateAura(CustomMechanic manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
 
+    public UCMPortalCreateAura(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager.getManager(), manager.getFile(), skill, mlc);
+        construct(mlc);
+    }
+    public UCMPortalCreateAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
+        super(manager, skill, mlc);
+        construct(mlc);
+    }
+
+    void construct(MythicLineConfig mlc) {
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());
         this.cancelDamage = mlc.getBoolean(new String[]{"cancelevent", "ce", "canceldamage", "cd"}, false);

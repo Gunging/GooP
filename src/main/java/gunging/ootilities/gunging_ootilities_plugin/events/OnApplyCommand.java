@@ -31,14 +31,11 @@ import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.ItemStat;
 import net.Indyuce.mmoitems.stat.type.NameData;
 import net.Indyuce.mmoitems.stat.type.StatHistory;
-/*NEWEN*/import net.Indyuce.mmoitems.util.Pair;
-import org.bukkit.Bukkit;
+//NEWEN//import net.Indyuce.mmoitems.util.Pair;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -319,11 +316,11 @@ public class OnApplyCommand implements Listener {
                     if (ConverterTypes.smithGemstones) {
 
                         // Get enchants data
-                        //OLDEN//ArrayList<MMOItem> gemstonesTherein = mmo.extractGemstones();
+                        /*OLDEN*/ArrayList<MMOItem> gemstonesTherein = mmo.extractGemstones();
                         GooPMythicMobs.newenOlden = true;
-                        /*NEWEN*/ArrayList<MMOItem> gemstonesTherein = new ArrayList<>();
-                        /*NEWEN*/ArrayList<Pair<GemstoneData, MMOItem>> gemPairs = new ArrayList<>(mmo.extractGemstones());
-                        /*NEWEN*/for (Pair<GemstoneData, MMOItem> pair : gemPairs) { gemstonesTherein.add(pair.getValue()); }
+                        //NEWEN//ArrayList<MMOItem> gemstonesTherein = new ArrayList<>();
+                        //NEWEN//ArrayList<Pair<GemstoneData, MMOItem>> gemPairs = new ArrayList<>(mmo.extractGemstones());
+                        //NEWEN//for (Pair<GemstoneData, MMOItem> pair : gemPairs) { gemstonesTherein.add(pair.getValue()); }
 
                         ArrayList<ItemStack> remainingStones = new ArrayList<>();
                         //CNV//OotilityCeption.Log("\u00a78CONVERTER \u00a7bGEMS\u00a77 Transferring stones \u00a73x" + gemstonesTherein.size());

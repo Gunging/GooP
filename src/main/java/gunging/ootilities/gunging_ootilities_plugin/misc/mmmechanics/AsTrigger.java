@@ -2,7 +2,6 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.IMetaSkill;
@@ -11,6 +10,8 @@ import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -18,14 +19,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
-public class AsTrigger extends BKCSkillMechanic implements IMetaSkill {
+public class AsTrigger extends SkillMechanic implements IMetaSkill {
     boolean targetArmorStands;
     PlaceholderString skillName;
     Skill metaskill;
 
     public AsTrigger(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager.getManager(), manager.getFile(), skill, mlc);
+        construct(mlc);
+    }
+    public AsTrigger(SkillExecutor manager, String skill, MythicLineConfig mlc) {
         super(manager, skill, mlc);
+        construct(mlc);
+    }
 
+    void construct(MythicLineConfig mlc) {
         targetArmorStands = mlc.getBoolean(new String[]{"targetarmorstands", "ta"}, false);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());

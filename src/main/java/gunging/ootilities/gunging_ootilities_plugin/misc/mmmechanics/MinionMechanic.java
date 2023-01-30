@@ -1,7 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
@@ -10,11 +9,13 @@ import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderDouble;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-public class MinionMechanic extends BKCSkillMechanic implements ITargetedEntitySkill {
+public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkill {
     PlaceholderDouble leashRange;
     String mmSkill;
     PlaceholderDouble weight;
@@ -23,7 +24,15 @@ public class MinionMechanic extends BKCSkillMechanic implements ITargetedEntityS
 
 
     public MinionMechanic(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager.getManager(), manager.getFile(), skill, mlc);
+        construct(mlc);
+    }
+    public MinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
         super(manager, skill, mlc);
+        construct(mlc);
+    }
+
+    void construct(MythicLineConfig mlc) {
 
         leashRange = mlc.getPlaceholderDouble(new String[] { "leashrange", "lr" }, 20.0);
         mmSkill = mlc.getString(new String[] { "skill", "s" });

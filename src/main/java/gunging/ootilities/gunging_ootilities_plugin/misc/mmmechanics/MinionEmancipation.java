@@ -2,12 +2,13 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -16,16 +17,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class MinionEmancipation extends BKCSkillMechanic implements ITargetedEntitySkill {
+public class MinionEmancipation extends SkillMechanic implements ITargetedEntitySkill {
 
     // Rememberances
     static HashMap<UUID, Entity> minionToOldOwner = new HashMap<>();
     @Nullable public static Entity OldOwner(@NotNull UUID minion) { return minionToOldOwner.get(minion); }
 
     public MinionEmancipation(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager.getManager(), manager.getFile(), skill, mlc);
+        construct(mlc);
+    }
+    public MinionEmancipation(SkillExecutor manager, String skill, MythicLineConfig mlc) {
         super(manager, skill, mlc);
+        construct(mlc);
+    }
 
-        this.forceSync = true;
+    void construct(MythicLineConfig mlc) {
+        setAsyncSafe(false);
     }
 
     @Override

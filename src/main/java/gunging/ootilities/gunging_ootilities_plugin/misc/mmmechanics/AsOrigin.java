@@ -2,24 +2,32 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCSkillMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.*;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class AsOrigin extends BKCSkillMechanic implements ITargetedEntitySkill, ITargetedLocationSkill {
+public class AsOrigin extends SkillMechanic implements ITargetedEntitySkill, ITargetedLocationSkill {
     boolean targetArmorStands;
     PlaceholderString skillName;
     Skill metaskill;
 
     public AsOrigin(CustomMechanic manager, String skill, MythicLineConfig mlc) {
+        super(manager.getManager(), manager.getFile(), skill, mlc);
+        construct(mlc);
+    }
+    public AsOrigin(SkillExecutor manager, String skill, MythicLineConfig mlc) {
         super(manager, skill, mlc);
+        construct(mlc);
+    }
 
+    void construct(MythicLineConfig mlc) {
         targetArmorStands = mlc.getBoolean(new String[]{"targetarmorstands", "ta"}, false);
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "meta", "m", "mechanics", "$", "()"}, "skill not found");
         metaskill = GooPMythicMobs.GetSkill(skillName.get());

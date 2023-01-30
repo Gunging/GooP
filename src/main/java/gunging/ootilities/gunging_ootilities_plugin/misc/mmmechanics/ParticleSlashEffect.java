@@ -1,6 +1,5 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mm52.BKCParticleEffect;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
@@ -9,18 +8,32 @@ import io.lumine.mythic.api.skills.ITargetedLocationSkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
+import io.lumine.mythic.core.skills.mechanics.ParticleEffect;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class ParticleSlashEffect extends BKCParticleEffect implements ITargetedEntitySkill, ITargetedLocationSkill {
+public class ParticleSlashEffect extends ParticleEffect implements ITargetedEntitySkill, ITargetedLocationSkill {
 
     @NotNull final SlashLocations<Boolean> particleEffect;
 
     public ParticleSlashEffect(CustomMechanic manager, String skill, @NotNull MythicLineConfig mlc) {
+        super(manager.getManager(), manager.getFile(), skill, mlc);
+
+        particleEffect = new SlashLocations<>(mlc, (data, slashedLocation, funnies) -> {
+
+            //noinspection unchecked
+            this.playEffect(data, slashedLocation, (Collection<AbstractEntity>) funnies[0]);
+
+            // Not needed, return statement
+            return true;
+        });
+    }
+    public ParticleSlashEffect(SkillExecutor manager, String skill, @NotNull MythicLineConfig mlc) {
         super(manager, skill, mlc);
 
         particleEffect = new SlashLocations<>(mlc, (data, slashedLocation, funnies) -> {
@@ -36,7 +49,7 @@ public class ParticleSlashEffect extends BKCParticleEffect implements ITargetedE
     public HashSet<AbstractEntity> get(SkillMetadata data) { return new HashSet<>(MythicBukkit.inst().getEntityManager().getPlayers(data.getCaster().getEntity().getWorld())); }
 
     /**
-     * Idk how audiences work and honestly its just a bunch of implementation problems.
+     * IDK how audiences work, and honestly it's just a bunch of implementation problems.
      * This gets all players within 48 blocks of epicenter.
      *
      * @param target Target Location
