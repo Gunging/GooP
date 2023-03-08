@@ -20,5 +20,10 @@ public enum ConvertingReason {
     /**
      * Generated in a chest in the world, by a Loot Table
      */
-    LOOT_GEN
+    LOOT_GEN,
+
+    /**
+     * Dropped from Mob Kills
+     */
+    MOB_KILL_DROP
 }

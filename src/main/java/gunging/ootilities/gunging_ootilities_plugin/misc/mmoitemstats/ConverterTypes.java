@@ -37,6 +37,25 @@ public class ConverterTypes {
     public static boolean smithGemstones = false;
     public static boolean generateTemplates = false;
 
+    /**
+     * @param reason Reason for converting
+     *
+     * @return If there are any settings for this at all loaded
+     */
+    public static boolean hasConverterOptions(@NotNull ConvertingReason reason) {
+        switch (reason) {
+            case CRAFT: return isOnCraft;
+            case PICKUP: return isOnPickup;
+            case MOB_KILL_DROP: return isOnDrop;
+            case LOOT_GEN: return isOnLoot;
+            case TRADED: return isOnTrade;
+        }
+
+        // Grrr
+        return false;
+    }
+    public static boolean isOnCraft, isOnPickup, isOnDrop, isOnLoot, isOnTrade;
+
     @NotNull public static String GenerateConverterID(@NotNull Material mat, @Nullable String tier) {
 
         if (!preciseIDConversion) { return GooPMMOItems.VANILLA_MIID; }
@@ -178,19 +197,23 @@ public class ConverterTypes {
 
                         // Stuff on craft
                         ConfigurationSection onCraft = typeConfig.getConfigurationSection("OnCraft");
-                        if (onCraft != null) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onCraft, converterSettings, null, ConvertingReason.CRAFT), ConvertingReason.CRAFT); }
+                        if (isOnCraft = (onCraft != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onCraft, converterSettings, null, ConvertingReason.CRAFT), ConvertingReason.CRAFT); }
 
                         // Stuff on pickup.
                         ConfigurationSection onPickup = typeConfig.getConfigurationSection("OnPickup");
-                        if (onPickup != null) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onPickup, converterSettings, null, ConvertingReason.PICKUP), ConvertingReason.PICKUP); }
+                        if (isOnPickup = (onPickup != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onPickup, converterSettings, null, ConvertingReason.PICKUP), ConvertingReason.PICKUP); }
 
                         // Stuff on pickup.
                         ConfigurationSection onTrade = typeConfig.getConfigurationSection("OnTrade");
-                        if (onTrade != null) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onTrade, converterSettings, null, ConvertingReason.TRADED), ConvertingReason.TRADED); }
+                        if (isOnTrade = (onTrade != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onTrade, converterSettings, null, ConvertingReason.TRADED), ConvertingReason.TRADED); }
 
                         // Stuff on pickup.
                         ConfigurationSection onChest = typeConfig.getConfigurationSection("OnLootGen");
-                        if (onChest != null) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onChest, converterSettings, null, ConvertingReason.LOOT_GEN), ConvertingReason.LOOT_GEN); }
+                        if (isOnLoot = (onChest != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onChest, converterSettings, null, ConvertingReason.LOOT_GEN), ConvertingReason.LOOT_GEN); }
+
+                        // Stuff on pickup.
+                        ConfigurationSection onKillDrop = typeConfig.getConfigurationSection("OnDrop");
+                        if (isOnDrop = (onKillDrop != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onKillDrop, converterSettings, null, ConvertingReason.MOB_KILL_DROP), ConvertingReason.MOB_KILL_DROP); }
                     }
                 }
 

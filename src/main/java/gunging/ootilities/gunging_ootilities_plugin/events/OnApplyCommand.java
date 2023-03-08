@@ -41,6 +41,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -61,6 +62,7 @@ public class OnApplyCommand implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void OnVillagerTalk(PlayerInteractEntityEvent event) {
+        if (!ConverterTypes.hasConverterOptions(ConvertingReason.TRADED)) { return; }
 
         /*
          * Villager? :flushed:
@@ -145,6 +147,7 @@ public class OnApplyCommand implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void OnLootGen(@NotNull LootGenerateEvent event) {
+        if (!ConverterTypes.hasConverterOptions(ConvertingReason.LOOT_GEN)) { return; }
 
         //LGN//OotilityCeption.Log("\u00a78CONVERTER\u00a76 LG\u00a77 Generating Loot!");
 
@@ -971,6 +974,7 @@ public class OnApplyCommand implements Listener {
 
     @EventHandler
     public void OnItemPickup(EntityPickupItemEvent event) {
+        if (!ConverterTypes.hasConverterOptions(ConvertingReason.PICKUP)) { return; }
         if(!(event.getEntity() instanceof Player)) { return; }
 
         // If it wasn't cancelled and the picker upper was a player
@@ -993,7 +997,7 @@ public class OnApplyCommand implements Listener {
             e.setVelocity(new Vector(0, 0, 0));
             e.setPickupDelay(0);
 
-            // Cancel this event so player doesnt pick up original
+            // Cancel this event so player doesn't pick up original
             event.setCancelled(true);
 
             // Remove original
@@ -1001,7 +1005,34 @@ public class OnApplyCommand implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.LOW)
+    public void OnMobKillDrop(EntityDeathEvent event) {
+        if (!ConverterTypes.hasConverterOptions(ConvertingReason.MOB_KILL_DROP)) { return; }
+        if (event.isCancelled()) { return; }
+
+        // Real conversion
+        for (ItemStack itm : event.getDrops()) {
+
+            // Extract Name
+            RefSimulator<ConverterTypeNames> convName = new RefSimulator<>(null);
+
+            // If the item picked up is marked as convertible
+            if (!ConverterTypes.IsConvertable(itm, convName)) { continue; }
+
+            // If it is not a MMOItem
+            if (GooPMMOItems.IsMMOItem(itm)) { continue; }
+
+            // Prepare result
+            ItemStack result = FullConvert(itm, ConverterTypeSettings.PertainingTo(convName.getValue()), null, ConvertingReason.MOB_KILL_DROP);
+
+            // Set Meta
+            itm.setType(itm.getType());
+            itm.setItemMeta(result.getItemMeta());
+        }
+    }
+
     @EventHandler public void OnSmithPrep(PrepareSmithingEvent event) {
+        if (!ConverterTypes.hasConverterOptions(ConvertingReason.CRAFT)) { return; }
 
         //SMH//OotilityCeption.Log("\u00a78Smith \u00a73PR\u00a77 Prep Begin -----------------------------------------------");
 
@@ -1086,6 +1117,7 @@ public class OnApplyCommand implements Listener {
         }
     }
     @EventHandler public void OnSmith(SmithItemEvent event) {
+        if (!ConverterTypes.hasConverterOptions(ConvertingReason.CRAFT)) { return; }
 
         //SMH//OotilityCeption.Log("\u00a78Smith \u00a76EV\u00a77 Event Begin");
 
@@ -1230,6 +1262,7 @@ public class OnApplyCommand implements Listener {
     static HashMap<UUID, ItemStack> craftPrep = new HashMap<>();
     static HashMap<UUID, ItemStack> craftPrepResult = new HashMap<>();
     @EventHandler public void OnCraftPrep(PrepareItemCraftEvent event) {
+        if (!ConverterTypes.hasConverterOptions(ConvertingReason.CRAFT)) { return; }
 
         // Only players ffs
         if (!(event.getView().getPlayer() instanceof Player)) { return; }
@@ -1270,6 +1303,7 @@ public class OnApplyCommand implements Listener {
     static ArrayList<Player> crafters = new ArrayList<>();
     static boolean messagesRunning = false;
     @EventHandler public void OnCraft(CraftItemEvent event) {
+        if (!ConverterTypes.hasConverterOptions(ConvertingReason.CRAFT)) { return; }
 
         // Only players ffs
         if (!(event.getView().getPlayer() instanceof Player)) { return; }

@@ -136,11 +136,15 @@ Allow_MythicItems: true
 ###        - UNCOMMON 80
 ###        - RARE 3
 ###        - EPIC 3
-###    OnLootGen:
+###    OnLootGen: # ex. Looting End City chests
 ###      Tier:
 ###        - RARE 5
 ###        - EPIC 3
-###    OnTrade:
+###    OnDrop:  # ex. Zombie drops held weapon
+###      Tier:
+###        - RARE 5
+###        - EPIC 3
+###    OnTrade: # ex. Sold by Villager
 ###      Tier:
 ###        - COMMON 18
 ###        - UNCOMMON 5
