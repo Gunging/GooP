@@ -62,10 +62,10 @@ public class TCPEffect implements Cloneable {
         this.vOff =   mlc.getPlaceholderFloat(new String[]{"vOff"}, 0.0F);
 
         // Relative Rotation Quaternion
-        this.fRot =   mlc.getPlaceholderFloat(new String[]{"fOff"}, 0.0F);
-        this.sRot =   mlc.getPlaceholderFloat(new String[]{"sOff"}, 0.0F);
-        this.vRot =   mlc.getPlaceholderFloat(new String[]{"vOff"}, 0.0F);
-        this.rRot =   mlc.getPlaceholderFloat(new String[]{"vOff"}, 0.0F);
+        this.fRot =   mlc.getPlaceholderFloat(new String[]{"fRot"}, 0.0F);
+        this.sRot =   mlc.getPlaceholderFloat(new String[]{"sRot"}, 0.0F);
+        this.vRot =   mlc.getPlaceholderFloat(new String[]{"vRot"}, 0.0F);
+        this.rRot =   mlc.getPlaceholderFloat(new String[]{"rRot"}, 0.0F);
 
         // Absolute Scale Vector
         this.xScale =   mlc.getPlaceholderFloat(new String[]{"xScale"}, 1.0F);

@@ -1,6 +1,7 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 
+import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.misc.QuickNumberRange;
 import io.lumine.mythic.api.adapters.AbstractEntity;
@@ -29,7 +30,7 @@ public class DistanceFromOriginCondition extends CustomMMCondition implements IS
         if (distance == null) { distance = GooPMythicMobs.rangedDoubleToQNR(d); }
         if (distance == null) { distance = new QuickNumberRange(0D, 0D); }
 
-        //MM//OotilityCeption.Log("\u00a7aRegistered \u00a77DO Condition: \u00a7bS:" + matchSelf + "\u00a77, \u00a7bT:" + matchTarget + "\u00a77, \u00a7bTrig: " + matchTrigger);
+        //DO//OotilityCeption.Log("\u00a7aRegistered \u00a77DO Condition: \u00a7bS:" + matchSelf + "\u00a77, \u00a7bT:" + matchTarget + "\u00a77, \u00a7bTrig: " + matchTrigger);
     }
 
     @Override

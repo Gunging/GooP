@@ -168,14 +168,17 @@ public class SlashLocations<T> extends TCPEffect {
             // Chad even distribution
         } else { rnd = (b + i * fraction) - (circumference * 0.5D); }
 
-        // Circumference
-        rnd += (circumference * 0.5D);
+        // Reverse Skew
+        if (skewed < 0) {
+            rnd -= (circumference * 0.5D);
+            rnd *= skewed * skewed;
+            rnd += (circumference * 0.5D);
 
         // Skew
-        rnd *= skewed * skewed;
-
-        // Circumference
-        rnd -= (circumference * 0.5D);
+        } else {
+            rnd += (circumference * 0.5D);
+            rnd *= skewed * skewed;
+            rnd -= (circumference * 0.5D);}
 
         double x = Math.sin(rnd); double y = x;
         double z = Math.cos(rnd);

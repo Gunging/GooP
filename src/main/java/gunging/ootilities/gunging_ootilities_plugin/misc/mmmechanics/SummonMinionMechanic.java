@@ -26,6 +26,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -130,7 +131,8 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
             //MM//OotilityCeption. Log("\u00a73 >\u00a77 " + i);
 
             // Spawn
-            Entity target = GooPMythicMobs.SpawnMythicMob(mmName, loc, effectiveLevel);
+            Entity target = GooPMythicMobs.SpawnMythicMob(mmName, minionSpawn = loc, effectiveLevel);
+            minionSpawn = null;
 
             if (target != null) {
                 //MM//OotilityCeption. Log("\u00a7a >\u00a77 Spawn Success");
@@ -158,6 +160,7 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
             }
         }
     }
+    @Nullable public static Location minionSpawn = null;
 
     @Override
     public SkillResult castAtEntity(SkillMetadata skillMetadata, AbstractEntity targetProbably) {

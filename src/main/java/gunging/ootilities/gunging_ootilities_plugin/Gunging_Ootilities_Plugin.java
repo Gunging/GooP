@@ -226,6 +226,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         //region MythicMobs Compatibility Attempt
         if (getServer().getPluginManager().getPlugin("MythicMobs") != null) {
             foundMythicMobs = true;
+            GooPMythicMobs.identifyVersion();
 
         } else {
 
@@ -236,6 +237,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 // Welp
                 mythicMobsCheck.CompatibilityCheck();
                 foundMythicMobs = true;
+                GooPMythicMobs.identifyVersion();
 
             } catch (NoClassDefFoundError e) {
                 // Vr0
@@ -459,6 +461,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         if (foundMMOItems) { getServer().getPluginManager().registerEvents(new OnApplyCommand(), theMain); }
         if (foundMythicMobs) { getServer().getPluginManager().registerEvents(new GooPMythicMobs(), theMain); }
+        if (foundTowny) { getServer().getPluginManager().registerEvents(new GooPTowny(), theMain); }
 
         // Schedule insync
         Bukkit.getScheduler().scheduleSyncRepeatingTask(getPlugin(), ((Runnable) new SummonerClassUtils()), 40, 200);
@@ -556,7 +559,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         }
 
         if (foundMythicMobs){
-            theOots.CPLog(ChatColor.AQUA + "MythicMobs found\u00a77.");
+            theOots.CPLog(ChatColor.AQUA + "MythicMobs " + GooPMythicMobs.getVersionMajor() + "." + GooPMythicMobs.getVersionMinor() + "." + GooPMythicMobs.getVersionBuild() + " found\u00a77.");
 
             // Register placeholders
             GooPMythicMobs.RegisterPlaceholders(foundMMOItems);

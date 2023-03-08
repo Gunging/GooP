@@ -8,9 +8,7 @@ import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.C
 import gunging.ootilities.gunging_ootilities_plugin.events.ScoreboardLinks;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.TargetedItems;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.LuckStat;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.MiscRestrictionStat;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.XBow_Loaded_Stat;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmoitemstats.*;
 import io.lumine.mythic.lib.api.item.ItemTag;
 import io.lumine.mythic.lib.api.item.NBTItem;
 import io.lumine.mythic.lib.api.player.MMOPlayerData;
@@ -427,22 +425,22 @@ public class GooPMMOItems {
         ONHIT_COMMAND = new StringStat("GOOP_MM_HIT", Material.STONE_SWORD, "On Hit Command", new String[]{"Run a command when damaging something", "while having this item equipped.", "", "\u00a73Maybe run a mythic skill?", "\u00a7b/goop mythicmobs runSkillAs <SKILL> %player% @%victim%"}, new String[]{"!consumable", "!miscellaneous", "!skin", "all", "!skin", "!miscellaneous", "!consumable" });
         RegisterStat(ONHIT_COMMAND);
 
-        APPLICABLE_COMMAND = new StringStat("GOOP_APPLY_COMMAND", Material.FILLED_MAP, "GooP OnApply Command", new String[]{"What command is run when this item", "is applied on other items?", "\u00a7a", "\u00a7aRestrict which types this can be", "\u00a7aapplied to with an apply mask.", "\u00a7a", "\u00a73Supports GooP commands by choosing slot", "\u00a73as \u00a7a%player% %provided-slot%\u00a73;", "\u00a7b\u00a7lPAPI supported."}, new String[]{"all"});
+        APPLICABLE_COMMAND = new StringStatProper("GOOP_APPLY_COMMAND", Material.FILLED_MAP, "GooP OnApply Command", new String[]{"What command is run when this item", "is applied on other items?", "\u00a7a", "\u00a7aRestrict which types this can be", "\u00a7aapplied to with an apply mask.", "\u00a7a", "\u00a73Supports GooP commands by choosing slot", "\u00a73as \u00a7a%player% %provided-slot%\u00a73;", "\u00a7b\u00a7lPAPI supported."}, new String[]{"all"});
         RegisterStat(APPLICABLE_COMMAND);
 
-        APPLICABLE_MASK = new StringStat("GOOP_APPLY_MASK", Material.FILLED_MAP, "GooP OnApply Mask", new String[]{"Define Masks in \u00a7bonapply-masks.yml", "\u00a7a", "Restricts to which MMOItem types", "this item can be applied to IF", "it has an OnApply Command."}, new String[]{"!gem_stone", "all", "!gem_stone"});
+        APPLICABLE_MASK = new StringStatProper("GOOP_APPLY_MASK", Material.FILLED_MAP, "GooP OnApply Mask", new String[]{"Define Masks in \u00a7bonapply-masks.yml", "\u00a7a", "Restricts to which MMOItem types", "this item can be applied to IF", "it has an OnApply Command."}, new String[]{"!gem_stone", "all", "!gem_stone"});
         RegisterStat(APPLICABLE_MASK);
 
         APPLICABLE_CONSUME = new BooleanStat("GOOP_APPLY_CONSUME", Material.PAPER, "Not Consume on GooP OnApply", new String[]{"Consumables are consumed when using their OnApply.", "This will prevent them from doing so."}, new String[]{"consumable"});
         RegisterStat(APPLICABLE_CONSUME);
 
-        APPLICABLE_CLASS = new StringStat("GOOP_APPLY_CLASS", Material.MAP, "GooP OnApply Reference", new String[]{"Used to limit how many times the", "OnApply Command can run on the", "same item.", "", "\u00a7bIf this is not specified, but a limit is,", "\u00a7bthe limit will apply to only this MMOItem."}, new String[]{"all"});
+        APPLICABLE_CLASS = new StringStatProper("GOOP_APPLY_CLASS", Material.MAP, "GooP OnApply Reference", new String[]{"Used to limit how many times the", "OnApply Command can run on the", "same item.", "", "\u00a7bIf this is not specified, but a limit is,", "\u00a7bthe limit will apply to only this MMOItem."}, new String[]{"all"});
         RegisterStat(APPLICABLE_CLASS);
 
-        APPLICABLE_LIMIT = new DoubleStat("GOOP_APPLY_LIMIT", Material.MAP, "GooP OnApply Limit", new String[]{"Used to limit how many times the", "OnApply Command can run on the", "same item.", "", "\u00a73This is the number of times OnApply", "\u00a73commands of the same \u00a7bReference\u00a73 will", "\u00a73act upon the same item."}, new String[]{"all"});
+        APPLICABLE_LIMIT = new DoubleStatProper("GOOP_APPLY_LIMIT", Material.MAP, "GooP OnApply Limit", new String[]{"Used to limit how many times the", "OnApply Command can run on the", "same item.", "", "\u00a73This is the number of times OnApply", "\u00a73commands of the same \u00a7bReference\u00a73 will", "\u00a73act upon the same item."}, new String[]{"all"});
         RegisterStat(APPLICABLE_LIMIT);
 
-        APPLICABLE_TIMES = new StringListStat("GOOP_APPLY_TIMES", Material.LIGHT_GRAY_STAINED_GLASS_PANE, "GooP OnApply Repetitions", new String[]{"Tech stat that keeps track of how", "many times an OnApply item has been", "used on this item.", "", "\u00a76I guess you could use it to make", "\u00a76an item think an OnApply has been used", "\u00a76a few times on it already.", "", "\u00a78Format: &n[reference] [number of times]", "\u00a7cEx: &nUpgradeRef 2"}, new String[]{"all"});
+        APPLICABLE_TIMES = new StringListStatProper("GOOP_APPLY_TIMES", Material.LIGHT_GRAY_STAINED_GLASS_PANE, "GooP OnApply Repetitions", new String[]{"Tech stat that keeps track of how", "many times an OnApply item has been", "used on this item.", "", "\u00a76I guess you could use it to make", "\u00a76an item think an OnApply has been used", "\u00a76a few times on it already.", "", "\u00a78Format: &n[reference] [number of times]", "\u00a7cEx: &nUpgradeRef 2"}, new String[]{"all"});
         RegisterStat(APPLICABLE_TIMES);
 
         CONTAINER = new StringStat("GOOP_CONTAINER", Material.CHEST, "GooP Container", new String[]{"This item will serve as a a bag!", "Right-Click to open as if it was a backpack", "", "\u00a7cThe container uuid will be saved in this item.", "\u00a78Can only be opened as a single stack."}, new String[]{"!consumable", "!gem_stone", "!musket", "!bow", "!crossbow", "!lute", "!skin", "all", "!skin", "!consumable", "!gem_stone", "!musket", "!bow", "!crossbow", "!lute"});
@@ -500,25 +498,36 @@ public class GooPMMOItems {
 
                 try {
 
-                    GooPMythicMobs.newenOlden = true;
-                    //NEWEN///*
-                    // Cast into list
-                    List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem> list = (List<net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem>) equippedItems;
+                    // We all know it is a list (real)
+                    List list = ((List) equippedItems);
 
-                    // Yeah, add the equipped
-                    for (net.Indyuce.mmoitems.api.player.inventory.EquippedPlayerItem e : list) {
+                    // List of something
+                    for (int i = 0; i < list.size(); i++) {
 
-                        // Add
-                        vot.add(e.getItem());
+                        // Get that item I hope
+                        Object equippedPlayerItem = (Object) list.get(i);
+
+                        // Find method
+                        if (getitem == null) {
+
+                            // Reflection or not
+                            try {
+
+                                // Identify Method
+                                getitem = equippedPlayerItem.getClass().getMethod("getItem");
+
+                            // lol no
+                            } catch (NoSuchMethodException ignored) { return vot; }
+                        }
+
+                        // That should be the result
+                        vot.add((VolatileMMOItem) getitem.invoke(equippedPlayerItem));
                     }
 
                     // Right....
                     return vot;
-                    // */
 
-                    //NEWEN//usingEquippedPlayerItems = false;
-
-                } catch (NoClassDefFoundError ignored) { usingEquippedPlayerItems = false; }
+                } catch (NoClassDefFoundError ignored) { usingEquippedPlayerItems = false; getitem = null; }
             }
 
             // Cast into list
@@ -534,7 +543,7 @@ public class GooPMMOItems {
                         // Identify Method
                         getitem = e.getClass().getMethod("getNBT");
 
-                        // lol no
+                    // lol no
                     } catch (NoSuchMethodException ignored) { return vot; }
                 }
 
@@ -5310,7 +5319,7 @@ public class GooPMMOItems {
                                     final PlusMinusPercent finalScore = score;
 
                                     // Preparation of Methods
-                                    TargetedItems executor = new TargetedItems(false, true,
+                                    TargetedItems executor = new TargetedItems(false, !pmpLevel.isNeutral(),
                                             chained, chainedCommand, sender, failMessage,
 
                                             // What method to use to process the item

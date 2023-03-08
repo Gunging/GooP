@@ -11,6 +11,18 @@ public class PlusMinusPercent implements Cloneable {
     Double operationValue = 0.0;
     Boolean multiplyPercent = false;
 
+    /**
+     * @return If this operation does not actually change the value it is applied onto
+     */
+    public boolean isNeutral() {
+
+        /*
+         * If relative, the operation value must be 0 (+0%, -0%, +0, -0)
+         * If not relative, it must multiply by 1 (100%)
+         */
+        return relative ? (operationValue == 0) : (multiplyPercent && operationValue == 1);
+    }
+
     @Override
     public PlusMinusPercent clone() {
 

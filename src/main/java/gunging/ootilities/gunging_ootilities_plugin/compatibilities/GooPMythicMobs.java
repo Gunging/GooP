@@ -3,7 +3,6 @@ package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 import com.google.common.collect.Sets;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
-import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
 import gunging.ootilities.gunging_ootilities_plugin.events.GooP_FontUtils;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
@@ -37,7 +36,6 @@ import io.lumine.mythic.core.skills.SkillTriggers;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import io.lumine.mythic.core.skills.placeholders.Placeholder;
 import io.lumine.mythic.core.utils.jnbt.CompoundTag;
-import io.lumine.mythic.lib.api.util.ui.SilentNumbers;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -61,17 +59,8 @@ public class GooPMythicMobs implements Listener {
     //region Versioning
     public GooPMythicMobs() {}
 
-    public void CompatibilityCheck() {
-        MythicMob mbb = null;
-
-        String[] ver = MythicBukkit.inst().getVersion().split("\\.");
-        if (ver.length > 0) { versionMajor = mmVer(ver[0]); }
-        if (ver.length > 1) { versionMinor = mmVer(ver[1]); }
-        if (ver.length > 2) { versionBuild = mmVer(ver[2]); }
-    }
-    int mmVer(@Nullable String numb) {
-        Integer flop = SilentNumbers.IntegerParse(numb);
-        return flop == null ? -1 : flop; }
+    public void CompatibilityCheck() { MythicMob mbb = null; }
+    static int mmVer(@Nullable String numb) {if (!OotilityCeption.IntTryParse(numb)) { return -1; }return OotilityCeption.ParseInt(numb);}
     /**
      * @return Major MythicMobs version; ex the X in MythicMobs X.2.0
      */
@@ -89,6 +78,21 @@ public class GooPMythicMobs implements Listener {
      */
     public static int getVersionBuild() { return versionBuild; }
     static int versionBuild = -2;
+
+    /**
+     * @return MythicMobs version
+     */
+    @NotNull public static String getVersion() { return MythicBukkit.inst().getVersion(); }
+
+    /**
+     * Parse the mythicmob version
+     */
+    public static void identifyVersion() {
+        String[] ver = getVersion().split("\\.");
+        if (ver.length > 0) { versionMajor = mmVer(ver[0]); }
+        if (ver.length > 1) { versionMinor = mmVer(ver[1]); }
+        if (ver.length > 2) { versionBuild = mmVer(ver[2]); }
+    }
     //endregion
 
     @Nullable public static QuickNumberRange rangedDoubleToQNR(@Nullable String value) {
@@ -138,33 +142,33 @@ public class GooPMythicMobs implements Listener {
 
     public static boolean newenOlden = true;
     @EventHandler public void OnRegisterCustomMechanics(MythicMechanicLoadEvent event) {
-        CustomMechanic exec = event.getContainer();
+        CustomMechanic customMechanic = event.getContainer();
         String line = event.getConfig().getLine();
-        MythicLineConfig config = event.getConfig();
-        SkillExecutor manager = exec.getManager();
-        boolean mm52 = getVersionMajor() >= 5 && getVersionMinor() >= 2;
+        MythicLineConfig mlc = event.getConfig();
+        SkillExecutor skillExecutor = customMechanic.getManager();
+        boolean mm52 = (getVersionMajor() == 5 && getVersionMinor() >= 2) || (getVersionMajor() > 5);
 
         // Switch Mechanic ig
         switch (event.getMechanicName().toLowerCase()) {
             case "recipeunlock":
             case "recipelock":
-                event.register(mm52 ? new UCMRecipeUnlock(exec, line, config) : new UCMRecipeUnlock(manager, line, config));
+                event.register(mm52 ? new UCMRecipeUnlock(customMechanic, line, mlc) : new UCMRecipeUnlock(skillExecutor, line, mlc));
                 break;
             case "silentteleport":
             case "stp":
-                event.register(mm52 ? new UCMSilentTeleport(exec, line, config) : new UCMSilentTeleport(manager, line, config));
+                event.register(mm52 ? new UCMSilentTeleport(customMechanic, line, mlc) : new UCMSilentTeleport(skillExecutor, line, mlc));
                 break;
             case "goopstride":
-                event.register(mm52 ? new StrideMechanic(exec, line, config) : new StrideMechanic(manager, line, config));
+                event.register(mm52 ? new StrideMechanic(customMechanic, line, mlc) : new StrideMechanic(skillExecutor, line, mlc));
                 break;
             case "onportalcreateg":
-                event.register(mm52 ? new UCMPortalCreateAura(exec, line, config) : new UCMPortalCreateAura(manager, line, config));
+                event.register(mm52 ? new UCMPortalCreateAura(customMechanic, line, mlc) : new UCMPortalCreateAura(skillExecutor, line, mlc));
                 break;
             case "vexcharging":
-                event.register(mm52 ? new VexChargingMechanic(exec, line, config) : new VexChargingMechanic(manager, line, config));
+                event.register(mm52 ? new VexChargingMechanic(customMechanic, line, mlc) : new VexChargingMechanic(skillExecutor, line, mlc));
                 break;
             case "effect:particleslash":
-                event.register(mm52 ? new ParticleSlashEffect(exec, line, config) : new ParticleSlashEffect(manager, line, config));
+                event.register(mm52 ? new ParticleSlashEffect(customMechanic, line, mlc) : new ParticleSlashEffect(skillExecutor, line, mlc));
                 break;
             case "mmodamage":
 
@@ -172,66 +176,66 @@ public class GooPMythicMobs implements Listener {
                 if (!Gunging_Ootilities_Plugin.foundMythicLib && !Gunging_Ootilities_Plugin.foundMMOItems) {
 
                     // Register own MMODamage
-                    event.register(mm52 ? new MMODamageReplacement(exec, line, config) : new MMODamageReplacement(manager, line, config));
+                    event.register(mm52 ? new MMODamageReplacement(customMechanic, line, mlc) : new MMODamageReplacement(skillExecutor, line, mlc));
                 }
                 break;
             case "goopondamaged":
             case "gondamaged":
             case "ondamagedg":
-                event.register(mm52 ? new OnDamagedAura(exec, line, config) : new OnDamagedAura(manager, line, config));
+                event.register(mm52 ? new OnDamagedAura(customMechanic, line, mlc) : new OnDamagedAura(skillExecutor, line, mlc));
                 break;
             case "gooponshoot":
             case "gonshoot":
             case "onshootg":
-                event.register(mm52 ? new OnShootAura(exec, line, config) : new OnShootAura(manager, line, config));
+                event.register(mm52 ? new OnShootAura(customMechanic, line, mlc) : new OnShootAura(skillExecutor, line, mlc));
                 break;
             case "gooponattack":
             case "gonattack":
             case "onattackg":
-                event.register(mm52 ? new OnAttackAura(exec, line, config) : new OnAttackAura(manager, line, config));
+                event.register(mm52 ? new OnAttackAura(customMechanic, line, mlc) : new OnAttackAura(skillExecutor, line, mlc));
                 break;
             case "hideaura":
-                event.register(mm52 ? new HideAura(exec, line, config) : new HideAura(manager, line, config));
+                event.register(mm52 ? new HideAura(customMechanic, line, mlc) : new HideAura(skillExecutor, line, mlc));
                 break;
             case "rebootbreak":
-                event.register(mm52 ? new RebootBreak(exec, line, config) : new RebootBreak(manager, line, config));
+                event.register(mm52 ? new RebootBreak(customMechanic, line, mlc) : new RebootBreak(skillExecutor, line, mlc));
                 break;
             case "rebootrepair":
-                event.register(mm52 ? new RebootRepair(exec, line, config) : new RebootRepair(manager, line, config));
+                event.register(mm52 ? new RebootRepair(customMechanic, line, mlc) : new RebootRepair(skillExecutor, line, mlc));
                 break;
             case "goopminion":
-                event.register(mm52 ? new MinionMechanic(exec, line, config) : new MinionMechanic(manager, line, config));
+                event.register(mm52 ? new MinionMechanic(customMechanic, line, mlc) : new MinionMechanic(skillExecutor, line, mlc));
                 break;
             case "copycatequipment":
-                event.register(mm52 ? new CopyCatEquipmentMechanic(exec, line, config) : new CopyCatEquipmentMechanic(manager, line, config));
+                event.register(mm52 ? new CopyCatEquipmentMechanic(customMechanic, line, mlc) : new CopyCatEquipmentMechanic(skillExecutor, line, mlc));
                 break;
             case "goopsettrigger":
             case "goopastrigger":
-                event.register(mm52 ? new AsTrigger(exec, line, config) : new AsTrigger(manager, line, config));
+                event.register(mm52 ? new AsTrigger(customMechanic, line, mlc) : new AsTrigger(skillExecutor, line, mlc));
 
                 break;
             case "goopsetorigin":
             case "goopasorigin":
-                event.register(mm52 ? new AsOrigin(exec, line, config) : new AsOrigin(manager, line, config));
+                event.register(mm52 ? new AsOrigin(customMechanic, line, mlc) : new AsOrigin(skillExecutor, line, mlc));
                 break;
             case "goopsummonminion":
             case "goopsummonminions":
-                event.register(mm52 ? new SummonMinionMechanic(exec, line, config) : new SummonMinionMechanic(manager, line, config));
+                event.register(mm52 ? new SummonMinionMechanic(customMechanic, line, mlc) : new SummonMinionMechanic(skillExecutor, line, mlc));
                 break;
             case "goopreleaseminion":
             case "goopreleaseminions":
-                event.register(mm52 ? new MinionEmancipation(exec, line, config) : new MinionEmancipation(manager, line, config));
+                event.register(mm52 ? new MinionEmancipation(customMechanic, line, mlc) : new MinionEmancipation(skillExecutor, line, mlc));
                 break;
             case "goopsudoowner":
-                event.register(mm52 ? new SudoOwnerMechanic(exec, line, config) : new SudoOwnerMechanic(manager, line, config));
+                event.register(mm52 ? new SudoOwnerMechanic(customMechanic, line, mlc) : new SudoOwnerMechanic(skillExecutor, line, mlc));
                 break;
             case "gooprally":
             case "rallyall":
-                event.register(mm52 ? new RallyAll(exec, line, config) : new RallyAll(manager, line, config));
+                event.register(mm52 ? new RallyAll(customMechanic, line, mlc) : new RallyAll(skillExecutor, line, mlc));
                 break;
             case "goopsudominions":
             case "goopsudominion":
-                event.register(mm52 ? new SudoMinionsMechanic(exec, line, config) : new SudoMinionsMechanic(manager, line, config));
+                event.register(mm52 ? new SudoMinionsMechanic(customMechanic, line, mlc) : new SudoMinionsMechanic(skillExecutor, line, mlc));
                 break;
             default: break;
         }

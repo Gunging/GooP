@@ -8671,7 +8671,7 @@ public class GungingOotilities implements CommandExecutor {
                                 final Attribute finalAttribute = attribute;
 
                                 // Preparation of Methods
-                                TargetedItems executor = new TargetedItems(false, true,
+                                TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
                                         chained, chainedCommand, sender, failMessage,
 
                                         // What method to use to process the item
@@ -8820,7 +8820,7 @@ public class GungingOotilities implements CommandExecutor {
                                 final boolean useObjective = targetObjective != null;
 
                                 // Preparation of Methods
-                                TargetedItems executor = new TargetedItems(false, true,
+                                TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
                                         chained, chainedCommand, sender, failMessage,
 
                                         // What method to use to process the item
@@ -9049,7 +9049,7 @@ public class GungingOotilities implements CommandExecutor {
                                 //DUR//OotilityCeption.Log("\u00a78COMMAND\u00a73 DUR\u00a77 Passing Use Max Dura:\u00a72 " + finalUseMax);
 
                                 // Preparation of Methods
-                                TargetedItems executor = new TargetedItems(false, true,
+                                TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
                                         chained, chainedCommand, sender, failMessage,
 
                                         // What method to use to process the item
@@ -9201,7 +9201,7 @@ public class GungingOotilities implements CommandExecutor {
                                 if (tEnch == null) { enchs.addAll(Arrays.asList(Enchantment.values())); } else { enchs.add(tEnch); }
 
                                 // Preparation of Methods
-                                TargetedItems executor = new TargetedItems(false, true,
+                                TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
                                         chained, chainedCommand, sender, failMessage,
 
                                         // What method to use to process the item
@@ -9432,7 +9432,7 @@ public class GungingOotilities implements CommandExecutor {
                                 final boolean useObjective = targetObjective != null;
 
                                 // Preparation of Methods
-                                TargetedItems executor = new TargetedItems(false, true,
+                                TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
                                         chained, chainedCommand, sender, failMessage,
 
                                         // What method to use to process the item

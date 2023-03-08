@@ -29,6 +29,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Container;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.data.Bisected;
 import org.bukkit.command.CommandSender;
@@ -67,7 +68,7 @@ public class OotilityCeption {
     public static void Log(@Nullable String arg) {
 
         // Is Dev Logging null?
-        if (Gunging_Ootilities_Plugin.devLogging){
+        if (Gunging_Ootilities_Plugin.devLogging) {
 
             // Is Specified?
             if (Gunging_Ootilities_Plugin.devPlayer != null) {
@@ -708,9 +709,7 @@ public class OotilityCeption {
         long rounded = Math.round(number * Math.pow(10, decimals));
         return rounded / Math.pow(10, decimals);
     }
-    public static int RoundToInt(double number) {
-        return (int) Math.round(number);
-    }
+    public static int RoundToInt(double number) { return (int) Math.round(number); }
 
     /**
      * Will return negative if the origin happened after the 'current'
@@ -1233,11 +1232,8 @@ public class OotilityCeption {
         if (IsAirNullAllowed(iStack)) { return false; }
 
         // Dip search?
-        if (IsShulkerBox(iStack.getType())) {
-
-            // Iterate whole inventory
-            BlockStateMeta bsm = (BlockStateMeta) iStack.getItemMeta();
-            ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
+        if (iStack.getItemMeta() instanceof Container) {
+            Container boxx = (Container) iStack.getItemMeta();
 
             // For every slot
             for (int sl = 0; sl < 27; sl++) {
@@ -1260,17 +1256,21 @@ public class OotilityCeption {
             return type == Material.WRITABLE_BOOK || type == Material.WRITTEN_BOOK || type == Material.LEGACY_WRITTEN_BOOK;
         }
     }
+
+    /**
+     * Lovely containerception (real)
+     *
+     * DOES NOT ACCOUNT FOR CHESTS WITH SAVED NBT. Only Shulker Boxes or itself.
+     * @return Will return true if it is a Written Book, a Writeable Book, or if it is a shulker box that contains any of these.
+     */
     public static boolean ContainsContainerBag(ItemStack iStack) {
 
         // Technically air and null itemstacks are not books nor contain them
         if (IsAirNullAllowed(iStack)) { return false; }
 
         // Dip search?
-        if (IsShulkerBox(iStack.getType())) {
-
-            // Iterate whole inventory
-            BlockStateMeta bsm = (BlockStateMeta) iStack.getItemMeta();
-            ShulkerBox boxx = (ShulkerBox) bsm.getBlockState();
+        if (iStack.getItemMeta() instanceof Container) {
+            Container boxx = (Container) iStack.getItemMeta();
 
             // For every slot
             for (int sl = 0; sl < 27; sl++) {
@@ -1278,14 +1278,14 @@ public class OotilityCeption {
                 // Identify observed
                 ItemStack obs = boxx.getInventory().getItem(sl);
 
-                // Does it contain a written book? RETURN THE INFORMATION
-                if (ContainsWrittenBook(obs)) { return true; }
+                // Does it contain a container bag? RETURN THE INFORMATION
+                if (ContainsContainerBag(obs)) { return true; }
             }
 
             // Made it this far? Yo clear man
             return false;
 
-            // Just itself
+        // Just itself
         } else {
 
             // Evaluate material itself

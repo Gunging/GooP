@@ -80,7 +80,7 @@ public class EntitiesInSlash extends EntitiesInRadiusTargeter {
                     for (Collection<AbstractEntity> y : x) { for (AbstractEntity z : y) { v.put(z.getUniqueId(), z); } } }
             }
 
-            // For each location targets
+            // For each entity targets
             if (skillMetadata.getEntityTargets() != null) { // && GOOPCManager.isEntitiesInSlash()
 
                 for (AbstractEntity w : skillMetadata.getEntityTargets()) {

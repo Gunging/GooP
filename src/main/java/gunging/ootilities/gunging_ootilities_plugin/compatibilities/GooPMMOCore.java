@@ -111,6 +111,7 @@ public class GooPMMOCore {
 
     static Boolean agonizing193 = null;
     static Method stringMethod = null;
+    static Method oldGetStat;
     public static Double CummulativeDoubleStat(Player target, StatType statName) {
         GooPMythicMobs.newenOlden = true;
 
@@ -122,18 +123,24 @@ public class GooPMMOCore {
 
             try {
                 stringMethod = pSats.getClass().getMethod("getStat", String.class);
-
                 Double val = (Double) stringMethod.invoke(pSats, statName.toString());
-
                 agonizing193 = true;
-
                 return val;
 
             } catch (NoSuchMethodError|NoSuchMethodException|IllegalAccessException|InvocationTargetException ignored) {
 
                 agonizing193 = false;
 
-                /*OLDEN*/return pSats.getStat(statName);
+                /*
+                 * Find Method
+                 */
+                if (oldGetStat == null) {
+                    try { oldGetStat = pSats.getClass().getMethod("getStat", StatType.class);
+                    } catch (NoSuchMethodException ignored2) { return null; }}
+
+                // Use it to return
+                try { return (Double) oldGetStat.invoke(pSats, statName);
+                } catch (IllegalAccessException|InvocationTargetException ignored2) { }
             }
 
         } else {
@@ -149,16 +156,34 @@ public class GooPMMOCore {
                 } catch (NoSuchMethodError|NoSuchMethodException|IllegalAccessException|InvocationTargetException ignored) {
                     agonizing193 = false;
 
-                    /*OLDEN*/return pSats.getStat(statName);
+                    /*
+                     * Find Method
+                     */
+                    if (oldGetStat == null) {
+                        try { oldGetStat = pSats.getClass().getMethod("getStat", StatType.class);
+                        } catch (NoSuchMethodException ignored2) { return null; }}
+
+                    // Use it to return
+                    try { return (Double) oldGetStat.invoke(pSats, statName);
+                    } catch (IllegalAccessException|InvocationTargetException ignored2) { }
                 }
 
             } else {
 
-                /*OLDEN*/return pSats.getStat(statName);
+                /*
+                 * Find Method
+                 */
+                if (oldGetStat == null) {
+                    try { oldGetStat = pSats.getClass().getMethod("getStat", StatType.class);
+                    } catch (NoSuchMethodException ignored2) { return null; }}
+
+                // Use it to return
+                try { return (Double) oldGetStat.invoke(pSats, statName);
+                } catch (IllegalAccessException|InvocationTargetException ignored2) { }
             }
         }
 
-        //NEWEN//return null;
+        return null;
 
         /*
         StatInstance pStat = pData.getStats().getInstance(statName);
