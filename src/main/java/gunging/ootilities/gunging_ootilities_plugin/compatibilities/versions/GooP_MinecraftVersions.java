@@ -58,6 +58,12 @@ public class GooP_MinecraftVersions {
                 if (vers.contains("1.19.1")) { mcVersion = 19.1; }
                 if (vers.contains("1.19.2")) { mcVersion = 19.2; }
                 if (vers.contains("1.19.3")) { mcVersion = 19.3; }
+                if (vers.contains("1.19.4")) { mcVersion = 19.4; }
+            } else if (vers.contains("1.20")) {
+                mcVersion = 20.0;
+                if (vers.contains("1.20.1")) { mcVersion = 20.1; }
+                if (vers.contains("1.20.2")) { mcVersion = 20.2; }
+                if (vers.contains("1.20.3")) { mcVersion = 20.3; }
             }
 
             return mcVersion;

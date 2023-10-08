@@ -69,6 +69,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static Boolean foundVault = false;
     public static Boolean foundWorldEdit = false;
     public static Boolean foundMythicLib = false;
+    public static Boolean foundMythicCrucible = false;
     public static Boolean foundDiscordSRV = false;
     public static Boolean foundGriefPrevention = false;
     public static Boolean foundTowny = false;
@@ -314,6 +315,18 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         }
         //endregion
 
+        //region MythicCruxible COmp
+        try {
+
+            // Well
+            foundMythicCrucible = GooPMythicCrucible.CompatibilityCheck();
+
+        } catch (NoClassDefFoundError e) {
+            // Vr0
+            foundMythicCrucible = false;
+        }
+        //endregion
+
         //region MMOCore Compatibility Attempt
         if (getServer().getPluginManager().getPlugin("MMOCore") != null) {
             foundMMOCore = true;
@@ -423,6 +436,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         if (foundMCMMO) { foundMCMMO = isPluginEnabled("mcMMO"); }
         if (foundMMOItems) { foundMMOItems = isPluginEnabled("MMOItems"); }
         if (foundMMOCore) { foundMMOCore = isPluginEnabled("MMOCore"); }
+        if (foundMythicCrucible) { foundMythicCrucible = isPluginEnabled("MythicCrucible"); }
         if (foundPlaceholderAPI) { foundPlaceholderAPI = isPluginEnabled("PlaceholderAPI"); }
         if (foundGraveyards) { foundGraveyards = isPluginEnabled("Graveyards"); }
         if (foundVault) {
@@ -543,6 +557,12 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             theOots.CPLog(ChatColor.AQUA + "MMOCore found\u00a77.");
         } else {
             theOots.CPLog(ChatColor.BLUE + "MMOCore not found\u00a77.");
+        }
+
+        if (foundMythicCrucible) {
+            theOots.CPLog(ChatColor.AQUA + "MythicCrucible found\u00a77.");
+        } else {
+            theOots.CPLog(ChatColor.BLUE + "MythicCrucible not found\u00a77.");
         }
 
         if (foundVault) {

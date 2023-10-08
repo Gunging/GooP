@@ -72,7 +72,7 @@ public class HideAura extends Aura implements ITargetedEntitySkill {
             // Just pull the mythicmob
             hideTarget = MythicBukkit.inst().getMobManager().getMythicMobInstance(target);
 
-            // If its a player or some other non-mythicmob
+            // If it's a player or some other non-mythicmob
         } else {
             //SOM//OotilityCeption.Log("\u00a73  * \u00a77Caster as Non MM");
 

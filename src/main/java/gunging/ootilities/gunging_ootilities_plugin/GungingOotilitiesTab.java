@@ -619,6 +619,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                 tabM.add("countGems");
                                 tabM.add("regenerate");
                                 tabM.add("setTier");
+                                tabM.add("ability");
                                 tabM.add("modifier");
                                 tabM.add("getTier");
                                 tabM.add("fixStacks");
@@ -747,6 +748,42 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                 break;
                                             case 9:
                                             Collections.addAll(tabM, "read", "+5", "n3", "-8", "+30%", "140%", "-10%");
+                                            default: break;
+                                        }
+
+                                        break;
+                                    case "abilities":
+                                    case "ability":
+                                        //   0       1        2        3       4       5       6        7       args.Length
+                                        // /goop mmoitems abilities <player> <slot> <ability> <trigger> [params]
+                                        //   -       0        1         2      3       4       5        6       args[n]
+
+                                        switch (args.length) {
+                                            case 3:
+                                                tabM = null;
+                                                break;
+                                            case 4:
+                                                tabM.addAll(OotilityCeption.getSlotKeywords());
+                                                break;
+                                            case 5:
+                                                tabM.addAll(GooPMMOItems.getRegisteredSkillNames());
+                                                break;
+                                            case 6:
+                                                tabM.addAll(GooPMMOItems.getTriggerNames());
+                                                break;
+                                            case 7:
+                                                ArrayList<String> mods = GooPMMOItems.getRegisteredSkillModifiers(args[4], true);
+                                                if (mods.size() == 0) {
+                                                    tabM.add("[modifier1]=[value];[modifier2]=[value]");
+
+                                                } else {
+                                                    StringBuilder bld = new StringBuilder();
+                                                    for (String m : mods) {
+                                                        if (bld.length() > 0) { bld.append(";"); }
+                                                        bld.append(m);}
+                                                    tabM.add(bld.toString());
+                                                }
+                                                break;
                                             default: break;
                                         }
 
@@ -2797,7 +2834,7 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                                         break;
                                                     case 5:
-                                                        Collections.addAll(tabM, "MythicLibStation", "AllowDrag", "DragOverflow", "DuplicateEquipment", "EdgeFormations");
+                                                        Collections.addAll(tabM, "MythicStation", "AllowDrag", "DragOverflow", "DuplicateEquipment", "EdgeFormations");
                                                         break;
                                                     case 6:
                                                         Collections.addAll(tabM, "true", "false");
@@ -3451,7 +3488,9 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                     switch (args.length) {
                                         case 3:
-                                            tabM = null;
+                                            tabM = new ArrayList<>();
+                                            for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            tabM.add("server");
                                             break;
                                         case 4:
                                             tabM = GooPUnlockables.GetKnownGoals();
@@ -3475,7 +3514,9 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                     switch (args.length) {
                                         case 3:
-                                            tabM = null;
+                                            tabM = new ArrayList<>();
+                                            for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            tabM.add("server");
                                             break;
                                         case 4:
                                             tabM = GooPUnlockables.GetKnownGoals();
@@ -3490,7 +3531,9 @@ public class GungingOotilitiesTab implements TabCompleter {
 
                                     switch (args.length) {
                                         case 3:
-                                            tabM = null;
+                                            tabM = new ArrayList<>();
+                                            for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            tabM.add("server");
                                             break;
                                         case 4:
                                             tabM = GooPUnlockables.GetKnownGoals();
@@ -3514,7 +3557,9 @@ public class GungingOotilitiesTab implements TabCompleter {
                                     //   0    1        2       3      4     5       args.Length
                                     // /goop unlock unlock <player> <goal> <x>
                                     //   -    0        1       2      3     4       args[n]
-                                    tabM = null;
+                                    tabM = new ArrayList<>();
+                                    for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                    tabM.add("server");
                                     break;
                                 default: break;
                             }

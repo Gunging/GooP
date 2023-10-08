@@ -532,129 +532,6 @@ public class OotilityCeption {
             }
         }
 
-        //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Parsing\u00a7b " + cmd);
-        while (cmd.contains("%goop_unlockable_")) {
-
-            int percent = cmd.indexOf("%goop_unlockable_");
-
-            // no more
-            if (percent < 0) { break; }
-
-            // What should the score be
-            String uckNmae = cmd.substring(percent + "%goop_unlockable_".length());
-            //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Found Aft\u00a7b " + uckNmae);
-
-            // Closing %?
-            int perc = uckNmae.indexOf('%');
-            if (perc >= 0) {
-
-                // Got the name?
-                String uckName = uckNmae.substring(0, perc);
-                String uckArg = "";
-                //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Found Nme\u00a7b " + uckName);
-
-                // What query?
-                if (uckName.contains(":")) {
-
-                    // Yes
-                    String[] uckSplit = uckName.split(":");
-                    uckName = uckSplit[0];
-                    uckArg = uckSplit[1];
-                }
-                //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a7b + Name\u00a7f " + uckName);
-                //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a7b + Arg\u00a7f " + uckArg);
-
-                // Get objective
-                GooPUnlockables uck = GooPUnlockables.Get(asPlayer.getPlayer().getUniqueId(), uckName);
-
-                // Existed?
-                if (uck != null) {
-                    //PRS//Log("\u00a78PAsGooP\u00a73 UCK\u00a7a +\u00a77 Valid Unlockble ");
-
-                    String interim = "";
-                    OptimizedTimeFormat otf = uck.GetTimed() != null ? uck.GetTimed() : OptimizedTimeFormat.Current();
-                    long secondsRemianing = SecondsElapsedSince(OptimizedTimeFormat.Current(), otf);
-
-                    switch (uckArg) {
-                        default:
-                            interim = uck.IsUnlocked() ? "1" : "0";
-                            break;
-                        case "remaining_time_seconds_full":
-                            interim = String.valueOf(secondsRemianing);
-                            break;
-                        case "remaining_time_seconds":
-                            interim = String.valueOf(secondsRemianing % 60);
-                            break;
-                        case "remaining_time_minutes_full":
-                            interim = String.valueOf(Math.round(Math.floor(secondsRemianing / 60)));
-                            break;
-                        case "remaining_time_minutes":
-                            interim = String.valueOf((Math.round(Math.floor(secondsRemianing / 60))) % 60);
-                            break;
-                        case "remaining_time_hours_full":
-                            interim = String.valueOf(Math.round(Math.floor(secondsRemianing / 3600)));
-                            break;
-                        case "remaining_time_hours":
-                            interim = String.valueOf((Math.round(Math.floor(secondsRemianing / 3600))) % 24);
-                            break;
-                        case "remaining_time_days":
-                            interim = String.valueOf((Math.round(Math.floor(secondsRemianing / 86400))));
-                            break;
-
-                        case "time_seconds_full":
-                            interim = String.valueOf(otf.second + (otf.minute * 60) + (otf.hour * 3600) + (otf.day * 86400));
-                            break;
-                        case "time_seconds":
-                            interim = String.valueOf(otf.second);
-                            break;
-                        case "time_minutes_full":
-                            interim = String.valueOf(otf.minute + (otf.hour * 60) + (otf.day * 1536));
-                            break;
-                        case "time_minutes":
-                            interim = String.valueOf(otf.minute);
-                            break;
-                        case "time_hours_full":
-                            interim = String.valueOf(otf.hour + (otf.day * 24));
-                            break;
-                        case "time_hours":
-                            interim = String.valueOf(otf.hour);
-                            break;
-                        case "time_days":
-                            interim = String.valueOf(otf.day);
-                            break;
-                        case "time_years":
-                            interim = String.valueOf(otf.year);
-                            break;
-                    }
-
-                    // All right strip befre
-                    String before = cmd.substring(0, percent);
-                    String after = uckNmae.substring(perc + 1);
-
-                    // There
-                    cmd = before + interim + after;
-                } else {
-
-
-                    // All right strip befre
-                    String before = cmd.substring(0, percent);
-                    String after = uckNmae.substring(perc + 1);
-
-                    // UCK not existing ~ LOCKED probably
-                    cmd = before + "0" + after;
-                }
-
-            // No closing %
-            } else {
-
-                // What is before
-                String before = cmd.substring(0, percent);
-                String after = uckNmae.substring("%goop_unlockable_".length());
-
-                // There
-                cmd = before + "<missing-closing-%>" + after;
-            }
-        }
         return ParseAsEntity(asPlayer.getPlayer(), cmd);
     }
     @NotNull
@@ -1267,6 +1144,9 @@ public class OotilityCeption {
 
         // Technically air and null itemstacks are not books nor contain them
         if (IsAirNullAllowed(iStack)) { return false; }
+
+        // Cant have bag if has no MMO
+        if (!Gunging_Ootilities_Plugin.foundMMOItems) { return false; }
 
         // Dip search?
         if (iStack.getItemMeta() instanceof Container) {
@@ -5104,7 +4984,6 @@ public class OotilityCeption {
             // Return thay
             return UUID.fromString(anything);
         }
-
         // No
         return null;
     }
@@ -7095,7 +6974,7 @@ public class OotilityCeption {
                 // Found?
                 return ing.Matches(tItemStack);
             case "mm":
-                if (Gunging_Ootilities_Plugin.foundMythicMobs) { return GooPMythicMobs.getMythicType(tItemStack).equals(nbtFilter.getDataPrime()); } else return false;
+                if (Gunging_Ootilities_Plugin.foundMythicMobs) { return nbtFilter.getDataPrime().equals(GooPMythicMobs.getMythicType(tItemStack)); } else return false;
             default: return false;
         }
     }

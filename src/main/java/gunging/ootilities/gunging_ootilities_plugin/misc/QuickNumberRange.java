@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 import org.jetbrains.annotations.Nullable;
 
 public class QuickNumberRange {
-
+    public boolean isAny() { return minimumInclusive == null && maximumInclusive == null; }
     Double minimumInclusive;
     Double maximumInclusive;
 

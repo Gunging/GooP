@@ -125,7 +125,43 @@ public class TCPEffect implements Cloneable {
                         // From origin? or use caster location
                         fromOrigin ? data.getOrigin() : data.getCaster().getLocation();
     }
-    @NotNull public AbstractVector transform(@NotNull SkillMetadata data, @NotNull AbstractLocation source, @NotNull AbstractLocation target, double rHor, double rVer, double rFor) {
+
+    /**
+     * Will parse all the placeholders of TCP such that, through the animation, they will not change
+     *
+     * @param data Data from which to adopt these values
+     *
+     * @deprecated Don't use this method it's super ugly and I will delete it someday
+     */
+    @Deprecated
+    @NotNull public TCPSnapshot freeze(@NotNull SkillMetadata data) {
+        TCPSnapshot ret = new TCPSnapshot();
+
+        ret.frozenRadius = slashRadius.get(data);
+        ret.frozenRot = rotation.get(data);
+
+        ret.frozenSScale = sScale.get(data);
+        ret.frozenVScale = vScale.get(data);
+        ret.frozenFScale = fScale.get(data);
+
+        ret.frozenSOff = sOff.get(data);
+        ret.frozenVOff = vOff.get(data);
+        ret.frozenFOff = fOff.get(data);
+
+        ret.frozenXScale = xScale.get(data);
+        ret.frozenYScale = yScale.get(data);
+        ret.frozenZScale = zScale.get(data);
+
+        ret.frozenXOff = xOff.get(data);
+        ret.frozenYOff = yOff.get(data);
+        ret.frozenZOff = zOff.get(data);
+
+        return ret;
+    }
+
+    @NotNull public AbstractVector transform(@NotNull SkillMetadata data, @NotNull AbstractLocation source, @NotNull AbstractLocation target, double rHor, double rVer, double rFor) {return transform(freeze(data), source, target, rHor, rVer, rFor); }
+
+    @NotNull public AbstractVector transform(@NotNull TCPSnapshot tcp, @NotNull AbstractLocation source, @NotNull AbstractLocation target, double rHor, double rVer, double rFor) {
         //SRC//OotilityCeption.Log("\u00a78SLH \u00a73D\u00a77 Source\u00a79 " + source.getX() + " " + source.getY() + " " + source.getZ());
 
         // Prevent singularities
@@ -134,13 +170,13 @@ public class TCPEffect implements Cloneable {
             // Target will be right above source
             target = source.clone().add(new AbstractVector(0, 0.001, 0)); }
 
-        double r = slashRadius.get(data);
+        double r = tcp.frozenRadius;
 
         // Rotate input relatives about the relative forward axis
-        double o = (rHor * sScale.get(data)) + (sOff.get(data) / r);
-        double p = (rVer * vScale.get(data)) + (vOff.get(data) / r);
-        double f = (rFor * fScale.get(data)) + (fOff.get(data) / r);
-        double e = toRadians(rotation.get(data));
+        double o = (rHor * tcp.frozenSScale) + (tcp.frozenSOff / r);
+        double p = (rVer * tcp.frozenVScale) + (tcp.frozenVOff / r);
+        double f = (rFor * tcp.frozenFScale) + (tcp.frozenFOff / r);
+        double e = toRadians(tcp.frozenRot);
         double ce = Math.cos(e), se = Math.sin(e);
 
         rHor = ((o * ce) - (p * se));
@@ -168,13 +204,13 @@ public class TCPEffect implements Cloneable {
         double t_z = (rHor * g_z_dir) - (rVer * r_y_dir * g_x_dir) + (f * r_z_dir);
 
         // Add offsets
-        t_x *= xScale.get(data);
-        t_y *= yScale.get(data);
-        t_z *= zScale.get(data);
+        t_x *= tcp.frozenXScale;
+        t_y *= tcp.frozenYScale;
+        t_z *= tcp.frozenZScale;
 
-        t_x += (xOff.get(data) / r);
-        t_y += (yOff.get(data) / r);
-        t_z += (zOff.get(data) / r);
+        t_x += (tcp.frozenXOff / r);
+        t_y += (tcp.frozenYOff / r);
+        t_z += (tcp.frozenZOff / r);
 
         return (new AbstractVector(t_x, t_y, t_z)).multiply(r);
     }

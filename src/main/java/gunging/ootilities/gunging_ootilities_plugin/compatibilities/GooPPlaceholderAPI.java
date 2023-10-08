@@ -6,8 +6,13 @@ import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.events.GooP_FontUtils;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.events.XBow_Rockets;
+import gunging.ootilities.gunging_ootilities_plugin.misc.GooPUnlockables;
 import gunging.ootilities.gunging_ootilities_plugin.misc.ListPlaceholder;
 import gunging.ootilities.gunging_ootilities_plugin.misc.OptimizedTimeFormat;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.unlockables.GOOPUCKTPlayer;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.unlockables.GOOPUCKTServer;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.unlockables.GOOPUCKTUnique;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.unlockables.GooPUnlockableTarget;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
@@ -15,6 +20,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.Calendar;
+import java.util.UUID;
 
 public class GooPPlaceholderAPI extends PlaceholderExpansion {
 
@@ -102,6 +108,7 @@ public class GooPPlaceholderAPI extends PlaceholderExpansion {
      */
     @Override
     public String onRequest(OfflinePlayer player, String identifier) {
+        //PRS//OotilityCeption.Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Parsing\u00a7b " + identifier);
 
         // %goop_slot_provided%
         if(identifier.startsWith("slot_")) {
@@ -288,6 +295,98 @@ public class GooPPlaceholderAPI extends PlaceholderExpansion {
                 default:
                     return String.valueOf(System.currentTimeMillis() - Gunging_Ootilities_Plugin.getBootTime());
             }
+        } else if (identifier.startsWith("unlockable_")) {
+            //PRS//OotilityCeption.Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Parsing\u00a7b " + identifier);
+            
+            // Got the name?
+            String uckName = identifier.substring("unlockable_".length());
+            String uckArg = "";
+            GooPUnlockableTarget target = null;
+            //PRS//OotilityCeption.Log("\u00a78PAsGooP\u00a73 UCK\u00a77 Found Nme\u00a7b " + uckName);
+
+            // What query?
+            if (uckName.contains(":")) {
+
+                // Yes
+                String[] uckSplit = uckName.split(":");
+                uckName = uckSplit[0];
+                uckArg = uckSplit[1];
+                UUID uid = OotilityCeption.UUIDFromString(uckSplit[2]);
+                if ("server".equals(uckSplit[2])) { target = new GOOPUCKTServer();
+                } else if (uid != null) { target = new GOOPUCKTUnique(uid);}
+            } else { target = new GOOPUCKTUnique(player.getUniqueId()); }
+            if (target == null) { return null; }
+
+            //PRS//OotilityCeption.Log("\u00a78PAsGooP\u00a73 UCK\u00a7b + Name\u00a7f " + uckName);
+            //PRS//OotilityCeption.Log("\u00a78PAsGooP\u00a73 UCK\u00a7b + Arg\u00a7f " + uckArg);
+            //PRS//OotilityCeption.Log("\u00a78PAsGooP\u00a73 UCK\u00a7b + Targ\u00a7f " + target.getName() + " ~ " + target.getUniqueId().toString());
+
+            // Get objective
+            GooPUnlockables uck = GooPUnlockables.Get(target.getUniqueId(), uckName);
+
+            // Existed?
+            if (uck != null) {
+                //PRS//OotilityCeption.Log("\u00a78PAsGooP\u00a73 UCK\u00a7a +\u00a77 Valid Unlockble ");
+
+                String interim = "";
+                OptimizedTimeFormat otf = uck.GetTimed() != null ? uck.GetTimed() : OptimizedTimeFormat.Current();
+                long secondsRemianing = OotilityCeption.SecondsElapsedSince(OptimizedTimeFormat.Current(), otf);
+
+                switch (uckArg) {
+                    default:
+                        interim = uck.IsUnlocked() ? "1" : "0";
+                        break;
+                    case "remaining_time_seconds_full":
+                        interim = String.valueOf(Math.max(secondsRemianing, 0));
+                        break;
+                    case "remaining_time_seconds":
+                        interim = String.valueOf(Math.max(secondsRemianing % 60, 0));
+                        break;
+                    case "remaining_time_minutes_full":
+                        interim = String.valueOf(Math.max(Math.round(Math.floor(secondsRemianing / 60.0)), 0));
+                        break;
+                    case "remaining_time_minutes":
+                        interim = String.valueOf(Math.max((Math.round(Math.floor(secondsRemianing / 60.0))) % 60, 0));
+                        break;
+                    case "remaining_time_hours_full":
+                        interim = String.valueOf(Math.max(Math.round(Math.floor(secondsRemianing / 3600.0)), 0));
+                        break;
+                    case "remaining_time_hours":
+                        interim = String.valueOf(Math.max((Math.round(Math.floor(secondsRemianing / 3600.0))) % 24, 0));
+                        break;
+                    case "remaining_time_days":
+                        interim = String.valueOf(Math.max((Math.round(Math.floor(secondsRemianing / 86400.0))), 0));
+                        break;
+
+                    case "time_seconds_full":
+                        interim = String.valueOf(Math.max(otf.second + (otf.minute * 60) + (otf.hour * 3600) + (otf.day * 86400), 0));
+                        break;
+                    case "time_seconds":
+                        interim = String.valueOf(Math.max(otf.second, 0));
+                        break;
+                    case "time_minutes_full":
+                        interim = String.valueOf(Math.max(otf.minute + (otf.hour * 60) + (otf.day * 1536), 0));
+                        break;
+                    case "time_minutes":
+                        interim = String.valueOf(Math.max(otf.minute, 0));
+                        break;
+                    case "time_hours_full":
+                        interim = String.valueOf(Math.max(otf.hour + (otf.day * 24), 0));
+                        break;
+                    case "time_hours":
+                        interim = String.valueOf(Math.max(otf.hour, 0));
+                        break;
+                    case "time_days":
+                        interim = String.valueOf(Math.max(otf.day, 0));
+                        break;
+                    case "time_years":
+                        interim = String.valueOf(Math.max(otf.year, 0));
+                        break;
+                }
+
+                // All right strip befre
+                return interim;
+            } else { return "0"; }
         }
 
         // was provided

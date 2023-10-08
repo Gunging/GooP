@@ -36,7 +36,7 @@ public class CustomMMCondition extends SkillCondition {
             if (ConditionAction.isAction(split[0])) {
                 //CND//OotilityCeption.Log("\u00a78ACT\u00a76 SP\u00a77 First action \u00a7e" + split[0]);
 
-                this.ACTION = ConditionAction.valueOf(split[0].toUpperCase());
+                try { this.ACTION = ConditionAction.valueOf(split[0].toUpperCase()); } catch (IllegalArgumentException ignored) { this.ACTION = ConditionAction.get(split[0].toUpperCase()); }
                 if (split.length > 1) {
                     //CND//OotilityCeption.Log("\u00a78ACT\u00a76 SP\u00a77 Action Var Identified \u00a7a" + split[1]);
                     this.actionVar = PlaceholderString.of(split[1]);
@@ -48,7 +48,7 @@ public class CustomMMCondition extends SkillCondition {
 
                 if (split.length > 1 && ConditionAction.isAction(split[1])) {
                     //CND//OotilityCeption.Log("\u00a78ACT\u00a76 SP\u00a77 Second action \u00a7e" + split[1]);
-                    this.ACTION = ConditionAction.valueOf(split[1].toUpperCase());
+                    try { this.ACTION = ConditionAction.valueOf(split[1].toUpperCase()); } catch (IllegalArgumentException ignored) { this.ACTION = ConditionAction.get(split[1].toUpperCase()); }
 
                     if (split.length > 2) {
                         //CND//OotilityCeption.Log("\u00a78ACT\u00a76 SP\u00a77 Action Var Identified \u00a7a" + split[2]);

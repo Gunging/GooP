@@ -200,6 +200,7 @@ public class SudoMinionsMechanic extends SkillMechanic implements IMetaSkill {
                     final SkillMetadata clonedData = data.deepClone();
                     clonedData.setCaster(caster);
                     /*CURRENT-MMOITEMS*/clonedData.setEntityTargets(targets);
+                    /*CURRENT-MMOITEMS*/clonedData.setLocationTargets(data.getLocationTargets());
                     //YE-OLDEN-MMO//clonedData.setEntityTargets(new HashSet<>(targets));
 
 

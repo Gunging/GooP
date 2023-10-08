@@ -233,6 +233,13 @@
             <systemPath>${basedir}/lib/DiscordSRV.jar</systemPath>
             <version>5.3.2</version>
         </dependency>
+        <dependency>
+            <groupId>nettus.cruxiblettus</groupId>
+            <artifactId>crux</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/MythicCrucible.jar</systemPath>
+            <version>5.3.2</version>
+        </dependency>
         <!--
         <dependency>
             <groupId>bot.tisco</groupId>

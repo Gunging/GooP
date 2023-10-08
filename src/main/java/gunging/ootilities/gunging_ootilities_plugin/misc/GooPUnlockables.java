@@ -429,6 +429,7 @@ public class GooPUnlockables {
                     if (unlocc == null) { unlocc = 0D; }
 
                     UUID uiddd = OotilityCeption.UUIDFromString(uid);
+                    //DBG//OotilityCeption.Log("Loading \u00a7e" + tName + " \u00a73" + uid + "\u00a77 at \u00a7a " + unlocc + "\u00a77 for\u00a7b " + (uiddd == null ? "null" : uiddd.toString()));
 
                     // Valid?
                     if (uiddd != null) {
@@ -440,7 +441,7 @@ public class GooPUnlockables {
                         uck.Load();
 
                         // Notifiy
-                        //DBG//OotilityCeption.Log("Loaded \u00a7e" + tName + " " + unlocc + " \u00a73" + uiddd.toString());
+                        //DBG//OotilityCeption.Log("Loaded \u00a7e" + tName + " " + unlocc + " \u00a73" + uiddd.toString() + "\u00a76 " + uiddd.getMostSignificantBits() + " " + uiddd.getLeastSignificantBits());
                     }
                 }
             }

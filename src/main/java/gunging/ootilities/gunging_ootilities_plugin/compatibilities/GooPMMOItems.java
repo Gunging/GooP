@@ -13,6 +13,7 @@ import io.lumine.mythic.lib.api.item.ItemTag;
 import io.lumine.mythic.lib.api.item.NBTItem;
 import io.lumine.mythic.lib.api.player.MMOPlayerData;
 import io.lumine.mythic.lib.api.util.ui.SilentNumbers;
+import io.lumine.mythic.lib.skill.trigger.TriggerType;
 import net.Indyuce.mmoitems.ItemStats;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.ConfigFile;
@@ -36,6 +37,7 @@ import net.Indyuce.mmoitems.api.player.RPGPlayer;
 import net.Indyuce.mmoitems.api.player.inventory.EquippedItem;
 import net.Indyuce.mmoitems.api.util.MMOItemReforger;
 import net.Indyuce.mmoitems.manager.TypeManager;
+import net.Indyuce.mmoitems.skill.RegisteredSkill;
 import net.Indyuce.mmoitems.stat.data.*;
 import net.Indyuce.mmoitems.stat.data.type.Mergeable;
 import net.Indyuce.mmoitems.stat.data.type.StatData;
@@ -1640,7 +1642,8 @@ public class GooPMMOItems {
         if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (base.getItemMeta().hasCustomModelData()) { oCMD = base.getItemMeta().getCustomModelData(); } }
 
         // Convert it as NBT and then Build it
-        MMOItem mmoitem = LiveFromNBT(GooPMMOItems.ConvertVanillaToMMOItemAsNBT(base, forcedTypePrefix, forcedIDFormat, forcedType));
+        NBTItem asNBT = GooPMMOItems.ConvertVanillaToMMOItemAsNBT(base, forcedTypePrefix, forcedIDFormat, forcedType);
+        MMOItem mmoitem = LiveFromNBT(asNBT);
         if (mmoitem == null) { return base; }
 
         //region Set Original Datas
@@ -3589,6 +3592,66 @@ public class GooPMMOItems {
             return null;
         }
     }
+
+    @Nullable public static ItemStack AddAbility(@Nullable ItemStack base, @NotNull String ability, @NotNull String trigger, @NotNull ArrayList<CompactCodedValue> mods, @Nullable RefSimulator<String> logger) {
+        if (!MMOItems.plugin.getSkills().hasSkill(ability)) {
+            OotilityCeption.Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "Ability \u00a7c" + ability + "\u00a77 is not loaded. ");
+            return null;}
+
+        TriggerType tt = TriggerType.valueOf(trigger);
+        if (tt == null) {
+            OotilityCeption.Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "Ability Trigger \u00a7c" + trigger + "\u00a77 is not loaded. ");
+            return null;
+        }
+
+        // I hope that it is not null to begin with
+        if (!OotilityCeption.IsAirNullAllowed(base) && MMOItems.plugin.getSkills().hasSkill(ability)) {
+
+            // Result
+            ItemStack result;
+
+            // Convert if not a MMOItem
+            if (!IsMMOItem(base)) { base = ConvertVanillaToMMOItem(base); }
+
+            // Get Target NBT
+            NBTItem tNBT = NBTItem.get(base);
+
+            // Kount
+            int kount = base.getAmount();
+
+            // Get actual values
+            RegisteredSkill skill = MMOItems.plugin.getSkills().getSkill(ability);
+            AbilityData ab = new AbilityData(skill, tt);
+            for (CompactCodedValue ccv : mods) {
+                Double val = Double.parseDouble(ccv.getValue());
+                if (OotilityCeption.NumericTolerance(skill.getDefaultModifier(ccv.GetID()), val, 0.009)) { continue; }
+                ab.setModifier(ccv.GetID(), val);
+            }
+            AbilityListData abs = new AbilityListData();
+            abs.add(ab);
+
+            // Attempt to get MMOItem Instance
+            MMOItem mmoitem = LiveFromNBT(tNBT);
+            if (mmoitem == null) { return null; }
+
+            StatHistory hist = StatHistory.from(mmoitem, ItemStats.ABILITIES);
+            hist.registerExternalData(abs);
+            mmoitem.setData(ItemStats.ABILITIES, hist.recalculate(mmoitem.getUpgradeLevel()));
+
+            // Get Finished Product
+            result = mmoitem.newBuilder().build();
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Successfuly added ability \u00a73" + ability+ "\u00a77 to " + OotilityCeption.GetItemName(result) + "\u00a77. ");
+            return result;
+
+        // This man passing on a null item wth
+        } else {
+
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Cant edit tier of air! ");
+            return null;
+        }
+    }
+
+
     /**
      * Sets the Tier of target Item Stack. Will convert into MMOItem if vanilla, and tier is specified.
      * @param iSource Item Stack you want to know/modify the tier of.
@@ -4851,6 +4914,37 @@ public class GooPMMOItems {
         // Build
         return (LiveFromNBT(itm)).newBuilder().build();
     }
+
+    /**
+     * @return The abilities registered onto MMOItems
+     */
+    @NotNull public static ArrayList<String> getRegisteredSkillNames() {
+        ArrayList<String> ret = new ArrayList<>();
+        for (RegisteredSkill skill : MMOItems.plugin.getSkills().getAll()) { ret.add(skill.getHandler().getId()); }
+        return ret; }
+
+    /**
+     * @return The trigger types registered onto MythicLib
+     */
+    @NotNull public static ArrayList<String> getTriggerNames() {
+        ArrayList<String> ret = new ArrayList<>();
+        for (TriggerType skill : TriggerType.values()) { ret.add(skill.toString()); }
+        return ret; }
+
+    /**
+     * @return The modifiers of this ability if it exists.
+     */
+    @NotNull public static ArrayList<String> getRegisteredSkillModifiers(@Nullable String ability, boolean withDefault) {
+        String ab = ability.toUpperCase().replace("-", "_").replace(" ", "_").replaceAll("[^A-Z0-9_]", "");
+        if (MMOItems.plugin.getSkills().hasSkill(ab)) {
+            RegisteredSkill sk = MMOItems.plugin.getSkills().getSkill(ab);
+            if (withDefault) {
+                ArrayList<String> ret = new ArrayList<>();
+                for (String p : sk.getHandler().getParameters()) {
+                    ret.add(p + "=" + sk.getDefaultModifier(p));}
+                return ret;
+            } else {return new ArrayList<>(sk.getHandler().getParameters());} }
+        return new ArrayList<>(); }
     //endregion
 
     public static void onCommand_GooPMMOItems(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
@@ -5267,7 +5361,9 @@ public class GooPMMOItems {
 
                                         // Mention it
                                         if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Expected a number or operation for level (like \u00a7b1\u00a77, \u00a7b5,\u00a77 \u00a7bn2\u00a77, or \u00a7b+2\u00a77) instead of \u00a7e" + args[4]));
-                                    } }
+
+                                    } else { pmpLevel = new PlusMinusPercent(0D, true, false); }
+                                }
 
                                 boolean breakLimit = false;
                                 if (args.length >= 6) {
@@ -5317,13 +5413,14 @@ public class GooPMMOItems {
                                     final boolean finalBreakLimit = breakLimit;
                                     final Objective finalTargetObjective = targetObjective;
                                     final PlusMinusPercent finalScore = score;
+                                    final PlusMinusPercent pmpReal = pmpLevel;
 
                                     // Preparation of Methods
                                     TargetedItems executor = new TargetedItems(false, !pmpLevel.isNeutral(),
                                             chained, chainedCommand, sender, failMessage,
 
                                             // What method to use to process the item
-                                            iSource -> GooPMMOItems.UpgradeMMOItem(iSource.getValidOriginal(), pmpLevel, finalBreakLimit, iSource.getRef_int_a(), iSource.getLogAddition()),
+                                            iSource -> GooPMMOItems.UpgradeMMOItem(iSource.getValidOriginal(), pmpReal, finalBreakLimit, iSource.getRef_int_a(), iSource.getLogAddition()),
 
                                             // When will it succeed
                                             iSource -> iSource.getResult() != null,
@@ -5438,6 +5535,119 @@ public class GooPMMOItems {
                                 }
 
                                 // Incorrect number of args
+                            } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+
+                                // Notify Error
+                                if (args.length >= argsMinLength) {
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a7e many\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+
+                                } else {
+
+                                    logReturn.add(OotilityCeption.LogFormat(subcategory, "Incorrect usage (too\u00a76 few\u00a77 args). For info: \u00a7e/goop mmoitems " + subsonic));
+                                }
+
+                                // Notify Usage
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                            }
+
+                            break;
+                        //endregion
+                        //region Abilities
+                        case "abilities":
+                        case "ability":
+                            //   0       1        2        3       4       5       6        7       args.Length
+                            // /goop mmoitems abilities <player> <slot> <ability> <trigger> [params]
+                            //   -       0        1         2      3       4       5        6       args[n]
+
+                            // Correct number of args?
+                            argsMinLength = 6;
+                            argsMaxLength = 7;
+                            usage = "/goop mmoitems abilities <player> <slot> <ability> <trigger> [modifiers]";
+                            subcommand = "Ability";
+                            subcategory = "MMOItems - Ability";
+
+                            // Help form?
+                            if (args.length == 2)  {
+
+                                logReturn.add("\u00a7e______________________________________________");
+                                logReturn.add("\u00a73MMOItems - \u00a7b" + subcommand + ",\u00a77 Adds abilities to items.");
+                                logReturn.add("\u00a73Usage: \u00a7e" + usage);
+                                logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who has the item.");
+                                logReturn.add("\u00a73 - \u00a7e<slot> \u00a77Slot of the target item.");
+                                logReturn.add("\u00a73 - \u00a7e<ability> \u00a77Internal name of the ability.");
+                                logReturn.add("\u00a73 - \u00a7e<trigger> \u00a77Trigger of the ability.");
+                                logReturn.add("\u00a73 - \u00a7e[modifier1]=[value];[modifier2]=[value];... \u00a77Modifiers of the ability");
+
+                                // Correct number of args?
+                            } else if (args.length >= argsMinLength && args.length <= argsMaxLength) {
+
+                                // Does the player exist?
+                                if (targets.size() < 1 && asDroppedItem == null) {
+                                    // Failure
+                                    failure = true;
+
+                                    // Notify the error
+                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Target must be an online player!"));
+                                }
+
+                                // Confirm that this ability exists
+                                String ability = args[4].toUpperCase().replace("-", "_").replace(" ", "_").replaceAll("[^A-Z0-9_]", "");
+                                RegisteredSkill skill = null;
+                                if (!MMOItems.plugin.getSkills().hasSkill(ability)) {
+                                    failure = true;
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Specified ability \u00a73" + ability + "\u00a77 is not loaded."));
+                                } else {
+                                    skill = MMOItems.plugin.getSkills().getSkill(ability);
+                                }
+
+                                String trigger = args[5].toUpperCase().replace("-", "_").replace(" ", "_").replaceAll("[^A-Z0-9_]", "");
+                                TriggerType tt = TriggerType.valueOf(trigger);
+                                if (tt == null) {
+                                    failure = true;
+                                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Ability trigger type \u00a73" + trigger + "\u00a77 does not exist."));}
+
+                                final ArrayList<CompactCodedValue> mods = new ArrayList<>();
+                                if (skill == null) { failure = true; } else if (args.length == 7) {
+                                    mods.addAll(CompactCodedValue.ListFromString(args[6]));
+                                    for (CompactCodedValue mod : mods) {
+                                        if (!skill.getHandler().getParameters().contains(mod.getID())) {
+                                            failure = true;
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Specified modifier \u00a73" + mod.getID() + "\u00a77 is not loaded for ability \u00a7e" + ability));}
+
+                                        if (!OotilityCeption.DoubleTryParse(mod.getValue())) {
+                                            failure = true;
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Specified value \u00a7b" + mod.getValue() + "\u00a77 for modifier \u00a73" + mod.getID() + "\u00a77 is not a number. "));}
+                                    }
+                                }
+
+                                if (!failure) {
+
+                                    // Preparation of Methods
+                                    TargetedItems executor = new TargetedItems(false, true,
+                                            chained, chainedCommand, sender, failMessage,
+
+                                            // What method to use to process the item
+                                            iSource -> AddAbility(iSource.getValidOriginal(), ability, trigger, mods, iSource.getLogAddition()),
+
+                                            // When will it succeed
+                                            iSource -> iSource.getResult() != null,
+
+                                            null
+                                    );
+
+                                    // Register the ItemStacks
+                                    if (asDroppedItem != null) { executor.registerDroppedItem((Item) asDroppedItem); }
+                                    executor.registerPlayers(targets, args[3], executor.getIncludedStrBuilder());
+
+                                    // Process the stuff
+                                    executor.process();
+
+                                    // Was there any log messages output?
+                                    if (executor.getIncludedStrBuilder().length() > 0) { logReturn.add(OotilityCeption.LogFormat(subcategory, executor.getIncludedStrBuilder().toString())); }
+
+                                }
+
+                            // Incorrect number of args
                             } else if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
 
                                 // Notify Error

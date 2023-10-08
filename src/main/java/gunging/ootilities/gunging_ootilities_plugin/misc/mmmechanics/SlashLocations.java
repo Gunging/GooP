@@ -19,12 +19,12 @@ import java.util.Random;
 public class SlashLocations<T> extends TCPEffect {
 
     @NotNull public PlaceholderFloat arc, points, slashDelay, skew;
-    public boolean horizontal, randomPoints, dynamicSource;
+    public boolean horizontal, randomPoints, dynamicSource, dynamicParameters = true;
     @NotNull final SlashResult<T> slashResult;
 
-    @Override public SlashLocations<T> clone() { return new SlashLocations<>(slashRadius, rotation, fOff, sOff, vOff, xOff, yOff, zOff, fScale, sScale, vScale, xScale, yScale, zScale, fromOrigin, fromTrigger, useDegrees, arc, points, slashDelay, skew, horizontal, randomPoints, dynamicSource, slashResult); }
+    @Override public SlashLocations<T> clone() { return new SlashLocations<>(slashRadius, rotation, fOff, sOff, vOff, xOff, yOff, zOff, fScale, sScale, vScale, xScale, yScale, zScale, fromOrigin, fromTrigger, useDegrees, arc, points, slashDelay, skew, horizontal, randomPoints, dynamicSource, dynamicParameters, slashResult); }
 
-    public SlashLocations(@NotNull PlaceholderFloat slashRadius, @NotNull PlaceholderFloat rotation, @NotNull PlaceholderFloat fOff, @NotNull PlaceholderFloat sOff, @NotNull PlaceholderFloat vOff, @NotNull PlaceholderFloat xOff, @NotNull PlaceholderFloat yOff, @NotNull PlaceholderFloat zOff, @NotNull PlaceholderFloat fScale, @NotNull PlaceholderFloat sScale, @NotNull PlaceholderFloat vScale, @NotNull PlaceholderFloat xScale, @NotNull PlaceholderFloat yScale, @NotNull PlaceholderFloat zScale, boolean fromOrigin, boolean fromTrigger, boolean useDegrees, @NotNull PlaceholderFloat arc, @NotNull PlaceholderFloat points, @NotNull PlaceholderFloat slashDelay, @NotNull PlaceholderFloat skew, boolean horizontal, boolean randomPoints, boolean dynamicSource, @NotNull SlashResult<T> slashResult) {
+    public SlashLocations(@NotNull PlaceholderFloat slashRadius, @NotNull PlaceholderFloat rotation, @NotNull PlaceholderFloat fOff, @NotNull PlaceholderFloat sOff, @NotNull PlaceholderFloat vOff, @NotNull PlaceholderFloat xOff, @NotNull PlaceholderFloat yOff, @NotNull PlaceholderFloat zOff, @NotNull PlaceholderFloat fScale, @NotNull PlaceholderFloat sScale, @NotNull PlaceholderFloat vScale, @NotNull PlaceholderFloat xScale, @NotNull PlaceholderFloat yScale, @NotNull PlaceholderFloat zScale, boolean fromOrigin, boolean fromTrigger, boolean useDegrees, @NotNull PlaceholderFloat arc, @NotNull PlaceholderFloat points, @NotNull PlaceholderFloat slashDelay, @NotNull PlaceholderFloat skew, boolean horizontal, boolean randomPoints, boolean dynamicSource, boolean dynamicParameters, @NotNull SlashResult<T> slashResult) {
         super(slashRadius, rotation, fOff, sOff, vOff, xOff, yOff, zOff, fScale, sScale, vScale, xScale, yScale, zScale, fromOrigin, fromTrigger, useDegrees);
         this.arc = arc;
         this.points = points;
@@ -34,6 +34,7 @@ public class SlashLocations<T> extends TCPEffect {
         this.randomPoints = randomPoints;
         this.slashResult = slashResult;
         this.dynamicSource = dynamicSource;
+        this.dynamicParameters = dynamicParameters;
     }
 
     public SlashLocations(@NotNull MythicLineConfig mlc, @NotNull SlashResult<T> slashResult) {
@@ -46,8 +47,8 @@ public class SlashLocations<T> extends TCPEffect {
         this.horizontal = mlc.getBoolean(new String[]{"horizontal", "h", "isHorizontal", "ih"}, true);
         this.randomPoints = mlc.getBoolean(new String[]{"randomPoints", "rP"}, true);
         this.dynamicSource = mlc.getBoolean(new String[]{"dynamicSource", "dS"}, false);
+        this.dynamicParameters = mlc.getBoolean(new String[]{"dynamicParameters", "dynParam", "dprm"}, true);
         this.slashResult = slashResult;
-
     }
 
     @NotNull public ArrayList<T> playParticleSlashEffect(SkillMetadata data, AbstractLocation target, Object... funnies) {
@@ -70,6 +71,7 @@ public class SlashLocations<T> extends TCPEffect {
         targetLocationCopy.add(0.0D, trueYOffset, 0.0D);
 
         // Calculate some
+        TCPSnapshot originalTCP = dynamicParameters ? null : freeze(data);
         Random random = new Random(System.nanoTime());
         double circumference = toRadians(this.arc.get(data));
         double pointsTotal = Math.ceil(this.points.get(data));
@@ -104,7 +106,7 @@ public class SlashLocations<T> extends TCPEffect {
                 //DLY//OotilityCeption.Log("\u00a78SLH \u00a72DR\u00a77 Point\u00a7a " + i);
 
                 // Generate all points
-                T r = slashGen(random, data, source, target, targetLocationCopy.clone(), circumference, pointsTotal, fraction, skewed, b, i, funnies);
+                T r = slashGen(random, null, data, source, target, targetLocationCopy.clone(), circumference, pointsTotal, fraction, skewed, b, i, funnies);
 
                 //DLY//OotilityCeption.Log("\u00a78SLH \u00a72DR\u00a77 Result\u00a7a " + (r instanceof AbstractLocation ? (((AbstractLocation) r).getX() + " " + ((AbstractLocation) r).getY() + " " + ((AbstractLocation) r).getZ()) : (r == null ? "null" : r.getClass().getName())));
                 if (r != null) { ret.add(r); }
@@ -135,7 +137,7 @@ public class SlashLocations<T> extends TCPEffect {
                             this.cancel(); return; }
 
                         // Generate all points
-                        slashGen(random, data, source, target, targetLocationCopy.clone(), circumference, pointsTotal, fraction, skewed, b, i.getValue(), funnies);
+                        slashGen(random, originalTCP, data, source, target, targetLocationCopy.clone(), circumference, pointsTotal, fraction, skewed, b, i.getValue(), funnies);
 
                         // Increase
                         i.setValue(i.getValue() + 1);
@@ -155,8 +157,8 @@ public class SlashLocations<T> extends TCPEffect {
     }
 
     @Deprecated
-    @Nullable public T slashGen(@NotNull Random random, @NotNull SkillMetadata data, @NotNull AbstractLocation target, @NotNull AbstractLocation sourceLocation, double circumference, double pointsTotal, double fraction, double skewed, double b, double i, Object... funnies) { return slashGen(random, data, null, target, sourceLocation, circumference, pointsTotal, fraction, skewed, b, i, funnies); }
-    @Nullable public T slashGen(@NotNull Random random, @NotNull SkillMetadata data, @Nullable AbstractLocation source, @NotNull AbstractLocation target, @NotNull AbstractLocation sourceLocation, double circumference, double pointsTotal, double fraction, double skewed, double b, double i, Object... funnies) {
+    @Nullable public T slashGen(@NotNull Random random, @NotNull SkillMetadata data, @NotNull AbstractLocation target, @NotNull AbstractLocation sourceLocation, double circumference, double pointsTotal, double fraction, double skewed, double b, double i, Object... funnies) { return slashGen(random, null, data, null, target, sourceLocation, circumference, pointsTotal, fraction, skewed, b, i, funnies); }
+    @Nullable public T slashGen(@NotNull Random random, @Nullable TCPSnapshot tcp, @NotNull SkillMetadata data, @Nullable AbstractLocation source, @NotNull AbstractLocation target, @NotNull AbstractLocation sourceLocation, double circumference, double pointsTotal, double fraction, double skewed, double b, double i, Object... funnies) {
 
         // Get a random location along the arc
         double rnd;
@@ -186,7 +188,9 @@ public class SlashLocations<T> extends TCPEffect {
         AbstractVector slashDelta;
 
         // No fixed source makes it use the current caster/target locations
-        if (source == null) { slashDelta = transform(data, target, x, y, z); } else { slashDelta = transform(data, source, target, x, y , z); }
+        if (source == null) { source = getSource(data); }
+        if (tcp == null) { tcp = freeze(data); }
+        slashDelta = transform(tcp, source, target, x, y , z);
         //DLY//OotilityCeption.Log("\u00a78PSlash\u00a7a A\u00a77 Transformed\u00a7b " + x + " " + y + " " + z + " \u00a77to\u00a7e " + slashDelta.getX() + " " + slashDelta.getY() + " " + slashDelta.getZ());
 
         // Add, play, subtract

@@ -16,10 +16,10 @@ public class DistanceFromTriggerCondition extends CustomMMCondition implements I
 
     public DistanceFromTriggerCondition(MythicLineConfig mlc) {
         super(mlc);
-        String d = mlc.getString(new String[]{"distance", "d"}, this.conditionVar);
         matchSelf = mlc.getBoolean(new String[]{"self", "s", "caster", "c"}, false);
         matchTarget = mlc.getBoolean(new String[]{"target", "targ", "t"}, !matchSelf);
 
+        String d = mlc.getString(new String[]{"distance", "d"}, this.conditionVar);
         distance = QuickNumberRange.FromString(d);
         if (distance == null) { distance = GooPMythicMobs.rangedDoubleToQNR(d); }
         if (distance == null) { distance = new QuickNumberRange(0D, 0D); }
@@ -29,11 +29,11 @@ public class DistanceFromTriggerCondition extends CustomMMCondition implements I
     @Override
     public boolean check(SkillMetadata skillMetadata) {
         if (skillMetadata.getTrigger() == null) { return false; }
-        AbstractLocation origin = skillMetadata.getTrigger().getLocation();
+        AbstractLocation triggerLocation = skillMetadata.getTrigger().getLocation();
 
         if (matchSelf && skillMetadata.getCaster() != null) {
 
-            double diffSq = (float)origin.distanceSquared(skillMetadata.getCaster().getLocation());
+            double diffSq = (float)triggerLocation.distanceSquared(skillMetadata.getCaster().getLocation());
             //DO//OotilityCeption.Log("\u00a7aDO \u00a77DO Self Result: \u00a7e" + this.distance.InRange(diffSq));
             return this.distance.InRange(diffSq);
 
@@ -42,7 +42,7 @@ public class DistanceFromTriggerCondition extends CustomMMCondition implements I
                 for (AbstractEntity target : skillMetadata.getEntityTargets()) {
                     if (target == null) { continue; }
 
-                    double diffSq = (float)origin.distanceSquared(target.getLocation());
+                    double diffSq = (float)triggerLocation.distanceSquared(target.getLocation());
                     if (this.distance.InRange(diffSq)) { return true; }
                 }
             }
@@ -52,7 +52,7 @@ public class DistanceFromTriggerCondition extends CustomMMCondition implements I
                 for (AbstractLocation target : skillMetadata.getLocationTargets()) {
                     if (target == null) { continue; }
 
-                    double diffSq = (float)origin.distanceSquared(target);
+                    double diffSq = (float)triggerLocation.distanceSquared(target);
                     if (this.distance.InRange(diffSq)) { return true; }
                 }
             }

@@ -1,9 +1,8 @@
 package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
-import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCDeployed;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCStation;
-import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.ContainerTemplateMapping;
+import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.ContainerTemplateMappingMMO;
 import io.lumine.mythic.lib.api.crafting.recipes.vmp.VanillaInventoryMapping;
 import io.lumine.mythic.lib.api.crafting.uimanager.ProvidedUIFilter;
 import org.bukkit.entity.Player;
@@ -47,7 +46,7 @@ public class GooPMMOLib {
     public static boolean a(@NotNull GOOPCStation station) {
 
         // Already has a mapping? must be moving the result slot
-        ContainerTemplateMapping currentMapping = (ContainerTemplateMapping) station.getCustomVanillaMapping();
+        ContainerTemplateMappingMMO currentMapping = (ContainerTemplateMappingMMO) station.getCustomVanillaMapping();
 
         if (station.getTemplate().getResultSlot() != null) {
             if (currentMapping != null) {
@@ -69,7 +68,7 @@ public class GooPMMOLib {
             } else {
 
                 try {
-                    ContainerTemplateMapping mapping = new ContainerTemplateMapping(station.getTemplate());
+                    ContainerTemplateMappingMMO mapping = new ContainerTemplateMappingMMO(station.getTemplate());
                     VanillaInventoryMapping.registerCustomMapping(mapping);
                     station.setCustomVanillaMapping(mapping);
 
@@ -86,8 +85,8 @@ public class GooPMMOLib {
     }
 
     public static void b(@NotNull GOOPCStation station) {
-        if (!(station.getCustomVanillaMapping() instanceof ContainerTemplateMapping)) { return; }
-        ContainerTemplateMapping mapping = (ContainerTemplateMapping) station.getCustomVanillaMapping();
+        if (!(station.getCustomVanillaMapping() instanceof ContainerTemplateMappingMMO)) { return; }
+        ContainerTemplateMappingMMO mapping = (ContainerTemplateMappingMMO) station.getCustomVanillaMapping();
         mapping.discontinue();
         station.setCustomVanillaMapping(null);
     }

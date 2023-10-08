@@ -2,6 +2,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
+import io.lumine.mythic.api.adapters.AbstractPlayer;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
 import io.lumine.mythic.api.skills.ITargetedLocationSkill;
@@ -27,7 +28,7 @@ public class ParticleSlashEffect extends ParticleEffect implements ITargetedEnti
         particleEffect = new SlashLocations<>(mlc, (data, slashedLocation, funnies) -> {
 
             //noinspection unchecked
-            this.playEffect(data, slashedLocation, (Collection<AbstractEntity>) funnies[0]);
+            this.playEffect(data, slashedLocation, (Collection<AbstractPlayer>) funnies[0]);
 
             // Not needed, return statement
             return true;
@@ -39,7 +40,7 @@ public class ParticleSlashEffect extends ParticleEffect implements ITargetedEnti
         particleEffect = new SlashLocations<>(mlc, (data, slashedLocation, funnies) -> {
 
             //noinspection unchecked
-            this.playEffect(data, slashedLocation, (Collection<AbstractEntity>) funnies[0]);
+            this.playEffect(data, slashedLocation, (Collection<AbstractPlayer>) funnies[0]);
 
             // Not needed, return statement
             return true;

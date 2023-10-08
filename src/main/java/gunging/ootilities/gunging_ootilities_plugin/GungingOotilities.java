@@ -16,6 +16,10 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ISSEnderchest
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ISSInventory;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackLocation;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackSlot;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.unlockables.GOOPUCKTPlayer;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.unlockables.GOOPUCKTServer;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.unlockables.GOOPUCKTUnique;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.unlockables.GooPUnlockableTarget;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -722,10 +726,10 @@ public class GungingOotilities implements CommandExecutor {
                                 if (uiAmount || asSlot) {
 
                                     // Build Amount PMP base
-                                    amountPMP = PlusMinusPercent.GetPMP(args[7].toLowerCase().replace("amount", "1"), null);
+                                    amountPMP = PlusMinusPercent.GetPMP(amountPmPText.toLowerCase().replace("amount", "1"), null);
 
                                     // If it didnt parse, default to just set
-                                    if (amountPMP == null) { amountPMP = new PlusMinusPercent(1337.0D, false, false); }
+                                    if (amountPMP == null) { amountPMP = new PlusMinusPercent(1D, false, false); }
 
                                     // This guy tryna have an objective, man
                                     scoreExpectedScoreboard = true;
@@ -842,7 +846,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                             if (itemAmountTest.InRange(kount)) {
 
-                                                logrt += "Furthermore, the amount of stuff found (\u00a7b" + kount + "\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77.";
+                                                logrt += "Furthermore, the amount of stuff found (\u00a7b" + kount + "\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. ";
                                                 success = true;
 
                                             } else {
@@ -7137,8 +7141,12 @@ public class GungingOotilities implements CommandExecutor {
                 boolean failure = false;
 
                 // Gets the players
-                ArrayList<Player> targets = new ArrayList<>();
-                targets = OotilityCeption.GetPlayers(senderLocation, args[2], null);
+                ArrayList<GooPUnlockableTarget> targets = new ArrayList<>();
+                if (args.length > 2) {
+                    for (Player p : OotilityCeption.GetPlayers(senderLocation, args[2], null)) { targets.add(new GOOPUCKTPlayer(p)); }
+                    if ("server".equalsIgnoreCase(args[2])) { targets.add(new GOOPUCKTServer()); }
+                    String[] split = args[2].contains(";") ? args[2].split(";") : new String[] { args[2] };
+                    for (String s : split) { UUID u = OotilityCeption.UUIDFromString(s); if (u != null) { targets.add(new GOOPUCKTUnique(u)); } }}
 
                 // Switch
                 switch (args[1].toLowerCase()) {
@@ -7162,6 +7170,7 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73Unlockables - \u00a7b" + subcommand + ",\u00a77 Unlocks an unlockable :B");
                             logReturn.add("\u00a73Usage: \u00a7e" + usage);
                             logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who will unlock this goal.");
+                            logReturn.add("\u00a73      * \u00a7bserver \u00a77Global unlockable for the entire server");
                             logReturn.add("\u00a73 - \u00a7e<goal> \u00a77Name of the goal.");
                             logReturn.add("\u00a73 - \u00a7e[x] \u00a77Value of the goal, \u00a7btrue\u00a77 by default.");
                             logReturn.add("\u00a73      * \u00a77Can be any number except 0, instead.");
@@ -7286,7 +7295,7 @@ public class GungingOotilities implements CommandExecutor {
                             if (!failure) {
 
                                 // For every player
-                                for (Player target : targets) {
+                                for (GooPUnlockableTarget target : targets) {
 
                                     // Chaining succ
                                     failure = false;
@@ -7364,7 +7373,7 @@ public class GungingOotilities implements CommandExecutor {
                                             uck.Unlock();
 
                                             // Ntify
-                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77." + logMod));
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77." + logMod));
 
                                             // Run Chain
                                             chainingSuccess = true;
@@ -7385,7 +7394,7 @@ public class GungingOotilities implements CommandExecutor {
                                             if (u != uck.GetUnlock()) {
 
                                                 // Ntify
-                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77 at \u00a7b" + uck.GetUnlock() + "\u00a77." + logMod));
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77 at \u00a7b" + uck.GetUnlock() + "\u00a77." + logMod));
 
                                                 // Run Chain
                                                 chainingSuccess = true;
@@ -7396,22 +7405,22 @@ public class GungingOotilities implements CommandExecutor {
                                             } else {
 
                                                 // L
-                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a77 already had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
+                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 already had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
                                             }
                                         }
 
                                     } else {
 
                                         // L
-                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a77 alraedy had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 alraedy had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
                                     }
 
                                     // Run Chain
-                                    if (chained && chainingSuccess) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                    if (chained && chainingSuccess) { OotilityCeption.SendAndParseConsoleCommand((target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, chainedCommand, sender, null, null, null); }
 
                                     else if (!chainingSuccess) {
 
-                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        if (failMessage != null && target instanceof GOOPUCKTPlayer) { ((GOOPUCKTPlayer) target).getPlayer().sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, ((GOOPUCKTPlayer) target).getPlayer(), ((GOOPUCKTPlayer) target).getPlayer(), null, null))); }
                                     }
                                 }
                             }
@@ -7454,6 +7463,7 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73Unlockables - \u00a7b" + subcommand + ",\u00a77 Locks an unlockable.");
                             logReturn.add("\u00a73Usage: \u00a7e" + usage);
                             logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who will unlock this goal.");
+                            logReturn.add("\u00a73      * \u00a7bserver \u00a77Global unlockable for the entire server");
                             logReturn.add("\u00a73 - \u00a7e<goal> \u00a77Name of the goal to lock");
 
                             // Correct number of args?
@@ -7472,7 +7482,7 @@ public class GungingOotilities implements CommandExecutor {
                             if (!failure) {
 
                                 // For every player
-                                for (Player target : targets) {
+                                for (GooPUnlockableTarget target : targets) {
 
                                     // Unlock
                                     GooPUnlockables uck = GooPUnlockables.From(target.getUniqueId(), args[3]);
@@ -7485,11 +7495,11 @@ public class GungingOotilities implements CommandExecutor {
                                         uck.Lock();
 
                                         // Ntify
-                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a77 now has goal \u00a7e" + args[3] + "\u00a77 as \u00a7clocked\u00a77."));
+                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 now has goal \u00a7e" + args[3] + "\u00a77 as \u00a7clocked\u00a77."));
 
                                         // Run Chain
                                         if (chained) {
-                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
+                                            OotilityCeption.SendAndParseConsoleCommand((target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, chainedCommand, sender, null, null, null);
                                         }
 
                                         // Save
@@ -7497,10 +7507,10 @@ public class GungingOotilities implements CommandExecutor {
 
                                     } else {
 
-                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        if (failMessage != null && target instanceof GOOPUCKTPlayer) { ((GOOPUCKTPlayer) target).getPlayer().sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, ((GOOPUCKTPlayer) target).getPlayer(), ((GOOPUCKTPlayer) target).getPlayer(), null, null))); }
 
                                         // L
-                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a77 alraedy had goal \u00a7e" + args[3] + "\u00a77 locked."));
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 alraedy had goal \u00a7e" + args[3] + "\u00a77 locked."));
                                     }
                                 }
                             }
@@ -7542,6 +7552,7 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73Unlockables - \u00a7b" + subcommand + ",\u00a77 Read the lock state of a goal.");
                             logReturn.add("\u00a73Usage: \u00a7e" + usage);
                             logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player who will unlock this goal.");
+                            logReturn.add("\u00a73      * \u00a7bserver \u00a77Global unlockable for the entire server");
                             logReturn.add("\u00a73 - \u00a7e<goal> \u00a77Name of the goal to lock");
                             logReturn.add("\u00a73 - \u00a7e[range] \u00a77Range by which this command succeeds");
                             logReturn.add("\u00a73 - \u00a7e[objective] \u00a77Objective to write the score onto");
@@ -7643,7 +7654,7 @@ public class GungingOotilities implements CommandExecutor {
                             if (!failure) {
 
                                 // For every player
-                                for (Player target : targets) {
+                                for (GooPUnlockableTarget target : targets) {
 
                                     // Unlock
                                     GooPUnlockables uck = GooPUnlockables.From(target.getUniqueId(), args[3]);
@@ -7663,33 +7674,33 @@ public class GungingOotilities implements CommandExecutor {
                                     if (rangeSuccess) {
 
                                         // Run Chain
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand((target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, chainedCommand, sender, null, null, null); }
 
                                         // Score check
-                                        if (targetObjective != null) {
+                                        if (targetObjective != null && target instanceof GOOPUCKTPlayer) {
 
                                             // Declassify score
                                             if (readMode) { targetScore = new PlusMinusPercent(uck.GetUnlock() * readOps, false, false); }
 
                                             // Set
-                                            OotilityCeption.SetPlayerScore(targetObjective, target, targetScore);
+                                            OotilityCeption.SetPlayerScore(targetObjective, ((GOOPUCKTPlayer) target).getPlayer(), targetScore);
 
                                             // Ntify
-                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a7a had \u00a77goal in the correct lock state. Set their score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7b" + OotilityCeption.GetPlayerScore(targetObjective, target)));
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a7a had \u00a77goal in the correct lock state. Set their score \u00a73" + targetObjective.getName() + "\u00a77 to \u00a7b" + OotilityCeption.GetPlayerScore(targetObjective, ((GOOPUCKTPlayer) target).getPlayer())));
 
                                         } else {
 
                                             // Ntify
-                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a7a had \u00a77goal in the correct lock state."));
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a7a had \u00a77goal in the correct lock state."));
                                         }
 
                                     // Score doesnt match
                                     } else {
 
-                                        if (failMessage != null) { target.sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, target.getPlayer(), target.getPlayer(), null, null))); }
+                                        if (failMessage != null && target instanceof GOOPUCKTPlayer) { ((GOOPUCKTPlayer) target).getPlayer().sendMessage(OotilityCeption.ParseColour(OotilityCeption.ParseConsoleCommand(failMessage, ((GOOPUCKTPlayer) target).getPlayer(), ((GOOPUCKTPlayer) target).getPlayer(), null, null))); }
 
                                         // Ntify
-                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a77 did \u00a7cnot\u00a77 have the goal in the correct unlock state (\u00a7e" + uck.GetUnlock() + "\u00a77)."));
+                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 did \u00a7cnot\u00a77 have the goal in the correct unlock state (\u00a7e" + uck.GetUnlock() + "\u00a77)."));
                                     }
                                 }
                             }
@@ -7730,6 +7741,7 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73Unlockables - \u00a7b" + subcommand + ",\u00a77 Print the unlockable states of a player.");
                             logReturn.add("\u00a73Usage: \u00a7e" + usage);
                             logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player to check unlocks.");
+                            logReturn.add("\u00a73      * \u00a7bserver \u00a77Check active global unlockables");
                             logReturn.add("\u00a78Meant for admin use, it accomplishes nothing except letting you read a player's unlockable values.");
 
                             // Correct number of args?
@@ -7768,7 +7780,7 @@ public class GungingOotilities implements CommandExecutor {
                                         logReturn.add("\u00a7a> \u00a77 " + uck.getGoalname() + col + uck.IsUnlocked() + timeRemaining); } }
 
                                 // For every player
-                                for (Player target : targets) {
+                                for (GooPUnlockableTarget target : targets) {
                                     if (asOffline != null && target.getUniqueId().equals(asOffline.getUniqueId())) { continue; }
 
                                     logReturn.add("\u00a7b+++\u00a77 For player \u00a7e" + target.getName());

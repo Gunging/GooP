@@ -94,7 +94,9 @@ public class ConverterTypes {
 
             // Build Tierless ID
             idTierless = "GENERIC" + equipment + material;
-        }
+
+        // If the ID equals the VANILLA ID, do not append tier
+        } else if (idTierless.equals(GooPMMOItems.VANILLA_MIID)) { return GooPMMOItems.VANILLA_MIID; }
 
         // That's the thing
         return idTierless + tierPost;
