@@ -41,18 +41,23 @@ public class GCSR_Unlockable extends SlotRestriction {
         // Evaluate every goal
         for (String g : goals) {
 
-            GooPUnlockables uck = GooPUnlockables.Get(player.getUniqueId(), g);
+            boolean unlocked = false;
+            boolean negated = g.startsWith("!");
+            String processed = negated ? g.substring(1) : g;
+
+            GooPUnlockables uck = GooPUnlockables.Get(player.getUniqueId(), processed);
 
             // Valid?
-            if (uck == null) { continue; }
+            if (uck != null) {
 
-            // Check time
-            uck.CheckTimer();
+                // Check time
+                uck.CheckTimer();
 
-            // Is it unlocked? Success
-            if (uck.IsUnlocked()) {
+                unlocked = uck.IsUnlocked();
                 //RES//OotilityCeption. Log("\u00a78RESTRICT \u00a7U\u00a7a Found unlocked");
-                return true; }
+            }
+
+            if (unlocked == !negated) { return true; }
         }
 
         // No goals met

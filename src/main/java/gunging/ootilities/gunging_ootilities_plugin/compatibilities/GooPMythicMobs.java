@@ -35,6 +35,10 @@ import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.SkillTriggers;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import io.lumine.mythic.core.skills.placeholders.Placeholder;
+import io.lumine.mythic.core.skills.variables.Variable;
+import io.lumine.mythic.core.skills.variables.VariableRegistry;
+import io.lumine.mythic.core.skills.variables.VariableScope;
+import io.lumine.mythic.core.skills.variables.VariableType;
 import io.lumine.mythic.core.utils.jnbt.CompoundTag;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
@@ -217,6 +221,9 @@ public class GooPMythicMobs implements Listener {
             case "goopsetorigin":
             case "goopasorigin":
                 event.register(mm52 ? new AsOrigin(customMechanic, line, mlc) : new AsOrigin(skillExecutor, line, mlc));
+                break;
+            case "goopdeferred":
+                event.register(mm52 ? new Deferred(customMechanic, line, mlc) : new Deferred(skillExecutor, line, mlc));
                 break;
             case "goopsummonminion":
             case "goopsummonminions":
@@ -841,6 +848,58 @@ public class GooPMythicMobs implements Listener {
         }
 
         return null;
+    }
+
+    @Nullable public static Double modifyVariable(@Nullable Entity mob, @NotNull String variable, @Nullable PlusMinusPercent operation) {
+
+        // No variables no service
+        VariableRegistry reg;
+        if (mob == null) {
+            reg = MythicBukkit.inst().getVariableManager().getGlobalRegistry();
+        } else {
+            reg = MythicBukkit.inst().getVariableManager().getRegistry(VariableScope.CASTER, BukkitAdapter.adapt(mob));}
+        if (reg == null) { return null; }
+
+        // Unset operation
+        if (operation == null) {
+            reg.remove(variable);
+            return null; }
+
+        // No operation
+        if (operation.isNeutral()) {
+
+            // Return value
+            if (!reg.has(variable)) { return null; }
+            return (double) reg.getFloat(variable);
+        }
+
+        // If this variable is not set
+        if (!reg.has(variable)) {
+
+            // Operation must not be a percent nor relative
+            if (!operation.isPercent() && !operation.getRelative()) {
+                double val = operation.apply(0D);
+
+                // Set variable and accept
+                reg.put(variable, Variable.ofType(VariableType.FLOAT, val));
+                return val;
+
+            } else {
+
+                // No change could be made
+                return null;
+            }
+        }
+
+        // Apply operation
+        double val = operation.apply((double) reg.getFloat(variable));
+        reg.put(variable, Variable.ofType(VariableType.FLOAT, val));
+        return val;
+    }
+    @NotNull public static ArrayList<String> getGlobalVariables() {
+        VariableRegistry reg = MythicBukkit.inst().getVariableManager().getGlobalRegistry();
+        if (reg == null) { return new ArrayList<>(); }
+        return new ArrayList<>(reg.asMap().keySet());
     }
 
     //region Execute Skill As Family

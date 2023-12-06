@@ -18,6 +18,7 @@ import io.lumine.mythic.lib.api.util.ui.SilentNumbers;
 import net.Indyuce.mmoitems.ItemStats;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.Type;
+import net.Indyuce.mmoitems.api.event.MMOItemReforgeEvent;
 import net.Indyuce.mmoitems.api.event.item.ApplyGemStoneEvent;
 import net.Indyuce.mmoitems.api.interaction.GemStone;
 import net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem;
@@ -34,6 +35,7 @@ import net.Indyuce.mmoitems.stat.type.StatHistory;
 /*NEWEN*/import net.Indyuce.mmoitems.util.Pair;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -41,6 +43,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
@@ -59,6 +62,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class OnApplyCommand implements Listener {
+
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void OnMMOReforge(MMOItemReforgeEvent event) {
+
+        // If the MMOItems Converter is converting precisely, ignore this event
+        if (ConverterTypes.preciseIDConversion) { return; }
+
+        // Only enable this if the MMOItems Converter is enabled
+        boolean converter = ConverterTypes.isOnCraft || ConverterTypes.isOnDrop || ConverterTypes.isOnLoot || ConverterTypes.isOnTrade || ConverterTypes.isOnPickup;
+        if (!converter) { return; }
+
+        /*
+         * Counters the reforging of items converted by the MMOItems Converter
+         */
+        if (event.getOldMMOItem().getId().equals("VANILLA")) { event.setCancelled(true); }
+    }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void OnVillagerTalk(PlayerInteractEntityEvent event) {
@@ -425,30 +445,35 @@ public class OnApplyCommand implements Listener {
 
         // Any bonuses?
         if (vDamageRef.GetValue()   != 0) {
-            DoubleData val = (DoubleData) mmo.getData(ItemStats.ATTACK_DAMAGE);
-            double current = val != null ? val.getValue() : 0;
-            mmo.setData(ItemStats.ATTACK_DAMAGE,        new DoubleData(current + vDamageRef.GetValue()));
+            StatHistory hist = StatHistory.from(mmo, ItemStats.ATTACK_DAMAGE);
+            DoubleData val = (DoubleData) hist.getOriginalData();
+            hist.setOriginalData(new DoubleData(val.getValue() + vDamageRef.GetValue()));
+            mmo.setData(ItemStats.ATTACK_DAMAGE, hist.recalculate(mmo.getUpgradeLevel()));
         }
         if (vSpeedRef.GetValue()    != 0) {
-            DoubleData val = (DoubleData) mmo.getData(ItemStats.ATTACK_SPEED);
-            double current = val != null ? val.getValue() : 0;
-            mmo.setData(ItemStats.ATTACK_SPEED,        new DoubleData(current + vSpeedRef.GetValue()));
+            StatHistory hist = StatHistory.from(mmo, ItemStats.ATTACK_SPEED);
+            DoubleData val = (DoubleData) hist.getOriginalData();
+            hist.setOriginalData(new DoubleData(val.getValue() + vSpeedRef.GetValue()));
+            mmo.setData(ItemStats.ATTACK_SPEED, hist.recalculate(mmo.getUpgradeLevel()));
         }
         ItemStat armorStat = Gunging_Ootilities_Plugin.useMMOLibDefenseConvert ? ItemStats.DEFENSE : ItemStats.ARMOR;
         if (vArmorRef.GetValue()    != 0) {
-            DoubleData val = (DoubleData) mmo.getData(armorStat);
-            double current = val != null ? val.getValue() : 0;
-            mmo.setData(armorStat,        new DoubleData(current + vArmorRef.GetValue()));
+            StatHistory hist = StatHistory.from(mmo, armorStat);
+            DoubleData val = (DoubleData) hist.getOriginalData();
+            hist.setOriginalData(new DoubleData(val.getValue() + vArmorRef.GetValue()));
+            mmo.setData(armorStat, hist.recalculate(mmo.getUpgradeLevel()));
         }
         if (vArmorTRef.GetValue()   != 0) {
-            DoubleData val = (DoubleData) mmo.getData(ItemStats.ARMOR_TOUGHNESS);
-            double current = val != null ? val.getValue() : 0;
-            mmo.setData(ItemStats.ARMOR_TOUGHNESS,        new DoubleData(current + vArmorTRef.GetValue()));
+            StatHistory hist = StatHistory.from(mmo, ItemStats.ARMOR_TOUGHNESS);
+            DoubleData val = (DoubleData) hist.getOriginalData();
+            hist.setOriginalData(new DoubleData(val.getValue() + vArmorTRef.GetValue()));
+            mmo.setData(ItemStats.ARMOR_TOUGHNESS, hist.recalculate(mmo.getUpgradeLevel()));
         }
         if (mKResRef.GetValue()     != 0) {
-            DoubleData val = (DoubleData) mmo.getData(ItemStats.KNOCKBACK_RESISTANCE);
-            double current = val != null ? val.getValue() : 0;
-            mmo.setData(ItemStats.KNOCKBACK_RESISTANCE,        new DoubleData(current + mKResRef.GetValue()));
+            StatHistory hist = StatHistory.from(mmo, ItemStats.KNOCKBACK_RESISTANCE);
+            DoubleData val = (DoubleData) hist.getOriginalData();
+            hist.setOriginalData(new DoubleData(val.getValue() + mKResRef.GetValue()));
+            mmo.setData(ItemStats.KNOCKBACK_RESISTANCE, hist.recalculate(mmo.getUpgradeLevel()));
         }
         //SMH//OotilityCeption.Log("\u00a78Smith \u00a73VL\u00a77 Damage:\u00a7a " + vDamageRef.getValue());
         //SMH//OotilityCeption.Log("\u00a78Smith \u00a73VL\u00a77 Speed:\u00a7a " + vSpeedRef.getValue());
@@ -457,11 +482,9 @@ public class OnApplyCommand implements Listener {
         //SMH//OotilityCeption.Log("\u00a78Smith \u00a73VL\u00a77 MKRes:\u00a7a " + mKResRef.getValue());
 
         // Replace name ALV
-        tNameRef.SetValue(OotilityCeption.GetItemName(new ItemStack(netheritizedResult.getType())));
-        NameData oldNameData = (NameData) mmo.getData(ItemStats.NAME);
-        NameData newData = oldNameData == null ? new NameData(tNameRef.getValue()) : oldNameData;
-        if (oldNameData != null) { newData.setString(tNameRef.getValue()); }
-        mmo.setData(ItemStats.NAME, newData);
+        StatHistory hist = StatHistory.from(mmo, ItemStats.NAME);
+        hist.setOriginalData(new NameData(OotilityCeption.GetItemName(new ItemStack(netheritizedResult.getType()))));
+        mmo.setData(ItemStats.NAME, hist.recalculate(mmo.getUpgradeLevel()));
 
         // Build that shit
         return mmo.newBuilder().build();
@@ -1010,6 +1033,21 @@ public class OnApplyCommand implements Listener {
         if (!ConverterTypes.hasConverterOptions(ConvertingReason.MOB_KILL_DROP)) { return; }
         if (event.isCancelled()) { return; }
 
+        Player parser = null;
+
+        // Get player who last attacked
+        if (event.getEntity().getLastDamageCause() instanceof EntityDamageByEntityEvent) {
+            if (((EntityDamageByEntityEvent) event.getEntity().getLastDamageCause()).getDamager() instanceof Player) {
+                parser = (Player) ((EntityDamageByEntityEvent) event.getEntity().getLastDamageCause()).getDamager();} }
+
+        // Players in world...
+        if (parser == null) {
+            Location loc = event.getEntity().getLocation();
+            double bestDistance = 70;
+            for (Player player : loc.getWorld().getNearbyPlayers(loc, 70)) {
+                double currentDistance = player.getLocation().distance(loc);
+                if (currentDistance < bestDistance) { bestDistance = currentDistance; parser = player; } } }
+
         // Real conversion
         for (ItemStack itm : event.getDrops()) {
 
@@ -1023,7 +1061,7 @@ public class OnApplyCommand implements Listener {
             if (GooPMMOItems.IsMMOItem(itm)) { continue; }
 
             // Prepare result
-            ItemStack result = FullConvert(itm, ConverterTypeSettings.PertainingTo(convName.getValue()), null, ConvertingReason.MOB_KILL_DROP);
+            ItemStack result = FullConvert(itm, ConverterTypeSettings.PertainingTo(convName.getValue()), parser, ConvertingReason.MOB_KILL_DROP);
 
             // Set Meta
             itm.setType(itm.getType());
@@ -1071,19 +1109,19 @@ public class OnApplyCommand implements Listener {
                 // Store
                 craftPrepResult.put(player.getUniqueId(), result.clone());
 
-                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NENENE\u00a77 Showing...");
+                //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NENENE\u00a77 Showing... Input: " + OotilityCeption.GetItemName(event.getInventory().getInputEquipment()));
 
-                // Well, override it I suppose. Drop another entity with the qualifications
-                event.getInventory().setResult(result);
+                // Well, override it I suppose.
+                //event.getInventory().setResult(result);
 
                 // Run
                 (new BukkitRunnable() {
                     public void run() {
 
-                        // Well, override it I suppose. Drop another entity with the qualifications
-                        event.getInventory().setResult(result);
+                        // Well, override it I suppose... as long as there is still input equipment (real)
+                        if (!OotilityCeption.IsAirNullAllowed(event.getInventory().getInputEquipment())) { event.getInventory().setResult(result); }
 
-                        //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NENENE\u00a77 Shown...");
+                        //SMH//OotilityCeption.Log("\u00a78Smith \u00a73NENENE\u00a77 Shown... Input: " + OotilityCeption.GetItemName(event.getInventory().getInputEquipment()));
 
                     }
 
@@ -1187,6 +1225,13 @@ public class OnApplyCommand implements Listener {
                         // Set in inventory a reroll
                         event.getInventory().setResult(cursorResult);
                     }
+
+                    (new BukkitRunnable() {
+                        public void run() {
+                            //SMH//OotilityCeption.Log("\u00a78Smith \u00a76EV\u00a77 Lt Result Slot:\u00a7f " + OotilityCeption.GetItemName(event.getInventory().getResult()));
+                        }
+
+                    }).runTaskLater(Gunging_Ootilities_Plugin.getPlugin(), 1L);
 
                     // No need to spamm the method vro
                     BeginScourger();

@@ -139,7 +139,11 @@ public class TargetedItems {
                 /*
                  * Apply changes to the item, wherever it is
                  */
-                if (applyChanges) { iSource.ApplyChanges(); }
+                if (applyChanges) {
+                    //TRG//OotilityCeption.Log("\u00a78TGI\u00a7a SCS\u00a7a Applying Changes");
+                    iSource.ApplyChanges();
+                }
+                //TRG// else { OotilityCeption.Log("\u00a78TGI\u00a7a SCS\u00a7c Not Applying Changes"); }
 
                 /*
                  * Build the slots of success that succeed from this command.

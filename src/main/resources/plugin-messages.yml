@@ -1,7 +1,23 @@
-
 # --------------------
+#   Messages sent by assorted actions of the plugin
+# --------------------
+General:
+
+  # -------
+  #   When an enchantment is deleted from the Enchantment Table through enchantment-delete.yml
+  #   will only show to each player once every server reboot, avoiding spam.
+  #
+  #   Placeholders available:
+  #     %enchantment% enchantment being removed
+  #     %replacement% replacement enchantment
+  EnchantmentDeleted: '&8&l[&2&l!&8&l] &aThe enchantment &e%enchantment%&a is disabled and has been replaced for &6%replacement%&a.'
+
+    # --------------------
 #   Messages sent to players when minions perform certain actions
 # --------------------
+#
+#   Disable a message here by setting it to a single space
+#     ExampleMessage: ' '
 #
 #   The message is sent to the player owning the minion involved.
 #   -> %minion_name% Name of the minion involved.

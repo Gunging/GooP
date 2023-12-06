@@ -535,7 +535,7 @@ public class OotilityCeption {
         return ParseAsEntity(asPlayer.getPlayer(), cmd);
     }
     @NotNull
-    public static String ParseAsEntity(@NotNull Entity asEntity,@NotNull  String cmd) {
+    public static String ParseAsEntity(@NotNull Entity asEntity, @NotNull  String cmd) {
         cmd = cmd.replace("%entity%", String.valueOf(asEntity.getType().toString()));
         cmd = cmd.replace("%entity_name%", String.valueOf(asEntity.getName()));
         cmd = cmd.replace("%entity_uuid%", String.valueOf(asEntity.getUniqueId().toString()));
@@ -553,7 +553,7 @@ public class OotilityCeption {
         return cmd;
     }
     @NotNull
-    public static String ParseAsGoop(@NotNull Block asBlock,@NotNull  String cmd) {
+    public static String ParseAsGoop(@NotNull Block asBlock, @NotNull  String cmd) {
         cmd = cmd.replace("%pos_x%",  String.valueOf(asBlock.getX()));
         cmd = cmd.replace("%pos_y%",  String.valueOf(asBlock.getY()));
         cmd = cmd.replace("%pos_z%",  String.valueOf(asBlock.getZ()));
@@ -565,10 +565,8 @@ public class OotilityCeption {
         return cmd;
     }
     @NotNull
-    public static String ParseAsGoop(@NotNull ItemStack asItem,@NotNull  String cmd) {
-        if (Gunging_Ootilities_Plugin.foundMMOItems) {
-            cmd = cmd.replace("%item_level%", String.valueOf(GooPMMOItems.GetItemLevelNonull(asItem)));
-        }
+    public static String ParseAsGoop(@NotNull ItemStack asItem, @NotNull  String cmd) {
+        if (Gunging_Ootilities_Plugin.foundMMOItems) { cmd = cmd.replace("%item_level%", String.valueOf(GooPMMOItems.GetItemLevelNonull(asItem))); }
 
         cmd = cmd.replace("%item_name%",  GetItemName(asItem));
 
@@ -671,7 +669,7 @@ public class OotilityCeption {
         while(longString.length() > paragraphWide) {
             skip = true;
             int idx = longString.lastIndexOf(" ", paragraphWide + 1);
-            if (idx < 0) { idx = longString.length(); }
+            if (idx < 0) { idx = longString.length() - 1; }
             ret.add(colorPrefix + longString.substring(0, idx));
             longString = longString.substring(idx + 1);
             if (longString.length() <= paragraphWide) {
@@ -993,7 +991,8 @@ public class OotilityCeption {
                 (iType == Material.GOLDEN_CHESTPLATE) ||
                 (iType == Material.CHAINMAIL_CHESTPLATE) ||
                 (iType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_CHESTPLATE)) ||
-                (iType == Material.LEATHER_CHESTPLATE);
+                (iType == Material.LEATHER_CHESTPLATE) ||
+                (iType == Material.ELYTRA);
     }
     public static boolean IsLeggings(@NotNull Material iType) {
         return (iType == Material.DIAMOND_LEGGINGS) ||
@@ -5721,6 +5720,9 @@ public class OotilityCeption {
             if (tName != null) { tName.SetValue("ARMOR"); }
             if (vArmor != null) { vArmor.SetValue(2.0); }
         } else
+        if (tType == Material.ELYTRA) {
+            if (tName != null) { tName.SetValue("ARMOR"); }
+        } else
         if (tType == GooP_MinecraftVersions.GetVersionMaterial(GooPVersionMaterials.NETHERITE_HELMET)) {
             if (tName != null) { tName.SetValue("ARMOR"); }
             if (vArmor != null) { vArmor.SetValue(3.0); }
@@ -6821,8 +6823,8 @@ public class OotilityCeption {
                         return true;
                     }
 
-                    // Not equal to *
-                    else if (!"*".equals(dataDime) && !GooPMMOItems.GetMMOItem_IDNames(dataPrime).contains(dataDime)) {
+                    // Not containing wildcards (*)? Test the ID as well
+                    else if (!dataDime.contains("*") && !GooPMMOItems.GetMMOItem_IDNames(dataPrime).contains(dataDime)) {
 
 
                         // Announce
@@ -6848,8 +6850,8 @@ public class OotilityCeption {
 
                 } else {
 
-                    // Is the type valid?
-                    if (!GooPMythicMobs.GetMythicItemTypes().contains(dataPrime)) {
+                    // Not containing wildcards (*)? Test the ID as well
+                    if (!dataDime.contains("*")  && !GooPMythicMobs.GetMythicItemTypes().contains(dataPrime)) {
 
                         // Announce
                         Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "The MythicMobs Item '\u00a73" + dataPrime + "\u00a77' is not loaded. ");
@@ -6886,21 +6888,24 @@ public class OotilityCeption {
                 if (logger != null) { logger.SetValue(null); }
                 break;
             case "v":
-                // Check Material
-                try {
-                    // Yes, it seems to be
-                    Material vanilla = Material.valueOf(dataPrime.toUpperCase());
+                if (!dataPrime.contains("*")) {
 
-                    // Clear logger
-                    if (logger != null) { logger.SetValue(null); }
+                    // Check Material
+                    try {
+                        // Yes, it seems to be
+                        Material vanilla = Material.valueOf(dataPrime.toUpperCase());
 
-                // Not recognized
-                } catch (IllegalArgumentException ex) {
-                    // Log it
-                    Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "Material \u00a7c" + dataPrime + "\u00a77 doesnt exist.");
+                        // Clear logger
+                        if (logger != null) { logger.SetValue(null); }
 
-                    // Thats ass material type
-                    return true;
+                        // Not recognized
+                    } catch (IllegalArgumentException ex) {
+                        // Log it
+                        Log4Success(logger, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "Material \u00a7c" + dataPrime + "\u00a77 doesnt exist.");
+
+                        // Thats ass material type
+                        return true;
+                    }
                 }
 
                 break;
@@ -6965,7 +6970,7 @@ public class OotilityCeption {
                 if (Gunging_Ootilities_Plugin.foundMMOItems) { if (GooPMMOItems.IsMMOItem(tItemStack)) { return false; } }
 
                 // Return whether or not the type matches.
-                return (tItemStack.getType() == Material.valueOf(nbtFilter.getDataPrime().toUpperCase()));
+                return wildcardMatches(tItemStack.getType().toString(), nbtFilter.getDataPrime().split("\\*"), true);
             case "i":
                 // Get Ingredient of Data Prime
                 GooPIngredient ing = GooPIngredient.Get(nbtFilter.getDataPrime());
@@ -6974,9 +6979,41 @@ public class OotilityCeption {
                 // Found?
                 return ing.Matches(tItemStack);
             case "mm":
-                if (Gunging_Ootilities_Plugin.foundMythicMobs) { return nbtFilter.getDataPrime().equals(GooPMythicMobs.getMythicType(tItemStack)); } else return false;
+                if (Gunging_Ootilities_Plugin.foundMythicMobs && GooPMythicMobs.isMythicItem(tItemStack)) { return wildcardMatches(GooPMythicMobs.getMythicType(tItemStack), nbtFilter.getDataPrime().split("\\*"), true); } else return false;
             default: return false;
         }
+    }
+    
+    /**
+     * @param target Target string to mtch
+     * @param spitArgument The wildcard-containing string, split by the wildcard of choice, for example <code>DARK_OAK_*</code>
+     * @return If this material name matches the argument
+     */
+    public static boolean wildcardMatches(@NotNull String target, @NotNull String wildcarded, boolean ignoreCase) {return wildcardMatches(target, wildcarded.split("\\*"), ignoreCase);}
+
+    /**
+     * @param target Target string to mtch
+     * @param spitArgument The wildcard-containing string, split by the wildcard of choice, for example <code>DARK_OAK_*</code>
+     * @return If this material name matches the argument
+     */
+    public static boolean wildcardMatches(@NotNull String target, @NotNull String[] spitArgument, boolean ignoreCase) {
+
+        String mat = ignoreCase ? target.toUpperCase() : target;
+        for (String matcher : spitArgument) {
+            String cher = ignoreCase ? matcher.toUpperCase() : matcher;
+            int m = mat.indexOf(cher);
+
+            // Accepted wildcard
+            if (m >= 0) {
+
+                // Prepare for next iteration
+                mat = mat.substring(m);
+
+            // Did not start with this, it is a failure
+            } else {  return false; }
+        }
+
+        return true;
     }
 
     /**
@@ -7300,7 +7337,7 @@ public class OotilityCeption {
          * Evaluate each of them, then elaborate
          */
         for (String slot : slots) {
-            //SLOT//OotilityCeption.Log("Parsing Slot \u00a7f" + slot);
+            //SLOT//OotilityCeption.Log("\u00a77Parsing Slot \u00a7f" + slot + "\u00a77 as player\u00a7f " + (elaborator == null ? "\u00a7cnull" : elaborator.getName()));
 
             // Does it parse?
             ItemStackSlot itemStackSlot = OotilityCeption.getInventorySlot(slot);
@@ -7313,6 +7350,7 @@ public class OotilityCeption {
 
                 // Get all within encoded
                 ArrayList<? extends ItemStackSlot> elaborated = itemStackSlot.elaborate();
+                //SLOT//OotilityCeption.Log("\u00a78\u00a7oElaborated\u00a79 " + elaborated.size());
 
                 // Unelaboratable
                 if (elaborated.size() == 0) {
@@ -7360,16 +7398,19 @@ public class OotilityCeption {
          */
         int targetShulker = arg.indexOf(".");
         if (targetShulker > 0) {
+            //SLOT//Log("\u00a78Slot \u00a76Shulk\u00a77 Parsing shulker \u00a7e" + arg);
 
             // Obtain parent slot
             String parentArg = arg.substring(0, targetShulker);
             ItemStackSlot parent = getInventorySlot(parentArg);
+            //SLOT//Log("\u00a78Slot \u00a76Shulk\u00a77 Parsing its parent \u00a76" + parentArg + "\u00a77:\u00a7a " + (parent == null ? "\u00a7cnull" : parent.toString()));
 
             // Failure?
             if (parent == null) { return null; }
 
             // Whats the actual range here
             if (!getSlotRange(arg, slot, range, false)) { return null; }
+            //SLOT//Log("\u00a78Slot \u00a76Shulk\u00a7a Identified slot range");
 
             /*
              * Shulker box constraints: The values must be between zero and 27
@@ -7870,7 +7911,6 @@ public class OotilityCeption {
     //endregion
 
     //region Blocks Management
-
     /**
      * Returns the bottom half of the block if bisected, or itself if not bisected.
      *

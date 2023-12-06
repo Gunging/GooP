@@ -3,9 +3,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GTranslationContainer;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GTL_Containers;
-import gunging.ootilities.gunging_ootilities_plugin.misc.FileConfigPair;
-import gunging.ootilities.gunging_ootilities_plugin.misc.GTL_SummonerClass;
-import gunging.ootilities.gunging_ootilities_plugin.misc.GTranslationSummoner;
+import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -75,6 +73,9 @@ public class GTranslationManager {
         addTranslation(GTL_SummonerClass.MINION_EXCEED_CAP, fromSection(summonerSection,"MinionExceedCapacity", "&8&l[<#ff6bb7>&l!&8&l] <#ffc4e2>Your elemental control over <#d594eb>%minion_name%<#ffc4e2> is not strong enough and collapses! "));
         addTranslation(GTL_SummonerClass.MINION_WOULD_EXCEED_CAP, fromSection(summonerSection,"MinionWouldExceedCapacity", "&8&l[<#ff6bb7>&l!&8&l] <#ffc4e2>Your fail to summon <#d594eb>%minion_name%<#ffc4e2> because your elemental control is not strong enough! "));
 
+        miscTranslation.clear();
+        ConfigurationSection miscSection = translationsPair.getStorage().getConfigurationSection("General");
+        addTranslation(GTL_Misc.ENCHANTMENT_DELETED_TABLE, fromSection(miscSection,"EnchantmentDeleted", "&8&l[&2&l!&8&l] &aThe enchantment &e%enchantment%&a is disabled and has been replaced for &6%replacement%&a."));
     }
 
     /**
@@ -116,5 +117,20 @@ public class GTranslationManager {
      * @param message message
      */
     public static void addTranslation(@NotNull GTL_SummonerClass key, @NotNull String message) { summonerTranslation.put(key, new GTranslationSummoner(key, message)); }
+    //endregion
+
+    //region Misc
+    /**
+     * @param key Translation Key
+     *
+     * @return Translation of this
+     */
+    @NotNull public static String getMiscTranslation(@NotNull GTL_Misc key) { GTranslationMisc t = miscTranslation.get(key); if (t == null) { return ""; } return t.getTranslation(); }
+    @NotNull final static HashMap<GTL_Misc, GTranslationMisc> miscTranslation = new HashMap<>();
+    /**
+     * @param key key
+     * @param message message
+     */
+    public static void addTranslation(@NotNull GTL_Misc key, @NotNull String message) { miscTranslation.put(key, new GTranslationMisc(key, message)); }
     //endregion
 }

@@ -4,7 +4,7 @@ main: gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin
 api-version: 1.14
 prefix: GooP
 authors: [Gunging]
-softdepend: [DiscordSRV,MythicMobs,Vault,WorldGuard,MMOItems,MMOCore,MythicLib,Graveyards,PlaceholderAPI,mcMMO,GriefPrevention,Towny]
+softdepend: [DiscordSRV,MythicMobs,Vault,WorldGuard,MMOItems,MMOCore,MythicLib,Graveyards,PlaceholderAPI,mcMMO,GriefPrevention,Towny,CMI,Essentials]
 description: Honestly, why has no one else made these things before? I can't believe I needed to learn Java to make them myself.
 commands:
   gungingootilities:

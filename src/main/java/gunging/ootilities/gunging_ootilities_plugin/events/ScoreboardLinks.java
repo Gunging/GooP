@@ -4,7 +4,9 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
+import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GTL_Containers;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -40,6 +42,28 @@ import java.util.UUID;
 public class ScoreboardLinks implements Listener {
 
     //region Enchantment Deleter
+    HashMap<Enchantment, ArrayList<UUID>> warnedPlayers = new HashMap<>();
+    @Nullable String warnMessage = null;
+    public void warn(@NotNull Player play, @NotNull Enchantment ench) {
+        if (warnMessage == null || warnMessage.isEmpty() || warnMessage.equals(" ")) { return; }
+
+        ArrayList<UUID> uuids = warnedPlayers.get(ench);
+        if (uuids == null) {uuids = new ArrayList<>();}
+
+        // No changes
+        if (uuids.contains(play.getUniqueId())) {return;}
+        uuids.add(play.getUniqueId());
+        warnedPlayers.put(ench, uuids);
+
+        String message = OotilityCeption.ParseConsoleCommand(warnMessage.replace("%enchantment%", OotilityCeption.TitleCaseConversion(ench.getKey().getKey().replace("_", " "))).replace("%replacement%", OotilityCeption.TitleCaseConversion(Gunging_Ootilities_Plugin.replacementEnchantment.getKey().getKey().replace("_", " "))), play, play, null, null);
+        play.sendMessage(message);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void OnGooPReload(GooPReloadEvent event) {
+        warnMessage = GTranslationManager.getMiscTranslation(GTL_Misc.ENCHANTMENT_DELETED_TABLE);
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void OnEnchant(PrepareItemEnchantEvent event) {
         if (Gunging_Ootilities_Plugin.blacklistedEnchantments.size() == 0) { return; }
@@ -61,6 +85,7 @@ public class ScoreboardLinks implements Listener {
             if (offer == null) { continue; }
 
             if (Gunging_Ootilities_Plugin.blacklistedEnchantments.contains(offer.getEnchantment())) {
+                warn(event.getEnchanter(), offer.getEnchantment());
 
                 offer.setEnchantment(allowedEnchantment);
                 offer.setEnchantmentLevel(Math.min(offer.getEnchantmentLevel(), allowedEnchantment.getMaxLevel()));

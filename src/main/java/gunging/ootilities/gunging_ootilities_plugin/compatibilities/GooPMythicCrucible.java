@@ -13,7 +13,7 @@ public class GooPMythicCrucible {
     public static boolean a(@NotNull GOOPCStation station) {
 
         // Already has a mapping? must be moving the result slot
-        ContainerTemplateMappingMythic currentMapping = (ContainerTemplateMappingMythic) station.getCustomVanillaMapping();
+        ContainerTemplateMappingMythic currentMapping = station.getCustomVanillaMappingMythic();
 
         if (station.getTemplate().getResultSlot() != null) {
             if (currentMapping != null) {
@@ -37,7 +37,7 @@ public class GooPMythicCrucible {
                 try {
                     ContainerTemplateMappingMythic mapping = new ContainerTemplateMappingMythic(station.getTemplate());
                     VanillaInventoryMapping.registerCustomMapping(mapping);
-                    station.setCustomVanillaMapping(mapping);
+                    station.setCustomVanillaMappingMythic(mapping);
 
                     return true;
 
@@ -47,14 +47,14 @@ public class GooPMythicCrucible {
 
         if (currentMapping != null) { currentMapping.discontinue(); }
 
-        station.setCustomVanillaMapping(null);
+        station.setCustomVanillaMappingMythic(null);
         return false;
     }
 
     public static void b(@NotNull GOOPCStation station) {
-        if (!(station.getCustomVanillaMapping() instanceof ContainerTemplateMappingMythic)) { return; }
-        ContainerTemplateMappingMythic mapping = (ContainerTemplateMappingMythic) station.getCustomVanillaMapping();
+        if (station.getCustomVanillaMappingMythic() == null) { return; }
+        ContainerTemplateMappingMythic mapping = station.getCustomVanillaMappingMythic();
         mapping.discontinue();
-        station.setCustomVanillaMapping(null);
+        station.setCustomVanillaMappingMythic(null);
     }
 }

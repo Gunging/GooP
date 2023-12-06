@@ -1,5 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics;
 
+import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.conditions.IEntityComparisonCondition;

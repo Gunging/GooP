@@ -124,6 +124,9 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
         // Remove from minionship
         minionship.get(min.getOwner().getUniqueId()).remove(min);
 
+        // :wow:
+        min.getMinion().getScoreboardTags().remove(SummonerClassMinion.minionTag);
+
         // Call event
         GooPMinionDisableEvent event = new GooPMinionDisableEvent(min);
         Bukkit.getPluginManager().callEvent(event);

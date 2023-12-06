@@ -311,9 +311,11 @@ public class GooPPlaceholderAPI extends PlaceholderExpansion {
                 String[] uckSplit = uckName.split(":");
                 uckName = uckSplit[0];
                 uckArg = uckSplit[1];
-                UUID uid = OotilityCeption.UUIDFromString(uckSplit[2]);
-                if ("server".equals(uckSplit[2])) { target = new GOOPUCKTServer();
-                } else if (uid != null) { target = new GOOPUCKTUnique(uid);}
+                if (uckSplit.length >= 3) {
+                    UUID uid = OotilityCeption.UUIDFromString(uckSplit[2]);
+                    if ("server".equals(uckSplit[2])) { target = new GOOPUCKTServer();
+                    } else if (uid != null) { target = new GOOPUCKTUnique(uid);}
+                } else { target = new GOOPUCKTUnique(player.getUniqueId()); }
             } else { target = new GOOPUCKTUnique(player.getUniqueId()); }
             if (target == null) { return null; }
 

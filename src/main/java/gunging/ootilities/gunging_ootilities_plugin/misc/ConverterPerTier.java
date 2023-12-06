@@ -14,6 +14,7 @@ import net.Indyuce.mmoitems.stat.data.*;
 import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.*;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -281,8 +282,11 @@ public class ConverterPerTier {
         return stat.equals(GooPMMOItems.Stat(GooPMMOItemsItemStats.GEM_SOCKETS));
     }
 
+    @NotNull @Deprecated
+    public ItemStack ApplyTo(@NotNull ItemStack iSource) { return ApplyTo(iSource, null); }
+
     @NotNull
-    public ItemStack ApplyTo(@NotNull ItemStack iSource) {
+    public ItemStack ApplyTo(@NotNull ItemStack iSource, @Nullable Player looter) {
         //RLD// OotilityCeption.Log("\u00a78CONVERTER \u00a7bTIER\u00a77 Applying onto " + OotilityCeption.GetItemName(iSource));
 
         // Should be a MMOItem but
@@ -334,6 +338,8 @@ public class ConverterPerTier {
                 if (str != null) {
                     //RLD// OotilityCeption.Log("\u00a78CONVERTER \u00a7bTIER\u00a77 String Data\u00a7b " + str.toString() + "\u00a77 onto " + stt.getName());
 
+                    if (looter != null && str.getString() != null) { str.setString(OotilityCeption.ParseConsoleCommand(str.getString(), looter, looter, null, iSource)); }
+
                     // That's it
                     mmo.setData(stt, str);
 
@@ -341,6 +347,13 @@ public class ConverterPerTier {
 
                     // Get String List Data
                     StringListData stringListData = stringListStatData.get(stt);
+
+                    // Parse all the list entries (real)
+                    if (looter != null) {
+                        ArrayList<String> parsedList = new ArrayList<>();
+                        for (String parse : stringListData.getList()) {parsedList.add(OotilityCeption.ParseConsoleCommand(parse, looter, looter, null, iSource)); }
+                        stringListData.getList().clear();
+                        stringListData.getList().addAll(parsedList); }
 
                     // Valid?
                     if (stringListData != null) {

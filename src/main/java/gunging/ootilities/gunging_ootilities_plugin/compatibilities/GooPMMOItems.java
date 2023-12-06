@@ -345,7 +345,7 @@ public class GooPMMOItems {
         Material mMat = stringMats[currentMat];
         currentMat++; if (currentMat >= stringMats.length) { currentMat = 0; }
 
-        ItemStat MISCC = new StringStat(name, mMat, "Extra String Stat \u00a7l" + terminology, new String[]{"Doesnt do anything by itself.", "\u00a7a", "You can retrieve it in mythic", "skills though, using these:", "\u00a7e<goop.castermmostat.[slot]." + name.toUpperCase() + ">", "\u00a7e<goop.triggermmostat.[slot]." + name.toUpperCase() + ">"}, new String[]{"!consumable", "!miscellaneous", "all"});
+        ItemStat MISCC = new StringStat(name, mMat, "Extra String Stat \u00a7l" + terminology, new String[]{"Doesnt do anything by itself.", "\u00a7a", "You can retrieve it in mythic", "skills though, using these:", "\u00a7e<goop.castermmostat.[slot]." + name.toUpperCase() + ">", "\u00a7e<goop.triggermmostat.[slot]." + name.toUpperCase() + ">"}, new String[]{ "all" });
         RegisterStat(name, MISCC);
         STR_MISC.put(terminology, MISCC);
     }
@@ -1757,7 +1757,7 @@ public class GooPMMOItems {
 
             // Get its data
             DoubleData current = (DoubleData) mmo.getData(stat);
-            if (current == null) { current = (DoubleData) ((DoubleData) stat.getClearStatData()).cloneData(); }
+            if (current == null) { current = new DoubleData(((DoubleData) stat.getClearStatData()).getValue()); }
             //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Current:\u00a7b " + current.getValue());
 
             // Does it have a value?
@@ -3875,7 +3875,7 @@ public class GooPMMOItems {
             if (type.equalsIgnoreCase(tNBT.getString("MMOITEMS_ITEM_TYPE"))) {
 
                 // Vro are they named the same?
-                return "*".equals(idName) || idName.equalsIgnoreCase(tNBT.getString("MMOITEMS_ITEM_ID"));
+                return OotilityCeption.wildcardMatches(tNBT.getString("MMOITEMS_ITEM_ID"), idName.split("\\*"), true);
             }
         }
 
@@ -6412,10 +6412,11 @@ public class GooPMMOItems {
                                 Objective targetObjective = null;
                                 PlusMinusPercent scoreOperation = null;
                                 String unparsedRange = null;
-                                boolean readValue = true;
+                                boolean readValue = unidentifiedValue.equals("read");
 
                                 String objectiveName = null;
                                 String objectiveOpp = null;
+                                //STAT//OotilityCeption.Log("\u00a77STAT\u00a76 CMD\u00a77 Default Readonly:\u00a7b " + readValue + "\u00a78 at\u00a79 " + args.length);
 
                                 // Is it range or default-read objective?
                                 if (args.length == 7) {
@@ -6436,6 +6437,7 @@ public class GooPMMOItems {
                                     // Will fail if nonsense
                                     objectiveOpp = args[7];
                                     readValue = objectiveOpp.equals("read");
+                                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a76 CMD\u00a77 L8 Readonly:\u00a7b " + readValue);
                                     if (!readValue) { scoreOperation = PlusMinusPercent.GetPMP(objectiveOpp, refAddition); }
                                 }
 
@@ -6450,6 +6452,7 @@ public class GooPMMOItems {
                                     // Will fail if nonsense
                                     objectiveOpp = args[8];
                                     readValue = objectiveOpp.equals("read");
+                                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a76 CMD\u00a77 L9 Readonly:\u00a7b " + readValue);
                                     if (!readValue) { scoreOperation = PlusMinusPercent.GetPMP(objectiveOpp, refAddition); }
                                 }
 
@@ -6497,18 +6500,20 @@ public class GooPMMOItems {
                                     final boolean useObjective = (targetObjective != null);
                                     final PlusMinusPercent finalScoreOperation = scoreOperation;
                                     final Objective finalTargetObjective = targetObjective;
+                                    final boolean finalReadValue = readValue;
+                                    //STAT//OotilityCeption.Log("\u00a77STAT\u00a76 CMD\u00a77 Final Readonly:\u00a7b " + finalReadValue);
 
                                     /*
                                      *      Preparation of Methods and Lambdas
                                      */
-                                    TargetedItems executor = new TargetedItems(false, true,
+                                    TargetedItems executor = new TargetedItems(false, !finalReadValue,
                                             chained, chainedCommand, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.StatOps(iSource.getValidOriginal(), stat, unidentifiedValue, finalUnparsedRange, iSource.getRef_dob_a(), iSource.getLogAddition()),
 
-                                            // When will it succeed
-                                            iSource -> iSource.getResult() != null,
+                                            // When will it succeed ~ When operation succeeds, or when it is reading without a range specified
+                                            iSource -> (iSource.getResult() != null) || (finalReadValue && finalUnparsedRange == null),
 
                                             // Handle score if
                                             (iSource, sInfo) -> {

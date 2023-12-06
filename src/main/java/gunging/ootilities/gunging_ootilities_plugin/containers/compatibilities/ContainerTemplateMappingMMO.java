@@ -767,7 +767,9 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         return true;
     }
     @NotNull HashMap<UUID, InventoryView> lastTargetInventorySuccess = new HashMap<>();
-    @Nullable InventoryView getViewFromLastTargetInvenSuccess(@NotNull Inventory inventory) { return lastTargetInventorySuccess.get(inventory.getViewers().get(0).getUniqueId()); }
+    @Nullable InventoryView getViewFromLastTargetInvenSuccess(@NotNull Inventory inventory) {
+        if (inventory.getViewers().size() == 0) { return null; }
+        return lastTargetInventorySuccess.get(inventory.getViewers().get(0).getUniqueId()); }
     @NotNull @Override public String getCustomStationKey() { return getTemplate().getCustomMythicLibRecipe() == null ? getTemplate().getInternalName() : getTemplate().getCustomMythicLibRecipe(); }
     //endregion
 

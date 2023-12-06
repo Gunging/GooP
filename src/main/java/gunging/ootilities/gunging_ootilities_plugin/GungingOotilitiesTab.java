@@ -2208,9 +2208,33 @@ public class GungingOotilitiesTab implements TabCompleter {
                             tabM.add("runSkillAs");
                             tabM.add("minion");
                             tabM.add("damageTakenLink");
+                            tabM.add("var");
 
                         } else if (args.length > 2) {
                             switch (args[1].toLowerCase()) {
+                                case "var":
+                                    //   0      1        2     3         4           5         6        args.Length
+                                    // /goop mythicmobs var <entity> <variable> <operation> [range]
+                                    //   -      0        1     2         3           4         7        args[n]
+
+                                    switch (args.length) {
+                                        case 3:
+                                            tabM.add("global");
+                                            for (Player p : Bukkit.getOnlinePlayers()) { tabM.add(p.getName()); }
+                                            break;
+                                        case 4:
+                                            if ("global".equalsIgnoreCase(args[2]) && Gunging_Ootilities_Plugin.foundMythicMobs) {
+                                                tabM = GooPMythicMobs.getGlobalVariables();
+                                            } else { Collections.addAll(tabM,"<variable>", "example", "variable", "name"); }
+                                            break;
+                                        case 5:
+                                            Collections.addAll(tabM,"read", "unset", "3", "n5", "+30", "120%");
+                                            break;
+                                        case 6:
+                                            Collections.addAll(tabM,"null", "2", "4.5", "1..6", "-7..10");
+                                            break;
+                                    }
+                                    break;
                                 case "damagetakenlink":
                                     //   0      1              2              3             4               5                   6              7        args.Length
                                     // /goop mythicmobs damagetakenlink <source uuid> <receiver uuid> [transfer percent] [prevent percent] [duration]

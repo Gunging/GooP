@@ -1,6 +1,8 @@
 package gunging.ootilities.gunging_ootilities_plugin.containers;
 
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.ContainerTemplateMappingMMO;
+import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.ContainerTemplateMappingMythic;
 import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ContainerInventory;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerOpeningReason;
 import gunging.ootilities.gunging_ootilities_plugin.misc.NameVariable;
@@ -376,11 +378,22 @@ public class GOOPCStation extends GOOPCDeployed {
      * @return The associated Vanilla Inventory Mapping, only used
      *         with MythicLib installed.
      */
-    @Nullable public Object getCustomVanillaMapping() { return customVanillaMapping; }
-    @Nullable Object customVanillaMapping;
+    @Nullable public ContainerTemplateMappingMMO getCustomVanillaMappingMMO() { return customVanillaMappingMMO; }
+    @Nullable ContainerTemplateMappingMMO customVanillaMappingMMO;
     /**
      * @param map MUST be of type io.lumine.mythic.lib.api.crafting.recipes.vmp.VanillaInventoryMapping
      */
-    public void setCustomVanillaMapping(@Nullable Object map) { customVanillaMapping = map; }
+    public void setCustomVanillaMappingMMO(@Nullable ContainerTemplateMappingMMO map) { customVanillaMappingMMO = map; }
+
+    /**
+     * @return The associated Vanilla Inventory Mapping, only used
+     *         with MythicLib installed.
+     */
+    @Nullable public ContainerTemplateMappingMythic getCustomVanillaMappingMythic() { return customVanillaMappingMythic; }
+    @Nullable ContainerTemplateMappingMythic customVanillaMappingMythic;
+    /**
+     * @param map MUST be of type io.lumine.mythic.lib.api.crafting.recipes.vmp.VanillaInventoryMapping
+     */
+    public void setCustomVanillaMappingMythic(@Nullable ContainerTemplateMappingMythic map) { customVanillaMappingMythic = map; }
     //endregion
 }

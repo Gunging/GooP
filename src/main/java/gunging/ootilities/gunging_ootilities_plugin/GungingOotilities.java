@@ -1058,7 +1058,7 @@ public class GungingOotilities implements CommandExecutor {
                                         // If found
                                         if (kount > 0) {
 
-                                            logrt = "Item successfully detected, counted a total of \u00a7e" + kount + "\u00a77. ";
+                                            logrt = "Item \u00a7e" + args[3] + " " + args[4] + " " + args[5] + "\u00a77successfully detected in \u00a73" + target.getName()  + "\u00a77's slots \u00a7b" + args[2] +  "\u00a77, counted a total of \u00a7e" + kount + "\u00a77. ";
 
                                             // Does it proc?
                                             if (itemAmountTest != null) {
@@ -1094,7 +1094,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                         // Done
                                                         OotilityCeption.SetPlayerScore(targetObjective, target, amountPMP);
-                                                        logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target) + "\u00a77. ";
+                                                        logrt += "Their score '\u00a73" + targetObjective.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target) + "\u00a77. ";
 
                                                     // Provided a score
                                                     } else if (uiAmount) {
@@ -1105,14 +1105,14 @@ public class GungingOotilities implements CommandExecutor {
 
                                                         // Done
                                                         OotilityCeption.SetPlayerScore(targetObjective, target, amountPMP);
-                                                        logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target) + "\u00a77. ";
+                                                        logrt += "Their score '\u00a73" + targetObjective.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target) + "\u00a77. ";
 
                                                     // Provided a score
                                                     } else if (score != null) {
 
                                                         //Behold
                                                         OotilityCeption.SetPlayerScore(targetObjective, target, score);
-                                                        logrt += "Score '\u00a73" + targetObjective.getName() + "\u00a77' of \u00a73" + target.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target) + "\u00a77. ";
+                                                        logrt += "Their score '\u00a73" + targetObjective.getName() + "\u00a77 is now \u00a73" + OotilityCeption.GetPlayerScore(targetObjective, target) + "\u00a77. ";
                                                     }
                                                 }
 
@@ -1126,7 +1126,7 @@ public class GungingOotilities implements CommandExecutor {
                                         // Nothing was found
                                         } else {
 
-                                            logrt = "Nothing in \u00a73" + target.getName() + "\u00a77's slots \u00a7e" + args[2] + "\u00a77 matched \u00a7e" + args[3] + " " + args[4] + " " + args[5] + "\u00a77. ";
+                                            logrt = "Nothing in \u00a73" + target.getName() + "\u00a77's slots \u00a7b" + args[2] + "\u00a77 matched \u00a7e" + args[3] + " " + args[4] + " " + args[5] + "\u00a77. ";
                                             success = uiAmount && !asSlot;
 
                                             // Does it proc?
@@ -3813,6 +3813,139 @@ public class GungingOotilities implements CommandExecutor {
                                 boolean failure = false;
 
                                 switch (args[1].toLowerCase()) {
+                                    //region var
+                                    case "var":
+                                        //   0      1        2     3         4           5         6        args.Length
+                                        // /goop mythicmobs var <entity> <variable> <operation> [range]
+                                        //   -      0        1     2         3           4         7        args[n]
+
+                                        // Correct number of args
+                                        if (args.length >= 5 && args.length <= 6) {
+
+                                            String cstName = args[2];
+                                            boolean isGlobal = "global".equals(cstName);
+
+                                            // Try to find entity
+                                            ArrayList<Entity> casters = null;
+                                            if (!isGlobal) {
+                                                casters = new ArrayList<>();
+                                                ArrayList<Player> pTargets = OotilityCeption.GetPlayers(senderLocation, cstName, null);
+                                                Entity tEntity = OotilityCeption.getEntityByUniqueId(cstName);
+                                                if (tEntity != null && !(tEntity instanceof Player)) { casters.add(tEntity); }
+                                                for (Player target : pTargets) { casters.add(target); }
+
+                                                // Still Null?
+                                                if (casters.size() < 1) {
+
+                                                    // No entity was found
+                                                    failure = true;
+
+                                                    // Yike
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "No entity nor player was found."));
+                                                }
+                                            }
+
+                                            // Var name experiences no failures
+                                            String varName = args[3];
+
+                                            String varOpp = args[4];
+                                            boolean readonly = "read".equalsIgnoreCase(varOpp);
+                                            boolean unsetOperation = "unset".equalsIgnoreCase(varOpp);
+                                            PlusMinusPercent pmp = new PlusMinusPercent(0D, true, false);
+                                            if (!readonly && !unsetOperation) {
+                                                RefSimulator<String> logAddition = new RefSimulator<>(null);
+                                                pmp = PlusMinusPercent.GetPMP(varOpp, logAddition);
+                                                if (logAddition.getValue() != null) {
+                                                    logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", logAddition.getValue())); }
+                                                if (pmp == null) { failure = true; }
+                                            }
+                                            if (unsetOperation) { pmp = null; }
+
+                                            // Parse range of success
+                                            QuickNumberRange qnr = null;
+                                            boolean varIsSetFalse = false;
+                                            if (args.length >= 6) {
+                                                String varRange = args[5];
+                                                varIsSetFalse = "null".equalsIgnoreCase(varRange);
+                                                if (!varIsSetFalse) {
+                                                    qnr = QuickNumberRange.FromString(varRange);
+                                                    if (qnr == null) {
+                                                        failure = true;
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Invalid number range\u00a7e " + varRange + "\u00a77. "));
+                                                    }
+                                                } }
+
+                                            // Nice Sintax
+                                            if (!failure) {
+                                                if (isGlobal) {
+
+                                                    // Sudoskill Skidush
+                                                    Double val = GooPMythicMobs.modifyVariable(null, varName, pmp);
+
+                                                    // Compare and succeed
+                                                    if ((qnr == null && !varIsSetFalse) || (val == null && varIsSetFalse) || (val != null && qnr.InRange(val))) {
+                                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Global variable\u00a7e " + varName + "\u00a77 is \u00a7b" + val + "\u00a77, \u00a7aSucceeded\u00a77. "));
+                                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand((Player) null, chainedCommand, sender, null, null, null); }
+                                                    } else {
+                                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Global variable\u00a7e " + varName + "\u00a77 is \u00a7b" + val + "\u00a77, \u00a7cFail\u00a77. "));
+                                                    }
+
+                                                } else {
+
+                                                    // For
+                                                    for (Entity kaster : casters) {
+
+                                                        // Sudoskill Skidush
+                                                        Double val = GooPMythicMobs.modifyVariable(kaster, varName, pmp);
+
+                                                        if ((qnr == null && !varIsSetFalse) || (val == null && varIsSetFalse) || (val != null && qnr.InRange(val))) {
+
+                                                            // Log Output
+                                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Variable\u00a7e " + varName + "\u00a77 of\u00a73 " + kaster.getName() + "\u00a77 is \u00a7b" + val + "\u00a77, \u00a7aSucceeded\u00a77. "));
+
+                                                            // Run Chain
+                                                            if (chained) {
+
+                                                                // Proc Chain
+                                                                Player chainProc = null;
+                                                                if (kaster instanceof Player) { chainProc = (Player) kaster; }
+
+                                                                // Chain
+                                                                OotilityCeption.SendAndParseConsoleCommand(chainProc, chainedCommand, sender, null, null, null);
+                                                            }
+
+                                                        } else {
+
+                                                            // Log Output
+                                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Variable\u00a7e " + varName + "\u00a77 of\u00a73 " + kaster.getName() + "\u00a77 is \u00a7b" + val + "\u00a77, \u00a7cFail\u00a77. "));
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        } else if (args.length == 2) {
+                                            logReturn.add("\u00a7e______________________________________________");
+                                            logReturn.add("\u00a73Var, \u00a77Checks the MythicMobs variable of an entity");
+                                            logReturn.add("\u00a73Usage: \u00a7e/goop mythicmobs var <entity> <variable> <operation> [range]");
+                                            logReturn.add("\u00a73 - \u00a7e<entity> \u00a77UUID of the entity, or player name");
+                                            logReturn.add("\u00a73 --> \u00a7bglobal \u00a77keyword to check for global vars");
+                                            logReturn.add("\u00a73 - \u00a7e<variable> \u00a77Variable name");
+                                            logReturn.add("\u00a73 - \u00a7e<operation> \u00a77Operation to perform on this variable");
+                                            logReturn.add("\u00a73 --> \u00a7bread \u00a77keyword to make no changes");
+                                            logReturn.add("\u00a73 --> \u00a7bunset \u00a77keyword to unset the variable");
+                                            logReturn.add("\u00a73 - \u00a7e[range] \u00a77Range of values for the command to succeed");
+                                            logReturn.add("\u00a73 --> \u00a7bnull \u00a77detects unset variables");
+
+                                        } else {
+
+                                            if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                                                logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Incorrect usage. For info: \u00a7e/goop mythicmobs var"));
+                                                logReturn.add("\u00a73Usage: \u00a7e/goop mythicmobs var <entity> <variable> <operation> [range]");
+                                            }
+                                        }
+
+                                        break;
+                                    //endregion
                                     //region runSkillAS
                                     case "runskillas":
                                         //   0      1           2           3             4           5            6        7       args.Length
@@ -3959,7 +4092,7 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         break;
-                                        //endregion
+                                    //endregion
                                     //region minion
                                     case "minion":
                                     case "minions":

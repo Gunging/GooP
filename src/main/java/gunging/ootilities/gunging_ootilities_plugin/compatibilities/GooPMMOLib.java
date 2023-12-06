@@ -46,7 +46,7 @@ public class GooPMMOLib {
     public static boolean a(@NotNull GOOPCStation station) {
 
         // Already has a mapping? must be moving the result slot
-        ContainerTemplateMappingMMO currentMapping = (ContainerTemplateMappingMMO) station.getCustomVanillaMapping();
+        ContainerTemplateMappingMMO currentMapping = station.getCustomVanillaMappingMMO();
 
         if (station.getTemplate().getResultSlot() != null) {
             if (currentMapping != null) {
@@ -70,7 +70,7 @@ public class GooPMMOLib {
                 try {
                     ContainerTemplateMappingMMO mapping = new ContainerTemplateMappingMMO(station.getTemplate());
                     VanillaInventoryMapping.registerCustomMapping(mapping);
-                    station.setCustomVanillaMapping(mapping);
+                    station.setCustomVanillaMappingMMO(mapping);
 
                     return true;
 
@@ -80,14 +80,14 @@ public class GooPMMOLib {
 
         if (currentMapping != null) { currentMapping.discontinue(); }
 
-        station.setCustomVanillaMapping(null);
+        station.setCustomVanillaMappingMMO(null);
         return false;
     }
 
     public static void b(@NotNull GOOPCStation station) {
-        if (!(station.getCustomVanillaMapping() instanceof ContainerTemplateMappingMMO)) { return; }
-        ContainerTemplateMappingMMO mapping = (ContainerTemplateMappingMMO) station.getCustomVanillaMapping();
+        if (station.getCustomVanillaMappingMMO() == null) { return; }
+        ContainerTemplateMappingMMO mapping = station.getCustomVanillaMappingMMO();
         mapping.discontinue();
-        station.setCustomVanillaMapping(null);
+        station.setCustomVanillaMappingMMO(null);
     }
 }

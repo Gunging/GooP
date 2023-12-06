@@ -63,18 +63,20 @@ public class ISSObservedContainer extends ItemStackSlot {
 
         // Value to return
         ArrayList<ISSObservedContainer> ret = new ArrayList<>();
-        //SLOT// OotilityCeption.Log("\u00a78Slot \u00a76Observed\u00a77 Elaborating '\u00a73" + getSlotsAlias() + "\u00a77', Slots \u00a7b" + getSlot() + "-" + getRange());
+        //SLOT// OotilityCeption.Log("\u00a78ELB \u00a76Observed\u00a77 Elaborating '\u00a73" + getSlotsAlias() + "\u00a77', Slots \u00a7b" + getSlot() + "-" + getRange());
 
         // No observer, no observed container
         if (getElaborator() == null) { return ret; }
 
         // Get observed?
         GOOPCDeployed observed = GOOPCManager.getObservedContainer(getElaborator().getUniqueId());
-        if (observed == null) { return ret; }
+        if (observed == null) {
+            //SLOT// OotilityCeption.Log("\u00a78ELB \u00a76Observed\u00a7c No observed container for " + getElaborator().getName());
+            return ret; }
 
         // Include alias slots
         for (Integer slot : observed.getTemplate().getAliasSlots(getSlotsAlias())) {
-            //SLOT//OotilityCeption.Log("\u00a78Slot \u00a76Observed\u00a77 Alias \u00a7b#" + slot);
+            //SLOT//OotilityCeption.Log("\u00a78ELB \u00a76Observed\u00a77 Alias \u00a7b#" + slot);
 
             // Exclude edge slots
             if (observed.getTemplate().isEdgeSlot(slot)) { continue; }
@@ -93,7 +95,7 @@ public class ISSObservedContainer extends ItemStackSlot {
 
         // Include contained range of slots
         for (Integer slot : super.elaboratedRange()) {
-            //SLOT//OotilityCeption.Log("\u00a78Slot \u00a76Observed\u00a77 Range \u00a7b#" + slot);
+            //SLOT//OotilityCeption.Log("\u00a78ELB \u00a76Observed\u00a77 Range \u00a7b#" + slot);
 
             // Exclude edge slots
             if (observed.getTemplate().isEdgeSlot(slot)) { continue; }

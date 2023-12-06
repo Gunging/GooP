@@ -47,7 +47,7 @@ public class GooPMinionCondition extends CustomMMCondition implements IEntityCom
         }
 
         //MM//OotilityCeption.Log("\u00a76AC\u00a77 Passed:\u00a7a Player valid \u00a78(\u00a7d" + (caster != null) + "\u00a78)");
-        return true;
+        return scm.isEnabled() && scm.isMinionValid();
         
     }
 

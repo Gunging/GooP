@@ -172,7 +172,7 @@ public class ConverterTypeSettings {
             //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bPREVIEW\u00a77 Does have Null-Tier Settings");
 
             // Apply
-            iSource = cpt2.ApplyTo(iSource);
+            iSource = cpt2.ApplyTo(iSource, parseAS);
         }
 
         // You say its a MMOItem RIGHT!??
@@ -222,7 +222,7 @@ public class ConverterTypeSettings {
                     //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a7bAPPLY\u00a77 Does have Per-Tier Settings");
 
                     // Apply
-                    iSource = cpt.ApplyTo(iSource);
+                    iSource = cpt.ApplyTo(iSource, parseAS);
 
                     if (cptRet != null) { cptRet.setValue(cpt); }
                 }

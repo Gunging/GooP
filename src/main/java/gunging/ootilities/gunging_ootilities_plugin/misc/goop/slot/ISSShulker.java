@@ -1,5 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot;
 
+import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SearchLocation;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -36,15 +37,21 @@ public class ISSShulker extends ItemStackSlot {
     public String getPrefix() { return getParent().getPrefix() + getParent().getRangeToString() + "."; }
 
     @Override @NotNull public ArrayList<ISSShulker> elaborate() {
+        //SLOT// OotilityCeption.Log("\u00a78ELB \u00a73Shulker\u00a77 Elaborating \u00a7b" + getSlot() + "-" + getRange());
+
+        // Sync elaborators
+        getParent().setElaborator(getElaborator());
 
         // Value to return
         ArrayList<ISSShulker> ret = new ArrayList<>();
 
         // Elaborate parent
         for (ItemStackSlot parentElaborate : getParent().elaborate()) {
+            //SLOT// OotilityCeption.Log("\u00a78ELB \u00a73Shulker\u00a77 Parent Slot \u00a73" + parentElaborate.toString());
 
             // Include contained range of slots
             for (Integer slot : super.elaboratedRange()) {
+                //SLOT// OotilityCeption.Log("\u00a78ELB \u00a73Shulker\u00a79 +\u00a77" + slot);
 
                 // Add a slot of that number
                 ret.add(new ISSShulker(getLocation(), slot, null, parentElaborate));

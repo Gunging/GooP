@@ -34,11 +34,11 @@ public class UCMCMIWarpTargeter extends ILocationSelector {
 
         // Get got
         String got = nominalWarp.get(skillMetadata);
-        //OotilityCeption.Log("\u00a78UCM\u00a76 CMI\u00a77 Warp\u00a7e " + got);
+        //CMI//OotilityCeption.Log("\u00a78UCM\u00a76 CMI\u00a77 Warp\u00a7e " + got);
 
         // I guess get the warp name
         Location loc = Gunging_Ootilities_Plugin.foundEssentials ? GooPEssentials.getWarp(got) : GooPCMI.getWarp(got);
-        //OotilityCeption.Log("\u00a78UCM\u00a76 CMI\u00a77 Loc\u00a73 " + (loc != null ? OotilityCeption.BlockLocation2String(loc) : "null"));
+        //CMI//OotilityCeption.Log("\u00a78UCM\u00a76 CMI\u00a77 Loc\u00a73 " + (loc != null ? OotilityCeption.BlockLocation2String(loc) : "null"));
 
         // Save location
         if (loc != null) { collectionLocations.add(BukkitAdapter.adapt(loc)); }

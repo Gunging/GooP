@@ -852,13 +852,13 @@ public class GOOPCSlot implements Cloneable {
             return true; }
 
         // If it is any of the entries in the blacklist, it will be blocked
-        for (String k : blacklist) { if (id.equals(k)) {
+        for (String k : blacklist) { if (OotilityCeption.wildcardMatches(id, k, true)) {
             //KTI//OotilityCeption.Log("\u00a73---\u00a77 Blacklist Matched, \u00a7cFail");
             return false; } }
 
         // First it must succeed by matching one entry of the whitelist
         boolean success = whitelist.size() == 0;
-        for (String k : whitelist) { if (id.equals(k)) { success = true; break;} }
+        for (String k : whitelist) { if (OotilityCeption.wildcardMatches(id, k, true)) { success = true; break;} }
 
         // If no whitelist entry matched, rejection.
         //KTI//OotilityCeption.Log("\u00a73---\u00a77 Whitelist matched? \u00a7a" + success);
