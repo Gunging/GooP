@@ -1820,7 +1820,7 @@ public class GooPMMOItems {
                  * to be true, we will add an External Stat History (EXSH)
                  * of the difference between the current and desired
                  */
-                endData = (DoubleData) current.cloneData();
+                endData = (DoubleData) current.clone();
                 endData.setValue(expectedData - current.getValue());
 
                 //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Difference:\u00a7b " + endData.getValue());
