@@ -6,6 +6,23 @@ import org.jetbrains.annotations.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+/**
+ * Uses 1-based month, such that February = 2; In contrast to {@link Calendar}. Therefore the ranges for the quantities are:
+ *
+ * <p></p>
+ *     Second: [0, 59]
+ * <p>
+ *     Minute: [0, 59]
+ * </p>
+ *     Hour: [0, 23]
+ * <p>
+ *     Day: [1, 31]
+ * </p>
+ *     Month: [1, 12]
+ * <p>
+ *     Year: [Integer.MIN_VALUE, Integer.MAX_VALUE]
+ * </p>
+ */
 public class OptimizedTimeFormat {
     public int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
 
@@ -98,7 +115,7 @@ public class OptimizedTimeFormat {
                 month == 12)
         { perMonthMax = 31; }
 
-        while(day >= perMonthMax) {
+        while(day > perMonthMax) {
 
             day -= perMonthMax;
 
@@ -125,7 +142,7 @@ public class OptimizedTimeFormat {
     public void AddMonths(int d) {
         month += d;
 
-        while(month >= 12) {
+        while(month > 12) {
 
             month -= 12;
             AddYears(1);
@@ -205,7 +222,7 @@ public class OptimizedTimeFormat {
                 month == 12)
            { perMonthMax = 31; }
 
-        while(day < 0) {
+        while(day <= 0) {
 
             RewindMonths(1);
 
@@ -232,7 +249,7 @@ public class OptimizedTimeFormat {
     public void RewindMonths(int d) {
         month -= d;
 
-        while(month < 0) {
+        while(month <= 0) {
 
             month += 12;
             RewindYears(1);

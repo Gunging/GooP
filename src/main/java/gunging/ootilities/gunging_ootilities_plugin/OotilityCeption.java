@@ -20,6 +20,7 @@ import gunging.ootilities.gunging_ootilities_plugin.containers.options.Container
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCTemplate;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCPersonal;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
+import gunging.ootilities.gunging_ootilities_plugin.misc.goop.SuccessibleFlareReceptor;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.*;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
@@ -595,8 +596,8 @@ public class OotilityCeption {
         Calendar calendar2 = Calendar.getInstance();
         calendar1.clear();
         calendar2.clear();
-        calendar1.set(originOfTimer.year, originOfTimer.month, originOfTimer.day, originOfTimer.hour, originOfTimer.minute, originOfTimer.second);
-        calendar2.set(currentTime.year, currentTime.month, currentTime.day, currentTime.hour, currentTime.minute, currentTime.second);
+        calendar1.set(originOfTimer.year, originOfTimer.month - 1, originOfTimer.day, originOfTimer.hour, originOfTimer.minute, originOfTimer.second);
+        calendar2.set(currentTime.year, currentTime.month - 1, currentTime.day, currentTime.hour, currentTime.minute, currentTime.second);
         long milliseconds1 = calendar1.getTimeInMillis();
         long milliseconds2 = calendar2.getTimeInMillis();
         long diff = milliseconds2 - milliseconds1;
@@ -765,8 +766,14 @@ public class OotilityCeption {
      * Will return TRUE if iTarget is either NULL, Count is 0, or IsAir()
      */
     public static boolean IsAirNullAllowed(ItemStack iTarget) {
+        return IsAirNullAllowed(iTarget, false);
+    }
+    /**
+     * Will return TRUE if iTarget is either NULL, Count is 0, or IsAir()
+     */
+    public static boolean IsAirNullAllowed(ItemStack iTarget, boolean ignoreAmount) {
         if (iTarget == null) return true;
-        if (iTarget.getAmount() < 1) return true;
+        if (!ignoreAmount && (iTarget.getAmount() < 1)) return true;
         return IsAir(iTarget.getType());
     }
     /**
@@ -5153,6 +5160,45 @@ public class OotilityCeption {
         // Return
         return ret;
     }
+
+    /**
+     * An operation similar to PlusMinusPercent but for string lists.
+     * <p></p>
+     * <b>+</b> prefix to add items to original list
+     * <b>-</b> prefix to remove items from original list
+     * no prefix to replace originl list
+     * <b></b>
+     * Entries in operation string "op" should be comma-separated
+     *
+     * @param op An operation to perform on this list as a single string
+     * @param original Origial list to perform operation on
+     *
+     * @return Modified list after operation. <b>This method does not clone it, it modifies the list you originally pass. </b>
+     */
+    @Nullable @Contract("_,!null -> !null") public static ArrayList<String> listOps(@Nullable String op, @Nullable ArrayList<String> original) {
+
+        // No operation? Ignore
+        if (op == null || op.length() == 0) { return original; }
+
+        // Special operation?
+        boolean additive = false, subtractive = false;
+        if (op.startsWith("+")) { additive = true; op = op.substring(1); }
+        else if (op.startsWith("-")) { subtractive = true; op = op.substring(1); }
+
+        // Comma list op?
+        ArrayList<String> editions = new ArrayList<>();
+        if (op.contains(",")) { for (String ed : op.split(",")) { editions.add(ed); } } else { editions.add(op); }
+
+        // Replace list?
+        if (!additive && !subtractive) { original.clear(); original.addAll(editions); return original; }
+
+        // Make changes in the list
+        if (additive) { for (String ed : editions) { original.add(ed); } }
+        else { for (String ed : editions) { original.remove(ed); } }
+
+        // Return the original list but modified
+        return original;
+    }
     //endregion
 
     //region Misc
@@ -6060,6 +6106,21 @@ public class OotilityCeption {
         // Nothing more
         return locationParams + subcommand;
     }
+
+    /**
+     * Turns something silly like
+     * <p><code>goop tell @a[distance=..10] Hello, you are nearby!</code></p>
+     * <p></p>
+     * to a chad
+     * <p><code>goop &lt;world,0,0,0&gt;tell @a[distance=..10] Hello, you are near the origin!</code></p>
+     * <p></p>
+     * Which carries location information to allow the distance comparison from the console
+     *
+     * @param cmd           GooP Command chain
+     * @param relativity    Location where the sender is supposedly located
+     *
+     * @return              The GooP command with location encoded in it
+     */
     @NotNull public static String ProcessGooPRelativityOfCommand(@NotNull String cmd, @Nullable Location relativity) {
 
         // Valid location?
@@ -6089,6 +6150,54 @@ public class OotilityCeption {
             for (int s = 1; s < args.length; s++) { cmdBuilder.append(" ").append(args[s]); }
             cmd = cmdBuilder.toString();
         }
+
+        // Return
+        return cmd;
+    }
+
+    @NotNull public static HashMap<UUID, SuccessibleFlareReceptor> successFlareReceptors = new HashMap<>();
+
+    /**
+     * Allows to externally detect the success of a GooP command by appending an UUID:
+     * <p><code>goop tell @a[distance=..10] Hello, you are nearby!</code></p>
+     * <p></p>
+     * becomes:
+     * <p><code>goop $123-UUID-4567-8910$tell @a[distance=..10] Hello, you are near the origin!</code></p>
+     *
+     * @param cmd       GooP Command chain
+     * @param flare     UUID flare to detect
+     *
+     * @return The GooP command with success information in it
+     */
+    @NotNull public static String ProcessGooPSuccessibilityFlare(@NotNull String cmd, @Nullable UUID flare, @Nullable SuccessibleFlareReceptor receptor) {
+        if (successFlareReceptors.size() > 40) { successFlareReceptors.clear(); }
+
+        // Valid location?
+        if (flare == null) { return cmd; }
+
+        // Not Goop?
+        if (!cmd.startsWith("goop ") && ! cmd.startsWith("ootilitiception ")) { return cmd; }
+
+        // Append Location lma0
+        String[] args = cmd.split(" ");
+        if (args.length >= 2) {
+
+            // Get subcommand
+            String subcommand = args[1];
+
+            // Get Location baked
+            String loc = "$" + flare.toString() + "$";
+
+            // Modify
+            args[1] = loc + subcommand;
+
+            // Rebuild
+            StringBuilder cmdBuilder = new StringBuilder(args[0]);
+            for (int s = 1; s < args.length; s++) { cmdBuilder.append(" ").append(args[s]); }
+            cmd = cmdBuilder.toString();
+        }
+
+        if (receptor != null) { successFlareReceptors.put(flare, receptor); }
 
         // Return
         return cmd;

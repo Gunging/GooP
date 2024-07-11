@@ -1,7 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +31,7 @@ public class GPCTouchscreen {
     public void addEvent(@NotNull Player associatee, @NotNull InventoryClickEvent event) {
 
         // Clear feed if out of date
-        if (getCurrentTick() != Gunging_Ootilities_Plugin.getCurrentTick()) { currentFeed.clear(); currentTick = Bukkit.getCurrentTick(); }
+        if (getCurrentTick() != Gunging_Ootilities_Plugin.getCurrentTick()) { currentFeed.clear(); currentTick = Gunging_Ootilities_Plugin.getCurrentTick(); }
 
         // Add to list
         ArrayList<InventoryClickEvent> current = currentFeed.get(associatee.getUniqueId());

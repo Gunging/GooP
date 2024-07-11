@@ -22,7 +22,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -45,6 +44,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static boolean spamPunchingJSON = false;
     public static boolean useMMOLibDefenseConvert = false;
     public static boolean csPressurePlates = false;
+    public static boolean gMyMoRuSkAsDoUnSp = false; // goopMythicMobsRunSkillAsDoubleUnderscoreSpaces
     public static Boolean devLogging = false;
     public static Player devPlayer = null;
     public static Double nameRangeExclusionMin = null;
@@ -106,10 +106,15 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         // Singleton
         OotilityCeption.Fill_xSupression();
 
-        // Is it Paper Spigot?
-        @SuppressWarnings("ConstantConditions") EntityDeathEvent paperSpigot = new EntityDeathEvent(null, null);
-        //noinspection ConstantConditions
-        if (paperSpigot instanceof Cancellable) { asPaperSpigot = true; }
+        // Is this paper spigot
+        try {
+            // Is it Paper Spigot?
+            @SuppressWarnings("ConstantConditions") org.bukkit.event.entity.EntityDeathEvent paperSpigot = new org.bukkit.event.entity.EntityDeathEvent(null, null);
+
+            //noinspection ConstantConditions
+            if (paperSpigot instanceof Cancellable) { asPaperSpigot = true; }
+
+        } catch (Throwable ignored) { asPaperSpigot = false; }
 
         // Ready all materials!
         GooP_MinecraftVersions.InitializeMaterials();
@@ -514,6 +519,19 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 //            theOots.CPLog(ChatColor.GOLD + "Premium Containers not found\u00a77.");
 //        }
 
+
+        theOots.CPLog("Detecting Server and Minecraft Version...");
+        if (GooP_MinecraftVersions.GetMinecraftVersion() > 0) {
+            theOots.CPLog(ChatColor.YELLOW + "Minecraft version\u00a7f 1." + GooP_MinecraftVersions.GetMinecraftVersion());
+        } else {
+            theOots.CPLog(ChatColor.GOLD + "Unknown minecraft version. Assuming 1.13.2 lmao.");
+        }
+        if (asPaperSpigot){
+            theOots.CPLog(ChatColor.YELLOW + "Using PaperSpigot functionality\u00a77.");
+        } else {
+            theOots.CPLog(ChatColor.GOLD + "Not using PaperSpigot functionality\u00a77.");
+        }
+
         theOots.CPLog("Enabling GooP Extensions...");
         if (usingMMOItemShrubs) {
             theOots.CPLog(ChatColor.GREEN + "MMOItem Shrubs enabled\u00a77.");
@@ -640,6 +658,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     }
 
     public void Reload(boolean reloadInstances) {
+        OotilityCeption.successFlareReceptors.clear();
 
         // Reboot Un-break
         GooPGriefEvent.reboot();
@@ -654,6 +673,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         useMMOLibDefenseConvert = getConfig().getBoolean("ConverterUsesDefense", false);
         spamPunchingJSON = getConfig().getBoolean("JSONFurnitureSpamPunchingBreak", true);
         csPressurePlates = getConfig().getBoolean("CustomStructures.PlayerPressurePlates", false);
+        gMyMoRuSkAsDoUnSp = getConfig().getBoolean("GooPMythicMobsRunSkillAsDoubleUnderscoreSpaces", false);
         if (getConfig().contains("SendSuccessFeedback"))
             sendGooPSuccessFeedback = getConfig().getBoolean("SendSuccessFeedback");
         if (getConfig().contains("SummonLeashKillDistance"))

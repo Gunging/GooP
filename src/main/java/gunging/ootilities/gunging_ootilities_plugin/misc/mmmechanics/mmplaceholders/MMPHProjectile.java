@@ -134,7 +134,10 @@ public class MMPHProjectile extends MMPlaceholder {
 
             } else {
                //ORG//OotilityCeption.Log("\u00a73MPH\u00a7a ORIGIN\u00a77 Dist");
-                value = origin.distance(target);
+                double ex = target.getX() - origin.getX();
+                double ey = target.getY() - origin.getY();
+                double ez = target.getZ() - origin.getZ();
+                value = Math.sqrt(ex * ex + ey * ey + ez * ez);
             }
 
         }

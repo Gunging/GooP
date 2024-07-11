@@ -170,6 +170,7 @@
             <systemPath>${project.basedir}/lib/Graveyards.jar</systemPath>
             <version>2.7.0</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>gunging.ootilities</groupId>
             <artifactId>customstructures</artifactId>
@@ -184,6 +185,7 @@
             <systemPath>${project.basedir}/lib/GooP-P_Containers.jar</systemPath>
             <version>1.0</version>
         </dependency>
+        -->
         <dependency>
             <groupId>gunging.ootilities</groupId>
             <artifactId>mmoitem_shrubs</artifactId>

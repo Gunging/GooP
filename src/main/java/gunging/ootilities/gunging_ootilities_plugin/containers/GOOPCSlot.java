@@ -4,6 +4,7 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerSlotEdges;
 import gunging.ootilities.gunging_ootilities_plugin.containers.options.ContainerSlotTypes;
@@ -237,22 +238,29 @@ public class GOOPCSlot implements Cloneable {
      * @return If this item fits in this Container Slot
      */
     public boolean canStore(@Nullable ItemStack item) {
-        //KTI//OotilityCeption.Log("Storing " + OotilityCeption.GetItemName(item));
+        //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a77 Storing " + OotilityCeption.GetItemName(item, true));
 
         // Can always store AIR
-        if (OotilityCeption.IsAirNullAllowed(item)) {
-            //KTI//OotilityCeption.Log("Aerial Bypass");
-            //KTI//OotilityCeption. Log(" \u00a73-\u00a7b-\u00a73> \u00a77Aerial Bypass");
+        if (OotilityCeption.IsAirNullAllowed(item, true)) {
+            //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a77 \u00a73-\u00a7b-\u00a73> \u00a77Aerial Bypass");
             return true; }
 
         // If MMOItems is enabled, fetch the Type and ID in question
         String mType = null, mID = null;
         if (Gunging_Ootilities_Plugin.foundMMOItems) {
-
             RefSimulator<String> miType = new RefSimulator<>(null), miID = new RefSimulator<>(null);
             GooPMMOItems.GetMMOItemInternals(item, miType, miID);
             mType = miType.getValue();
-            mID = miID.getValue(); }
+            mID = miID.getValue();
+
+            //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a77 Checking MMOType\u00a7e " + mType + "." + mID);
+        }
+
+        // If it is not an MMOItem, try to use MythicMobs as its ID
+        if (mID == null && Gunging_Ootilities_Plugin.foundMythicMobs) {
+            mID = GooPMythicMobs.getMythicType(item);
+            //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a77 Checking MM ID\u00a7e " + mID);
+        }
 
         /*
          * Test it against item restrictions:
@@ -266,6 +274,10 @@ public class GOOPCSlot implements Cloneable {
         boolean kindSuccess = !hasKindMasks() || allowedKind(item, getKindWhitelist(), getKindBlacklist());
         boolean idSuccess = !hasIDMasks() || allowedID(mID, getIdWhitelist(), getIdBlacklist());
 
+        //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a76 +\u00a77 Type Success \u00a76" + typeSuccess);
+        //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a76 +\u00a77 Kind Success \u00a76" + kindSuccess);
+        //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a76 +\u00a77 ID Success \u00a76" + idSuccess);
+
         /*
          * If it has ID Masks, and has no kind masks, and the KIND SUCCESS was marked
          * as success due to having no kind masks... then this is not that much of a
@@ -275,6 +287,11 @@ public class GOOPCSlot implements Cloneable {
          */
         if (hasIDMasks() && !hasKindMasks() && kindSuccess) { kindSuccess = false; }
         if (hasKindMasks() && !hasIDMasks() && idSuccess) { idSuccess = false; }
+
+
+        //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a7c *\u00a77 Mod Kind \u00a76" + kindSuccess);
+        //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a7c *\u00a77 Mod ID \u00a76" + idSuccess);
+        //KIT//OotilityCeption.Log("\u00a79GOOP\u00a7e CS\u00a7e =\u00a77 Result \u00a7e" + (typeSuccess && (kindSuccess || idSuccess)));
 
         // It must succeed on all three.
         return typeSuccess && (kindSuccess || idSuccess);
@@ -683,6 +700,12 @@ public class GOOPCSlot implements Cloneable {
      * @param kind Kind to be added to the whitelist.
      */
     public void addToWhitelist(@NotNull KindRestriction kind) { kindWhitelist.add(kind); }
+    /**
+     * Add a kind to be un-whitelisted.
+     *
+     * @param kind Kind to be removed from the whitelist.
+     */
+    public void removeFromWhitelist(@NotNull KindRestriction kind) { kindWhitelist.remove(kind); }
 
     /**
      * @return What 'kind' of items are blacklisted by this slot?
@@ -699,6 +722,12 @@ public class GOOPCSlot implements Cloneable {
      * @param kind Kind to be added to the blacklist.
      */
     public void addToBlacklist(@NotNull KindRestriction kind) { kindBlacklist.add(kind); }
+    /**
+     * Remove a kind from blacklist.
+     *
+     * @param kind Kind to be removed from the blacklist.
+     */
+    public void removeFromBlacklist(@NotNull KindRestriction kind) { kindBlacklist.remove(kind); }
 
     /**
      * @return If the kind of item is to be checked before storing it.
@@ -803,6 +832,22 @@ public class GOOPCSlot implements Cloneable {
             // Add as MMOItem ID
         } catch (IllegalArgumentException ignored) { idWhitelist.add(mmoitemID); }
     }
+    /**
+     * Add an MMOItem ID to be un-whitelisted.
+     *
+     * @param mmoitemID MMOItem ID to be removed from the whitelist.
+     */
+    public void removeFromWhitelist(@NotNull String mmoitemID) {
+
+        try {
+
+            // Attempt to add as kind restriction
+            KindRestriction kind = KindRestriction.valueOf(mmoitemID);
+            removeFromWhitelist(kind);
+
+            // Add as MMOItem ID
+        } catch (IllegalArgumentException ignored) { idWhitelist.remove(mmoitemID); }
+    }
 
     /**
      * @return What MMOItem ID of items are blacklisted by this slot?
@@ -828,6 +873,22 @@ public class GOOPCSlot implements Cloneable {
 
             // Add as MMOItem ID
         } catch (IllegalArgumentException ignored) { idBlacklist.add(mmoitemID); }
+    }
+    /**
+     * Add an MMOItem ID to be un-blacklisted.
+     *
+     * @param mmoitemID MMOItem ID to be removed from the blacklist.
+     */
+    public void removeFromBlacklist(@NotNull String mmoitemID) {
+
+        try {
+
+            // Attempt to add as kind restriction
+            KindRestriction kind = KindRestriction.valueOf(mmoitemID);
+            removeFromBlacklist(kind);
+
+            // Add as MMOItem ID
+        } catch (IllegalArgumentException ignored) { idBlacklist.remove(mmoitemID); }
     }
 
     /**
@@ -1215,6 +1276,8 @@ public class GOOPCSlot implements Cloneable {
 
     @SuppressWarnings("SpellCheckingInspection")
     @Nullable public static GOOPCSlot deserialize(@Nullable String serialized) {
+        try {
+
         if (serialized == null) { return null; }
         // Format:
         // {id:slot} {type} {filter} {amount} <modifiers>
@@ -1483,6 +1546,12 @@ public class GOOPCSlot implements Cloneable {
 
         // Shall be baked now
         return ret;
+
+        } catch (Throwable e) {
+
+            Gunging_Ootilities_Plugin.theOots.CPLog(OotilityCeption.LogFormat("Containers Reload", "\u00a7cError when generating slot \u00a7e" + e.getMessage()));
+            return null;
+        }
     }
     /**
      * Starts fresh and sets the mask entirely from this.
@@ -1491,6 +1560,36 @@ public class GOOPCSlot implements Cloneable {
      */
     public void loadKindIDRestrictions(@Nullable String argument) {
         //CLI// OotilityCeption.Log("\u00a78SLOT \u00a7bSNZ\u00a77 Editing ID Mask by\u00a7e " + argument + "\u00a77 of slot \u00a73#" + getSlotNumber());
+
+        // If it could be an operation argument
+        if (argument != null && argument.length() > 2) {
+
+            // Copy argument
+            String op = argument;
+
+            // Special operation?
+            boolean additive = false, subtractive = false;
+            if (op.startsWith("+")) { additive = true; op = op.substring(1); }
+            else if (op.startsWith("-")) { subtractive = true; op = op.substring(1); }
+
+            // If the previous entries in this list are to be considered
+            if (additive || subtractive) {
+
+                // It could be comma-separated, separate the entries
+                ArrayList<String> editionsBlack = new ArrayList<>();
+                ArrayList<String> editionsWhite = new ArrayList<>();
+                if (op.contains(",")) { for (String ed : op.split(",")) {
+
+                    // If additive, simply include
+                    if (additive) { includeInKinds(ed); } else { removeFromKinds(ed); }
+
+                // Not a comma-separated list, use the entire argument in the operation
+                } } else { if (additive) { includeInKinds(op); } else { removeFromKinds(op); } }
+
+                // Operation complete
+                return;
+            }
+        }
 
         // Start Fresh
         getKindBlacklist().clear();
@@ -1506,7 +1605,7 @@ public class GOOPCSlot implements Cloneable {
             // Just go through each
             for (String str : argument.split(",")) { includeInKinds(str); }
 
-            // No
+        // No
         } else {
 
             // Include as-is
@@ -1541,8 +1640,40 @@ public class GOOPCSlot implements Cloneable {
         } catch (IllegalArgumentException ignored) {}
 
         // Did not parse as kind so we load it as an ID Mask
-        if (!Gunging_Ootilities_Plugin.foundMMOItems) { return; }
+        if (!Gunging_Ootilities_Plugin.foundMMOItems || !Gunging_Ootilities_Plugin.foundMythicMobs) { return; }
         if (counter) { addToBlacklist(p); } else { addToWhitelist(p); }
+    }
+    /**
+     * Reverses {@link #includeInKinds(String)}
+     *
+     * @param part Either a kind or an ID restriction
+     */
+    public void removeFromKinds(@Nullable String part) {
+        //CLI// OotilityCeption.Log("\u00a78SLOT \u00a7bSNZ\u00a77 Removing kind by\u00a7e " + part + "\u00a77 of slot \u00a73#" + getSlotNumber());
+
+        // No
+        if (part == null || part.isEmpty()) { return; }
+
+        // Caps
+        part = part.toUpperCase().replace(" ", "_").replace("-", "_");
+
+        // Counter?
+        boolean counter = false; String p = part;
+        if (part.startsWith("!")) { counter = true; p = part.substring(1); }
+
+        // Is it a kind restriction
+        try {
+            KindRestriction asKind = KindRestriction.valueOf(part);
+
+            // Success by Kind
+            if (counter) { removeFromBlacklist(asKind); } else { removeFromWhitelist(asKind); }
+            return;
+
+        } catch (IllegalArgumentException ignored) {}
+
+        // Did not parse as kind so we load it as an ID Mask
+        if (!Gunging_Ootilities_Plugin.foundMMOItems || !Gunging_Ootilities_Plugin.foundMythicMobs) { return; }
+        if (counter) { removeFromBlacklist(p); } else { removeFromWhitelist(p); }
     }
 
     /**

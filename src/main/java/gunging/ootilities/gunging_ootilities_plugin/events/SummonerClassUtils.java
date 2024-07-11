@@ -200,7 +200,7 @@ public class SummonerClassUtils extends BukkitRunnable implements Listener {
             if (minion == null) { return; }
 
             // Message
-            if (minion.getOwner() instanceof Player) {
+            if (minion.getOwner() instanceof Player && minion.getWeight() != 0) {
 
                 // Message
                 String message = GTranslationManager.getSummonerTranslation(GTL_SummonerClass.MINION_DEATH).replace("%minion_uuid%", String.valueOf(minion.getMinion().getUniqueId())).replace("%minion_name%", (minion.getMinion().getCustomName() != null ? minion.getMinion().getCustomName() : minion.getMinion().getName()));

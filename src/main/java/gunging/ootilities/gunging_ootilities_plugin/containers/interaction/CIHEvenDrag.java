@@ -216,6 +216,7 @@ public class CIHEvenDrag extends ContainersDragHandler {
             boolean couldInteract = ContainersClickHandler.canInteract(interactingSlot, player, currentItem, interactionFail);
             boolean isDefault = interactionFail.getValue() == CIInteractingFailReason.DEFAULT_ITEM;
 
+
             // Any other forms of failed interaction cause no result.
             if (!couldInteract) {
 
@@ -238,13 +239,7 @@ public class CIHEvenDrag extends ContainersDragHandler {
             if (usedSlot == null) { continue; }
 
             /*
-             * So the item being put out
-             *  + Slot currently empty
-             *  + Its from a storage slot
-             *  + The restrictions have been checked
-             *  + Slot masks checked
-             *
-             * So it can be taken out yeah
+             * The item was successfully put into a GooPCSlot
              */
             result.addInteraction((CIContainerInteracting) interactingSlot, CIRClickType.STORE);
         }

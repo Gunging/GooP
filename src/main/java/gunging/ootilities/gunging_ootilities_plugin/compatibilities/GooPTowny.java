@@ -3,6 +3,7 @@ package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 import com.palmergames.bukkit.towny.event.MobRemovalEvent;
 import com.palmergames.bukkit.towny.event.executors.TownyActionEventExecutor;
 import com.palmergames.bukkit.towny.event.mobs.MobSpawnRemovalEvent;
+import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
@@ -30,6 +31,7 @@ public class GooPTowny implements Listener {
 
     @EventHandler
     public void onTownyDeleetSummon(@NotNull MobSpawnRemovalEvent event) {
+        if (!Gunging_Ootilities_Plugin.foundMythicMobs) { return; }
         //SPW//OotilityCeption.Log("\u00a78GPT\u00a7c MSR\u00a77 Removal of " + event.getEntity().getName());
 
         // Spawning minion?

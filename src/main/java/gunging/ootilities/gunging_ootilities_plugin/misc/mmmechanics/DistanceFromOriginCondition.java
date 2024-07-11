@@ -16,19 +16,24 @@ public class DistanceFromOriginCondition extends CustomMMCondition implements IS
     boolean matchSelf;
     boolean matchTarget;
     boolean matchTrigger;
+    boolean squared;
 
     public DistanceFromOriginCondition(MythicLineConfig mlc) {
         super(mlc);
 
-        String d = mlc.getString(new String[]{"distance", "d"}, this.conditionVar);
         matchSelf = mlc.getBoolean(new String[]{"self", "s", "caster", "c"}, false);
         matchTrigger = mlc.getBoolean(new String[]{"trigger", "trig"}, false);
         matchTarget = mlc.getBoolean(new String[]{"target", "targ", "t"}, !matchSelf && !matchTrigger);
+        squared = mlc.getBoolean(new String[]{"squared"}, false);
 
         // Try th
+        String d = mlc.getString(new String[]{"distance", "d"}, this.conditionVar);
+        if (d != null && d.startsWith("\"")) { d = d.substring(1); }
+        if (d != null && d.endsWith("\"")) { d = d.substring(0, d.length()-1); }
         distance = QuickNumberRange.FromString(d);
         if (distance == null) { distance = GooPMythicMobs.rangedDoubleToQNR(d); }
         if (distance == null) { distance = new QuickNumberRange(0D, 0D); }
+        if (!squared) { distance = new QuickNumberRange((distance.GetMinimumInclusive() != null) ? distance.getMinimumInclusive()*distance.getMinimumInclusive() : null, (distance.getMaximumInclusive() != null) ? distance.getMaximumInclusive()*distance.getMaximumInclusive() : null); }
 
         //DO//OotilityCeption.Log("\u00a7aRegistered \u00a77DO Condition: \u00a7bS:" + matchSelf + "\u00a77, \u00a7bT:" + matchTarget + "\u00a77, \u00a7bTrig: " + matchTrigger);
     }
@@ -41,13 +46,13 @@ public class DistanceFromOriginCondition extends CustomMMCondition implements IS
 
             double diffSq = (float)origin.distanceSquared(skillMetadata.getTrigger().getLocation());
             //DO//OotilityCeption.Log("\u00a7aDO \u00a77DO Trigger Result: \u00a7e" + this.distance.InRange(diffSq));
-            return this.distance.InRange(diffSq);
+            return neg(this.distance.InRange(diffSq));
 
         } else if (matchSelf && skillMetadata.getCaster() != null) {
 
             double diffSq = (float)origin.distanceSquared(skillMetadata.getCaster().getLocation());
             //DO//OotilityCeption.Log("\u00a7aDO \u00a77DO Self Result: \u00a7e" + this.distance.InRange(diffSq));
-            return this.distance.InRange(diffSq);
+            return neg(this.distance.InRange(diffSq));
 
         } else if (matchTarget) {
             if (skillMetadata.getEntityTargets() != null) {
@@ -55,7 +60,7 @@ public class DistanceFromOriginCondition extends CustomMMCondition implements IS
                     if (target == null) { continue; }
 
                     double diffSq = (float)origin.distanceSquared(target.getLocation());
-                    if (this.distance.InRange(diffSq)) { return true; }
+                    if (this.distance.InRange(diffSq)) { return neg(true); }
                 }
             }
 
@@ -65,15 +70,15 @@ public class DistanceFromOriginCondition extends CustomMMCondition implements IS
                     if (target == null) { continue; }
 
                     double diffSq = (float)origin.distanceSquared(target);
-                    if (this.distance.InRange(diffSq)) { return true; }
+                    if (this.distance.InRange(diffSq)) { return neg(true); }
                 }
             }
 
             //DO//OotilityCeption.Log("\u00a7aDO \u00a77Failed DO: \u00a7cno target matched");
-            return false;
+            return neg(false);
         }
 
         //DO//OotilityCeption.Log("\u00a7aDO \u00a77Failed DO: \u00a7cNo matches");
-        return false;
+        return neg(false);
     }
 }

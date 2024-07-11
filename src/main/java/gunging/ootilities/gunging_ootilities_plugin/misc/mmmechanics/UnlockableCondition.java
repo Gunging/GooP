@@ -45,23 +45,23 @@ public class UnlockableCondition extends CustomMMCondition implements IEntityCon
         boolean requireFalse = ex.equalsIgnoreCase("false");
 
         // Yes
-        if (requireFalse && !uckk.IsUnlocked()) { return true; }
+        if (requireFalse && !uckk.IsUnlocked()) { return neg(true); }
 
         // Time success required, but it only makes sense if it is already unlocked
-        if (!secondsRem.isAny() && uckk.IsUnlocked()) { if (!secondsRem.InRange(uckk.RemainingSeconds())) { return false; }}
+        if (!secondsRem.isAny() && uckk.IsUnlocked()) { if (!secondsRem.InRange(uckk.RemainingSeconds())) { return neg(false); }}
 
         boolean anyTrue = ex.equalsIgnoreCase("true");
-        if (anyTrue && uckk.IsUnlocked()) { return true; }
+        if (anyTrue && uckk.IsUnlocked()) { return neg(true); }
 
         // Parse Range ig
         QuickNumberRange qnr = QuickNumberRange.FromString(ex);
         if (qnr != null) {
 
             // Get Unlock
-            return qnr.InRange(uckk.GetUnlock());
+            return neg(qnr.InRange(uckk.GetUnlock()));
         }
 
         // UUuuuh false i guess?
-        return false;
+        return neg(false);
     }
 }

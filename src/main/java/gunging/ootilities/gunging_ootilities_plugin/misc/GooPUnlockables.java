@@ -92,7 +92,19 @@ public class GooPUnlockables {
 
     @Nullable OptimizedTimeFormat timed;
     public boolean isTimed() { return timed != null; }
-    public long RemainingSeconds() { return OotilityCeption.SecondsElapsedSince(OptimizedTimeFormat.Current(), timed); }
+    public long RemainingSeconds() {
+
+        /*
+        if (Gunging_Ootilities_Plugin.devLogging) {
+            OotilityCeption.Log("\u00a78UCK\u00a79 SEC\u00a77 Remaining seconds for\u00a7e " + getGoalname() + "\u00a77 for\u00a73 " + getAssociatee().toString());
+            OotilityCeption.Log("\u00a78UCK\u00a79 SEC\u00a71 -\u00a77 Current\u00a7e " + OptimizedTimeFormat.toString(OptimizedTimeFormat.Current()));
+            OotilityCeption.Log("\u00a78UCK\u00a79 SEC\u00a71 -\u00a77 Timed\u00a76 " + OptimizedTimeFormat.toString(timed));
+            OotilityCeption.Log("\u00a78UCK\u00a79 SEC\u00a71 -\u00a77 Result:\u00a7b " + OotilityCeption.SecondsElapsedSince(OptimizedTimeFormat.Current(), timed));
+        }
+        */
+
+        return OotilityCeption.SecondsElapsedSince(OptimizedTimeFormat.Current(), timed);
+    }
     public void SetTimed(@Nullable OptimizedTimeFormat timee) { SetTimed(timee, false); }
     public void SetTimed(@Nullable OptimizedTimeFormat timee, boolean keepLonger) {
 

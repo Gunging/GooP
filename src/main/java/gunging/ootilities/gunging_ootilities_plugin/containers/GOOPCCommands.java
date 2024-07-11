@@ -33,10 +33,9 @@ import java.util.*;
 public class GOOPCCommands implements CommandExecutor {
 
     /** @noinspection unused*/
-    public static void onCommand_GooPContainers(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @Nullable String chainedNoLocation, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
+    public static void onCommand_GooPContainers(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable SuccessibleChain commandChain, @Nullable String chainedNoLocation, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
         // Has permission?
         boolean permission = true;
-        chained = chainedCommand != null;
 
         // What will be said to the caster (caster = sender of command)
         List<String> logReturn = new ArrayList<>();
@@ -109,7 +108,7 @@ public class GOOPCCommands implements CommandExecutor {
                                     if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Forced \u00a73" + target.getName() + "\u00a77 to close their inventory. "));
 
                                     // Run Chain
-                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                    commandChain.chain(chained, target, sender);
                                 }
                             }
 
@@ -224,7 +223,7 @@ public class GOOPCCommands implements CommandExecutor {
                                 if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Opened container \u00a73" + template.getInternalName() + "\u00a77 to \u00a73" + target.getName() + "\u00a77 successfully."));
 
                                 // Run Chain
-                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                commandChain.chain(chained, target, sender);
                             }
 
                         // Incorrect number of args
@@ -457,7 +456,7 @@ public class GOOPCCommands implements CommandExecutor {
                                 if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Equipped " + OotilityCeption.GetItemName(toEquip) + "\u00a77 onto slot \u00a7b#" + slotNumber + "\u00a77 of container \u00a73" + template.getInternalName() + "\u00a77 of player \u00a73" + target.getName() + "\u00a77 successfully."));
 
                                 // Run Chain
-                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                commandChain.chain(chained, target, sender);
                             }
 
                             // Incorrect number of args
@@ -627,7 +626,7 @@ public class GOOPCCommands implements CommandExecutor {
                                 }
 
                                 // Run Chain
-                                if (chained && !defaulting) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                if (!defaulting) { commandChain.chain(chained, target, sender); }
                             }
 
                             // Incorrect number of args
@@ -848,7 +847,7 @@ public class GOOPCCommands implements CommandExecutor {
                                 if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "\u00a7e" + opener.getName() + " \u00a77opened " + ownerName + "'s container \u00a73" + template.getInternalName() + "\u00a77 successfully."));
 
                                 // Run Chain
-                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                                commandChain.chain(true, (Player) null, sender);
                             }
 
                             // Incorrect number of args
@@ -992,7 +991,7 @@ public class GOOPCCommands implements CommandExecutor {
                                 if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Deleted " + ownerName + "'s container \u00a73" + template.getInternalName() + "\u00a77 successfully. " + (targetLocation != null ? "Dropped the items at\u00a7b " + OotilityCeption.BlockLocation2String(targetLocation) : "")));
 
                                 // Run Chain
-                                if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                                commandChain.chain(chained, (Player) null, sender);
                             }
 
                             // Incorrect number of args
@@ -1244,7 +1243,7 @@ public class GOOPCCommands implements CommandExecutor {
                                     }
 
                                     // Run Chain
-                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                    commandChain.chain(chained, target, sender);
                                 }
                             }
 
@@ -2600,6 +2599,13 @@ public class GOOPCCommands implements CommandExecutor {
                                         logReturn.add("\u00a7e                  \u00a77that fit the mask to be placed in such slot.");
                                         logReturn.add("\u00a7e  --> \u00a7eid \u00a77Specify the exact internal MMOItem ID of the item");
                                         logReturn.add("\u00a7e                \u00a77that you intend to fit here.");
+                                        logReturn.add("\u00a7e                \u00a7bUse \u00a7e+\u00a7b prefix to add items to existing list");
+                                        logReturn.add("\u00a7e                \u00a7bUse \u00a7e-\u00a7b prefix to remove items from list");
+                                        logReturn.add("\u00a7e                \u00a7bUse \u00a7e!\u00a7b prefix per-item for blacklist mode");
+                                        logReturn.add("\u00a7e                \u00a7bYou may specify a comma separated list of items");
+                                        logReturn.add("\u00a7e                \u00a7bEx:\u00a76 -MANGO,PEAR,BANANA&7 Removes items from list");
+                                        logReturn.add("\u00a7e                \u00a7bEx:\u00a76 +APPLE,!PINEAPPLE&7 Adds apple to whitelist, pineapple to blacklist");
+                                        logReturn.add("\u00a7e                \u00a7bEx:\u00a76 APPLE,!PINEAPPLE&7 Replaces previous whitelist and blacklists");
                                         logReturn.add("\u00a73 - \u00a7e<name> \u00a77The mask name (for types) or id (for ids) to check.");
 
                                         // Correct number of args?
@@ -2696,6 +2702,7 @@ public class GOOPCCommands implements CommandExecutor {
                                                             // Snooze
                                                             String restrictions = null;
                                                             if (args.length > 6) { restrictions = args[6]; }
+                                                            if (restrictions.equals("-all")) { restrictions = null; }
 
                                                             // Do Appliccable Mask Shit
                                                             template.getSlotAt(sl.getSlot()).loadKindIDRestrictions(restrictions);

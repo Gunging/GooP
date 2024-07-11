@@ -13,6 +13,11 @@ ConverterUsesDefense: false
 #VaultLowBalance: "&cYou need $%charge% to use this"
 SummonLeashKillDistance: 60
 
+#
+# Makes "/goop mythicmobs runSkillAs" replace "__" for spaces instead of replacing "-"
+#
+GooPMythicMobsRunSkillAsDoubleUnderscoreSpaces: true
+
 CustomStructures:
 
   #

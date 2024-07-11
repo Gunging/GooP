@@ -6,6 +6,7 @@ import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMo
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.SummonerClassMinion;
 import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.adapters.AbstractLocation;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.mobs.GenericCaster;
 import io.lumine.mythic.api.skills.*;
@@ -17,6 +18,7 @@ import io.lumine.mythic.core.skills.SkillMechanic;
 import io.lumine.mythic.core.skills.SkillTargeter;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import io.lumine.mythic.core.skills.targeters.IEntitySelector;
+import io.lumine.mythic.core.skills.targeters.ILocationSelector;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -69,8 +71,11 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
 
     @Override
     public SkillResult cast(@NotNull SkillMetadata data) {
-        Collection<AbstractEntity> targets = new HashSet<>();
-        if (data.getEntityTargets() != null) { targets = new HashSet<>(data.getEntityTargets()); }
+        Collection<AbstractEntity> entityTargets = new HashSet<>();
+        if (data.getEntityTargets() != null) { entityTargets = new HashSet<>(data.getEntityTargets()); }
+
+        Collection<AbstractLocation> locationTargets = new HashSet<>();
+        if (data.getLocationTargets() != null) { locationTargets = new HashSet<>(data.getLocationTargets()); }
 
         // Get from placeholders :eyes1:
         if (metaskill == null) { metaskill = GooPMythicMobs.GetSkill(skillname.get(data, data.getCaster().getEntity()));}
@@ -87,11 +92,20 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
             if (configTarget instanceof IEntitySelector) {
                 //MM//OotilityCeption.Log("\u00a7b  + \u00a77Is Entity Selector");
 
-                targets = ((IEntitySelector)configTarget).getEntities(data);
+                entityTargets = ((IEntitySelector)configTarget).getEntities(data);
                 //MM//OotilityCeption.Log("");
                 //MM//OotilityCeption.Log("\u00a7b -- \u00a77Processed Sudo Targets \u00a7b--");
                 //MM//for (AbstractEntity t : targets) { OotilityCeption.Log("   \u00a7b> \u00a7f" + t.getName()); }
                 ((IEntitySelector)configTarget).filter(data, this.targetsCreativePlayers());
+            }
+
+            if (configTarget instanceof ILocationSelector) {
+                //MM//OotilityCeption.Log("\u00a7b  + \u00a77Is Entity Selector");
+
+                locationTargets = ((ILocationSelector)configTarget).getLocations(data);
+                //MM//OotilityCeption.Log("");
+                //MM//OotilityCeption.Log("\u00a7b -- \u00a77Processed Sudo Targets \u00a7b--");
+                //MM//for (AbstractEntity t : targets) { OotilityCeption.Log("   \u00a7b> \u00a7f" + t.getName()); }
             }
         }
 
@@ -102,45 +116,47 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
         AbstractEntity t = null; if (owner != null) { t = BukkitAdapter.adapt(owner); }
 
         // If targets existed
-        if (targets != null && metaskill != null && t != null) {
+        if ((entityTargets != null || locationTargets != null) && metaskill != null && t != null) {
             //MM//OotilityCeption.Log("\u00a73 >>> \u00a77Running for " + t.getName());
 
             // Filter targets
             HashSet<AbstractEntity> fTargets = new HashSet<>();
-            for (AbstractEntity tar : targets) {
-                //MM//OotilityCeption.Log("\u00a7d >> \u00a77 \u00a7f" + tar.getName() + " (" + tar.getBukkitEntity().getType().toString() + ")");
+            if (entityTargets != null) {
+                for (AbstractEntity tar : entityTargets) {
+                    //MM//OotilityCeption.Log("\u00a7d >> \u00a77 \u00a7f" + tar.getName() + " (" + tar.getBukkitEntity().getType().toString() + ")");
 
-                // Include?
-                boolean armorstandFailure = (tar.getBukkitEntity() instanceof ArmorStand) && !targetArmorStands;
+                    // Include?
+                    boolean armorstandFailure = (tar.getBukkitEntity() instanceof ArmorStand) && !targetArmorStands;
 
-                // Minions?
-                SummonerClassMinion min = SummonerClassUtils.GetMinion(tar.getUniqueId());
-                boolean minionFailure = (min != null) && !targetMinionsAny;
+                    // Minions?
+                    SummonerClassMinion min = SummonerClassUtils.GetMinion(tar.getUniqueId());
+                    boolean minionFailure = (min != null) && !targetMinionsAny;
 
-                // Self minions?
-                boolean isComrade = false;
-                boolean comradeFailure = false;
-                if (min != null) {
-                    isComrade = (min.getOwner().getUniqueId().equals(owner.getUniqueId()));
-                    boolean tMinionSelf = false;
-                    if (targetMinionsSelf != null) { tMinionSelf = targetMinionsSelf; }
-                    comradeFailure = isComrade && !tMinionSelf; }
+                    // Self minions?
+                    boolean isComrade = false;
+                    boolean comradeFailure = false;
+                    if (min != null) {
+                        isComrade = (min.getOwner().getUniqueId().equals(owner.getUniqueId()));
+                        boolean tMinionSelf = false;
+                        if (targetMinionsSelf != null) { tMinionSelf = targetMinionsSelf; }
+                        comradeFailure = isComrade && !tMinionSelf; }
 
-                // COmrade override
-                boolean comradeOverride = OotilityCeption.If(targetMinionsSelf) && isComrade;
-                //MM//OotilityCeption.Log("\u00a7c   >? \u00a77ArmorStand Faill: \u00a7f" + armorstandFailure);
-                //MM//OotilityCeption.Log("\u00a73   >? \u00a77Minion Generic F: \u00a7f" + minionFailure);
-                //MM//OotilityCeption.Log("\u00a7e   >? \u00a77Minion Comrade F: \u00a7f" + comradeFailure);
-                //MM//OotilityCeption.Log("\u00a7a   >? \u00a77Comrade-Generc O: \u00a7f" + comradeOverride);
+                    // COmrade override
+                    boolean comradeOverride = OotilityCeption.If(targetMinionsSelf) && isComrade;
+                    //MM//OotilityCeption.Log("\u00a7c   >? \u00a77ArmorStand Faill: \u00a7f" + armorstandFailure);
+                    //MM//OotilityCeption.Log("\u00a73   >? \u00a77Minion Generic F: \u00a7f" + minionFailure);
+                    //MM//OotilityCeption.Log("\u00a7e   >? \u00a77Minion Comrade F: \u00a7f" + comradeFailure);
+                    //MM//OotilityCeption.Log("\u00a7a   >? \u00a77Comrade-Generc O: \u00a7f" + comradeOverride);
 
-                // Will accept if it did not fail any
-                if (!armorstandFailure && !comradeFailure && (!minionFailure || comradeOverride)) {
+                    // Will accept if it did not fail any
+                    if (!armorstandFailure && !comradeFailure && (!minionFailure || comradeOverride)) {
 
-                    // Add it
-                    fTargets.add(tar);
+                        // Add it
+                        fTargets.add(tar);
+                    }
                 }
             }
-            targets = fTargets;
+            entityTargets = fTargets;
             //MM//for (AbstractEntity targ : targets) { OotilityCeption.Log("\u00a7a >\u00a7eT\u00a73T\u00a7cT\u00a77 " + targ.getName());}
 
             // Find caster
@@ -164,7 +180,8 @@ public class SudoOwnerMechanic extends SkillMechanic implements IMetaSkill {
             // Copy data and replace caster
             final SkillMetadata clonedData = data.deepClone();
             clonedData.setCaster(caster);
-            /*CURRENT-MMOITEMS*/clonedData.setEntityTargets(targets);
+            /*CURRENT-MMOITEMS*/clonedData.setLocationTargets(locationTargets);
+            /*CURRENT-MMOITEMS*/clonedData.setEntityTargets(entityTargets);
             //YE-OLDEN-MMO//clonedData.setEntityTargets(new HashSet<>(targets));
 
             // Replace trigger

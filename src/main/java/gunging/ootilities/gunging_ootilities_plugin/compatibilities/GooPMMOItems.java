@@ -475,19 +475,25 @@ public class GooPMMOItems {
 
         // Get Eq
         PlayerData p;
-        try { p = PlayerData.get(player); } catch (NullPointerException ignored) { return vot; }
+        try { p = PlayerData.get(player); } catch (NullPointerException ignored) {
+            //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7c Null Player Data");
+            return vot; }
 
         // Find method
         if (equipped == null) {
+            //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a75 Finding Equipment Method...");
 
             // Reflection or not
             try {
 
                 // Identify Method
                 equipped = p.getInventory().getClass().getMethod("getEquipped");
+                //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7d Equipment Method Found");
 
             // lol no
-            } catch (NoSuchMethodException ignored) { return vot; }
+            } catch (NoSuchMethodException ignored) {
+                //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7c No Equipment Method");
+                return vot; }
         }
 
         try {
@@ -497,6 +503,7 @@ public class GooPMMOItems {
 
             // Using Equipped Player Items?
             if (usingEquippedPlayerItems) {
+                //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a75 Identifying Equipment Class...");
 
                 try {
 
@@ -513,23 +520,21 @@ public class GooPMMOItems {
                         if (getitem == null) {
 
                             // Reflection or not
-                            try {
-
-                                // Identify Method
-                                getitem = equippedPlayerItem.getClass().getMethod("getItem");
-
-                            // lol no
-                            } catch (NoSuchMethodException ignored) { return vot; }
+                            getitem = equippedPlayerItem.getClass().getMethod("getItem");
+                            //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7d Using EquippedPlayerItem.getItem()");
                         }
 
                         // That should be the result
                         vot.add((VolatileMMOItem) getitem.invoke(equippedPlayerItem));
+                        //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7a +\u00a77 Added!");
                     }
 
                     // Right....
                     return vot;
 
-                } catch (NoClassDefFoundError ignored) { usingEquippedPlayerItems = false; getitem = null; }
+                } catch (NoClassDefFoundError|NoSuchMethodException ignored) {
+                    //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7d Equipped Item Method must be used");
+                    usingEquippedPlayerItems = false; getitem = null; }
             }
 
             // Cast into list
@@ -544,15 +549,22 @@ public class GooPMMOItems {
 
                         // Identify Method
                         getitem = e.getClass().getMethod("getNBT");
+                        //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7d Using EquippedItem.getNBT()");
 
                     // lol no
-                    } catch (NoSuchMethodException ignored) { return vot; }
+                    } catch (NoSuchMethodException ignored) {
+                        //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7c Could not find EquippedItem.getNBT()");
+                        return vot; }
                 }
 
                 vot.add(new VolatileMMOItem((NBTItem) getitem.invoke(e)));
+                //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7a +\u00a77 Added!");
             }
 
-        } catch (InvocationTargetException|IllegalAccessException ignored) { }
+        } catch (InvocationTargetException|IllegalAccessException ignored) {
+
+            //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7c Could not identify Equipped Items method");
+        }
 
         // Return thay
         return vot;
@@ -750,9 +762,11 @@ public class GooPMMOItems {
 
         // Get all the items
         ArrayList<VolatileMMOItem> pItems = GetPlayerEquipment(target);
+        OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a77 Player Equipment\u00a79 x" + pItems.size());
 
         // I dont know how many there
         for (MMOItem pItem : pItems) {
+            OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a73 +\u00a77 " + pItem.getType() + " " + pItem.getId());
 
             if (pItem != null) {
 
@@ -1820,7 +1834,7 @@ public class GooPMMOItems {
                  * to be true, we will add an External Stat History (EXSH)
                  * of the difference between the current and desired
                  */
-                endData = (DoubleData) current.cloneData();
+                endData = new DoubleData(current.getValue());
                 endData.setValue(expectedData - current.getValue());
 
                 //STAT//OotilityCeption.Log("\u00a77STAT\u00a7e DBD\u00a77 Difference:\u00a7b " + endData.getValue());
@@ -1977,15 +1991,21 @@ public class GooPMMOItems {
                 // What ill be the latest string data?
                 endData = new StringData(expectedData);
 
-                // Get SH
-                StatHistory hist = StatHistory.from(mmo, stat);
+                // Mergeable allows stat hisotry operation
+                if (stat instanceof Mergeable) {
 
-                // Register
-                hist.registerExternalData(endData);
-                if (hist.getExternalData().size() > stringHist) { hist.consolidateEXSH(); }
+                    // Get SH
+                    StatHistory hist = StatHistory.from(mmo, stat);
 
-                // Recalculate
-                mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
+                    // Register
+                    hist.registerExternalData(endData);
+                    if (hist.getExternalData().size() > stringHist) { hist.consolidateEXSH(); }
+
+                    // Recalculate
+                    mmo.setData(stat, hist.recalculate(mmo.getUpgradeLevel()));
+
+                // Not mergeable = just override data
+                } else { mmo.setData(stat, endData); }
 
                 // Notify
                 OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Set value \u00a7e" + stat.getId() + "\u00a77 of " + OotilityCeption.GetItemName(iSource) + "\u00a77 to \u00a7b" + endData.getString() + "\u00a77. ");
@@ -3233,8 +3253,11 @@ public class GooPMMOItems {
                     // If shift negative
                 } else {
 
+                    ItemStack unbroken = durItem.decreaseDurability(-shift).toItem();
+                    if (unbroken == null) { finalDura = -1; }
+
                     // Substract durability
-                    dur = durItem.decreaseDurability(-shift).toItem().getItemMeta();
+                    dur = (unbroken == null ? null : unbroken.getItemMeta());
                 }
 
                 // Did it break?
@@ -4684,6 +4707,14 @@ public class GooPMMOItems {
             // Attempt to get MMOItem Instance
             MMOItem mmoitem = LiveFromNBT(iSource);
 
+            // Does not participate in stat history
+            if (!(statDaa instanceof Mergeable)) {
+
+                // Set stat data
+                mmoitem.setData(stat, statDaa);
+                return mmoitem;
+            }
+
             //STAT//OotilityCeption. Log("    §8>§b£§8<§7 Got Live");
 
             // Its not socket gems is it?
@@ -4947,7 +4978,7 @@ public class GooPMMOItems {
         return new ArrayList<>(); }
     //endregion
 
-    public static void onCommand_GooPMMOItems(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
+    public static void onCommand_GooPMMOItems(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable SuccessibleChain commandChain, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
         // Has permission?
         boolean permission = true;
 
@@ -5036,7 +5067,7 @@ public class GooPMMOItems {
                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Forced \u00a73" + target.getName() + "\u00a77 to reload their equipped items. "));
 
                                         // Run Chain
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                        commandChain.chain(chained, target, sender);
                                     }
                                 }
 
@@ -5102,7 +5133,7 @@ public class GooPMMOItems {
 
                                     // Preparation of Methods
                                     TargetedItems executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.MMOItemAddGemSlot(iSource.getValidOriginal(), colour, iSource.getLogAddition()),
@@ -5231,7 +5262,7 @@ public class GooPMMOItems {
 
                                     // Preparation of Methods
                                     TargetedItems executor = new TargetedItems(false, false,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.MMOItemCountGems(iSource.getValidOriginal(), finalIncludeEmpty, iSource.getRef_int_a(), iSource.getLogAddition()),
@@ -5417,7 +5448,7 @@ public class GooPMMOItems {
 
                                     // Preparation of Methods
                                     TargetedItems executor = new TargetedItems(false, !pmpLevel.isNeutral(),
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.UpgradeMMOItem(iSource.getValidOriginal(), pmpReal, finalBreakLimit, iSource.getRef_int_a(), iSource.getLogAddition()),
@@ -5510,7 +5541,7 @@ public class GooPMMOItems {
 
                                     // Preparation of Methods
                                     TargetedItems executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.IdentifyMMOItem(iSource.getValidOriginal(), iSource.getLogAddition()),
@@ -5624,7 +5655,7 @@ public class GooPMMOItems {
 
                                     // Preparation of Methods
                                     TargetedItems executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> AddAbility(iSource.getValidOriginal(), ability, trigger, mods, iSource.getLogAddition()),
@@ -5721,7 +5752,7 @@ public class GooPMMOItems {
 
                                     // Preparation of Methods
                                     TargetedItems executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> SetTier(iSource.getValidOriginal(), finalTier, null, iSource.getLogAddition()),
@@ -5856,7 +5887,7 @@ public class GooPMMOItems {
                                      *      Preparation of Methods and Lambdas
                                      */
                                     TargetedItems executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.ModifierOperation(modifierName, iSource.getValidOriginal(), finalScryAll, finalChances, iSource.getLogAddition()),
@@ -6010,7 +6041,7 @@ public class GooPMMOItems {
                                      *      Preparation of Methods and Lambdas
                                      */
                                     TargetedItems executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.ReforgeMMOItem(iSource.getValidOriginal(), iSource.getLogAddition(), finalName, finalLore, finalEnch, finalUpgr, finalGems, finalSoul, finalExsh, finalReroll, finalMods, finalAe, finalSkin),
@@ -6145,7 +6176,7 @@ public class GooPMMOItems {
                                      *      Preparation of Methods and Lambdas
                                      */
                                     TargetedItems executor = new TargetedItems(false, false,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.SetTier(iSource.getValidOriginal(), null, iSource.getRef_str_a(), iSource.getLogAddition()),
@@ -6507,7 +6538,7 @@ public class GooPMMOItems {
                                      *      Preparation of Methods and Lambdas
                                      */
                                     TargetedItems executor = new TargetedItems(false, !finalReadValue,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.StatOps(iSource.getValidOriginal(), stat, unidentifiedValue, finalUnparsedRange, iSource.getRef_dob_a(), iSource.getLogAddition()),
@@ -6690,7 +6721,7 @@ public class GooPMMOItems {
                                      *      Preparation of Methods and Lambdas
                                      */
                                     TargetedItems executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> GooPMMOItems.FixStackableness(iSource.getValidOriginal(), iSource.getLogAddition()),

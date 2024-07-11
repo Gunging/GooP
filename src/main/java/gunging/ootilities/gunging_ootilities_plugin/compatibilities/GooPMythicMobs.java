@@ -8,10 +8,7 @@ import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.mmplaceholders.*;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMCMIWarpTargeter;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMPortalCreateAura;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMRecipeUnlock;
-import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.UCMSilentTeleport;
+import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.ultracustom.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.mmmechanics.StrideMechanic;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;
@@ -20,6 +17,7 @@ import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.mobs.GenericCaster;
 import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.api.skills.Skill;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderDouble;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderManager;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
@@ -28,6 +26,7 @@ import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
 import io.lumine.mythic.bukkit.events.MythicReloadedEvent;
 import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent;
+import io.lumine.mythic.core.config.MythicLineConfigImpl;
 import io.lumine.mythic.core.items.MythicItem;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import io.lumine.mythic.core.mobs.MobExecutor;
@@ -35,6 +34,7 @@ import io.lumine.mythic.core.skills.SkillExecutor;
 import io.lumine.mythic.core.skills.SkillTriggers;
 import io.lumine.mythic.core.skills.mechanics.CustomMechanic;
 import io.lumine.mythic.core.skills.placeholders.Placeholder;
+import io.lumine.mythic.core.skills.targeters.PlayersInRadiusTargeter;
 import io.lumine.mythic.core.skills.variables.Variable;
 import io.lumine.mythic.core.skills.variables.VariableRegistry;
 import io.lumine.mythic.core.skills.variables.VariableScope;
@@ -54,7 +54,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -147,9 +146,9 @@ public class GooPMythicMobs implements Listener {
     public static boolean newenOlden = true;
     @EventHandler public void OnRegisterCustomMechanics(MythicMechanicLoadEvent event) {
         CustomMechanic customMechanic = event.getContainer();
+        SkillExecutor skillExecutor = customMechanic.getManager();
         String line = event.getConfig().getLine();
         MythicLineConfig mlc = event.getConfig();
-        SkillExecutor skillExecutor = customMechanic.getManager();
         boolean mm52 = (getVersionMajor() == 5 && getVersionMinor() >= 2) || (getVersionMajor() > 5);
 
         // Switch Mechanic ig
@@ -187,6 +186,11 @@ public class GooPMythicMobs implements Listener {
             case "gondamaged":
             case "ondamagedg":
                 event.register(mm52 ? new OnDamagedAura(customMechanic, line, mlc) : new OnDamagedAura(skillExecutor, line, mlc));
+                break;
+            case "gooponthrow":
+            case "gonthrow":
+            case "onthrowg":
+                event.register(mm52 ? new OnThrowAura(customMechanic, line, mlc) : new OnThrowAura(skillExecutor, line, mlc));
                 break;
             case "gooponshoot":
             case "gonshoot":
@@ -293,6 +297,10 @@ public class GooPMythicMobs implements Listener {
             case "unlockable":
                 event.register(new UnlockableCondition(event.getConfig()));
                 break;
+            case "gooponsuccess":
+            case "os":
+                event.register(new OnSuccessCondition(event.getConfig()));
+                break;
             default: break;
         }
     }
@@ -318,7 +326,75 @@ public class GooPMythicMobs implements Listener {
                 break;
             case "cmiwarp":
                 if (Gunging_Ootilities_Plugin.foundCMI ||
-                    Gunging_Ootilities_Plugin.foundEssentials) { event.register(new UCMCMIWarpTargeter(exec, mlc)); }
+                        Gunging_Ootilities_Plugin.foundEssentials) {event.register(new UCMCMIWarpTargeter(exec, mlc));}
+                break;
+            case "nestor":
+            case "nr":
+
+                PlaceholderDouble radius = PlaceholderDouble.of(mlc.getString(new String[]{"radius", "r"}, "300"));
+                int limit = mlc.getInteger(new String[]{"limit"}, 1);
+                String sort = mlc.getString(new String[]{"sort", "sortby"}, "NEAREST").toUpperCase();
+                boolean targetSelf = mlc.getBoolean("targetSelf", true);
+                boolean targetCreativeMode = mlc.getBoolean("targetcreative", false);
+                boolean targetSpectatorMode = mlc.getBoolean("targetspectator", false);
+
+                StringBuilder trueLine = new StringBuilder("@PIR{");
+
+                Set<Map.Entry<String, String>> entries = mlc.entrySet();
+                boolean cRad = false;
+                boolean cSrt = false;
+                boolean cSel = false;
+                boolean cCre = false;
+                boolean cSpc = false;
+                boolean cLim = false;
+
+                for (Map.Entry<String, String> ent : entries) {
+
+                    // Target Spectator
+                    if (ent.getKey().equalsIgnoreCase("targetspectator")) {
+                        cSpc = true;
+                        trueLine.append(";targetspectator=").append(targetSpectatorMode); }
+
+                    // Target Creative
+                    else if (ent.getKey().equalsIgnoreCase("targetcreative")) {
+                        cCre = true;
+                        trueLine.append(";targetcreative=").append(targetCreativeMode); }
+
+                    // Sort
+                    else if (ent.getKey().equalsIgnoreCase("sortby") ||
+                            ent.getKey().equalsIgnoreCase("sort")) {
+                        cSrt = true;
+                        trueLine.append(";sort=").append(sort); }
+
+                    // Target Self
+                    else if (ent.getKey().equalsIgnoreCase("targetSelf")) {
+                        cSel = true;
+                        trueLine.append(";targetself=").append(targetSelf); }
+
+                    // Limit
+                    else if (ent.getKey().equalsIgnoreCase("limit")) {
+                        cLim = true;
+                        trueLine.append(";limit=").append(limit); }
+
+                    // Radius
+                    else if (ent.getKey().equalsIgnoreCase("radius") ||
+                            ent.getKey().equalsIgnoreCase("r")) {
+                        cRad = true;
+                        trueLine.append(";r=").append(radius);}
+
+                    // Append anything else
+                    else {  trueLine.append(";").append(ent.getKey()).append("=").append(ent.getValue()); }
+                }
+
+                if (!cRad) { trueLine.append(";r=").append(radius); }
+                if (!cSrt) { trueLine.append(";sort=").append(sort); }
+                if (!cSel) { trueLine.append(";targetself=").append(targetSelf); }
+                if (!cCre) { trueLine.append(";targetcreative=").append(targetCreativeMode); }
+                if (!cSpc) { trueLine.append(";targetspectator=").append(targetSpectatorMode); }
+                if (!cLim) { trueLine.append(";limit=").append(limit); }
+
+                MythicLineConfig trueMLC = new MythicLineConfigImpl(mlc.getFileName(), trueLine.append("}").toString());
+                event.register(new PlayersInRadiusTargeter(exec, trueMLC));
                 break;
             case "gooptag":
                 event.register(new TagTargeter(exec, mlc));
@@ -648,6 +724,7 @@ public class GooPMythicMobs implements Listener {
 
         // If exists
         if (stack == null) { return null; }
+        if (stack.getAmount() < 1) { stack = OotilityCeption.asQuantity(stack, 1); }
 
         // Un parse it
         CompoundTag ct = MythicBukkit.inst().getVolatileCodeHandler().getItemHandler().getNBTData(stack);

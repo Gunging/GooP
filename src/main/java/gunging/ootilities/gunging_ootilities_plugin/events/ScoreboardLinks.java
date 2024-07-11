@@ -4,7 +4,6 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
-import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GTL_Containers;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.translation.GTranslationManager;
 import org.bukkit.Bukkit;
@@ -447,6 +446,9 @@ public class ScoreboardLinks implements Listener {
             // Any skill of such?
             ArrayList<String> mmOHs = GooPMMOItems.CummaltiveEquipmentStringStatValue((Player) trueDamager, GooPMMOItems.ONHIT_COMMAND);
             ArrayList<String> mmOKs = GooPMMOItems.CummaltiveEquipmentStringStatValue((Player) trueDamager, GooPMMOItems.ONKILL_COMMAND);
+
+            //OHK//OotilityCeption.Log("Found OHs\u00a73 x" + mmOHs.size() + "\u00a77:\u00a7b " + SilentNumbers.collapseList(mmOHs, "\u00a77,\u00a7b"));
+            //OHK//OotilityCeption.Log("Found OKs\u00a76 x" + mmOHs.size() + "\u00a77:\u00a7e " + SilentNumbers.collapseList(mmOHs, "\u00a77,\u00a7e"));
 
             // Funny variables
             Location loc = event.getEntity().getLocation();

@@ -29,7 +29,7 @@ public class GooPMMOCore {
 
         // Get Statt
         switch (statname.toLowerCase()) {
-            case "attackdamage":
+            case "attackdamage\uF801":
             case "adamage":
             case "admg":
             case "attack":

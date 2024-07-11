@@ -24,6 +24,6 @@ public class VexChargingCondition extends CustomMMCondition implements IEntityCo
         Vex vex = (Vex) abstractEntity.getBukkitEntity();
 
         // Return if the value matches
-        return vex.isCharging() == expected;
+        return neg(vex.isCharging() == expected);
     }
 }

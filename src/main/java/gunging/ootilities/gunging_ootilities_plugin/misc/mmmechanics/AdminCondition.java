@@ -67,15 +67,15 @@ public class AdminCondition extends CustomMMCondition implements IEntityConditio
         // Must be player
         if (abstractEntity == null) {
             //MM//OotilityCeption.Log("\u00a76AC\u00a77 Failed:\u00a7c No entity");
-            return false; }
+            return neg(false); }
         if (!(abstractEntity.getBukkitEntity() instanceof Player)) {
             //MM//OotilityCeption.Log("\u00a76AC\u00a77 Failed:\u00a7c Not a player");
-            return false; }
+            return neg(false); }
         Player p = (Player) abstractEntity.getBukkitEntity();
 
         if (requireOP && !p.isOp()) {
             //MM//OotilityCeption.Log("\u00a76AC\u00a77 Failed:\u00a7c Not OP");
-            return false; }
+            return neg(false); }
 
         if (requiredGamemodes.size() > 0) {
 
@@ -87,7 +87,7 @@ public class AdminCondition extends CustomMMCondition implements IEntityConditio
             if (!success) {
 
                 //MM//OotilityCeption.Log("\u00a76AC\u00a77 Failed:\u00a7c Incorrect GameMode \u00a76" + p.getGameMode().toString());
-                return false;
+                return neg(false);
             }
         }
 
@@ -96,7 +96,7 @@ public class AdminCondition extends CustomMMCondition implements IEntityConditio
             if (p.getGameMode().equals(gm)) {
 
                 //MM//OotilityCeption.Log("\u00a76AC\u00a77 Failed:\u00a7c Blocked Gamemode \u00a76" + p.getGameMode().toString());
-                return false;
+                return neg(false);
             }
         }
 
@@ -111,11 +111,11 @@ public class AdminCondition extends CustomMMCondition implements IEntityConditio
             if (!success) {
 
                 //MM//OotilityCeption.Log("\u00a76AC\u00a77 Failed:\u00a7c Incorrect Name \u00a76" + p.getName());
-                return false;
+                return neg(false);
             }
         }
 
         //MM//OotilityCeption.Log("\u00a76AC\u00a77 Passed:\u00a7a Player valid");
-        return true;
+        return neg(true);
     }
 }

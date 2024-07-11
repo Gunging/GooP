@@ -173,6 +173,17 @@ public class ConverterTypes {
             // Reload loaded types
             ReloadCTypes(trueConversion);
 
+            /*
+             * Reasons why the converter may be active in the first place.
+             *
+             * Converter Type being compatible with that method is checked separately.
+             */
+            boolean anyCraft = false;
+            boolean anyPickup = false;
+            boolean anyTrade = false;
+            boolean anyLoot = false;
+            boolean anyDrop = false;
+
             // For each value in the file
             for(Map.Entry<String, Object> val : (ofgStorage.getValues(false)).entrySet()) {
 
@@ -199,27 +210,38 @@ public class ConverterTypes {
 
                         // Stuff on craft
                         ConfigurationSection onCraft = typeConfig.getConfigurationSection("OnCraft");
-                        if (isOnCraft = (onCraft != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onCraft, converterSettings, null, ConvertingReason.CRAFT), ConvertingReason.CRAFT); }
+                        if (onCraft != null) { anyCraft = true; converterSettings.setPerTierSettings(null, ParseConverterSettings(onCraft, converterSettings, null, ConvertingReason.CRAFT), ConvertingReason.CRAFT); }
 
                         // Stuff on pickup.
                         ConfigurationSection onPickup = typeConfig.getConfigurationSection("OnPickup");
-                        if (isOnPickup = (onPickup != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onPickup, converterSettings, null, ConvertingReason.PICKUP), ConvertingReason.PICKUP); }
+                        if (onPickup != null) { anyPickup = true; converterSettings.setPerTierSettings(null, ParseConverterSettings(onPickup, converterSettings, null, ConvertingReason.PICKUP), ConvertingReason.PICKUP); }
 
                         // Stuff on pickup.
                         ConfigurationSection onTrade = typeConfig.getConfigurationSection("OnTrade");
-                        if (isOnTrade = (onTrade != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onTrade, converterSettings, null, ConvertingReason.TRADED), ConvertingReason.TRADED); }
+                        if (onTrade != null) { anyTrade = true; converterSettings.setPerTierSettings(null, ParseConverterSettings(onTrade, converterSettings, null, ConvertingReason.TRADED), ConvertingReason.TRADED); }
 
                         // Stuff on pickup.
                         ConfigurationSection onChest = typeConfig.getConfigurationSection("OnLootGen");
-                        if (isOnLoot = (onChest != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onChest, converterSettings, null, ConvertingReason.LOOT_GEN), ConvertingReason.LOOT_GEN); }
+                        if (onChest != null) { anyLoot = true; converterSettings.setPerTierSettings(null, ParseConverterSettings(onChest, converterSettings, null, ConvertingReason.LOOT_GEN), ConvertingReason.LOOT_GEN); }
 
                         // Stuff on pickup.
                         ConfigurationSection onKillDrop = typeConfig.getConfigurationSection("OnDrop");
-                        if (isOnDrop = (onKillDrop != null)) { converterSettings.setPerTierSettings(null, ParseConverterSettings(onKillDrop, converterSettings, null, ConvertingReason.MOB_KILL_DROP), ConvertingReason.MOB_KILL_DROP); }
+                        if (onKillDrop != null) { anyDrop = true; converterSettings.setPerTierSettings(null, ParseConverterSettings(onKillDrop, converterSettings, null, ConvertingReason.MOB_KILL_DROP), ConvertingReason.MOB_KILL_DROP); }
                     }
+                } else {
+                    anyCraft = true;
+                    anyPickup = true;
+                    anyDrop = true;
+                    // Trade must be enabled manually by explicitly writing
+                    anyLoot = true;
                 }
-
             }
+
+            isOnCraft = anyCraft;
+            isOnPickup = anyPickup;
+            isOnTrade = anyTrade;
+            isOnLoot = anyLoot;
+            isOnDrop = anyDrop;
         }
 
         //RLD//OotilityCeption.Log("\u00a78CONVERTER \u00a73RLD\u00a77 Final:");

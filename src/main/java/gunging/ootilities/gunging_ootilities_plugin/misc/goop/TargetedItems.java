@@ -2,6 +2,7 @@ package gunging.ootilities.gunging_ootilities_plugin.misc.goop;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import gunging.ootilities.gunging_ootilities_plugin.misc.SuccessibleChain;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackLocation;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackSlot;
 import gunging.ootilities.gunging_ootilities_plugin.misc.PlusMinusPercent;
@@ -40,7 +41,7 @@ public class TargetedItems {
      * @param condition Condition that will cause the command to succeed if any slot
      *                  satisfies it.
      */
-    public TargetedItems(boolean allowAir, boolean applyChanges, boolean chained, @Nullable String chainedCommand,
+    public TargetedItems(boolean allowAir, boolean applyChanges, boolean chained, @Nullable SuccessibleChain chainedCommand,
                          @NotNull CommandSender sender, @Nullable String failMessage,
                          @NotNull TargetedItemAction process,
                          @NotNull TargetedItemSuccessCondition condition,
@@ -74,7 +75,7 @@ public class TargetedItems {
     @NotNull public TargetedItems notSuccessible() { successible = false; return this; }
 
     boolean allowAir, applyChanges, chained, successible = true;
-    @Nullable String chainedCommand;
+    @NotNull SuccessibleChain chainedCommand;
     @NotNull CommandSender sender;
     @NotNull TargetedItemSuccessCondition condition;
     @NotNull TargetedItemAction process;
@@ -85,7 +86,6 @@ public class TargetedItems {
      */
     public void process() {
         if (isEmpty()) { return; }
-        if (chainedCommand == null) { chainedCommand = ""; }
 
         HashMap<Entity, SuccessibleInformation> successStuff = new HashMap<>();
 
@@ -222,21 +222,18 @@ public class TargetedItems {
                 }
 
                 // Run Chain
-                if (chained) {
 
-                    // Chain as player
-                    if (asPlayer) {
-                        //TRG//OotilityCeption.Log("\u00a78TGI\u00a7a SCS\u00a77 Produced slots of success\u00a7f " + sInfo.getSlots4Success().toString());
+                // Chain as player
+                if (asPlayer) {
+                    //TRG//OotilityCeption.Log("\u00a78TGI\u00a7a SCS\u00a77 Produced slots of success\u00a7f " + sInfo.getSlots4Success().toString());
 
-                        String localChain = OotilityCeption.ReplaceFirst(chainedCommand, "@t", sInfo.getSlots4Success().toString());
-                        if (sInfo.getValueOfSuccess() != null) { localChain = OotilityCeption.ReplaceFirst(localChain, "@v", sInfo.getValueOfSuccess()); }
-                        OotilityCeption.SendAndParseConsoleCommand((Player) ent, localChain, sender, null, null, null);
+                    String localChain = OotilityCeption.ReplaceFirst(chainedCommand.getChainedCommand(), "@t", sInfo.getSlots4Success().toString());
+                    if (sInfo.getValueOfSuccess() != null) { localChain = OotilityCeption.ReplaceFirst(localChain, "@v", sInfo.getValueOfSuccess()); }
+                    SuccessibleChain local = new SuccessibleChain(localChain, chainedCommand.getSuccessibleFlare());
+                    local.chain(chained, (Player) ent, sender);
 
-                        // Chain as non-player
-                    } else {
-                        OotilityCeption.SendAndParseConsoleCommand(ent.getUniqueId(), chainedCommand, sender, null, null, null);
-                    }
-                }
+                // Chain as non-player
+                } else { chainedCommand.chain(chained, ent.getUniqueId(), sender); }
             }
 
             // Notify failure

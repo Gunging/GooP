@@ -1827,7 +1827,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                                         //region add
                                                         case "add":
                                                             //   0           1          2     3      4         5             6+      args.Length
-                                                            // /goop customstructures edit actions edit <structure name> <action...>
+                                                            // /goop customstructures edit actions add <structure name> <action...>
                                                             //   -           0          1     2      3         4             5+      args[n]
 
                                                             switch (args.length) {
@@ -3147,6 +3147,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                         switch (args.length) {
                             case 2: tabM = null; break;
                             case 3:
+                                tabM.add("read");
                                 scoreboardManager = Bukkit.getScoreboardManager();
                                 scoreboard = scoreboardManager.getMainScoreboard();
 
@@ -3520,7 +3521,7 @@ public class GungingOotilitiesTab implements TabCompleter {
                                             tabM = GooPUnlockables.GetKnownGoals();
                                             break;
                                         case 5:
-                                            Collections.addAll(tabM, "(value)", "true", "+5", "n3", "-8", "+30%", "140%", "-10%", "2.5", "3.2");
+                                            Collections.addAll(tabM, "(value)", "true", "false", "toggle", "+5", "n3", "-8", "+30%", "140%", "-10%", "2.5", "3.2");
                                             break;
                                         case 6:
                                             Collections.addAll(tabM, "(override-timer?)", "true", "false");

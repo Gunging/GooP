@@ -54,12 +54,32 @@ public class GungingOotilities implements CommandExecutor {
         // Strip location data
         Location senderLocation = null;
         String failMessage = null;
+        UUID successibilityFlare = null;
         if (args.length >= 1) {
             RefSimulator<String> fmFind = new RefSimulator<>(null);
             args[0] = OotilityCeption.ProcessFailMessageOfCommand(args[0], fmFind);
             String locData = args[0];
             failMessage = fmFind.getValue();
-            if (locData.startsWith("<")) {
+
+            if (locData.startsWith("$") && locData.length() > 3) {
+
+                // Does it end in $
+                int flareIDX = locData.indexOf("$", 1);
+                if (flareIDX > 4) {
+
+                    // Then krop
+                    String sucFlare = locData.substring(1, flareIDX);
+
+                    // Valid location?
+                    successibilityFlare = OotilityCeption.UUIDFromString(sucFlare);
+
+                    // Strip
+                    args[0] = locData.substring(flareIDX + 1);
+                    locData = args[0];
+                }
+            }
+
+            if (locData.startsWith("<") && locData.length() > 3) {
 
                 // Does it end in >
                 int senderRelativeLocationIDX = locData.indexOf(">");
@@ -197,10 +217,11 @@ public class GungingOotilities implements CommandExecutor {
             }
 
             // Chain command execc
-            String chainedCommand = null;
+            SuccessibleChain commandChain = new SuccessibleChain("", successibilityFlare);
             String chainedNoLocation = null;
             RefSimulator<List<String>> logReturnUrn = new RefSimulator<>(null);
             if (chained) {
+                String chainedCommand = null;
 
                 // Replace args
                 args = new String[trueArgs.size()];
@@ -220,6 +241,9 @@ public class GungingOotilities implements CommandExecutor {
                     //CHN//OotilityCeption. Log("\u00a7eDetermined chained command: \u00a7f" + chainedCommand);
 
                 } else { chained = false; }
+
+                // Save chain
+                commandChain = new SuccessibleChain(chainedCommand, successibilityFlare);
             }
 
             String senderUUIDIG = senderIsPlayer ? ((Player) sender).getUniqueId().toString() : null;
@@ -316,7 +340,7 @@ public class GungingOotilities implements CommandExecutor {
                                     if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Stasis", "Successfully suspended \u00a73" + target.getName() + "\u00a77's flow of time."));
 
                                     // Run Chain
-                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                    commandChain.chain(chained, target, sender);
                                 }
 
                                 // Entity found
@@ -333,7 +357,7 @@ public class GungingOotilities implements CommandExecutor {
                                     if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Stasis", "Successfully suspended \u00a73" + slTarget.getName() + "\u00a77's flow of time."));
 
                                     // Run Chain
-                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(targetNonPlayer.getUniqueId(), chainedCommand, sender, null, null, null);}
+                                    commandChain.chain(chained, targetNonPlayer.getUniqueId(), sender);
                                 }
 
                                 // Entity not found
@@ -548,7 +572,7 @@ public class GungingOotilities implements CommandExecutor {
                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Consume Item", "Successfully removed \u00a73" + oAmount + "\u00a77 items from " + target.getName() + "'s inventory."));
 
                                         // Run Chain
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                        commandChain.chain(chained, target, sender);
 
                                     // If there weren't enough
                                     } else {
@@ -809,12 +833,6 @@ public class GungingOotilities implements CommandExecutor {
                                             kount += targetItem.getAmount();
                                             slotS = 0;
                                             if (chained) { OotilityCeption.Slot4Success(successSlots, new ISSInventory(0, null), OotilityCeption.comma); }
-
-                                            // Is this the whole damn thing? No? Then break it
-                                            if ((asSlot || !uiAmount) && !toCompletion) {
-                                                //TSI//OotilityCeption.Log("\u00a7b\u00a7oCompletion Reached, breaking. ");
-                                                break; }
-
                                         }
 
                                     // Item Stack is null or air, are we searching for that?
@@ -825,11 +843,6 @@ public class GungingOotilities implements CommandExecutor {
                                         kount++;
                                         slotS = 0;
                                         if (chained) { OotilityCeption.Slot4Success(successSlots, new ISSInventory(0, null), OotilityCeption.comma); }
-
-                                        // Is this the whole damn thing? No? Then break it
-                                        if ((asSlot || !uiAmount) && !toCompletion) {
-                                            //TSI//OotilityCeption.Log("\u00a7b\u00a7oCompletion Reached, breaking. ");
-                                            break; }
                                     }
 
 
@@ -899,8 +912,8 @@ public class GungingOotilities implements CommandExecutor {
 
                                             // Run Chain
                                             if (chained) {
-                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
-                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@v", String.valueOf(kount));
+                                                commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@t", successSlots.toString()));
+                                                commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@v", String.valueOf(kount)));
                                             }
                                         }
 
@@ -916,7 +929,7 @@ public class GungingOotilities implements CommandExecutor {
                                             if (itemAmountTest.InRange(0)) {
 
                                                 logrt += "However, the amount of stuff found (\u00a7b0\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. The command was forced to succeed thus.";
-                                                chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@v", String.valueOf(0));
+                                                commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@v", String.valueOf(0)));
                                                 success = true;
 
                                             } else {
@@ -944,13 +957,12 @@ public class GungingOotilities implements CommandExecutor {
                                         }
                                     }
 
-
                                     // Well
                                     if (success) {
 
                                         // Run Chain
                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", logrt));
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(asDroppedItem.getUniqueId(), chainedCommand, sender, null, null, null);}
+                                        commandChain.chain(chained, asDroppedItem.getUniqueId(), sender);
 
                                     } else {
 
@@ -1058,7 +1070,7 @@ public class GungingOotilities implements CommandExecutor {
                                         // If found
                                         if (kount > 0) {
 
-                                            logrt = "Item \u00a7e" + args[3] + " " + args[4] + " " + args[5] + "\u00a77successfully detected in \u00a73" + target.getName()  + "\u00a77's slots \u00a7b" + args[2] +  "\u00a77, counted a total of \u00a7e" + kount + "\u00a77. ";
+                                            logrt = "Item \u00a7e" + args[3] + " " + args[4] + " " + args[5] + "\u00a77 successfully detected in \u00a73" + target.getName()  + "\u00a77's slots \u00a7b" + args[2] +  "\u00a77, counted a total of \u00a7e" + kount + "\u00a77. ";
 
                                             // Does it proc?
                                             if (itemAmountTest != null) {
@@ -1118,8 +1130,8 @@ public class GungingOotilities implements CommandExecutor {
 
                                                 // Run Chain
                                                 if (chained) {
-                                                    chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@t", successSlots.toString());
-                                                    chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@v", String.valueOf(kount));
+                                                    commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@t", successSlots.toString()));
+                                                    commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@v", String.valueOf(kount)));
                                                 }
                                             }
 
@@ -1135,7 +1147,7 @@ public class GungingOotilities implements CommandExecutor {
                                                 if (itemAmountTest.InRange(0)) {
 
                                                     logrt += "However, the amount of stuff found (\u00a7b0\u00a77) \u00a7adoes\u00a77 fall in the range \u00a73" + itemAmountTest.toString() + "\u00a77. The command was forced to succeed thus.";
-                                                    chainedCommand = OotilityCeption.ReplaceFirst(chainedCommand, "@v", String.valueOf(0));
+                                                    commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@v", "0"));
                                                     success = true;
 
                                                 } else {
@@ -1169,7 +1181,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                             // Run Chain
                                             if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Test Inventory", logrt));
-                                            if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                            commandChain.chain(chained, target, sender);
 
                                         } else {
 
@@ -1372,7 +1384,7 @@ public class GungingOotilities implements CommandExecutor {
 
                     // FFS Check for MMOItems
                     if (Gunging_Ootilities_Plugin.foundMMOItems) {
-                        GooPMMOItems.onCommand_GooPMMOItems(sender, command, label, args, senderLocation, chained, chainedCommand, logReturnUrn, failMessage);
+                        GooPMMOItems.onCommand_GooPMMOItems(sender, command, label, args, senderLocation, chained, commandChain, logReturnUrn, failMessage);
 
                         // Extract
                         if (logReturnUrn.getValue() != null) {
@@ -1471,7 +1483,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                                     // Preparation of Methods
                                                     TargetedItems executor = new TargetedItems(false, true,
-                                                            chained, chainedCommand, sender, failMessage,
+                                                            chained, commandChain, sender, failMessage,
 
                                                             // What method to use to process the item
                                                             iSource -> OptiFineGlint.ApplyGlint(iSource.getValidOriginal(), tGlint, iSource.getLogAddition()),
@@ -1773,7 +1785,7 @@ public class GungingOotilities implements CommandExecutor {
 
                     // To extract log return
                     // Delegate onto NBT
-                    onCommand_GooPNBT(sender, command, label, args, senderLocation, chained, chainedCommand, logReturnUrn, failMessage);
+                    onCommand_GooPNBT(sender, command, label, args, senderLocation, chained, commandChain, logReturnUrn, failMessage);
 
                     // Extract
                     if (logReturnUrn.getValue() != null) {
@@ -1790,7 +1802,7 @@ public class GungingOotilities implements CommandExecutor {
                 //region unlocc
                 case unlockables:
                     // Delegate onto
-                    onCommand_GooPUnlock(sender, command, label, args, senderLocation, chained, chainedCommand, logReturnUrn, failMessage);
+                    onCommand_GooPUnlock(sender, command, label, args, senderLocation, chained, commandChain, logReturnUrn, failMessage);
 
                     // Extract
                     if (logReturnUrn.getValue() != null) {
@@ -3885,7 +3897,10 @@ public class GungingOotilities implements CommandExecutor {
                                                     // Compare and succeed
                                                     if ((qnr == null && !varIsSetFalse) || (val == null && varIsSetFalse) || (val != null && qnr.InRange(val))) {
                                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Global variable\u00a7e " + varName + "\u00a77 is \u00a7b" + val + "\u00a77, \u00a7aSucceeded\u00a77. "));
-                                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand((Player) null, chainedCommand, sender, null, null, null); }
+
+                                                        commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@v", String.valueOf(val)));
+
+                                                        commandChain.chain(chained, (Player) null, sender);
                                                     } else {
                                                         if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Global variable\u00a7e " + varName + "\u00a77 is \u00a7b" + val + "\u00a77, \u00a7cFail\u00a77. "));
                                                     }
@@ -3903,16 +3918,14 @@ public class GungingOotilities implements CommandExecutor {
                                                             // Log Output
                                                             if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Var", "Variable\u00a7e " + varName + "\u00a77 of\u00a73 " + kaster.getName() + "\u00a77 is \u00a7b" + val + "\u00a77, \u00a7aSucceeded\u00a77. "));
 
+                                                            // Proc Chain
+                                                            Player chainProc = null;
+                                                            if (kaster instanceof Player) { chainProc = (Player) kaster; }
+
+                                                            commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@v", String.valueOf(val)));
+
                                                             // Run Chain
-                                                            if (chained) {
-
-                                                                // Proc Chain
-                                                                Player chainProc = null;
-                                                                if (kaster instanceof Player) { chainProc = (Player) kaster; }
-
-                                                                // Chain
-                                                                OotilityCeption.SendAndParseConsoleCommand(chainProc, chainedCommand, sender, null, null, null);
-                                                            }
+                                                            commandChain.chain(chained, chainProc, sender);
 
                                                         } else {
 
@@ -4038,7 +4051,7 @@ public class GungingOotilities implements CommandExecutor {
                                                 if (varTry != null) {
 
                                                     // Variables, anyone?
-                                                    vars = CompactCodedValue.ListFromString(varTry.replace("-", " "));
+                                                    vars = CompactCodedValue.ListFromString(varTry.replace((Gunging_Ootilities_Plugin.gMyMoRuSkAsDoUnSp ? "__" : "-"), " "));
                                                 }
                                             }
 
@@ -4054,16 +4067,13 @@ public class GungingOotilities implements CommandExecutor {
                                                     // Log Output
                                                     if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Run Skill As", "Forced \u00a7f" + kaster.getName() + "\u00a77 to run Mythic Skill \u00a7e" + args[2]));
 
+
+                                                    // Proc Chain
+                                                    Player chainProc = null;
+                                                    if (kaster instanceof Player) { chainProc = (Player) kaster; }
+
                                                     // Run Chain
-                                                    if (chained) {
-
-                                                        // Proc Chain
-                                                        Player chainProc = null;
-                                                        if (kaster instanceof Player) { chainProc = (Player) kaster; }
-
-                                                        // Chain
-                                                        OotilityCeption.SendAndParseConsoleCommand(chainProc, chainedCommand, sender, null, null, null);
-                                                    }
+                                                    commandChain.chain(chained, chainProc, sender);
                                                 }
                                             }
 
@@ -4221,17 +4231,12 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Note
                                                 if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("MythicMobs - Minion", "Registered minion \u00a7e" + mMinion.getName() + "\u00a77 under the command of \u00a73" + mOwner.getName()));
 
+                                                // Proc Chain
+                                                Player chainProc = null;
+                                                if (mOwner instanceof Player) { chainProc = (Player) mOwner; }
 
                                                 // Run Chain
-                                                if (chained) {
-
-                                                    // Proc Chain
-                                                    Player chainProc = null;
-                                                    if (mOwner instanceof Player) { chainProc = (Player) mOwner; }
-
-                                                    // Chain
-                                                    OotilityCeption.SendAndParseConsoleCommand(chainProc, chainedCommand, sender, null, null, null);
-                                                }
+                                                commandChain.chain(chained, chainProc, sender);
                                             }
 
                                         } else if (args.length == 2) {
@@ -4481,13 +4486,11 @@ public class GungingOotilities implements CommandExecutor {
                                                         // Log Output
                                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("MythicMobs - Damage Taken Link", "Now trasnfering \u00a7e" + (transferPercent * 100D) + "%\u00a77 of damage dealt from \u00a73" + source.getEntity().getName() + "\u00a77 to \u00a73" + receiver.getName())); }
 
+                                                        Player target = null;
+                                                        if (source.getEntity() instanceof Player) { target = (Player) source.getEntity(); }
+
                                                         // Run Chain
-                                                        if (chained) {
-
-                                                            Player target = null;
-                                                            if (source.getEntity() instanceof Player) { target = (Player) source.getEntity(); }
-
-                                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                                        commandChain.chain(chained, target, sender);
                                                     }
                                                 }
                                             }
@@ -4813,7 +4816,7 @@ public class GungingOotilities implements CommandExecutor {
                                             }
 
                                             // Run Chain
-                                            if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                                            commandChain.chain(chained, (Player) null, sender);
                                         }
 
                                     // Incorrect number of args
@@ -5051,7 +5054,7 @@ public class GungingOotilities implements CommandExecutor {
                                             }
 
                                             // Run Chain
-                                            if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                                            commandChain.chain(chained, (Player) null, sender);
                                         }
 
                                         // Incorrect number of args
@@ -5123,7 +5126,7 @@ public class GungingOotilities implements CommandExecutor {
                                                             logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range","Player '\u00a73" + target.getName() + "\u00a77's score for " + sourceObjective.getName() + " was \u00a7b'" + score + "\u00a77' which is \u00a7ain desired range " + args[4] + "\u00a77.")); }
 
                                                         // Run Chain
-                                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);}
+                                                        commandChain.chain(chained, target, sender);
 
                                                     } else {
 
@@ -5149,7 +5152,7 @@ public class GungingOotilities implements CommandExecutor {
                                                         logReturn.add(OotilityCeption.LogFormat("Scoreboard - Range","Entry '\u00a73" + args[2] + "\u00a77' of objective " + sourceObjective.getName() + " had a score of \u00a7b'" + score + "\u00a77' which is \u00a7ain desired range " + args[4] + "\u00a77.")); }
 
                                                     // Run Chain
-                                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(chainedCommand, sender, null, null, null);}
+                                                    commandChain.chain(chained, (Player) null, sender);
 
                                                 } else {
 
@@ -5239,13 +5242,11 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Log Output
                                                 if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Scoreboard - Damage Taken Link", "Now tracking damage dealt to \u00a7f" + targ.getName() + "\u00a77 into objective \u00a7e" + args[3]));
 
+                                                Player target = null;
+                                                if (targ instanceof Player) { target = (Player) targ; }
+
                                                 // Run Chain
-                                                if (chained) {
-
-                                                    Player target = null;
-                                                    if (targ instanceof Player) { target = (Player) targ; }
-
-                                                    OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                                commandChain.chain(chained, target, sender);
                                             }
                                         }
                                     } else if (args.length == 2) {
@@ -5313,7 +5314,7 @@ public class GungingOotilities implements CommandExecutor {
 
                     // To extract log return
                     // Delegate onto
-                    GOOPCCommands.onCommand_GooPContainers(sender, command, label, args, senderLocation, chained, chainedCommand, chainedNoLocation, logReturnUrn, failMessage);
+                    GOOPCCommands.onCommand_GooPContainers(sender, command, label, args, senderLocation, chained, commandChain, chainedNoLocation, logReturnUrn, failMessage);
 
                     // Extract
                     if (logReturnUrn.getValue() != null) {
@@ -5593,9 +5594,7 @@ public class GungingOotilities implements CommandExecutor {
                                             logReturn.add(OotilityCeption.LogFormat("Grief", "Forced player \u00a73" + target.getName() + "\u00a77 to mine/dry \u00a7e" + bkks.size() + "\u00a77 blocks."));
 
                                         // Run Chain
-                                        if (chained) {
-                                            OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null);
-                                        }
+                                        commandChain.chain(chained, target, sender);
 
                                     } else {
 
@@ -5685,9 +5684,10 @@ public class GungingOotilities implements CommandExecutor {
                             }
 
                             // Some scoreboards to test
-                            Objective targetObjective = OotilityCeption.GetObjective(args[2]);
+                            String objectiveName = args[2];
+                            Objective targetObjective = OotilityCeption.GetObjective(objectiveName);
                             // Does the scoreboard objective exist?
-                            if (targetObjective == null) {
+                            if (targetObjective == null && !objectiveName.equals("read")) {
                                 // Failure
                                 failure = true;
 
@@ -5886,14 +5886,15 @@ public class GungingOotilities implements CommandExecutor {
                                     // Success?
                                     if (resultant) {
 
-                                        // Get result
                                         int scoreSet = -32767;
+
+                                        // Get result
                                         if (asNumber != null) {
 
                                             // They specified a specific number, lest go
-                                            scoreSet = OotilityCeption.RoundToInt(asNumber.apply(OotilityCeption.GetEntryScore(targetObjective, asNonplayer.getUniqueId().toString()) + 0.0D));
+                                            scoreSet = OotilityCeption.RoundToInt(asNumber.apply((targetObjective == null ? 0.0D : OotilityCeption.GetEntryScore(targetObjective, asNonplayer.getUniqueId().toString()) + 0.0D)));
 
-                                            // Perform operation
+                                        // Perform operation
                                         } else if (isNumeric) {
 
                                             // Perform operations
@@ -5932,14 +5933,28 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         // Set score lma0
-                                        OotilityCeption.SetEntryScore(targetObjective, asNonplayer.getUniqueId().toString(), scoreSet);
+                                        if (targetObjective != null) {
 
-                                        // Notify the success
-                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
-                                            logReturn.add(OotilityCeption.LogFormat("Compare", "Comparison returned true! Setting score \u00a73" + args[2] + "\u00a77 of \u00a73" + asNonplayer.getName() + "\u00a77 to \u00a7e" + scoreSet + "\u00a77."));
+                                            // Perform scoreboard operation
+                                            OotilityCeption.SetEntryScore(targetObjective, asNonplayer.getUniqueId().toString(), scoreSet);
+
+                                            // Notify the success
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
+                                                logReturn.add(OotilityCeption.LogFormat("Compare", "Comparison returned true! Setting score \u00a73" + args[2] + "\u00a77 of \u00a73" + asNonplayer.getName() + "\u00a77 to \u00a7e" + scoreSet + "\u00a77."));
+
+                                        } else {
+
+                                            // Notify the success
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
+                                                logReturn.add(OotilityCeption.LogFormat("Compare", "Comparison returned true! Result is \u00a7e" + scoreSet + "\u00a77."));
+
+                                        }
+
+                                        // Update @v
+                                        commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@v", String.valueOf(scoreSet)));
 
                                         // Run Chain
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(asNonplayer.getUniqueId(), chainedCommand, sender, null, null, null); }
+                                        commandChain.chain(chained, asNonplayer.getUniqueId(), sender);
 
                                     } else {
 
@@ -6008,7 +6023,7 @@ public class GungingOotilities implements CommandExecutor {
                                         if (asNumber != null) {
 
                                             // They specified a specific number, lest go
-                                            scoreSet = OotilityCeption.RoundToInt(asNumber.apply(OotilityCeption.GetPlayerScore(targetObjective, target) + 0.0D));
+                                            scoreSet = OotilityCeption.RoundToInt(asNumber.apply((targetObjective == null ? 0.0D : OotilityCeption.GetPlayerScore(targetObjective, target) + 0.0D)));
 
                                             // Perform operation
                                         } else if (isNumeric) {
@@ -6048,15 +6063,28 @@ public class GungingOotilities implements CommandExecutor {
                                             }
                                         }
 
-                                        // Set score lma0
-                                        OotilityCeption.SetPlayerScore(targetObjective, target, scoreSet);
+                                        if (targetObjective != null) {
 
-                                        // Notify the success
-                                        if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
-                                            logReturn.add(OotilityCeption.LogFormat("Compare", "Comparison returned true! Setting score \u00a73" + args[2] + "\u00a77 of player \u00a73" + target.getName() + "\u00a77 to \u00a7e" + scoreSet + "\u00a77."));
+                                            // Set score lma0
+                                            OotilityCeption.SetPlayerScore(targetObjective, target, scoreSet);
+
+                                            // Notify the success
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
+                                                logReturn.add(OotilityCeption.LogFormat("Compare", "Comparison returned true! Setting score \u00a73" + args[2] + "\u00a77 of player \u00a73" + target.getName() + "\u00a77 to \u00a7e" + scoreSet + "\u00a77."));
+
+                                        } else {
+
+                                            // Notify the success
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback)
+                                                logReturn.add(OotilityCeption.LogFormat("Compare", "Comparison returned true for player \u00a73" + target.getName() + "\u00a77! Result is \u00a7e" + scoreSet + "\u00a77."));
+
+                                        }
+
+                                        // Update @v
+                                        commandChain.setChainedCommand(OotilityCeption.ReplaceFirst(commandChain.getChainedCommand(), "@v", String.valueOf(scoreSet)));
 
                                         // Run Chain
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                        commandChain.chain(chained, target, sender);
 
                                     } else {
 
@@ -6075,6 +6103,7 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73Usage: \u00a7e/goop compare <player> <objective> <score> {Something} GC_<operator> {Anything}");
                             logReturn.add("\u00a73 - \u00a7e<player> \u00a77Player to parse placeholders, and change score.");
                             logReturn.add("\u00a73 - \u00a7e<objective> \u00a77Scoreboard objective to store results IF the values match.");
+                            logReturn.add("\u00a73 --> \u00a7bread \u00a77Ignore scoreboard, just perform the comparison operation");
                             logReturn.add("\u00a73 - \u00a7e<score> \u00a77Score value that will be given \u00a7nif this succeeds.");
                             logReturn.add("\u00a73 -> If both {Something} and {Anything} are numeric, you can use these keywords:");
                             logReturn.add("\u00a73 --> \u00a7bsum \u00a77The result of \u00a7e{Something}\u00a73+\u00a7e{Anything}");
@@ -6176,7 +6205,7 @@ public class GungingOotilities implements CommandExecutor {
                                     if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Tell", "Told \u00a73" + target.getName() + "\u00a77: \u00a7f" + mInstance)); }
 
                                     // Run Chain
-                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                    commandChain.chain(chained, target, sender);
                                 }
                             }
 
@@ -6333,7 +6362,7 @@ public class GungingOotilities implements CommandExecutor {
                                     if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat("Tp", "Teleported \u00a73" + target.getName() + "\u00a77 to \u00a7e" + OotilityCeption.BlockLocation2String(targetLocation))); }
 
                                     // Run Chain
-                                    if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                    commandChain.chain(chained, target, sender);
                                 }
                             }
 
@@ -6625,7 +6654,7 @@ public class GungingOotilities implements CommandExecutor {
                                                         GooPVault.Withdraw(target, charge);
 
                                                         // Run Chain
-                                                        if (chained && target.isOnline()) { OotilityCeption.SendAndParseConsoleCommand(target.getPlayer(), chainedCommand, sender, null, null, null); }
+                                                        commandChain.chain(chained, target.getPlayer(), sender);
 
                                                         // Say that
                                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Vault - Charge", "Charged \u00a7e" + charge + " to player \u00a73" + target.getName() + "\u00a77, they now have \u00a7e" + GooPVault.GetPlayerBalance(target)));
@@ -6762,7 +6791,7 @@ public class GungingOotilities implements CommandExecutor {
                                                         }
 
                                                         // Run Chain
-                                                        if (chained && target.isOnline()) { OotilityCeption.SendAndParseConsoleCommand(target.getPlayer(), chainedCommand, sender, null, null, null); }
+                                                        commandChain.chain(chained, target.getPlayer(), sender);
 
                                                         // Say that
                                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a77 has \u00a7e" + balance + "\u00a77. \u00a7aSuccessfuly\u00a77 in range \u00a73" + args[3]));
@@ -6848,7 +6877,7 @@ public class GungingOotilities implements CommandExecutor {
 
 
                                                     // Run Chain
-                                                    if (chained && target.isOnline()) { OotilityCeption.SendAndParseConsoleCommand(target.getPlayer(), chainedCommand, sender, null, null, null); }
+                                                    commandChain.chain(chained, target.getPlayer(), sender);
                                                 }
                                             }
 
@@ -7152,7 +7181,7 @@ public class GungingOotilities implements CommandExecutor {
                                         }
 
                                         // Run Chain
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(asEntity.getUniqueId(), chainedCommand, sender, null, null, null); }
+                                        commandChain.chain(chained, asEntity.getUniqueId(), sender);
                                     }
                                 }
 
@@ -7175,7 +7204,7 @@ public class GungingOotilities implements CommandExecutor {
                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) { logReturn.add(OotilityCeption.LogFormat(subcategory, "Player \u00a73" + target.getName() + "\u00a7a had\u00a77 the specified permissions.")); }
 
                                         // Run Chain
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand(target, chainedCommand, sender, null, null, null); }
+                                        commandChain.chain(chained, target, sender);
 
                                     // Fail = No Perms
                                     } else {
@@ -7245,7 +7274,7 @@ public class GungingOotilities implements CommandExecutor {
         //return super.onCommand(sender, command, label, args);
     }
 
-    public void onCommand_GooPUnlock(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
+    public void onCommand_GooPUnlock(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable SuccessibleChain commandChain, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
         // Has permission?
         boolean permission = true;
 
@@ -7306,6 +7335,7 @@ public class GungingOotilities implements CommandExecutor {
                             logReturn.add("\u00a73      * \u00a7bserver \u00a77Global unlockable for the entire server");
                             logReturn.add("\u00a73 - \u00a7e<goal> \u00a77Name of the goal.");
                             logReturn.add("\u00a73 - \u00a7e[x] \u00a77Value of the goal, \u00a7btrue\u00a77 by default.");
+                            logReturn.add("\u00a73      * \u00a7btoggle\u00a77 Always succeeds, will lock the unlockable if it was unlocked. ");
                             logReturn.add("\u00a73      * \u00a77Can be any number except 0, instead.");
                             logReturn.add("\u00a73 - \u00a7e[reset timer] \u00a77If this new timer will take prevalence.");
                             logReturn.add("\u00a73      * \u00a7bfalse \u00a77The old timer will remain, but if this");
@@ -7326,31 +7356,37 @@ public class GungingOotilities implements CommandExecutor {
 
                             // Get
                             PlusMinusPercent ex = null;
+                            boolean astoggle = false;
                             if (args.length >= 5) {
+                                String exArg = args[4];
+                                astoggle = "toggle".equals(exArg);
 
-                                // Correct
-                                switch (args[4].toLowerCase()) {
-                                    case "true":
-                                        args[4] = "1";
-                                        break;
-                                    case "false":
-                                        args[4] = "0";
-                                        break;
-                                }
+                                if (!astoggle) {
 
-                                // Ref Sim
-                                RefSimulator<String> logAddition = new RefSimulator<>("");
+                                    // Correct
+                                    switch (exArg.toLowerCase()) {
+                                        case "true":
+                                            exArg = "1";
+                                            break;
+                                        case "false":
+                                            exArg = "0";
+                                            break;
+                                    }
 
-                                // Try parse
-                                ex = PlusMinusPercent.GetPMP(args[4], logAddition);
+                                    // Ref Sim
+                                    RefSimulator<String> logAddition = new RefSimulator<>("");
 
-                                // Log
-                                if (logAddition != null && logAddition.getValue() != null && logAddition.getValue().length() > 1) { logReturn.add(OotilityCeption.LogFormat(subcategory, logAddition.getValue())); }
+                                    // Try parse
+                                    ex = PlusMinusPercent.GetPMP(exArg, logAddition);
 
-                                if (ex == null) {
+                                    // Log
+                                    if (logAddition != null && logAddition.getValue() != null && logAddition.getValue().length() > 1) { logReturn.add(OotilityCeption.LogFormat(subcategory, logAddition.getValue())); }
 
-                                    // Failure
-                                    failure = true;
+                                    if (ex == null) {
+
+                                        // Failure
+                                        failure = true;
+                                    }
                                 }
                             }
 
@@ -7496,38 +7532,47 @@ public class GungingOotilities implements CommandExecutor {
                                         }
                                     }
 
-                                    // If its not yet unlocked
-                                    if ((!uck.IsUnlocked() || (ex != null)) && !failure) {
+                                    // If toggling, the success conditions are changed
+                                    if (astoggle) {
 
-                                        // Raw Unlock
-                                        if (ex == null) {
+                                        // If its not yet unlocked
+                                        if (uck.IsUnlocked()) {
+
+                                            // Unlock
+                                            uck.Lock();
+
+                                            // Ntify
+                                            if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 has \u00a72successfuly\u00a77 locked goal \u00a7e" + args[3] + "\u00a77." + logMod));
+
+                                        } else {
 
                                             // Unlock
                                             uck.Unlock();
 
                                             // Ntify
                                             if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77." + logMod));
+                                        }
 
-                                            // Run Chain
-                                            chainingSuccess = true;
+                                        // Run Chain
+                                        chainingSuccess = true;
 
-                                            // Save
-                                            uck.Save();
+                                        // Save
+                                        uck.Save();
 
-                                        // Unlock opps
-                                        } else {
+                                    // If not toggling, work normally
+                                    } else {
 
-                                            // Get
-                                            double u = uck.GetUnlock();
+                                        // If its not yet unlocked
+                                        if (!failure && (!uck.IsUnlocked() || ex != null)) {
 
-                                            // Oppe
-                                            uck.SetUnlock(ex.apply(u));
+                                            // Raw Unlock
+                                            if (ex == null) {
 
-                                            // Must be diff
-                                            if (u != uck.GetUnlock()) {
+                                                // Unlock
+                                                uck.Unlock();
 
                                                 // Ntify
-                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77 at \u00a7b" + uck.GetUnlock() + "\u00a77." + logMod));
+                                                if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77." + logMod));
 
                                                 // Run Chain
                                                 chainingSuccess = true;
@@ -7535,21 +7580,43 @@ public class GungingOotilities implements CommandExecutor {
                                                 // Save
                                                 uck.Save();
 
+                                                // Unlock opps
                                             } else {
 
-                                                // L
-                                                if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 already had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
+                                                // Get
+                                                double u = uck.GetUnlock();
+
+                                                // Oppe
+                                                uck.SetUnlock(ex.apply(u));
+
+                                                // Must be diff
+                                                if (u != uck.GetUnlock()) {
+
+                                                    // Ntify
+                                                    if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 has \u00a7asuccessfuly\u00a77 unlocked goal \u00a7e" + args[3] + "\u00a77 at \u00a7b" + uck.GetUnlock() + "\u00a77." + logMod));
+
+                                                    // Run Chain
+                                                    chainingSuccess = true;
+
+                                                    // Save
+                                                    uck.Save();
+
+                                                } else {
+
+                                                    // L
+                                                    if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 already had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
+                                                }
                                             }
+
+                                        } else {
+
+                                            // L
+                                            if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 alraedy had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
                                         }
-
-                                    } else {
-
-                                        // L
-                                        if (Gunging_Ootilities_Plugin.sendGooPFailFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 alraedy had goal \u00a7e" + args[3] + "\u00a77 unlocked." + logMod));
                                     }
 
                                     // Run Chain
-                                    if (chained && chainingSuccess) { OotilityCeption.SendAndParseConsoleCommand((target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, chainedCommand, sender, null, null, null); }
+                                    if (chainingSuccess) { commandChain.chain(chained, (target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, sender); }
 
                                     else if (!chainingSuccess) {
 
@@ -7631,9 +7698,7 @@ public class GungingOotilities implements CommandExecutor {
                                         if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat(subcategory, target.getName() + "\u00a77 now has goal \u00a7e" + args[3] + "\u00a77 as \u00a7clocked\u00a77."));
 
                                         // Run Chain
-                                        if (chained) {
-                                            OotilityCeption.SendAndParseConsoleCommand((target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, chainedCommand, sender, null, null, null);
-                                        }
+                                        commandChain.chain(chained, (target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, sender);
 
                                         // Save
                                         uck.Save();
@@ -7807,7 +7872,7 @@ public class GungingOotilities implements CommandExecutor {
                                     if (rangeSuccess) {
 
                                         // Run Chain
-                                        if (chained) { OotilityCeption.SendAndParseConsoleCommand((target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, chainedCommand, sender, null, null, null); }
+                                        commandChain.chain(chained, (target instanceof GOOPUCKTPlayer) ? ((GOOPUCKTPlayer) target).getPlayer() : null, sender);
 
                                         // Score check
                                         if (targetObjective != null && target instanceof GOOPUCKTPlayer) {
@@ -7988,7 +8053,7 @@ public class GungingOotilities implements CommandExecutor {
         //Set Log Return Urn Value
         logReturnUrn.SetValue(logReturn);
     }
-    public void onCommand_GooPNBT(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable String chainedCommand, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
+    public void onCommand_GooPNBT(@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args, @Nullable Location senderLocation, boolean chained, @Nullable SuccessibleChain commandChain, @NotNull RefSimulator<List<String>> logReturnUrn, @Nullable String failMessage) {
         // Has permission?
         boolean permission = true;
 
@@ -8095,7 +8160,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(false, true,
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.RenameItem(iSource.getValidOriginal(), finalALoreLine, iSource.getLogAddition()),
@@ -8492,7 +8557,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 if (fVanilla) {
                                     executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> OotilityCeption.AppendLoreLineVanilla(iSource.getValidOriginal(), finalALoreLine, iSource.getEntity(), finalIIndex, iSource.getLogAddition()),
@@ -8506,7 +8571,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 } else {
                                     executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> OotilityCeption.AppendLoreLine(iSource.getValidOriginal(), finalALoreLine, iSource.getEntity(), finalIIndex, iSource.getLogAddition()),
@@ -8648,7 +8713,7 @@ public class GungingOotilities implements CommandExecutor {
                                 TargetedItems executor;
                                 if (fVanilla) {
                                     executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> OotilityCeption.RemoveLoreLineVanilla(iSource.getValidOriginal(), finalIIndex, finalRevAll, iSource.getLogAddition()),
@@ -8662,7 +8727,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 } else {
                                     executor = new TargetedItems(false, true,
-                                            chained, chainedCommand, sender, failMessage,
+                                            chained, commandChain, sender, failMessage,
 
                                             // What method to use to process the item
                                             iSource -> OotilityCeption.RemoveLoreLine(iSource.getValidOriginal(), finalIIndex, finalRevAll, iSource.getLogAddition()),
@@ -8817,7 +8882,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.SetAttribute(iSource.getValidOriginal(), pValue, finalAttribute, iSource.getRef_dob_a(), iSource.getLogAddition()),
@@ -8966,7 +9031,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.SetCMD(iSource.getValidOriginal(), pValue, iSource.getRef_dob_a(), iSource.getLogAddition()),
@@ -9195,7 +9260,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.SetDurability(iSource.getValidOriginal(), iSource.getPlayer(), pValue, iSource.getRef_dob_a(), finalPreventBreaking, finalUseMax, iSource.getLogAddition()),
@@ -9347,7 +9412,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.EnchantmentOperation(iSource.getValidOriginal(), enchs, pValue, iSource.getRef_int_a(), iSource.getLogAddition()),
@@ -9465,7 +9530,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(false, true,
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.SetMaterial(iSource.getValidOriginal(), finalMat, iSource.getLogAddition()),
@@ -9578,7 +9643,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(false, !pValue.isNeutral(),
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.SetAmount(iSource.getValidOriginal(), pValue, iSource.getRef_dob_a(), iSource.getLogAddition()),
@@ -9724,7 +9789,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(true, true,
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.SetItem(iSource.getOriginal(), finalTSource, pValue, iSource.getRef_int_a(), iSource.getLogAddition()),
@@ -9829,7 +9894,7 @@ public class GungingOotilities implements CommandExecutor {
 
                                 // Preparation of Methods
                                 TargetedItems executor = new TargetedItems(true, true,
-                                        chained, chainedCommand, sender, failMessage,
+                                        chained, commandChain, sender, failMessage,
 
                                         // What method to use to process the item
                                         iSource -> OotilityCeption.CopyItem(iSource.getOriginal(), args[4], iSource.getPlayer(), finalFromDropped, pValue, iSource.getRef_int_a(), iSource.getLogAddition()),

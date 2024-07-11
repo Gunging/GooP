@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
@@ -43,6 +44,9 @@ public class GooP_MinecraftVersions {
                 mcVersion = 16.0;
                 if (vers.contains("1.16.1")) { mcVersion = 16.1; }
                 if (vers.contains("1.16.2")) { mcVersion = 16.2; }
+                if (vers.contains("1.16.3")) { mcVersion = 16.3; }
+                if (vers.contains("1.16.4")) { mcVersion = 16.4; }
+                if (vers.contains("1.16.5")) { mcVersion = 16.5; }
             } else if (vers.contains("1.17")) {
                 mcVersion = 17.0;
                 if (vers.contains("1.17.1")) { mcVersion = 17.1; }
@@ -64,6 +68,17 @@ public class GooP_MinecraftVersions {
                 if (vers.contains("1.20.1")) { mcVersion = 20.1; }
                 if (vers.contains("1.20.2")) { mcVersion = 20.2; }
                 if (vers.contains("1.20.3")) { mcVersion = 20.3; }
+                if (vers.contains("1.20.4")) { mcVersion = 20.4; }
+                if (vers.contains("1.20.5")) { mcVersion = 20.5; }
+                if (vers.contains("1.20.6")) { mcVersion = 20.6; }
+            } else if (vers.contains("1.21")) {
+                mcVersion = 21.0;
+                if (vers.contains("1.21.1")) { mcVersion = 21.1; }
+                if (vers.contains("1.21.2")) { mcVersion = 21.2; }
+                if (vers.contains("1.21.3")) { mcVersion = 21.3; }
+                if (vers.contains("1.21.4")) { mcVersion = 21.4; }
+                if (vers.contains("1.21.5")) { mcVersion = 21.5; }
+                if (vers.contains("1.21.6")) { mcVersion = 21.6; }
             }
 
             return mcVersion;
@@ -678,7 +693,7 @@ public class GooP_MinecraftVersions {
      *
      * @return Either the Material, or VOID_AIR if it doesnt exist.
      */
-    public static Material GetMaterialFromString(String str) {
+    @NotNull public static Material GetMaterialFromString(String str) {
 
         // Is it a supported plugin command?
         try {
