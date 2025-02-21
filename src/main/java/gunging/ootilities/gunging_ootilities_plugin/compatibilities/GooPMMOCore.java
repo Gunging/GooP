@@ -27,9 +27,9 @@ public class GooPMMOCore {
 
     public static Double CummulativeDoubleStat(Player target, String statname) {
 
-        // Get Statt
+        // Get Stat
         switch (statname.toLowerCase()) {
-            case "attackdamage\uF801":
+            case "attackdamage":
             case "adamage":
             case "admg":
             case "attack":

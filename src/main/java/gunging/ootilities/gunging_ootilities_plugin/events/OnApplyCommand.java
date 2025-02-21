@@ -59,6 +59,8 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class OnApplyCommand implements Listener {
@@ -412,8 +414,33 @@ public class OnApplyCommand implements Listener {
                             hist.registerExternalData(ench);
                         }
 
+                        // Delicious succulent palatable excusite JAVA REFLECTION buffet
+                        if (usingIsEmpty == null) {
+                            try {
+                                isClearMethodMergeable = Mergeable.class.getMethod("isClear");
+                                usingIsEmpty = true;
+                            } catch (NoSuchMethodException ignored) {
+                                usingIsEmpty = false;
+                            }
+                        }
+
                         // The law requires me to merge this, too
-                        if (!((Mergeable) originalHist.getOriginalData()).isClear()) { hist.registerExternalData(originalHist.getOriginalData()); }
+                        boolean wasEmpty = false;
+                        if (usingIsEmpty) {
+                            wasEmpty = hist.getOriginalData().isEmpty();
+                        } else {
+
+                            try {
+                                Mergeable anyway = (Mergeable) originalHist.getOriginalData();
+                                wasEmpty = (boolean) isClearMethodMergeable.invoke(anyway);
+                            } catch (InvocationTargetException|IllegalAccessException ignored) {
+                                usingIsEmpty = true;
+                                wasEmpty = originalHist.getOriginalData().isEmpty();
+                            }
+                        }
+
+                        // Woah
+                        if (!wasEmpty) { hist.registerExternalData(originalHist.getOriginalData()); }
 
                         // Recalculate with upgrade level
                         browse.setData(ItemStats.ENCHANTS, hist.recalculate(browse.getUpgradeLevel()));
@@ -489,6 +516,10 @@ public class OnApplyCommand implements Listener {
         // Build that shit
         return mmo.newBuilder().build();
     }
+
+    static Boolean usingIsEmpty = null;
+    static Method isClearMethodMergeable = null;
+
     @NotNull ItemStack FullConvert(@NotNull ItemStack stacc, @Nullable ConverterTypeSettings set, @Nullable Player player, @NotNull ConvertingReason asPickup) {
         return FullConvert(stacc, set, player, asPickup, null);
     }

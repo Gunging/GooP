@@ -3,6 +3,8 @@ package gunging.ootilities.gunging_ootilities_plugin.customstructures;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPWorldEdit;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionEntities;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.CSMatchResult;
 import gunging.ootilities.gunging_ootilities_plugin.events.JSONFurniturePlaceEvent;
 import gunging.ootilities.gunging_ootilities_plugin.events.JSONPlacerUtils;
@@ -1083,7 +1085,7 @@ public class CSManager implements Listener {
                 trig = CSTrigger.PRESSUREPLATE_MONSTERS;
 
                 // Dropped Item perhaps?
-            } else if (event.getEntity().getType() == EntityType.DROPPED_ITEM) {
+            } else if (event.getEntity().getType() == GooP_MinecraftVersions.GetVersionEntityType(GooPVersionEntities.DROPPED_ITEM)) {
 
                 //DEBUG//OotilityCeption. Log("Identified as ITEM");
 

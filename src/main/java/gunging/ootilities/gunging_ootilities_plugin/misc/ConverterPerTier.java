@@ -158,11 +158,11 @@ public class ConverterPerTier {
         if (firstTakeover) {
 
             // If it exceeds the max stack, we can set a fraction of it
-            if (totalEmeraldCount > finalCurrency.getType().getMaxStackSize()) {
+            if (totalEmeraldCount > finalCurrency.getMaxStackSize()) {
 
                 // Set max and subtract
-                first.setValue(OotilityCeption.asQuantity(finalCurrency, finalCurrency.getType().getMaxStackSize()));
-                totalEmeraldCount -= finalCurrency.getType().getMaxStackSize();
+                first.setValue(OotilityCeption.asQuantity(finalCurrency, finalCurrency.getMaxStackSize()));
+                totalEmeraldCount -= finalCurrency.getMaxStackSize();
 
             // Max stack fits, we can just set them all
             } else {
@@ -175,10 +175,10 @@ public class ConverterPerTier {
         if (secondTakeover) {
 
             // If it exceeds the max stack, we can set a fraction of it
-            if (totalEmeraldCount > finalCurrency.getType().getMaxStackSize()) {
+            if (totalEmeraldCount > finalCurrency.getMaxStackSize()) {
 
                 // Set max and subtract
-                second.setValue(OotilityCeption.asQuantity(finalCurrency, finalCurrency.getType().getMaxStackSize()));
+                second.setValue(OotilityCeption.asQuantity(finalCurrency, finalCurrency.getMaxStackSize()));
 
             // Max stack fits, we can just set them all
             } else {

@@ -8,10 +8,7 @@ import com.mojang.authlib.properties.PropertyMap;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPPlaceholderAPI;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionEnchantments;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionEntities;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCDeployed;
 import gunging.ootilities.gunging_ootilities_plugin.containers.GOOPCManager;
 import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.*;
@@ -56,6 +53,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.bukkit.attribute.Attribute;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -1311,10 +1309,12 @@ public class OotilityCeption {
 
                     // Wouldn't want to override shit
                     if (eLevel > 0) {
+                        Material o;
+                        EntityType e;
 
                         // Check for the Ultimate Enchantments - Those that don't work over lvl 1
-                        if (!success && GetEnchLevel(iSource, Enchantment.WATER_WORKER) == 1) { iProduct.addUnsafeEnchantment(Enchantment.WATER_WORKER, eLevel); success = true; }
-                        if (!success && GetEnchLevel(iSource, Enchantment.ARROW_INFINITE) == 1) { iProduct.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, eLevel);  success = true; }
+                        if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.WATER_WORKER)) == 1) { iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.WATER_WORKER), eLevel); success = true; }
+                        if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_INFINITE)) == 1) { iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_INFINITE), eLevel);  success = true; }
                         if (!success && GetEnchLevel(iSource, Enchantment.SILK_TOUCH) == 1) { iProduct.addUnsafeEnchantment(Enchantment.SILK_TOUCH, eLevel);  success = true; }
                         if (!success && GetEnchLevel(iSource, Enchantment.VANISHING_CURSE) == 1) { iProduct.addUnsafeEnchantment(Enchantment.VANISHING_CURSE, eLevel);  success = true; }
                         if (!success && GetEnchLevel(iSource, Enchantment.CHANNELING) == 1) { iProduct.addUnsafeEnchantment(Enchantment.CHANNELING, eLevel);  success = true; }
@@ -1337,86 +1337,86 @@ public class OotilityCeption {
                                 isRod = IsFishingRod(iSource.getType());
 
                         //region Lolz Priority: P2W Scuba Diving Helmet from blocks
-                        if (!success && GetEnchLevel(iSource, Enchantment.WATER_WORKER) == 0 && (!isArmor && !isBow && !isWeapon && !isTool && !isRod)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.WATER_WORKER, eLevel); }
-                        if (!success && GetEnchLevel(iSource, Enchantment.OXYGEN) == 0 && (!isArmor && !isBow && !isWeapon && !isTool && !isRod)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.OXYGEN, eLevel); }
+                        if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.WATER_WORKER)) == 0 && (!isArmor && !isBow && !isWeapon && !isTool && !isRod)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.WATER_WORKER), eLevel); }
+                        if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.OXYGEN)) == 0 && (!isArmor && !isBow && !isWeapon && !isTool && !isRod)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.OXYGEN), eLevel); }
                         //endregion
 
                         //region High Priority: Per-item comp. useless enchantments
                         if (!success) {
-                            if (!success && GetEnchLevel(iSource, Enchantment.LUCK) == 0 && (!isRod)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.LUCK, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LUCK)) == 0 && (!isRod)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LUCK), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.LURE) == 0 && (!isRod)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.LURE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.OXYGEN) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.OXYGEN, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.OXYGEN)) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.OXYGEN), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.LOYALTY) == 0 && (!isTrident)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.LOYALTY, eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.RIPTIDE) == 0 && (!isTrident)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.RIPTIDE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.DIG_SPEED) == 0 && (!isTool)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DIG_SPEED, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DIG_SPEED)) == 0 && (!isTool)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DIG_SPEED), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.IMPALING) == 0 && (!isWeapon)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.IMPALING, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.ARROW_FIRE) == 0 && (!isBow)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.ARROW_FIRE, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_FIRE)) == 0 && (!isBow)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_FIRE), eLevel); }
                             if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PIERCING)) == 0 && (!isCrossbow)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PIERCING), eLevel); } }
                             if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.MULTISHOT)) == 0 && (!isCrossbow)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.MULTISHOT), eLevel); } }
                             if (!success && GetEnchLevel(iSource, Enchantment.CHANNELING) == 0 && (!isTrident)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.CHANNELING, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.ARROW_DAMAGE) == 0 && (!isBow)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_DAMAGE)) == 0 && (!isBow)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_DAMAGE), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.FROST_WALKER) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.FROST_WALKER, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.WATER_WORKER) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.WATER_WORKER, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.WATER_WORKER)) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.WATER_WORKER), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.DEPTH_STRIDER) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DEPTH_STRIDER, eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.SWEEPING_EDGE) == 0 && (!isSword)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.SWEEPING_EDGE, eLevel); }
                             if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.QUICK_CHARGE)) == 0 && (!isCrossbow)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.QUICK_CHARGE), eLevel); } }
-                            if (!success && GetEnchLevel(iSource, Enchantment.ARROW_KNOCKBACK) == 0 && (!isBow)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.ARROW_KNOCKBACK, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_FIRE) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_FIRE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_FALL) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_FALL, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.LOOT_BONUS_BLOCKS) == 0 && (!isTool)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.LOOT_BONUS_BLOCKS, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.ARROW_INFINITE) == 0 && (!isBow || isCrossbow)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_EXPLOSIONS) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_EXPLOSIONS, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_PROJECTILE) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_PROJECTILE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_ENVIRONMENTAL) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_KNOCKBACK)) == 0 && (!isBow)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_KNOCKBACK), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_FIRE)) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_FIRE), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_FALL)) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_FALL), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LOOT_BONUS_BLOCKS)) == 0 && (!isTool)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LOOT_BONUS_BLOCKS), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_INFINITE)) == 0 && (!isBow || isCrossbow)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_INFINITE), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_EXPLOSIONS)) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_EXPLOSIONS), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_PROJECTILE)) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_PROJECTILE), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_ENVIRONMENTAL)) == 0 && (!isArmor)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_ENVIRONMENTAL), eLevel); }
                         }
                         //endregion
 
                         //region Medium Priority: Marginaly Useful Enchantments
                         if (!success) {
-                            if (!success && GetEnchLevel(iSource, Enchantment.DAMAGE_ALL) == 0 && (!isWeapon)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_ALL)) == 0 && (!isWeapon)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_ALL), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.FIRE_ASPECT) == 0 && (!isWeapon)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.FIRE_ASPECT, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.DAMAGE_UNDEAD) == 0 && (!isWeapon)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DAMAGE_UNDEAD, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.DAMAGE_ARTHROPODS) == 0 && (!isWeapon)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DAMAGE_ARTHROPODS, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.LOOT_BONUS_MOBS) == 0 && (!isWeapon && !isBow)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.KNOCKBACK, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_UNDEAD)) == 0 && (!isWeapon)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_UNDEAD), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_ARTHROPODS)) == 0 && (!isWeapon)) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_ARTHROPODS), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LOOT_BONUS_MOBS)) == 0 && (!isWeapon && !isBow)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.KNOCKBACK, eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.SILK_TOUCH) == 0 && (!isTool)) { success = true; iProduct.addUnsafeEnchantment(Enchantment.SILK_TOUCH, eLevel); }
                         }
                         //endregion
 
                         //region Low Priority: Useful Enchantments
                         if (!success) {
-                            if (!success && GetEnchLevel(iSource, Enchantment.WATER_WORKER) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.WATER_WORKER, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.DAMAGE_ARTHROPODS) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DAMAGE_ARTHROPODS, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_EXPLOSIONS) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_EXPLOSIONS, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.WATER_WORKER)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.WATER_WORKER), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_ARTHROPODS)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_ARTHROPODS), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_EXPLOSIONS)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_EXPLOSIONS), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.CHANNELING) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.CHANNELING, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_FALL) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_FALL, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_FALL)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_FALL), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.FIRE_ASPECT) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.FIRE_ASPECT, eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.DEPTH_STRIDER) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DEPTH_STRIDER, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.DIG_SPEED) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DIG_SPEED, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_FIRE) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_FIRE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.ARROW_FIRE) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.ARROW_FIRE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.LOOT_BONUS_BLOCKS) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.LOOT_BONUS_BLOCKS, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DIG_SPEED)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DIG_SPEED), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_FIRE)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_FIRE), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_FIRE)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_FIRE), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LOOT_BONUS_BLOCKS)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LOOT_BONUS_BLOCKS), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.FROST_WALKER) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.FROST_WALKER, eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.IMPALING) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.IMPALING, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.ARROW_INFINITE) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.LOOT_BONUS_MOBS) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.KNOCKBACK, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_INFINITE)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_INFINITE), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LOOT_BONUS_MOBS)) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.KNOCKBACK, eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.LOYALTY) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.LOYALTY, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.LUCK) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.LUCK, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LUCK)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.LUCK), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.LURE) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.LURE, eLevel); }
                             if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.MULTISHOT)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.MULTISHOT), eLevel); } }
                             if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PIERCING)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PIERCING), eLevel); } }
-                            if (!success && GetEnchLevel(iSource, Enchantment.ARROW_DAMAGE) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_PROJECTILE) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_PROJECTILE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.PROTECTION_ENVIRONMENTAL) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.ARROW_KNOCKBACK) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.ARROW_KNOCKBACK, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_DAMAGE)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_DAMAGE), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_PROJECTILE)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_PROJECTILE), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_ENVIRONMENTAL)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.PROTECTION_ENVIRONMENTAL), eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_KNOCKBACK)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.ARROW_KNOCKBACK), eLevel); }
                             if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.QUICK_CHARGE)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.QUICK_CHARGE), eLevel); } }
-                            if (!success && GetEnchLevel(iSource, Enchantment.OXYGEN) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.OXYGEN, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.OXYGEN)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.OXYGEN), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.RIPTIDE) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.RIPTIDE, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.DAMAGE_ALL) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_ALL)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_ALL), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.SILK_TOUCH) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.SILK_TOUCH, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.DAMAGE_UNDEAD) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DAMAGE_UNDEAD, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_UNDEAD)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DAMAGE_UNDEAD), eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.SWEEPING_EDGE) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.SWEEPING_EDGE, eLevel); }
                             if (!success && GetEnchLevel(iSource, Enchantment.THORNS) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.THORNS, eLevel); }
-                            if (!success && GetEnchLevel(iSource, Enchantment.DURABILITY) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.DURABILITY, eLevel); }
+                            if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DURABILITY)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.DURABILITY), eLevel); }
                             if (GooP_MinecraftVersions.GetMinecraftVersion() >= 14.0) { if (!success && GetEnchLevel(iSource, GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.SOUL_SPEED)) == 0) { success = true; iProduct.addUnsafeEnchantment(GooP_MinecraftVersions.GetVersionEnchantment(GooPVersionEnchantments.SOUL_SPEED), eLevel); } }
                             if (!success && GetEnchLevel(iSource, Enchantment.MENDING) == 0) { success = true; iProduct.addUnsafeEnchantment(Enchantment.MENDING, eLevel); }
                         }
@@ -3386,7 +3386,6 @@ public class OotilityCeption {
     //endregion
 
     //region Lore and NBT Manipulation
-
     /**
      *
      * This will go through every lore line of an item
@@ -4117,27 +4116,25 @@ public class OotilityCeption {
                     RefSimulator<Double> vanillaDefaulterRef = new RefSimulator<>(0.0);
 
                     // Gather initial vanilla
-                    switch (attrib) {
-                        case GENERIC_ATTACK_DAMAGE:
-                            GatherDefaultVanillaAttributes(iSource.getType(), null, vanillaDefaulterRef, null, null, null, null);
-                            if (vanillaDefaulterRef.getValue() > 0) { vanillaDefaulter = OotilityCeption.RoundAtPlaces(vanillaDefaulterRef.getValue(), 1); }
-                            break;
-                        case GENERIC_ATTACK_SPEED:
-                            GatherDefaultVanillaAttributes(iSource.getType(), null, null, vanillaDefaulterRef, null, null, null);
-                            vanillaDefaulter = vanillaDefaulterRef.GetValue();
-                            break;
-                        case GENERIC_ARMOR:
-                            GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, vanillaDefaulterRef, null, null);
-                            vanillaDefaulter = vanillaDefaulterRef.GetValue();
-                            break;
-                        case GENERIC_ARMOR_TOUGHNESS:
-                            GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, null, vanillaDefaulterRef, null);
-                            vanillaDefaulter = vanillaDefaulterRef.GetValue();
-                            break;
-                        case GENERIC_KNOCKBACK_RESISTANCE:
-                            GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, null, null, vanillaDefaulterRef);
-                            vanillaDefaulter = vanillaDefaulterRef.GetValue();
-                            break;
+                    if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_DAMAGE))) {
+                        GatherDefaultVanillaAttributes(iSource.getType(), null, vanillaDefaulterRef, null, null, null, null);
+                        if (vanillaDefaulterRef.getValue() > 0) { vanillaDefaulter = OotilityCeption.RoundAtPlaces(vanillaDefaulterRef.getValue(), 1); }
+
+                    } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_SPEED))) {
+                        GatherDefaultVanillaAttributes(iSource.getType(), null, null, vanillaDefaulterRef, null, null, null);
+                        vanillaDefaulter = vanillaDefaulterRef.GetValue();
+
+                    } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR))) {
+                        GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, vanillaDefaulterRef, null, null);
+                        vanillaDefaulter = vanillaDefaulterRef.GetValue();
+
+                    } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR_TOUGHNESS))) {
+                        GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, null, vanillaDefaulterRef, null);
+                        vanillaDefaulter = vanillaDefaulterRef.GetValue();
+
+                    } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_KNOCKBACK_RESISTANCE))) {
+                        GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, null, null, vanillaDefaulterRef);
+                        vanillaDefaulter = vanillaDefaulterRef.GetValue();
                     }
 
                     // Create new attribute
@@ -6170,7 +6167,7 @@ public class OotilityCeption {
      * @return The GooP command with success information in it
      */
     @NotNull public static String ProcessGooPSuccessibilityFlare(@NotNull String cmd, @Nullable UUID flare, @Nullable SuccessibleFlareReceptor receptor) {
-        if (successFlareReceptors.size() > 40) { successFlareReceptors.clear(); }
+        if (successFlareReceptors.size() > 40 && receptor != null) { successFlareReceptors.clear(); }
 
         // Valid location?
         if (flare == null) { return cmd; }

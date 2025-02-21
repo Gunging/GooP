@@ -3,6 +3,8 @@ package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 import com.google.common.collect.Sets;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionAttributes;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.events.GooP_FontUtils;
 import gunging.ootilities.gunging_ootilities_plugin.events.SummonerClassUtils;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
@@ -647,7 +649,7 @@ public class GooPMythicMobs implements Listener {
                 case "z": return String.valueOf(tPlayer.getLocation().getZ());
                 case "w": return String.valueOf(tPlayer.getLocation().getWorld());
                 case "health": return (tPlayer instanceof LivingEntity) ? String.valueOf(((LivingEntity) tPlayer).getHealth()) : "0";
-                case "max_health": return (tPlayer instanceof LivingEntity) ? String.valueOf(((LivingEntity) tPlayer).getAttribute(Attribute.GENERIC_MAX_HEALTH)) : "0";
+                case "max_health": return (tPlayer instanceof LivingEntity) ? String.valueOf(((LivingEntity) tPlayer).getAttribute(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MAX_HEALTH))) : "0";
             }
 
             // Return thay

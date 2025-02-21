@@ -1,6 +1,8 @@
 package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionPotionEffects;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import io.lumine.xikage.graveyards.Graveyard;
 import io.lumine.xikage.graveyards.Graveyards;
 import org.bukkit.entity.Player;
@@ -26,7 +28,7 @@ public class GooPGraveyards {
         if (gGrave != null) {
 
             // Resistance to Death, according to Graveyards
-            if (gGrave.getImmunityTicks() > 0) { gPlayer.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, gGrave.getImmunityTicks(), 100)); }
+            if (gGrave.getImmunityTicks() > 0) { gPlayer.addPotionEffect(new PotionEffect(GooP_MinecraftVersions.GetVersionPotionEffect(GooPVersionPotionEffects.DAMAGE_RESISTANCE), gGrave.getImmunityTicks(), 100)); }
 
             // Can there be a mythic skill being ran?
             if (Gunging_Ootilities_Plugin.foundMythicMobs) {

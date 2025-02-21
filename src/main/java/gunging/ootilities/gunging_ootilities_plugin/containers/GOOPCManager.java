@@ -3,6 +3,7 @@ package gunging.ootilities.gunging_ootilities_plugin.containers;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionAttributes;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.*;
@@ -875,7 +876,7 @@ public class GOOPCManager {
         ItemStack processed = new ItemStack(stacc);
 
         ItemMeta iMeta = processed.getItemMeta();
-        iMeta.addAttributeModifier(Attribute.ZOMBIE_SPAWN_REINFORCEMENTS, DEFAULT_ATTRIBUTE);
+        iMeta.addAttributeModifier(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.ZOMBIE_SPAWN_REINFORCEMENTS), DEFAULT_ATTRIBUTE);
         iMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         if (!iMeta.hasDisplayName()) { iMeta.setDisplayName("\u00a73\u00a7f\u00a7r"); }
         processed.setItemMeta(iMeta);
@@ -903,7 +904,7 @@ public class GOOPCManager {
         // Good question
         ItemMeta iMeta = stacc.getItemMeta();
         if (!iMeta.hasAttributeModifiers()) { return false; }
-        Collection<AttributeModifier> mods = iMeta.getAttributeModifiers(Attribute.ZOMBIE_SPAWN_REINFORCEMENTS);
+        Collection<AttributeModifier> mods = iMeta.getAttributeModifiers(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.ZOMBIE_SPAWN_REINFORCEMENTS));
 
         // No spawn reinforcements ~ no default
         if (mods == null) { return false; }
@@ -914,8 +915,12 @@ public class GOOPCManager {
             // Skip
             if (mod == null) { continue; }
 
-            // Is it matching UUID?
-            if (mod.getUniqueId().equals(DEFAULT_ATTRIBUTE.getUniqueId())) { return true; }
+            try {
+                // Is it matching UUID?
+                if (mod.getUniqueId().equals(DEFAULT_ATTRIBUTE.getUniqueId())) { return true; }
+
+            // It has no UUID... it cannot be
+            } catch (IllegalArgumentException ignored) { return false; }
         }
 
         // None matched
@@ -981,8 +986,18 @@ public class GOOPCManager {
     @SuppressWarnings("deprecation")
     public static boolean isGooPContainer(@Nullable InventoryView inven) {
         if (inven == null) { return false; }
-        if (inven.getType() != InventoryType.CHEST) { return false; }
-        return inven.getTitle().startsWith(TITLE_ID_OPEN) && inven.getTitle().contains(TITLE_ID_CLOSE);
+        return isGooPContainer(inven.getTitle(), inven.getType());
+    }
+    /**
+     * @param inventoryViewTitle Title of inventory being opened that could be a Goop Container
+     * @param inventoryViewType Type of inventory being opened that could be a Goop Container
+     *
+     * @return If the inventory is indeed, a GooP Container
+     */
+    public static boolean isGooPContainer(@Nullable String inventoryViewTitle, @Nullable InventoryType inventoryViewType) {
+        if (inventoryViewTitle == null) { return false; }
+        if (inventoryViewType != InventoryType.CHEST && inventoryViewType != null) { return false; }
+        return inventoryViewTitle.startsWith(TITLE_ID_OPEN) && inventoryViewTitle.contains(TITLE_ID_CLOSE);
     }
     /**
      * Encapsulates the Physical Instance ID so it can be identified.
@@ -1011,7 +1026,13 @@ public class GOOPCManager {
      * @return If the usage of the container is Edition of Display
      */
     @SuppressWarnings("deprecation")
-    public static boolean isUsage_EditionDisplay(@NotNull InventoryView inven) { return inven.getTitle().endsWith(MODE_EDIT_DISPLAY); }
+    public static boolean isUsage_EditionDisplay(@NotNull InventoryView inven) { return isUsage_EditionDisplay(inven.getTitle()); }
+    /**
+     * @param invenTitle Title of Inventory being opened that could be a Goop Container
+     *
+     * @return If the usage of the container is Edition of Display
+     */
+    public static boolean isUsage_EditionDisplay(@NotNull String invenTitle) { return invenTitle.endsWith(MODE_EDIT_DISPLAY); }
     /**
      * Allows to identify the usage of the container as Edition of Storage
      */
@@ -1022,7 +1043,13 @@ public class GOOPCManager {
      * @return If the usage of the container is Edition of Storage
      */
     @SuppressWarnings("deprecation")
-    public static boolean isUsage_EditionStorage(@NotNull InventoryView inven) { return inven.getTitle().endsWith(MODE_EDIT_STORAGE); }
+    public static boolean isUsage_EditionStorage(@NotNull InventoryView inven) { return isUsage_EditionStorage(inven.getTitle()); }
+    /**
+     * @param invenTitle Title of Inventory being opened that could be a Goop Container
+     *
+     * @return If the usage of the container is Edition of Storage
+     */
+    public static boolean isUsage_EditionStorage(@NotNull String invenTitle) { return invenTitle.endsWith(MODE_EDIT_STORAGE); }
 
     /**
      * Allows to identify the usage of the container as Edition of Commands
@@ -1034,7 +1061,13 @@ public class GOOPCManager {
      * @return If the usage of the container is Edition of Commands
      */
     @SuppressWarnings("deprecation")
-    public static boolean isUsage_EditionCommands(@NotNull InventoryView inven) { return inven.getTitle().endsWith(MODE_EDIT_COMMAND); }
+    public static boolean isUsage_EditionCommands(@NotNull InventoryView inven) { return isUsage_EditionCommands(inven.getTitle()); }
+    /**
+     * @param invenTitle Title of Inventory being opened that could be a Goop Container
+     *
+     * @return If the usage of the container is Edition of Commands
+     */
+    public static boolean isUsage_EditionCommands(@NotNull String invenTitle) { return invenTitle.endsWith(MODE_EDIT_COMMAND); }
     /**
      * Allows to identify the usage of the container as Preview Mode
      */
@@ -1045,7 +1078,13 @@ public class GOOPCManager {
      * @return If the usage of the container is Preview Mode
      */
     @SuppressWarnings("deprecation")
-    public static boolean isUsage_Preview(@NotNull InventoryView inven) { return inven.getTitle().endsWith(MODE_PREVIEW); }
+    public static boolean isUsage_Preview(@NotNull InventoryView inven) { return isUsage_Preview(inven.getTitle()); }
+    /**
+     * @param invenTitle Title of Inventory being opened that could be a Goop Container
+     *
+     * @return If the usage of the container is Preview Mode
+     */
+    public static boolean isUsage_Preview(@NotNull String invenTitle) { return invenTitle.endsWith(MODE_PREVIEW); }
     //endregion
 
     //region Identifying a Container from an InventoryView
@@ -1058,9 +1097,21 @@ public class GOOPCManager {
      */
     @Contract("null -> null")
     @Nullable public static GOOPCDeployed getContainer(@Nullable InventoryView inventory) {
+        if (inventory == null) { return null; }
+        return getContainer(inventory.getTitle(), inventory.getType());
+    }
+    /**
+     * If this inventory view is a container, it returns the container it is.
+     *
+     * @param inventoryTitle Title of Inventory that you suspect is a container.
+     *
+     * @return Container that produced this inventory view, if there is one.
+     */
+    @Contract("null -> null")
+    @Nullable public static GOOPCDeployed getContainer(@Nullable String inventoryTitle, @Nullable InventoryType inventoryType) {
 
         // Step #5: Search and Return loaded container
-        GOOPCTemplate template = getContainerTemplate(inventory);
+        GOOPCTemplate template = getContainerTemplate(inventoryTitle, inventoryType);
 
         // No template? No service
         if (template == null) { return null; }
@@ -1080,13 +1131,17 @@ public class GOOPCManager {
     @Contract("null -> null")
     @Nullable public static GOOPCTemplate getContainerTemplate(@Nullable InventoryView inventory) {
         if (inventory == null) { return null; }
+        return getContainerTemplate(inventory.getTitle(), inventory.getType());
+    }
+    @Nullable public static GOOPCTemplate getContainerTemplate(@Nullable String viewTitle, @Nullable InventoryType viewType) {
+        if (viewTitle == null) { return null; }
 
         // Null if its not a container
-        if (!isGooPContainer(inventory)) { return null; }
+        if (!isGooPContainer(viewTitle, viewType)) { return null; }
 
         // It is a container thus. Obtain Internal ID:
         // Step #1: Strip out the GooP Container Key
-        String idBegin = inventory.getTitle().substring(TITLE_ID_OPEN.length());
+        String idBegin = viewTitle.substring(TITLE_ID_OPEN.length());
 
         // Step #2: Get The ID string
         String idCont = idBegin.substring(0, idBegin.indexOf(TITLE_ID_CLOSE));

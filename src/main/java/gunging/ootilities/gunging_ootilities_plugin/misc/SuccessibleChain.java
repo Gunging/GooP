@@ -74,10 +74,15 @@ public class SuccessibleChain {
 
         //SUC//OotilityCeption.Log("\u00a78SUC\u00a7c FLR\u00a77 Chaining \u00a79 " + chainedCommand);
         if (chained && !chainedCommand.isEmpty()) {
-            String flaredChained = OotilityCeption.ProcessGooPSuccessibilityFlare(chainedCommand, getSuccessibleFlare(), null);
-            OotilityCeption.SendAndParseConsoleCommand(asChainResult, flaredChained, konsole, asEntity, asPlayer, asBlock, asItem);}
+            OotilityCeption.SendAndParseConsoleCommand(asChainResult, getFlaredCommand(), konsole, asEntity, asPlayer, asBlock, asItem); }
+
         if (!chained) { flare(); }
     }
+
+    /**
+     * @return The {@link #getChainedCommand()} with the successible flare encoded
+     */
+    @NotNull public String getFlaredCommand() { return OotilityCeption.ProcessGooPSuccessibilityFlare(chainedCommand, getSuccessibleFlare(), null); }
 
     /**
      * Sends the next command of the chain, or fires the successible flare if it's the last one
@@ -107,8 +112,8 @@ public class SuccessibleChain {
 
         //SUC//OotilityCeption.Log("\u00a78SUC\u00a7c FLR\u00a77 Chaining \u00a73 " + chainedCommand);
         if (chained && !chainedCommand.isEmpty()) {
-            String flaredChained = OotilityCeption.ProcessGooPSuccessibilityFlare(chainedCommand, getSuccessibleFlare(), null);
-            OotilityCeption.SendAndParseConsoleCommand(asChainResult, flaredChained, konsole, asEntity, asPlayer, asBlock, asItem); }
+            OotilityCeption.SendAndParseConsoleCommand(asChainResult, getFlaredCommand(), konsole, asEntity, asPlayer, asBlock, asItem); }
+
         if (!chained) { flare(); }
     }
 }

@@ -30,6 +30,16 @@ import java.util.UUID;
 
 public class ContainerTemplateMappingMMO extends VanillaInventoryMapping implements CustomInventoryCheck, Listener {
 
+    @Override
+    public boolean isTargetInventory(@NotNull io.lumine.mythic.lib.version.VInventoryView view) {
+        return LegacyIsTargetInventory(view.getTitle(), view.getType(), view.getPlayer().getUniqueId());
+    }
+
+    @Override
+    public boolean IsTargetInventory(@NotNull InventoryView view) {
+        return LegacyIsTargetInventory(view);
+    }
+
     //region Constructor
     /**
      * @return The template by which this mapping may find items.
@@ -257,7 +267,7 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
     }
 
     /**
-     * Shorthand to throw the exception that says "HEY! Theres no such slot"
+     * Shorthand to throw the exception that says "HEY! There's no such slot"
      *
      * @param out Slot number that caused the exception
      *
@@ -265,7 +275,7 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
      */
     void throwExceedBounds(int out) throws IllegalArgumentException { throw new IllegalArgumentException("Template " + getTemplate().getInternalName() + " has no data for slot '" + out + "'"); }
     /**
-     * Shorthand to throw the exception that says "HEY! Theres no such slot"
+     * Shorthand to throw the exception that says "HEY! There's no such slot"
      *
      * @param w Horizontal number that caused the exception
      * @param h Vertical number that caused the exception
@@ -282,7 +292,7 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         // Find the template slot
         GOOPCSlot containerSlot = getTemplate().getSlotAt(slot);
 
-        // If it does not exist, its out of bounds
+        // If it does not exist, it's out of bounds
         if (containerSlot == null) { throwExceedBounds(slot); return -1; }
 
         /*
@@ -302,7 +312,7 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         // Find the template slot
         GOOPCSlot containerSlot = getTemplate().getSlotAt(slot);
 
-        // If it does not exist, its out of bounds
+        // If it does not exist, it's out of bounds
         if (containerSlot == null) { throwExceedBounds(slot); return 1; }
 
         /*
@@ -325,7 +335,7 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         // Find the template slot
         GOOPCSlot containerSlot = getTemplate().getSlotAt(slot);
 
-        // If it does not exist, its out of bounds
+        // If it does not exist, it's out of bounds
         if (containerSlot == null) { throwExceedBounds(width, height); return -1; }
 
         // Well that slot is the one I guess
@@ -354,13 +364,13 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         //RDR//OotilityCeption.Log("\u00a78RDR \u00a74GOT\u00a77 Reading Main Mythic of\u00a7e " + getTemplate().getInternalName());
 
         // Must find container!
-        InventoryView view = getViewFromLastTargetInvenSuccess(inventory);
-        if (view == null) {
+        String viewTitle = getViewTitleFromLastTargetInvenSuccess(inventory);
+        if (viewTitle == null) {
             //RDR//OotilityCeption.Log("\u00a78RDR \u00a74GOT\u00a7c Unregistered View");
             return super.getMainMythicInventory(inventory); }
 
         // All right find deployed
-        GOOPCStation deployed = (GOOPCStation) GOOPCManager.getContainer(view);
+        GOOPCStation deployed = (GOOPCStation) GOOPCManager.getContainer(viewTitle, null);
         if (deployed == null) {
             //RDR//OotilityCeption.Log("\u00a78RDR \u00a74GOT\u00a7c View does not encode for deployed container");
             return super.getMainMythicInventory(inventory); }
@@ -452,13 +462,13 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         //RDR//OotilityCeption.Log("\u00a78RDR \u00a74GOT\u00a77 Reading Result Mythic of\u00a7e " + getTemplate().getInternalName());
 
         // Must find container!
-        InventoryView view = getViewFromLastTargetInvenSuccess(inventory);
-        if (view == null) {
+        String viewTitle = getViewTitleFromLastTargetInvenSuccess(inventory);
+        if (viewTitle == null) {
             //RDR//OotilityCeption.Log("\u00a78RDR \u00a74GOT\u00a7c Unregistered View");
             return super.getResultMythicInventory(inventory); }
 
         // All right find deployed
-        GOOPCStation deployed = (GOOPCStation) GOOPCManager.getContainer(view);
+        GOOPCStation deployed = (GOOPCStation) GOOPCManager.getContainer(viewTitle, null);
         if (deployed == null) {
             //RDR//OotilityCeption.Log("\u00a78RDR \u00a74GOT\u00a7c View does not encode for deployed container");
             return super.getResultMythicInventory(inventory); }
@@ -576,13 +586,13 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         //RDR//OotilityCeption.Log("\u00a78RDR \u00a79APP\u00a77 Applying Main Mythic of\u00a7e " + getTemplate().getInternalName());
 
         // Must find container!
-        InventoryView view = getViewFromLastTargetInvenSuccess(inventory);
-        if (view == null) {
+        String viewTitle = getViewTitleFromLastTargetInvenSuccess(inventory);
+        if (viewTitle == null) {
             //RDR//OotilityCeption.Log("\u00a78RDR \u00a79APP\u00a7c Unregistered View");
             super.applyToMainInventory(inventory, finalMain, amountOnly); return; }
 
         // All right find deployed
-        GOOPCStation deployed = (GOOPCStation) GOOPCManager.getContainer(view);
+        GOOPCStation deployed = (GOOPCStation) GOOPCManager.getContainer(viewTitle, null);
         if (deployed == null) {
             //RDR//OotilityCeption.Log("\u00a78RDR \u00a79APP\u00a7c View does not encode for deployed container");
             super.applyToMainInventory(inventory, finalMain, amountOnly); return; }
@@ -663,13 +673,13 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         //RDR//OotilityCeption.Log("\u00a78RDR \u00a79APP\u00a77 Applying Result Mythic of\u00a7e " + getTemplate().getInternalName());
 
         // Must find container!
-        InventoryView view = getViewFromLastTargetInvenSuccess(inventory);
-        if (view == null) {
+        String viewTitle = getViewTitleFromLastTargetInvenSuccess(inventory);
+        if (viewTitle == null) {
             //RDR//OotilityCeption.Log("\u00a78RDR \u00a79APP\u00a7c Unregistered View");
             super.applyToResultInventory(inventory, finalResult, amountOnly); return; }
 
         // All right find deployed
-        GOOPCStation deployed = (GOOPCStation) GOOPCManager.getContainer(view);
+        GOOPCStation deployed = (GOOPCStation) GOOPCManager.getContainer(viewTitle, null);
         if (deployed == null) {
             //RDR//OotilityCeption.Log("\u00a78RDR \u00a79APP\u00a7c View does not encode for deployed container");
             super.applyToResultInventory(inventory, finalResult, amountOnly); return; }
@@ -740,43 +750,49 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
     @NotNull @Override public InventoryType getIntendedInventory() { return InventoryType.CHEST; }
     @NotNull @Override public ArrayList<String> getSideInventoryNames() { return sNames; }
     @NotNull final static ArrayList<String> sNames = new ArrayList<>();
-    @Override public boolean IsTargetInventory(@NotNull InventoryView view) {
+
+    public boolean LegacyIsTargetInventory(@NotNull InventoryView view) {
+        return LegacyIsTargetInventory(view.getTitle(), view.getType(), view.getTopInventory().getViewers().get(0).getUniqueId());
+    }
+    public boolean LegacyIsTargetInventory(@NotNull String title, @NotNull InventoryType type, @NotNull UUID viewer) {
 
         // No more matching
         if (isDiscontinued()) { return false; }
 
         // Please must be in USAGE mode
-        if (GOOPCManager.isUsage_Preview(view) || GOOPCManager.isUsage_EditionCommands(view)
-                || GOOPCManager.isUsage_EditionDisplay(view) || GOOPCManager.isUsage_EditionStorage(view)) {
+        if (GOOPCManager.isUsage_Preview(title) || GOOPCManager.isUsage_EditionCommands(title)
+                || GOOPCManager.isUsage_EditionDisplay(title) || GOOPCManager.isUsage_EditionStorage(title)) {
 
             // None of this
             return false;
         }
 
         // Must be of the same container
-        GOOPCTemplate temp = GOOPCManager.getContainerTemplate(view);
+        GOOPCTemplate temp = GOOPCManager.getContainerTemplate(title, type);
 
         // Null means no
         if (temp == null) { return false; }
 
-        // If the IDs match its the same-yo
+        // If the IDs match it's the same-yo
         if (temp.getInternalID() != getTemplate().getInternalID()) { return false; }
 
         // Include
-        lastTargetInventorySuccess.put(view.getTopInventory().getViewers().get(0).getUniqueId(), view);
+        lastTargetInventorySuccess.put(viewer, title);
         return true;
     }
-    @NotNull HashMap<UUID, InventoryView> lastTargetInventorySuccess = new HashMap<>();
-    @Nullable InventoryView getViewFromLastTargetInvenSuccess(@NotNull Inventory inventory) {
-        if (inventory.getViewers().size() == 0) { return null; }
+
+    @NotNull HashMap<UUID, String> lastTargetInventorySuccess = new HashMap<>();
+    @Nullable String getViewTitleFromLastTargetInvenSuccess(@NotNull Inventory inventory) {
+        if (inventory.getViewers().isEmpty()) { return null; }
         return lastTargetInventorySuccess.get(inventory.getViewers().get(0).getUniqueId()); }
+
     @NotNull @Override public String getCustomStationKey() { return getTemplate().getCustomMythicLibRecipe() == null ? getTemplate().getInternalName() : getTemplate().getCustomMythicLibRecipe(); }
     //endregion
 
     //region Reloading
     /**
-     * @return If GooP has been reloaded, this inventory mapping may not be valid anymore and
-     *         it has become discontinued, such that it wont be active in the system anymore.
+     * @return If GooP has been reloaded, this inventory mapping may not be valid anymore, and
+     *         it has become discontinued, such that it won't be active in the system anymore.
      */
     public boolean isDiscontinued() { return discontinued; }
     boolean discontinued;

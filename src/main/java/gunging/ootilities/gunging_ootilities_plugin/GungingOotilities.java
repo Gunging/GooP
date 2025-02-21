@@ -1,7 +1,9 @@
 package gunging.ootilities.gunging_ootilities_plugin;
 
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.*;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionAttributes;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionMaterials;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionPotionEffects;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.containers.*;
 import gunging.ootilities.gunging_ootilities_plugin.containers.inventory.ISSObservedContainer;
@@ -330,11 +332,11 @@ public class GungingOotilities implements CommandExecutor {
                                 // Treat as player
                                 for (Player target : targets) {
                                     // Slowness
-                                    target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, OotilityCeption.ParseInt(args[2]), 254, true));
+                                    target.addPotionEffect(new PotionEffect(GooP_MinecraftVersions.GetVersionPotionEffect(GooPVersionPotionEffects.SLOW), OotilityCeption.ParseInt(args[2]), 254, true));
                                     // Jump Prevention
-                                    target.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, OotilityCeption.ParseInt(args[2]), 129, true));
+                                    target.addPotionEffect(new PotionEffect(GooP_MinecraftVersions.GetVersionPotionEffect(GooPVersionPotionEffects.JUMP), OotilityCeption.ParseInt(args[2]), 129, true));
                                     // Confusion
-                                    target.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, OotilityCeption.ParseInt(args[2]), 4, true));
+                                    target.addPotionEffect(new PotionEffect(GooP_MinecraftVersions.GetVersionPotionEffect(GooPVersionPotionEffects.CONFUSION), OotilityCeption.ParseInt(args[2]), 4, true));
 
                                     // Mention
                                     if (Gunging_Ootilities_Plugin.sendGooPSuccessFeedback) logReturn.add(OotilityCeption.LogFormat("Stasis", "Successfully suspended \u00a73" + target.getName() + "\u00a77's flow of time."));
@@ -6444,7 +6446,7 @@ public class GungingOotilities implements CommandExecutor {
                                 }
 
                                 // Append chained
-                                if (chained) { lLine.append(" oS= ").append(chainedNoLocation); }
+                                if (chained) { lLine.append(" oS= ").append(commandChain.getFlaredCommand()); }
                                 String cmddd = lLine.toString();
 
                                 // Run
@@ -6542,7 +6544,7 @@ public class GungingOotilities implements CommandExecutor {
                                     }
 
                                     // Append chained
-                                    if (chained) { lLine.append(" oS= ").append(chainedNoLocation); }
+                                    if (chained) { lLine.append(" oS= ").append(commandChain.getFlaredCommand()); }
                                     String cmddd = lLine.toString();
 
                                     // Mention
@@ -6997,7 +6999,7 @@ public class GungingOotilities implements CommandExecutor {
                                 }
 
                                 // Append chained
-                                if (chained) { lLine.append(" oS= ").append(chainedNoLocation); }
+                                if (chained) { lLine.append(" oS= ").append(commandChain.getFlaredCommand()); }
                                 String cmddd = lLine.toString();
 
                                 if (!isConsole) {
@@ -8774,37 +8776,37 @@ public class GungingOotilities implements CommandExecutor {
                     //region Attributes
                     case "mspeed":
                     case "movementspeed":
-                        if (attribute == null) { attribute = Attribute.GENERIC_MOVEMENT_SPEED; }
+                        if (attribute == null) { attribute = GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MOVEMENT_SPEED); }
 
                     case "mhealth":
                     case "maxhealth":
-                        if (attribute == null) { attribute = Attribute.GENERIC_MAX_HEALTH; }
+                        if (attribute == null) { attribute = GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MAX_HEALTH); }
 
                     case "adamage":
                     case "attackdamage":
-                        if (attribute == null) { attribute = Attribute.GENERIC_ATTACK_DAMAGE; }
+                        if (attribute == null) { attribute = GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_DAMAGE); }
 
                     case "armour":
                     case "armor":
-                        if (attribute == null) { attribute = Attribute.GENERIC_ARMOR; }
+                        if (attribute == null) { attribute = GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR); }
 
                     case "atoughness":
                     case "armortoughness":
                     case "armourtoughness":
-                        if (attribute == null) { attribute = Attribute.GENERIC_ARMOR_TOUGHNESS; }
+                        if (attribute == null) { attribute = GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR_TOUGHNESS); }
 
                     case "aspeed":
                     case "attackspeed":
-                        if (attribute == null) { attribute = Attribute.GENERIC_ATTACK_SPEED; }
+                        if (attribute == null) { attribute = GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_SPEED); }
 
                     case "kresistance":
                     case "knockbackr":
                     case "knockbackresistance":
                     case "kres":
-                        if (attribute == null) { attribute = Attribute.GENERIC_KNOCKBACK_RESISTANCE; }
+                        if (attribute == null) { attribute = GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_KNOCKBACK_RESISTANCE); }
 
                     case "luck":
-                        if (attribute == null) { attribute = Attribute.GENERIC_LUCK; }
+                        if (attribute == null) { attribute = GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_LUCK); }
 
                         //   0    1      2      3      4       5         6       args.Length
                         // /goop nbt mspeed <player> <slot> <value> [objective]

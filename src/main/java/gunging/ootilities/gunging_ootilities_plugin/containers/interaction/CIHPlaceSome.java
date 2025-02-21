@@ -150,7 +150,12 @@ public class CIHPlaceSome extends ContainersClickHandler {
          * If PLACE_SOME is being called, we are guaranteed to not be placing
          * all, so the former must be the case...!!
          */
-        return cursor.getType().getMaxStackSize() - currentAmount;
+
+        // How many items fit?
+        int numberOfItemsThatCanBePlaced = cursor.getMaxStackSize() - currentAmount;
+
+        // If we can deposit them, deposit them. Otherwise, we don't do anything
+        return Math.max(numberOfItemsThatCanBePlaced, 0);
     }
 
     @NotNull public ItemStack actuallyPlace(@NotNull ContainersInteractionResult result, @NotNull ItemStack cursor, int currentAmountInitial) {

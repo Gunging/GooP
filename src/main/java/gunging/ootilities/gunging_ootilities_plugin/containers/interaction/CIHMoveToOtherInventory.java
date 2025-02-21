@@ -234,7 +234,7 @@ public class CIHMoveToOtherInventory extends ContainersClickHandler {
                         // Get that
                         ItemStack target = event.getView().getTopInventory().getItem(i);
                         if (OotilityCeption.IsAirNullAllowed(target)) { remainder = 0; break; }
-                        if (target.isSimilar(movingItem)) { remainder -= (movingItem.getType().getMaxStackSize() - target.getAmount()); }
+                        if (target.isSimilar(movingItem)) { remainder -= (movingItem.getMaxStackSize() - target.getAmount()); }
                         if (remainder <= 0) { break; }
                     }
 
@@ -379,8 +379,8 @@ public class CIHMoveToOtherInventory extends ContainersClickHandler {
                 continue; }
 
             // Dekrease kount
-            int absorbed = item.getType().getMaxStackSize() - obs.getAmount();
-            //ACT//OotilityCeption.Log("\u00a78CIH\u00a7c MTO\u00a77 Absorbing " + item.getType().getMaxStackSize() + " - " + obs.getAmount() + " = \u00a7e" + absorbed);
+            int absorbed = item.getMaxStackSize() - obs.getAmount();
+            //ACT//OotilityCeption.Log("\u00a78CIH\u00a7c MTO\u00a77 Absorbing " + item.getMaxStackSize() + " - " + obs.getAmount() + " = \u00a7e" + absorbed);
 
             // Will absorb?
             if (absorbed > 0) {
@@ -432,7 +432,7 @@ public class CIHMoveToOtherInventory extends ContainersClickHandler {
 
 
             // Dekrease kount
-            int absorbed = item.getType().getMaxStackSize() - obs.getAmount();
+            int absorbed = item.getMaxStackSize() - obs.getAmount();
 
             // Will absorb?
             if (absorbed > 0) {

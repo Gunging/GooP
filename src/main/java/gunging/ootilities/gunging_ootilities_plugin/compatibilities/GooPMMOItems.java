@@ -1,9 +1,12 @@
 package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 
 import com.google.common.collect.Multimap;
+import github.scarsz.discordsrv.dependencies.jackson.databind.annotation.NoClass;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.*;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mmotimelesscompatclutter.GooPMMOItemsModifierNodesOps;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mmotimelesscompatclutter.GooPMMOItemsTemplateModifierOps;
 import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.ContainerToMIInventory;
 import gunging.ootilities.gunging_ootilities_plugin.events.ScoreboardLinks;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
@@ -62,12 +65,39 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
 @SuppressWarnings("unused")
 public class GooPMMOItems {
+
+    @NotNull static ConfigurationSection dummySectionReal;
+
+    /**
+     * Somewhy, MMO loves using Configuration Sections in constructors which it
+     * reads directly from files. Then, constructing these classes through API
+     * requires the roundabout way of putting that information in a configuration
+     * section first, and then creating the object you want:
+     *
+     * <p></p>
+     * <code>
+     * boolean shouldDoSomething = true;
+     *
+     * ConfigurationSection section;
+     * section.setBoolean("something-enabled", shouldDoSomething);
+     *
+     * SomethingOptions options = new SomethingOptions(section);
+     * </code>
+     * <p></p>
+     *
+     * It is annoying to create dummy Configuration Sections, so GooP uses its
+     * own config and this is just an easy-access method.
+     *
+     * @param section The section, kindly provided by GooP during loading
+     */
+    public static void DefineSillyConfigurationSectionForMMOCompat(@NotNull ConfigurationSection section) { dummySectionReal = section; }
 
     public boolean CompatibilityCheck() {
 
@@ -82,6 +112,17 @@ public class GooPMMOItems {
          * is how this method ended up here.
          */
         return RegisterContainersEquipment();
+    }
+
+    public static void ReflectionOnLoad() {
+        try {
+            usingModifierNodes = false;
+            Class aelous = TemplateModifier.class;
+            if (aelous == null) { throw new ClassNotFoundException("Skibidi"); }
+            if (!GooPMMOItemsTemplateModifierOps.ReflectMethods()) { usingModifierNodes = null; }
+        } catch (ClassNotFoundException|NoClassDefFoundError ignored) {
+            usingModifierNodes = true;
+        }
     }
 
     static boolean rced = false;
@@ -193,8 +234,42 @@ public class GooPMMOItems {
         /*CURRENT-MMOITEMS*/    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 is \u00a7cnot\u00a77 reforgeable. ");
         /*CURRENT-MMOITEMS*/    return null; }
 
+        ReforgeOptions reforgeOptionsBuild = null;
+
+        Boolean mmoitems_6_10_1 = null;
+        if (!OotilityCeption.If(mmoitems_6_10_1)) {
+            try {
+
+                // Build using the good old boolean array
+                reforgeOptionsBuild = new ReforgeOptions(regenParams);
+
+                mmoitems_6_10_1 = false;
+            } catch (NoSuchMethodError ignored) {
+                mmoitems_6_10_1 = true;
+            }
+        }
+        if (OotilityCeption.If(mmoitems_6_10_1)) {
+            ConfigurationSection section = dummySectionReal;
+
+            // Order of boolean values:
+            // finalName, finalLore, finalEnch, finalUpgr, finalGems, finalSoul, finalExsh, finalReroll, finalMods, finalAe, finalSkin
+
+            dummySectionReal.set("display-name", regenParams[0]);
+            dummySectionReal.set("lore", regenParams[1]);
+            dummySectionReal.set("enchantments", regenParams[2]);
+            dummySectionReal.set("upgrades", regenParams[3]);
+            dummySectionReal.set("gemstones", regenParams[4]);
+            dummySectionReal.set("soulbound", regenParams[5]);
+            dummySectionReal.set("external-sh", regenParams[6]);
+            dummySectionReal.set("reroll", regenParams[7]);
+            dummySectionReal.set("modifications", regenParams[8]);
+            dummySectionReal.set("advanced-enchantments", regenParams[9]);
+            dummySectionReal.set("skins", regenParams[10]);
+            reforgeOptionsBuild = new ReforgeOptions(dummySectionReal);
+        }
+
         // Proc
-        /*CURRENT-MMOITEMS*/if (!mod.reforge(new ReforgeOptions(regenParams))) {
+        /*CURRENT-MMOITEMS*/if (!mod.reforge(reforgeOptionsBuild)) {
         /*CURRENT-MMOITEMS*/    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 could \u00a7cnot\u00a77 be reforged. ");
         /*CURRENT-MMOITEMS*/    return null; }
 
@@ -1510,6 +1585,9 @@ public class GooPMMOItems {
         }
     }
 
+    static Method getItemSet = null;
+    static Method getItemSetName = null;
+    static Boolean usingGetItemSet = null;
     /**
      * YOU MUST KNOW THESE ARE MMOITEMS, the GEMSTONE and the TARGET, otherwise it will produce NULL POINTER EXCEPTIONS
      */
@@ -1535,9 +1613,42 @@ public class GooPMMOItems {
         GemSocketsData sockets = (GemSocketsData)targetMMO.getData(GooPMMOItems.Stat(GooPMMOItemsItemStats.GEM_SOCKETS));
         if (!sockets.canReceive(gemType)) { return false; }
 
+
         // Does it match the type
         String appliableTypes = asGem.getNBTItem().getString("MMOITEMS_ITEM_TYPE_RESTRICTION");
-        if (!appliableTypes.equals("") && (!targetType.isWeapon() || !appliableTypes.contains("WEAPON")) && !appliableTypes.contains(targetType.getItemSet().name()) && !appliableTypes.contains(targetType.getId())) { return false; }
+        if (!appliableTypes.equals("")) {
+
+            // Identify useability of Using get Item Set
+            if (usingGetItemSet == null) {
+                try {
+                    getItemSet = targetType.getClass().getMethod("getItemSet");
+                    getItemSetName = getItemSet.invoke(targetType).getClass().getMethod("name");
+                    usingGetItemSet = true;
+                } catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException ignored) {
+                    usingGetItemSet = false;
+                }
+            }
+
+            // Actually read this method
+            boolean applicableCancel = false;
+            if (usingGetItemSet) {
+                try {
+                    Object itemTypeSet = getItemSet.invoke(targetType);
+
+                    // applicableCancel = !appliableTypes.contains(targetType.getItemSet().name())
+                    applicableCancel = !appliableTypes.contains((String) getItemSetName.invoke(itemTypeSet));
+                } catch (IllegalAccessException|InvocationTargetException ignored) {
+                    usingGetItemSet = false;
+                    applicableCancel = true;
+                }
+
+            // It is true by default
+            } else { applicableCancel = true; }
+
+            boolean nonWeaponCancel = !targetType.isWeapon() || !appliableTypes.contains("WEAPON");
+            boolean explicitCancel = !appliableTypes.contains(targetType.getId());
+            if (nonWeaponCancel && applicableCancel && explicitCancel) { return false; }
+        }
 
         // HUH, Success!
         return true;
@@ -1605,14 +1716,14 @@ public class GooPMMOItems {
         // If there are any custom attributes
         if (attribs != null) {
             // Retrieve Values
-            for (AttributeModifier atrb : attribs.get(Attribute.GENERIC_ATTACK_DAMAGE)) { vDamage += atrb.getAmount(); }
-            for (AttributeModifier atrb : attribs.get(Attribute.GENERIC_ATTACK_SPEED)) { vSpeed += atrb.getAmount(); }
-            for (AttributeModifier atrb : attribs.get(Attribute.GENERIC_ARMOR)) { vArmor += atrb.getAmount(); }
-            for (AttributeModifier atrb : attribs.get(Attribute.GENERIC_ARMOR_TOUGHNESS)) { vArmorT += atrb.getAmount(); }
-            for (AttributeModifier atrb : attribs.get(Attribute.GENERIC_MOVEMENT_SPEED)) { mSpeedT += atrb.getAmount(); }
-            for (AttributeModifier atrb : attribs.get(Attribute.GENERIC_MAX_HEALTH)) { mHealthT += atrb.getAmount(); }
-            for (AttributeModifier atrb : attribs.get(Attribute.GENERIC_KNOCKBACK_RESISTANCE)) { mKRes += atrb.getAmount(); }
-            for (AttributeModifier atrb : attribs.get(Attribute.GENERIC_LUCK)) { mLuck += atrb.getAmount(); }
+            for (AttributeModifier atrb : attribs.get(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_DAMAGE))) { vDamage += atrb.getAmount(); }
+            for (AttributeModifier atrb : attribs.get(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_SPEED))) { vSpeed += atrb.getAmount(); }
+            for (AttributeModifier atrb : attribs.get(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR))) { vArmor += atrb.getAmount(); }
+            for (AttributeModifier atrb : attribs.get(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR_TOUGHNESS))) { vArmorT += atrb.getAmount(); }
+            for (AttributeModifier atrb : attribs.get(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MOVEMENT_SPEED))) { mSpeedT += atrb.getAmount(); }
+            for (AttributeModifier atrb : attribs.get(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MAX_HEALTH))) { mHealthT += atrb.getAmount(); }
+            for (AttributeModifier atrb : attribs.get(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_KNOCKBACK_RESISTANCE))) { mKRes += atrb.getAmount(); }
+            for (AttributeModifier atrb : attribs.get(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_LUCK))) { mLuck += atrb.getAmount(); }
         }
 
         // Create Tags
@@ -3106,6 +3217,11 @@ public class GooPMMOItems {
     public static ItemStack MMOItemModifyDurability(@Nullable ItemStack base, @Nullable Player holder, @NotNull PlusMinusPercent operation, @Nullable RefSimulator<Double> reslt, boolean preventBreaking, @Nullable RefSimulator<String> logger) {
         return MMOItemModifyDurability(base, holder, operation, reslt, preventBreaking, false, logger);
     }
+
+    static Constructor durabilityItemNonAbstract;
+    static Method durabilityItemValidity;
+    static Boolean usingDurabilityItemAbstract = null;
+
     /**
      * Performs an operation on the durability of an item. If it succeeded on setting the durability, it will return the modified ItemStack.
      * <p>Will target MMOItems durability if applicable.</p> Does not bypass Unbreakable attribute.
@@ -3141,10 +3257,41 @@ public class GooPMMOItems {
 
             // Result
             ItemStack result = null;
+            DurabilityItem durItem;
+
+            if (usingDurabilityItemAbstract == null) {
+                try {
+                    durabilityItemNonAbstract = DurabilityItem.class.getConstructor(new Class[]{Player.class, ItemStack.class});
+                    durabilityItemValidity = DurabilityItem.class.getMethod("isValid");
+                    usingDurabilityItemAbstract = false;
+                } catch (NoSuchMethodException ignored ){
+                    usingDurabilityItemAbstract = true;
+                    durabilityItemNonAbstract = null;
+                    durabilityItemValidity = null;
+                }
+            }
+
+            boolean isValid = false;
+            if (usingDurabilityItemAbstract) {
+                durItem = DurabilityItem.from(holder, base);
+                isValid = (durItem != null);
+
+            } else {
+                try {
+                    //DurabilityItem durItem = new DurabilityItem(holder, base);
+                    durItem = (DurabilityItem) durabilityItemNonAbstract.newInstance(holder, base);
+                    // isValid = durItem.isValid()
+                    isValid = (boolean) durabilityItemValidity.invoke(durItem);
+
+                } catch (IllegalAccessException|InstantiationException|InvocationTargetException ignored) {
+                    if (!Gunging_Ootilities_Plugin.blockImportantErrorFeedback){  Gunging_Ootilities_Plugin.theOots.CPLog(OotilityCeption.LogFormat("MMOItems - Modify Durability", "\u00a7cCould not instantiate Durability Item class in\u00a7e GooPMMOitems.MMOItemModifyDurability(ItemStack, Player, PlusMinusPercent, RefSimulator, boolean, boolean, RefSimulator)")); }
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Could not modify durability due to compatibility issues. ");
+                    return null;
+                }
+            }
 
             // Attempt to get durability item
-            DurabilityItem durItem = new DurabilityItem(holder, base);
-            if (durItem.isValid()) {
+            if (isValid) {
                 //dur//OotilityCeption. Log("\u00a7aUses MMOItems dura ");
 
                 // Get Name
@@ -3493,33 +3640,34 @@ public class GooPMMOItems {
             // Get Socket Data
             DoubleData mData = null;
             ItemStat stt = null;
-            switch (attrib) {
-                case GENERIC_MOVEMENT_SPEED:
-                    stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.MOVEMENT_SPEED);
-                    break;
-                case GENERIC_ATTACK_DAMAGE:
-                    stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ATTACK_DAMAGE);
-                    break;
-                case GENERIC_MAX_HEALTH:
-                    stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.MAX_HEALTH);
-                    break;
-                case GENERIC_ARMOR:
-                    stt = Gunging_Ootilities_Plugin.useMMOLibDefenseConvert ? ItemStats.DEFENSE : ItemStats.ARMOR;
-                    break;
-                case GENERIC_ARMOR_TOUGHNESS:
-                    stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ARMOR_TOUGHNESS);
-                    break;
-                case GENERIC_ATTACK_SPEED:
-                    stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ATTACK_SPEED);
-                    break;
-                case GENERIC_KNOCKBACK_RESISTANCE:
-                    stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.KNOCKBACK_RESISTANCE);
-                    break;
-                case GENERIC_LUCK:
-                    stt = GooPMMOItems.LUCK;
-                    break;
-                default:
-                    return null;
+
+            // Gather initial vanilla
+            if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MOVEMENT_SPEED))) {
+                stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.MOVEMENT_SPEED);
+
+            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_DAMAGE))) {
+                stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ATTACK_DAMAGE);
+
+            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MAX_HEALTH))) {
+                stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.MAX_HEALTH);
+
+            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR))) {
+                stt = Gunging_Ootilities_Plugin.useMMOLibDefenseConvert ? ItemStats.DEFENSE : ItemStats.ARMOR;
+
+            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_SPEED))) {
+                stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ATTACK_SPEED);
+
+            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_KNOCKBACK_RESISTANCE))) {
+                stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.KNOCKBACK_RESISTANCE);
+
+            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_LUCK))) {
+                stt = GooPMMOItems.LUCK;
+
+            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR_TOUGHNESS))) {
+                stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ARMOR_TOUGHNESS);
+
+            } else {
+                return null;
             }
 
             // Get value
@@ -4140,212 +4288,28 @@ public class GooPMMOItems {
         return ModifierOperation(rawModifier, mmo, true, false, logger);
     }
     @Nullable public static ItemStack ModifierOperation(@Nullable String rawModifier, @Nullable ItemStack mmo, boolean useGlobl, boolean chances, @Nullable RefSimulator<String> logger) {
-        if (rawModifier == null || mmo == null) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Unspecified modifier or item. ");
+        if (usingModifierNodes == null) {
+            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Could not perform modifier operations due to compatibility issues. GooPMMOItems.ModifierOperation(String, ItemStack, boolean, boolean, RefSimulator)");
             return null; }
 
-        // Convert into MMOItem
-        if (!IsMMOItem(mmo)) {
-
-            // Maybe global ones yeah
-            if (useGlobl) {
-                mmo = ConvertVanillaToMMOItem(mmo);
-
-            } else {
-                OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This " + OotilityCeption.GetItemName(mmo) + " is not an MMOItem, so it has no modifiers, enable \u00a7buse-global\u00a77 to use this command with this.");
-                return null;
-            }
-        }
-
-        MMOItemTemplate template = MMOItems.plugin.getTemplates().getTemplate(NBTItem.get(mmo));
-
-        // Sleap
-        if (template == null && !useGlobl) {
-
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This " + OotilityCeption.GetItemName(mmo) + " is an MMOItem but the template is not loaded, was it deleted? GooP cannot find its modifiers, enable \u00a7buse-global\u00a77 to use this command with this.");
-            return null;
-        }
-
-        boolean dummyTemplate = (template == null);
-        if (template == null) { template = new MMOItemTemplate(Type.TOOL, "HX_MÑP"); }
-
-        boolean random = rawModifier.equalsIgnoreCase("random");
-        boolean clear = rawModifier.equalsIgnoreCase("none");
-
-        boolean modifierLocal = false;
-        modifierLocal = template.hasModifier(rawModifier);
-        boolean modifierExists = modifierLocal || (useGlobl && MMOItems.plugin.getTemplates().hasModifier(rawModifier));
-
-        // Ay exist?
-        if (!random && !clear && !modifierExists) {
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "There is no modifier of name \u00a73" + rawModifier + "\u00a77. ");
-            return null; }
-
-        NBTItem nbt = NBTItem.get(mmo);
-        LiveMMOItem live = new LiveMMOItem(nbt);
-
-        // Perform operation
-        if (random) {
-
-            // Shuffle
-            List<TemplateModifier> modifiers = new ArrayList<>(template.getModifiers().values());
-
-            // Add all globally loaded ones
-            if (useGlobl) { modifiers.addAll(MMOItems.plugin.getTemplates().getModifiers()); }
-
-            // Ay exist?
-            if (modifiers.size() == 0) {
-                if (dummyTemplate) {
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "MMOItem \u00a7e" + template.getType().getId() + " " + template.getId() + "\u00a77 has\u00a7c no modifiers\u00a77, cant pick a random one thus. ");
-
-                } else {
-
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "There are\u00a7c no global modifiers\u00a77, cant pick a random one thus. ");
-                }
-                return null;
-            }
-
-            // Get Modifier
-            TemplateModifier modifier = null;
-            if (chances) {
-
-                // Select based on chances
-                int breaker = 0;
-                while (modifier == null && breaker < 400) { breaker++; Collections.shuffle(modifiers); for (TemplateModifier mod : modifiers) { if (mod.rollChance()) { modifier = mod; break; } } }
-                if (breaker >= 400) {
-
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "This " + OotilityCeption.GetItemName(mmo) + "\u00a77 could\u00a7c not roll\u00a77 for any modifier after \u00a7b" + breaker + "\u00a77 iterations, chances must be too low. ");
-                    return null;
-                }
-
-            } else {
-
-                // Get one from the list, same chance all of them
-                modifier = modifiers.get(OotilityCeption.GetRandomInt(0, modifiers.size() - 1));
-            }
-
-            UUID modUUID = UUID.randomUUID();
-
-            /*CURRENT-MMOITEMS*/MMOItemBuilder freshBuilder = template.newBuilder();
-            //YE-OLDEN-MMO//MMOItemBuilder freshBuilder = template.newBuilder(null);
-
-
-            for (ItemStat stat : modifier.getItemData().keySet()) {
-
-                // Randomize yeah
-                StatData statData = modifier.getItemData().get(stat).randomize(freshBuilder);
-
-                // Is this mergeable?
-                if (stat.getClearStatData() instanceof Mergeable) {
-
-                    // Apply onto Stat History
-                    StatHistory hist = StatHistory.from(live, stat);
-
-                    // Apply
-                    hist.registerModifierBonus(modUUID, statData);
-
-                } else {
-
-                    // Set, there is no more.
-                    live.setData(stat, statData);
-                }
-            }
-
-            // Rename
-            if (modifier.hasNameModifier()) {
-
-                // Get name data
-                StatHistory hist = StatHistory.from(live, ItemStats.NAME);
-
-                // Create new Name Data
-                NameModifier namemod = modifier.getNameModifier();
-                NameData modName = new NameData("");
-
-                // Include modifier information
-                if (namemod.getType() == NameModifier.ModifierType.PREFIX) { modName.addPrefix(namemod.getFormat()); }
-                if (namemod.getType() == NameModifier.ModifierType.SUFFIX) { modName.addSuffix(namemod.getFormat()); }
-
-                // Register onto SH
-                hist.registerModifierBonus(modUUID, modName);
-            }
-
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Applied \u00a7b" + modifier.getId() + "\u00a77 to " + OotilityCeption.GetItemName(mmo) + "\u00a77. ");
-
-        } else if (clear) {
-
-            // Well I guess go through all stat histories
-            for (StatHistory hist : live.getStatHistories()) {
-
-                // Clear modifiers
-                hist.clearModifiersBonus();
-            }
-
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Cleared modifiers of " + OotilityCeption.GetItemName(mmo));
-
+        if (usingModifierNodes) {
+            return GooPMMOItemsModifierNodesOps.ModifierOperation(rawModifier, mmo, useGlobl, chances,logger);
         } else {
-
-            // Get Modifier
-            TemplateModifier modifier = modifierLocal ? template.getModifier(rawModifier) : MMOItems.plugin.getTemplates().getModifier(rawModifier);
-
-            UUID modUUID = UUID.randomUUID();
-            /*CURRENT-MMOITEMS*/MMOItemBuilder freshBuilder = template.newBuilder();
-            //YE-OLDEN-MMO//MMOItemBuilder freshBuilder = template.newBuilder(null);
-
-            for (ItemStat stat : modifier.getItemData().keySet()) {
-
-                // Randomize yeah
-                StatData statData = modifier.getItemData().get(stat).randomize(freshBuilder);
-
-                // Is this mergeable?
-                if (stat.getClearStatData() instanceof Mergeable) {
-
-
-                    // Apply onto Stat History
-                    StatHistory hist = StatHistory.from(live, stat);
-
-                    // Apply
-                    hist.registerModifierBonus(modUUID, statData);
-
-                } else {
-
-                    // Set, there is no more.
-                    live.setData(stat, statData);
-                }
-            }
-
-            // Rename
-            if (modifier.hasNameModifier()) {
-
-                // Get name data
-                StatHistory hist = StatHistory.from(live, ItemStats.NAME);
-
-                // Create new Name Data
-                NameModifier namemod = modifier.getNameModifier();
-                NameData modName = new NameData("");
-
-                // Include modifier information
-                if (namemod.getType() == NameModifier.ModifierType.PREFIX) { modName.addPrefix(namemod.getFormat()); }
-                if (namemod.getType() == NameModifier.ModifierType.SUFFIX) { modName.addSuffix(namemod.getFormat()); }
-
-                // Register onto SH
-                hist.registerModifierBonus(modUUID, modName);
-            }
-
-            OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Applied \u00a7b" + modifier.getId() + "\u00a77 to " + OotilityCeption.GetItemName(mmo));
+            return GooPMMOItemsTemplateModifierOps.ModifierOperation(rawModifier, mmo, useGlobl, chances,logger);
         }
-
-        // Yeah that's it
-        return live.newBuilder().build();
     }
 
     public static ArrayList<String> getGlobalModifierNames() {
+        if (usingModifierNodes == null) { return new ArrayList<>(); }
 
-        ArrayList<String> ret = new ArrayList<>();
-
-        for (TemplateModifier mod : MMOItems.plugin.getTemplates().getModifiers()) { ret.add(mod.getId()); }
-
-        return ret;
+        if (usingModifierNodes) {
+            return GooPMMOItemsModifierNodesOps.getGlobalModifierNames();
+        } else {
+            return GooPMMOItemsTemplateModifierOps.getGlobalModifierNames();
+        }
     }
+
+    public static Boolean usingModifierNodes = null;
 
     public static final String invalidTypeID = "no u";
     //endregion

@@ -22,6 +22,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Listener {
@@ -109,10 +111,12 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         // Is this paper spigot
         try {
             // Is it Paper Spigot?
-            @SuppressWarnings("ConstantConditions") org.bukkit.event.entity.EntityDeathEvent paperSpigot = new org.bukkit.event.entity.EntityDeathEvent(null, null);
-
-            //noinspection ConstantConditions
-            if (paperSpigot instanceof Cancellable) { asPaperSpigot = true; }
+            try {
+                Method paperModify = PlayerDeathEvent.class.getMethod("getItemsToKeep");
+                asPaperSpigot = true;
+            } catch (NoSuchMethodException ignored) {
+                asPaperSpigot = false;
+            }
 
         } catch (Throwable ignored) { asPaperSpigot = false; }
 
@@ -298,9 +302,13 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 foundMMOItems = false;
             }
         }
-
         //region MMOItems Subversions and Stat Registry
         if (foundMMOItems) {
+            GooPMMOItems.ReflectionOnLoad();
+
+            // Jesus, this is horrible but hopefully low maintenance
+            // enough that I never have to deal with it again
+            GooPMMOItems.DefineSillyConfigurationSectionForMMOCompat(getConfig().createSection("MMODeveloperCompatibility"));
 
             // Register Stats
             GooPMMOItems.RegisterCustomStats(getConfig().getInt("MiscStatAmount", 3), getConfig().getInt("MiscStrStatAmount", 1), getConfig().getStringList("MiscRstStatAmount"));

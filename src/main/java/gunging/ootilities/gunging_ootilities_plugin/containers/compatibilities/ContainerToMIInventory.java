@@ -1,5 +1,6 @@
 package gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities;
 
+import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
@@ -97,7 +98,7 @@ class ContainersEquippedItem extends EquippedItem {
         this.container = container;
         this.player = player;
         this.index = index;
-        GooPMythicMobs.newenOlden = true;
+        if (Gunging_Ootilities_Plugin.foundMythicMobs) { GooPMythicMobs.newenOlden = true; }
     }
 
     /*NEWEN*/@Override

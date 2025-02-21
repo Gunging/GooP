@@ -3,6 +3,8 @@ package gunging.ootilities.gunging_ootilities_plugin.customstructures;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPVault;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPVersionEntities;
+import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions;
 import gunging.ootilities.gunging_ootilities_plugin.containers.loader.GCL_Physical;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.CSMatchResult;
 import gunging.ootilities.gunging_ootilities_plugin.events.JSONPlacerUtils;
@@ -899,7 +901,7 @@ public class CSStructure {
             tTrigger = CSTrigger.PRESSUREPLATE_MONSTERS;
 
         // Dropped Item perhaps?
-        } else if (vEntity.getType() == EntityType.DROPPED_ITEM) {
+        } else if (vEntity.getType() == GooP_MinecraftVersions.GetVersionEntityType(GooPVersionEntities.DROPPED_ITEM)) {
 
             // As Monster
             tTrigger = CSTrigger.PRESSUREPLATE_ITEMS;
