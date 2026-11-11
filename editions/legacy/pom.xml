@@ -19,6 +19,6 @@
         <goop.release>17</goop.release>
         <goop.apiVersion>1.20</goop.apiVersion>
         <paper.version>1.20.1-R0.1-SNAPSHOT</paper.version>
-        <mythicmobs.version>5.11.0</mythicmobs.version>
+        <mythicmobs.version>5.10.0</mythicmobs.version>
     </properties>
 </project>

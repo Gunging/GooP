@@ -5,7 +5,7 @@
 ### Compatibility
 - Two editions built from one source: `modern` for Paper/Purpur 1.21.1 – 26.x and `legacy`
   for 1.20.1 – 1.20.6.
-- Builds against MMOItems 6.10.1, MythicLib 1.7.1, MMOCore 1.13.1, MythicMobs 5.11 (legacy) /
+- Builds against MMOItems 6.10.1, MythicLib 1.7.1, MMOCore 1.13.1, MythicMobs 5.10 (legacy) /
   5.14 (modern) and mcMMO 2.x, all from public Maven repositories.
 - Minecraft version detection understands 1.21.10+ and the year-based 26.x releases.
 - Materials, entity types, enchantments, attributes and potion effects that were renamed
@@ -27,7 +27,7 @@
 ### Changed
 - Item name filters without `*` must match exactly. Write `*ICE*` where the old
   "contains" behaviour was intended.
-- MythicMobs older than 5.11 is no longer supported (custom mechanics use the 5.2+ API only).
+- MythicMobs older than 5.10 is no longer supported (custom mechanics use the 5.2+ API only).
 - mcMMO placeholders require mcMMO 2.x.
 - MMOItem Shrubs, Graveyards and Towny are reached without compile-time dependencies; if a
   version of them changes shape, only that integration is disabled.

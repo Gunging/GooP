@@ -69,7 +69,7 @@ for v in 1.21.1 1.21.4 1.21.8 1.21.11 26.1.2 26.2 26.3; do check "modern on Pape
 
 echo "== MythicMobs / MMO API"
 export API_PREFIXES="io/lumine/mythic/,net/Indyuce/"
-check "legacy with MythicMobs 5.11.0" "$LEGACY_JAR" "$(mythic 5.11.0)" "$MYTHICLIB" "$MMOITEMS" "$MMOCORE" "$(paper_api 1.20.6)"
+check "legacy with MythicMobs 5.10.0" "$LEGACY_JAR" "$(mythic 5.10.0)" "$MYTHICLIB" "$MMOITEMS" "$MMOCORE" "$(paper_api 1.20.6)"
 for m in 5.12.1 5.13.0 5.14.0; do
   check "modern with MythicMobs $m" "$MODERN_JAR" "$(mythic $m)" "$MYTHICLIB" "$MMOITEMS" "$MMOCORE" "$(paper_api 26.3)"
 done
