@@ -16,7 +16,7 @@ Two jars are built from the same source. Pick the one for your server version.
 | Jar | Server | Java | MythicMobs |
 |---|---|---|---|
 | `Gunging_Ootilities_Plugin-<version>-modern.jar` | Paper / Purpur 1.21.1 – 26.x | 21+ | 5.12 – 5.14 |
-| `Gunging_Ootilities_Plugin-<version>-legacy.jar` | Paper / Purpur 1.20.1 – 1.20.6 | 17+ | 5.10 |
+| `Gunging_Ootilities_Plugin-<version>-legacy.jar` | Paper / Purpur 1.20.1 – 1.20.6 | 17+ | 5.9.5 (5.10 on 1.20.6 only) |
 
 Both editions are built against MythicLib 1.7.1, MMOItems 6.10.1 and MMOCore 1.13.1.
 Spigot and Folia are not supported.
