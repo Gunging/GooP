@@ -6,7 +6,6 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.*;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mmotimelesscompatclutter.GooPMMOItemsModifierNodesOps;
-import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.mmotimelesscompatclutter.GooPMMOItemsTemplateModifierOps;
 import gunging.ootilities.gunging_ootilities_plugin.containers.compatibilities.ContainerToMIInventory;
 import gunging.ootilities.gunging_ootilities_plugin.events.ScoreboardLinks;
 import gunging.ootilities.gunging_ootilities_plugin.misc.*;
@@ -33,7 +32,6 @@ import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
 import net.Indyuce.mmoitems.api.item.mmoitem.VolatileMMOItem;
 import net.Indyuce.mmoitems.api.item.template.MMOItemTemplate;
 import net.Indyuce.mmoitems.api.item.template.NameModifier;
-import net.Indyuce.mmoitems.api.item.template.TemplateModifier;
 import net.Indyuce.mmoitems.api.item.util.identify.IdentifiedItem;
 import net.Indyuce.mmoitems.api.player.PlayerData;
 import net.Indyuce.mmoitems.api.player.RPGPlayer;
@@ -117,11 +115,10 @@ public class GooPMMOItems {
     public static void ReflectionOnLoad() {
         try {
             usingModifierNodes = false;
-            Class aelous = TemplateModifier.class;
-            if (aelous == null) { throw new ClassNotFoundException("Skibidi"); }
-            if (!GooPMMOItemsTemplateModifierOps.ReflectMethods()) { usingModifierNodes = null; }
-        } catch (ClassNotFoundException|NoClassDefFoundError ignored) {
+            // MMOItems 6.10+ only has modifier nodes; the TemplateModifier era is gone
             usingModifierNodes = true;
+        } catch (LinkageError ignored) {
+            usingModifierNodes = null;
         }
     }
 
@@ -129,7 +126,10 @@ public class GooPMMOItems {
     public static boolean RegisterContainersEquipment() {
         if (rced) { return Gunging_Ootilities_Plugin.foundMMOItems; }
         if(MMOItems.plugin == null) { return false; }
-        MMOItems.plugin.registerPlayerInventory(new ContainerToMIInventory());
+        // Replace any supplier left over from a previous load of GooP (plugin reloads)
+        String supplierClass = ContainerToMIInventory.class.getName();
+        MMOItems.plugin.getInventory().unregisterIf(s -> s.getClass().getName().equals(supplierClass));
+        MMOItems.plugin.getInventory().register(new ContainerToMIInventory());
         //DBG//OotilityCeption.Log("Registerer Containers MIInventory");
         rced = true;
         return true;
@@ -236,20 +236,8 @@ public class GooPMMOItems {
 
         ReforgeOptions reforgeOptionsBuild = null;
 
-        Boolean mmoitems_6_10_1 = null;
-        if (!OotilityCeption.If(mmoitems_6_10_1)) {
-            try {
-
-                // Build using the good old boolean array
-                reforgeOptionsBuild = new ReforgeOptions(regenParams);
-
-                mmoitems_6_10_1 = false;
-            } catch (NoSuchMethodError ignored) {
-                mmoitems_6_10_1 = true;
-            }
-        }
-        if (OotilityCeption.If(mmoitems_6_10_1)) {
-            ConfigurationSection section = dummySectionReal;
+        // MMOItems 6.10.1+ reads reforge options from a config section
+        {
 
             // Order of boolean values:
             // finalName, finalLore, finalEnch, finalUpgr, finalGems, finalSoul, finalExsh, finalReroll, finalMods, finalAe, finalSkin
@@ -536,112 +524,25 @@ public class GooPMMOItems {
     //endregion
 
     //region Getting Values (as well as the cummulative forms)
-    static Method equipped = null;
-    static Method getitem = null;
-    static boolean usingEquippedPlayerItems = true;
-
     /**
      * Gets the MMOItems this player has equipped.
+     * <p>
+     * Reads MMOItems' resolved inventory directly. GooP 1.x reached it through reflection and
+     * cast it to a List, which threw a ClassCastException on every hit once MMOItems 6.10.1
+     * started returning a Set.
      */
     @NotNull public static ArrayList<VolatileMMOItem> GetPlayerEquipment(@NotNull Player player) {
-
-        // Ret
         ArrayList<VolatileMMOItem> vot = new ArrayList<>();
 
-        // Get Eq
+        // Player data is not loaded yet (just joined, or MMOItems is still starting up)
+        if (!PlayerData.has(player)) { return vot; }
         PlayerData p;
-        try { p = PlayerData.get(player); } catch (NullPointerException ignored) {
-            //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7c Null Player Data");
-            return vot; }
+        try { p = PlayerData.get(player); } catch (RuntimeException notLoaded) { return vot; }
 
-        // Find method
-        if (equipped == null) {
-            //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a75 Finding Equipment Method...");
-
-            // Reflection or not
-            try {
-
-                // Identify Method
-                equipped = p.getInventory().getClass().getMethod("getEquipped");
-                //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7d Equipment Method Found");
-
-            // lol no
-            } catch (NoSuchMethodException ignored) {
-                //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7c No Equipment Method");
-                return vot; }
+        for (net.Indyuce.mmoitems.inventory.EquippedItem equipped : p.getInventory().getEquipped()) {
+            VolatileMMOItem read = equipped.reader();
+            if (read != null) { vot.add(read); }
         }
-
-        try {
-
-            // Attempt to invoek
-            Object equippedItems = equipped.invoke(p.getInventory());
-
-            // Using Equipped Player Items?
-            if (usingEquippedPlayerItems) {
-                //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a75 Identifying Equipment Class...");
-
-                try {
-
-                    // We all know it is a list (real)
-                    List list = ((List) equippedItems);
-
-                    // List of something
-                    for (int i = 0; i < list.size(); i++) {
-
-                        // Get that item I hope
-                        Object equippedPlayerItem = (Object) list.get(i);
-
-                        // Find method
-                        if (getitem == null) {
-
-                            // Reflection or not
-                            getitem = equippedPlayerItem.getClass().getMethod("getItem");
-                            //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7d Using EquippedPlayerItem.getItem()");
-                        }
-
-                        // That should be the result
-                        vot.add((VolatileMMOItem) getitem.invoke(equippedPlayerItem));
-                        //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7a +\u00a77 Added!");
-                    }
-
-                    // Right....
-                    return vot;
-
-                } catch (NoClassDefFoundError|NoSuchMethodException ignored) {
-                    //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7d Equipped Item Method must be used");
-                    usingEquippedPlayerItems = false; getitem = null; }
-            }
-
-            // Cast into list
-            List<EquippedItem> list = (List<EquippedItem>) equippedItems;
-            for (EquippedItem e : list) {
-
-                // Find method
-                if (getitem == null) {
-
-                    // Reflection or not
-                    try {
-
-                        // Identify Method
-                        getitem = e.getClass().getMethod("getNBT");
-                        //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7d Using EquippedItem.getNBT()");
-
-                    // lol no
-                    } catch (NoSuchMethodException ignored) {
-                        //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7c Could not find EquippedItem.getNBT()");
-                        return vot; }
-                }
-
-                vot.add(new VolatileMMOItem((NBTItem) getitem.invoke(e)));
-                //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7a +\u00a77 Added!");
-            }
-
-        } catch (InvocationTargetException|IllegalAccessException ignored) {
-
-            //EQP//OotilityCeption.Log("\u00a78MMO\u00a73 EQP\u00a7c Could not identify Equipped Items method");
-        }
-
-        // Return thay
         return vot;
     }
 
@@ -1208,7 +1109,7 @@ public class GooPMMOItems {
     public static boolean MeetsRequirements(Player target, ItemStack item, boolean message) { return MeetsRequirements(target, NBTItem.get(item), message); }
     public static boolean MeetsRequirements(Player target, NBTItem item, boolean message) {
         if (target != null) {
-            PlayerData iData = PlayerData.get(target);
+            PlayerData iData = PlayerData.has(target) ? PlayerData.get(target) : null;  // "Player data not loaded" otherwise
 
             if (iData != null) {
 
@@ -1233,7 +1134,7 @@ public class GooPMMOItems {
     public static int GetPlayerLevel(@NotNull Player target) {
 
         // Get Data
-        PlayerData data = PlayerData.get(target);
+        PlayerData data = PlayerData.has(target) ? PlayerData.get(target) : null;
 
         if (data == null) { return 0; }
         if (data.getRPG() == null) { return 0; }
@@ -1245,7 +1146,7 @@ public class GooPMMOItems {
     @NotNull public static String GetPlayerClass(@NotNull Player target) {
 
         // Get Data
-        PlayerData data = PlayerData.get(target);
+        PlayerData data = PlayerData.has(target) ? PlayerData.get(target) : null;
 
         if (data == null) { return ""; }
         if (data.getRPG() == null) { return ""; }
@@ -2986,11 +2887,11 @@ public class GooPMMOItems {
                 // Log if Appropiate
                 if (result != null) {
 
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified attribute \u00a73" + attrib.name() + "\u00a77 of "+ OotilityCeption.GetItemName(base));
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPSuccessFeedback, "Modified attribute \u00a73" + GooP_MinecraftVersions.GetAttributeName(attrib) + "\u00a77 of "+ OotilityCeption.GetItemName(base));
 
                 } else {
 
-                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "\u00a77Attribute \u00a73" + attrib.name() + "\u00a77 doesnt seem to be supported as to modify its MMOItem counterpart.");
+                    OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "\u00a77Attribute \u00a73" + GooP_MinecraftVersions.GetAttributeName(attrib) + "\u00a77 doesnt seem to be supported as to modify its MMOItem counterpart.");
                 }
             }
 
@@ -3642,28 +3543,28 @@ public class GooPMMOItems {
             ItemStat stt = null;
 
             // Gather initial vanilla
-            if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MOVEMENT_SPEED))) {
+            if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MOVEMENT_SPEED))) {
                 stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.MOVEMENT_SPEED);
 
-            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_DAMAGE))) {
+            } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_DAMAGE))) {
                 stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ATTACK_DAMAGE);
 
-            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MAX_HEALTH))) {
+            } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_MAX_HEALTH))) {
                 stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.MAX_HEALTH);
 
-            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR))) {
+            } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR))) {
                 stt = Gunging_Ootilities_Plugin.useMMOLibDefenseConvert ? ItemStats.DEFENSE : ItemStats.ARMOR;
 
-            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_SPEED))) {
+            } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_SPEED))) {
                 stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ATTACK_SPEED);
 
-            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_KNOCKBACK_RESISTANCE))) {
+            } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_KNOCKBACK_RESISTANCE))) {
                 stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.KNOCKBACK_RESISTANCE);
 
-            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_LUCK))) {
+            } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_LUCK))) {
                 stt = GooPMMOItems.LUCK;
 
-            } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR_TOUGHNESS))) {
+            } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR_TOUGHNESS))) {
                 stt = GooPMMOItems.Stat(GooPMMOItemsItemStats.ARMOR_TOUGHNESS);
 
             } else {
@@ -3991,8 +3892,7 @@ public class GooPMMOItems {
      */
     public static void UpdatePlayerEquipment(@Nullable OfflinePlayer p) {
         if (p == null) { return; }
-
-        PlayerData.get(p.getUniqueId()).updateInventory();
+        UpdatePlayerEquipment(p.getUniqueId());
     }
     /**
      * Forces an update of MMOItems player equipment.
@@ -4010,7 +3910,8 @@ public class GooPMMOItems {
         if (!potentialPlayer.hasPlayedBefore()) { return; }
         if (!potentialPlayer.isOnline()) { return; }
 
-        // KK its a real player proceeed
+        // KK its a real player proceeed (offline or still-loading players have no data)
+        if (!PlayerData.has(p)) { return; }
         PlayerData.get(p).updateInventory();
     }
 
@@ -4292,21 +4193,13 @@ public class GooPMMOItems {
             OotilityCeption.Log4Success(logger, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Could not perform modifier operations due to compatibility issues. GooPMMOItems.ModifierOperation(String, ItemStack, boolean, boolean, RefSimulator)");
             return null; }
 
-        if (usingModifierNodes) {
-            return GooPMMOItemsModifierNodesOps.ModifierOperation(rawModifier, mmo, useGlobl, chances,logger);
-        } else {
-            return GooPMMOItemsTemplateModifierOps.ModifierOperation(rawModifier, mmo, useGlobl, chances,logger);
-        }
+        return GooPMMOItemsModifierNodesOps.ModifierOperation(rawModifier, mmo, useGlobl, chances,logger);
     }
 
     public static ArrayList<String> getGlobalModifierNames() {
         if (usingModifierNodes == null) { return new ArrayList<>(); }
 
-        if (usingModifierNodes) {
-            return GooPMMOItemsModifierNodesOps.getGlobalModifierNames();
-        } else {
-            return GooPMMOItemsTemplateModifierOps.getGlobalModifierNames();
-        }
+        return GooPMMOItemsModifierNodesOps.getGlobalModifierNames();
     }
 
     public static Boolean usingModifierNodes = null;

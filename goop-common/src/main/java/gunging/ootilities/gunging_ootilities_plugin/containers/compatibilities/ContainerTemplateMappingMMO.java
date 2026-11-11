@@ -35,7 +35,7 @@ public class ContainerTemplateMappingMMO extends VanillaInventoryMapping impleme
         return LegacyIsTargetInventory(view.getTitle(), view.getType(), view.getPlayer().getUniqueId());
     }
 
-    @Override
+    /** Pre-VInventoryView name of {@link #isTargetInventory}, kept for GooP callers */
     public boolean IsTargetInventory(@NotNull InventoryView view) {
         return LegacyIsTargetInventory(view);
     }
