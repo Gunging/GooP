@@ -1,5 +1,5 @@
 /lib/
-/target/
+target/
 /.settings/
 /.idea/
 /.m2/
@@ -7,3 +7,4 @@
 .project
 Gunging's Ootilities Plugin.eml
 Gunging's Ootilities Plugin.iml
+/dist/
