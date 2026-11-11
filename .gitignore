@@ -8,3 +8,4 @@ target/
 Gunging's Ootilities Plugin.eml
 Gunging's Ootilities Plugin.iml
 /dist/
+tools/compat/.cache/
