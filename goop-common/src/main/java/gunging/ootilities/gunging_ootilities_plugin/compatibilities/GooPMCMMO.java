@@ -2,16 +2,14 @@ package gunging.ootilities.gunging_ootilities_plugin.compatibilities;
 
 import com.gmail.nossr50.config.AdvancedConfig;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.SecondaryAbility;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.skills.SkillManager;
+import com.gmail.nossr50.datatypes.skills.SubSkillType;
+import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.skills.archery.ArcheryManager;
 import com.gmail.nossr50.skills.axes.AxesManager;
 import com.gmail.nossr50.skills.taming.TamingManager;
 import com.gmail.nossr50.skills.unarmed.UnarmedManager;
 import com.gmail.nossr50.util.player.UserManager;
-import com.gmail.nossr50.util.skills.PerksUtils;
-import com.gmail.nossr50.util.skills.SkillUtils;
+import com.gmail.nossr50.util.random.ProbabilityUtil;
 import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooPMCMMO_StatType;
 import org.bukkit.entity.LivingEntity;
@@ -26,7 +24,7 @@ public class GooPMCMMO {
     public void CompatibilityCheck() {
 
         // Attempt to load
-        Double test = AdvancedConfig.getInstance().getDazeBonusDamage();
+        Double test = advanced().getDazeBonusDamage();
     }
 
     // For the dual-cummulativity of some stats
@@ -103,6 +101,7 @@ public class GooPMCMMO {
 
         // GEt Managers
         McMMOPlayer agressor_McMMO = UserManager.getPlayer(target);
+        if (agressor_McMMO == null) { return null; }  // mcMMO profile not loaded yet
         ArcheryManager archery_ofAgressor = agressor_McMMO.getArcheryManager();
         AxesManager axes_ofAgressor = agressor_McMMO.getAxesManager();
         UnarmedManager unarmed_ofAgressor = agressor_McMMO.getUnarmedManager();
@@ -115,10 +114,10 @@ public class GooPMCMMO {
             case ARCHERY_DAZE:
 
                 // Roll for daze
-                if (skillActivationChance(SecondaryAbility.DAZE, archery_ofAgressor, agressor_McMMO, SkillType.ARCHERY)) {
+                if (ProbabilityUtil.isSkillRNGSuccessful(SubSkillType.ARCHERY_DAZE, target)) {
 
                     // Successful roll
-                    processedDamage = AdvancedConfig.getInstance().getDazeBonusDamage();
+                    processedDamage = advanced().getDazeBonusDamage();
 
                 } else {
 
@@ -160,10 +159,10 @@ public class GooPMCMMO {
             case AXES_CRIT_PVE:
 
                 // Roll for crit
-                if (skillActivationChance(SecondaryAbility.CRITICAL_HIT, axes_ofAgressor, agressor_McMMO, SkillType.AXES)) {
+                if (ProbabilityUtil.isSkillRNGSuccessful(SubSkillType.AXES_CRITICAL_STRIKES, target)) {
 
                     // Successful roll
-                    processedDamage = AdvancedConfig.getInstance().getCriticalHitPVEModifier();
+                    processedDamage = advanced().getCriticalStrikesPVEModifier();
 
                 } else {
 
@@ -175,10 +174,10 @@ public class GooPMCMMO {
             case AXES_CRIT_PVP:
 
                 // Roll for crit
-                if (skillActivationChance(SecondaryAbility.CRITICAL_HIT, axes_ofAgressor, agressor_McMMO, SkillType.AXES)) {
+                if (ProbabilityUtil.isSkillRNGSuccessful(SubSkillType.AXES_CRITICAL_STRIKES, target)) {
 
                     // Successful roll
-                    processedDamage = AdvancedConfig.getInstance().getCriticalHitPVPModifier();
+                    processedDamage = advanced().getCriticalStrikesPVPModifier();
 
                 } else {
 
@@ -192,10 +191,10 @@ public class GooPMCMMO {
             case UNARMED_IRONFIST:
 
                 // Process the shit out of the double stats
-                if (unarmed_ofAgressor.canUseIronArm()) {
+                if (unarmed_ofAgressor.canUseSteelArm()) {
 
                     // Skill Shot Modified Damage
-                    processedDamage = unarmed_ofAgressor.ironArm();
+                    processedDamage = unarmed_ofAgressor.calculateSteelArmStyleDamage();
 
                 } else {
 
@@ -222,10 +221,10 @@ public class GooPMCMMO {
             case TAMING_GORE:
 
                 // Roll for daze
-                if (skillActivationChance(SecondaryAbility.GORE, archery_ofAgressor, agressor_McMMO, SkillType.TAMING)) {
+                if (ProbabilityUtil.isSkillRNGSuccessful(SubSkillType.TAMING_GORE, target)) {
 
                     // Successful roll
-                    processedDamage = AdvancedConfig.getInstance().getGoreModifier();
+                    processedDamage = advanced().getGoreModifier();
 
                 } else {
 
@@ -256,7 +255,6 @@ public class GooPMCMMO {
         return processedDamage;
     }
 
-    public static boolean skillActivationChance(SecondaryAbility ability, SkillManager skillManager, McMMOPlayer mcMMOPlayer, SkillType parent) {
-        return SkillUtils.activationSuccessful(ability, skillManager.getPlayer(), skillManager.getSkillLevel(), PerksUtils.handleLuckyPerks(mcMMOPlayer.getPlayer(), parent));
-    }
+    /** mcMMO 2.x keeps its configs on the plugin instance instead of singletons */
+    static AdvancedConfig advanced() { return mcMMO.p.getAdvancedConfig(); }
 }

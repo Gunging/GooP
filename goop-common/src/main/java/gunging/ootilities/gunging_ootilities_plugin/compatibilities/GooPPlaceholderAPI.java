@@ -26,7 +26,7 @@ public class GooPPlaceholderAPI extends PlaceholderExpansion {
 
     public void CompatibilityCheck() {
         // Misc method that WILL fail if Placeholders API is not installed
-        PlaceholderAPI.getExpansions();
+        PlaceholderAPI.isRegistered("goop");
     }
 
     // Vro parse dat shit

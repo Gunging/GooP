@@ -391,13 +391,9 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             graveyardsCheck.CompatibilityCheck();
             foundGraveyards = true;
 
-        } catch (NoClassDefFoundError e) {
-            // Vr0
+        } catch (ReflectiveOperationException | LinkageError e) {
+            // Not installed, or a version without the methods the bridge needs
             foundGraveyards = false;
-
-        } catch (Throwable e) {
-            // Vr0
-            foundGraveyards = true;
         }
         //endregion
 
@@ -488,7 +484,10 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
 
         if (foundMMOItems) { getServer().getPluginManager().registerEvents(new OnApplyCommand(), theMain); }
         if (foundMythicMobs) { getServer().getPluginManager().registerEvents(new GooPMythicMobs(), theMain); }
-        if (foundTowny) { getServer().getPluginManager().registerEvents(new GooPTowny(), theMain); }
+        if (foundTowny) {
+            try { new GooPTowny().register(theMain); }
+            catch (ClassNotFoundException | LinkageError e) { foundTowny = false; }
+        }
 
         // Schedule insync
         Bukkit.getScheduler().scheduleSyncRepeatingTask(getPlugin(), ((Runnable) new SummonerClassUtils()), 40, 200);

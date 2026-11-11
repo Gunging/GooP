@@ -2,9 +2,6 @@ package gunging.ootilities.gunging_ootilities_plugin;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMMOItems;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPMythicMobs;
 import gunging.ootilities.gunging_ootilities_plugin.compatibilities.GooPPlaceholderAPI;
@@ -21,7 +18,6 @@ import gunging.ootilities.gunging_ootilities_plugin.misc.goop.SuccessibleFlareRe
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.*;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -445,11 +441,11 @@ public class OotilityCeption {
     }
     @NotNull
     public static String TitleCaseConversion(@NotNull String inputString) {
-        if (StringUtils.isBlank(inputString)) {
+        if ((inputString == null || inputString.trim().isEmpty())) {
             return "";
         }
 
-        if (StringUtils.length(inputString) == 1) {
+        if (inputString.length() == 1) {
             return inputString.toUpperCase();
         }
 
@@ -467,7 +463,7 @@ public class OotilityCeption {
 
             resultPlaceHolder.append(" ");
         });
-        return StringUtils.trim(resultPlaceHolder.toString());
+        return resultPlaceHolder.toString().trim();
     }
     @Nullable
     public static String ParsePlaceholder(@Nullable String sourceString,@Nullable String placeholderChars,@Nullable String replaceWith) {
@@ -4105,7 +4101,7 @@ public class OotilityCeption {
                             // Edit
                             Double fValue = operation.apply(tAttrib.getAmount());
                             if (result != null) { result.setValue(fValue);}
-                            tAttrib = new AttributeModifier(UUID.randomUUID(), attrib.toString(), fValue, AttributeModifier.Operation.ADD_NUMBER, MostSenseFromItem(iSource.getType()));
+                            tAttrib = new AttributeModifier(UUID.randomUUID(), GooP_MinecraftVersions.GetAttributeName(attrib), fValue, AttributeModifier.Operation.ADD_NUMBER, MostSenseFromItem(iSource.getType()));
                         }
                     }
                 }
@@ -4116,23 +4112,23 @@ public class OotilityCeption {
                     RefSimulator<Double> vanillaDefaulterRef = new RefSimulator<>(0.0);
 
                     // Gather initial vanilla
-                    if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_DAMAGE))) {
+                    if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_DAMAGE))) {
                         GatherDefaultVanillaAttributes(iSource.getType(), null, vanillaDefaulterRef, null, null, null, null);
                         if (vanillaDefaulterRef.getValue() > 0) { vanillaDefaulter = OotilityCeption.RoundAtPlaces(vanillaDefaulterRef.getValue(), 1); }
 
-                    } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_SPEED))) {
+                    } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ATTACK_SPEED))) {
                         GatherDefaultVanillaAttributes(iSource.getType(), null, null, vanillaDefaulterRef, null, null, null);
                         vanillaDefaulter = vanillaDefaulterRef.GetValue();
 
-                    } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR))) {
+                    } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR))) {
                         GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, vanillaDefaulterRef, null, null);
                         vanillaDefaulter = vanillaDefaulterRef.GetValue();
 
-                    } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR_TOUGHNESS))) {
+                    } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_ARMOR_TOUGHNESS))) {
                         GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, null, vanillaDefaulterRef, null);
                         vanillaDefaulter = vanillaDefaulterRef.GetValue();
 
-                    } else if (attrib.equals(GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_KNOCKBACK_RESISTANCE))) {
+                    } else if (java.util.Objects.equals(attrib, GooP_MinecraftVersions.GetVersionAttribute(GooPVersionAttributes.GENERIC_KNOCKBACK_RESISTANCE))) {
                         GatherDefaultVanillaAttributes(iSource.getType(), null, null, null, null, null, vanillaDefaulterRef);
                         vanillaDefaulter = vanillaDefaulterRef.GetValue();
                     }
@@ -4140,7 +4136,7 @@ public class OotilityCeption {
                     // Create new attribute
                     Double fValue = operation.apply(vanillaDefaulter);
                     if (result != null) { result.setValue(fValue);}
-                    tAttrib = new AttributeModifier(UUID.randomUUID(), attrib.toString(), fValue, AttributeModifier.Operation.ADD_NUMBER, MostSenseFromItem(iSource.getType()));
+                    tAttrib = new AttributeModifier(UUID.randomUUID(), GooP_MinecraftVersions.GetAttributeName(attrib), fValue, AttributeModifier.Operation.ADD_NUMBER, MostSenseFromItem(iSource.getType()));
                 }
 
                 // Put that damn attribute modifier in there
@@ -4828,23 +4824,17 @@ public class OotilityCeption {
      */
     public static ItemStack GetSkullFrom(String b64stringtexture) {
 
-        // Game Profile Stuff
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
-        PropertyMap propertyMap = profile.getProperties();
+        if (b64stringtexture == null) { return null; }
 
-        // Ew
-        if (propertyMap == null) { return null; }
-
-        // Get Texture I guess
-        propertyMap.put("textures", new Property("textures", b64stringtexture));
+        // Paper profile carrying only the texture property
+        com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(UUID.randomUUID(), null);
+        profile.setProperty(new com.destroystokyo.paper.profile.ProfileProperty("textures", b64stringtexture));
 
         // Make Item Stack
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta headMeta = head.getItemMeta();
-        Class<?> headMetaClass = headMeta.getClass();
-
-        // Attempt to get
-        try { getField(headMetaClass, "profile", GameProfile.class, 0).set(headMeta, profile); } catch (IllegalArgumentException | IllegalAccessException e) { return null; }
+        if (!(headMeta instanceof org.bukkit.inventory.meta.SkullMeta)) { return null; }
+        ((org.bukkit.inventory.meta.SkullMeta) headMeta).setPlayerProfile(profile);
 
         // Return completed
         head.setItemMeta(headMeta);

@@ -4,7 +4,7 @@ import gunging.ootilities.gunging_ootilities_plugin.OotilityCeption;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackLocation;
 import gunging.ootilities.gunging_ootilities_plugin.misc.goop.slot.ItemStackSlot;
 import gunging.ootilities.gunging_ootilities_plugin.misc.RefSimulator;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -18,7 +18,7 @@ public class TargetedItem {
     @NotNull TargetedItemType type;
     @Nullable final ItemStack original;
     @Nullable public ItemStack getOriginal() { return original; }
-    @NotNull public ItemStack getValidOriginal() { Validate.isTrue(!OotilityCeption.IsAirNullAllowed(original), "This item is null or air, consider using #getOriginal() instead."); return original; }
+    @NotNull public ItemStack getValidOriginal() { Preconditions.checkArgument(!OotilityCeption.IsAirNullAllowed(original), "This item is null or air, consider using #getOriginal() instead."); return original; }
 
     @Nullable protected ItemStack result;
     @Nullable public ItemStack getResult() { return result; }

@@ -4,7 +4,7 @@ import gunging.ootilities.gunging_ootilities_plugin.Gunging_Ootilities_Plugin;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.CSMeta;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.sources.*;
 import gunging.ootilities.gunging_ootilities_plugin.misc.Orientations;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +63,7 @@ public abstract class CSMetaSource<T extends CSMeta> {
      * @param internalName Internal name (no spaces!!!!) by which this shall be saved.
      */
     public CSMetaSource(@NotNull String internalName) {
-        Validate.isTrue(!internalName.contains(" "), "Internal Name cannot have spaces.");
+        Preconditions.checkArgument(!internalName.contains(" "), "Internal Name cannot have spaces.");
         this.internalName = internalName;
     }
 

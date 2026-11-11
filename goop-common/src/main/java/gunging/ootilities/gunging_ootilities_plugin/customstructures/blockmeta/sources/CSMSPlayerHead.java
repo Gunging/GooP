@@ -2,8 +2,6 @@ package gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.type.CSMSString;
 import gunging.ootilities.gunging_ootilities_plugin.misc.Orientations;
 import org.bukkit.Material;
@@ -14,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import gunging.ootilities.gunging_ootilities_plugin.customstructures.blockmeta.data.CSMString;
 
-import java.lang.reflect.Field;
 import java.util.UUID;
 
 /**
@@ -45,18 +42,9 @@ public class CSMSPlayerHead extends CSMSString {
             return block; }
 
         // Create profile with texture
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
-        profile.getProperties().put("textures", new Property("textures", meta.getValue()));
-
-        // Attempt to apply
-        try {
-
-            // Set skull value
-            Field profileField = skull.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            profileField.set(skull, profile);
-
-        }catch (NoSuchFieldException | IllegalAccessException e) { e.printStackTrace(); }
+        PlayerProfile profile = org.bukkit.Bukkit.createProfile(UUID.randomUUID(), null);
+        profile.setProperty(new ProfileProperty("textures", meta.getValue()));
+        skull.setPlayerProfile(profile);
 
         // Update data
         skull.update();
