@@ -865,8 +865,24 @@ public class OnApplyCommand implements Listener {
                                         // Get
                                         ItemStack asNewItm = asNewNBT.newBuilder().build();
 
+                                        // The rebuilt item is a single item: applying onto a stack used to delete the
+                                        // rest of the stack. Apply to one, hand the untouched remainder back.
+                                        // The slot is replaced first so the remainder cannot merge back into it.
+                                        int stackSize = current.getAmount();
+                                        ItemStack remainder = null;
+                                        if (asNewItm != null && stackSize > 1) {
+                                            asNewItm.setAmount(1);
+                                            remainder = current.clone();
+                                            remainder.setAmount(stackSize - 1);
+                                        }
+
                                         // Set
                                         event.setCurrentItem(asNewItm);
+                                        if (remainder != null) {
+                                            for (ItemStack overflow : player.getInventory().addItem(remainder).values()) {
+                                                player.getWorld().dropItemNaturally(player.getLocation(), overflow);
+                                            }
+                                        }
                                     }
 
                                 }
