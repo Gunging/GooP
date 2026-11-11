@@ -24,10 +24,6 @@ public class CopyCatEquipmentMechanic extends SkillMechanic implements ITargeted
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public CopyCatEquipmentMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         helmet = mlc.getBoolean(new String[] { "helmet", "h", "helm", "head" }, true);

@@ -13,10 +13,6 @@ public class MMODamageReplacement extends DamageMechanic {
         super(manager.getManager(), manager.getFile(), line, mlc);
         construct(mlc);
     }
-    public MMODamageReplacement(SkillExecutor manager, String line, MythicLineConfig mlc) {
-        super(manager, line, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         String typesString = config.getString(new String[]{"type", "t"}, null);

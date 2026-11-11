@@ -34,20 +34,15 @@ public class ParticleSlashEffect extends ParticleEffect implements ITargetedEnti
             return true;
         });
     }
-    public ParticleSlashEffect(SkillExecutor manager, String skill, @NotNull MythicLineConfig mlc) {
-        super(manager, skill, mlc);
 
-        particleEffect = new SlashLocations<>(mlc, (data, slashedLocation, funnies) -> {
-
-            //noinspection unchecked
-            this.playEffect(data, slashedLocation, (Collection<AbstractPlayer>) funnies[0]);
-
-            // Not needed, return statement
-            return true;
-        });
+    /** All players in the caster's world, as Mythic entities */
+    public HashSet<AbstractEntity> get(SkillMetadata data) {
+        HashSet<AbstractEntity> players = new HashSet<>();
+        org.bukkit.World world = io.lumine.mythic.bukkit.BukkitAdapter.adapt(data.getCaster().getEntity().getWorld());
+        if (world == null) { return players; }
+        for (org.bukkit.entity.Player p : world.getPlayers()) { players.add(io.lumine.mythic.bukkit.BukkitAdapter.adapt(p)); }
+        return players;
     }
-
-    public HashSet<AbstractEntity> get(SkillMetadata data) { return new HashSet<>(MythicBukkit.inst().getEntityManager().getPlayers(data.getCaster().getEntity().getWorld())); }
 
     /**
      * IDK how audiences work, and honestly it's just a bunch of implementation problems.

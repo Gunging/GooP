@@ -18,10 +18,6 @@ public class VexChargingMechanic extends SkillMechanic implements ITargetedEntit
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public VexChargingMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         valueToSet = mlc.getBoolean(new String[] { "charging", "c"}, true);

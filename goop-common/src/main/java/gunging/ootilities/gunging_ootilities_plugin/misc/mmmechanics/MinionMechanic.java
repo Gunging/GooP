@@ -27,10 +27,6 @@ public class MinionMechanic extends SkillMechanic implements ITargetedEntitySkil
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public MinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
 

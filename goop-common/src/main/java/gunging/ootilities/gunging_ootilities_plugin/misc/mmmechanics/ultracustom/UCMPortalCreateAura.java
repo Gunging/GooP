@@ -46,10 +46,6 @@ public class UCMPortalCreateAura extends Aura implements ITargetedEntitySkill {
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public UCMPortalCreateAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         skillName = mlc.getPlaceholderString(new String[]{"skill", "s", "ondamagedskill", "ondamaged", "od", "onhitskill", "onhit", "oh", "meta", "m", "mechanics", "$", "()"}, "skill not found");

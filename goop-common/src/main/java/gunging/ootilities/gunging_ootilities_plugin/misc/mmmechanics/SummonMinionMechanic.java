@@ -48,10 +48,6 @@ public class SummonMinionMechanic extends SkillMechanic implements ITargetedLoca
         construct(mlc);
     }
 
-    public SummonMinionMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         mmName = mlc.getString(new String[] { "mob", "m", "type", "t" });

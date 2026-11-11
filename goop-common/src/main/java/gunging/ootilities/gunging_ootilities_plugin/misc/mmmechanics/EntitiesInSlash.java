@@ -8,12 +8,12 @@ import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderFloat;
 import io.lumine.mythic.core.skills.SkillExecutor;
-import io.lumine.mythic.core.skills.targeters.EntitiesInRadiusTargeter;
+import io.lumine.mythic.core.skills.targeters.EntitiesNearbyTargeter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class EntitiesInSlash extends EntitiesInRadiusTargeter {
+public class EntitiesInSlash extends EntitiesNearbyTargeter {
 
     @NotNull final SlashLocations<Collection<AbstractEntity>> particleEffect;
     @NotNull PlaceholderFloat slashDensity;

@@ -151,29 +151,28 @@ public class GooPMythicMobs implements Listener {
         SkillExecutor skillExecutor = customMechanic.getManager();
         String line = event.getConfig().getLine();
         MythicLineConfig mlc = event.getConfig();
-        boolean mm52 = (getVersionMajor() == 5 && getVersionMinor() >= 2) || (getVersionMajor() > 5);
 
         // Switch Mechanic ig
         switch (event.getMechanicName().toLowerCase()) {
             case "recipeunlock":
             case "recipelock":
-                event.register(mm52 ? new UCMRecipeUnlock(customMechanic, line, mlc) : new UCMRecipeUnlock(skillExecutor, line, mlc));
+                event.register(new UCMRecipeUnlock(customMechanic, line, mlc));
                 break;
             case "silentteleport":
             case "stp":
-                event.register(mm52 ? new UCMSilentTeleport(customMechanic, line, mlc) : new UCMSilentTeleport(skillExecutor, line, mlc));
+                event.register(new UCMSilentTeleport(customMechanic, line, mlc));
                 break;
             case "goopstride":
-                event.register(mm52 ? new StrideMechanic(customMechanic, line, mlc) : new StrideMechanic(skillExecutor, line, mlc));
+                event.register(new StrideMechanic(customMechanic, line, mlc));
                 break;
             case "onportalcreateg":
-                event.register(mm52 ? new UCMPortalCreateAura(customMechanic, line, mlc) : new UCMPortalCreateAura(skillExecutor, line, mlc));
+                event.register(new UCMPortalCreateAura(customMechanic, line, mlc));
                 break;
             case "vexcharging":
-                event.register(mm52 ? new VexChargingMechanic(customMechanic, line, mlc) : new VexChargingMechanic(skillExecutor, line, mlc));
+                event.register(new VexChargingMechanic(customMechanic, line, mlc));
                 break;
             case "effect:particleslash":
-                event.register(mm52 ? new ParticleSlashEffect(customMechanic, line, mlc) : new ParticleSlashEffect(skillExecutor, line, mlc));
+                event.register(new ParticleSlashEffect(customMechanic, line, mlc));
                 break;
             case "mmodamage":
 
@@ -181,74 +180,74 @@ public class GooPMythicMobs implements Listener {
                 if (!Gunging_Ootilities_Plugin.foundMythicLib && !Gunging_Ootilities_Plugin.foundMMOItems) {
 
                     // Register own MMODamage
-                    event.register(mm52 ? new MMODamageReplacement(customMechanic, line, mlc) : new MMODamageReplacement(skillExecutor, line, mlc));
+                    event.register(new MMODamageReplacement(customMechanic, line, mlc));
                 }
                 break;
             case "goopondamaged":
             case "gondamaged":
             case "ondamagedg":
-                event.register(mm52 ? new OnDamagedAura(customMechanic, line, mlc) : new OnDamagedAura(skillExecutor, line, mlc));
+                event.register(new OnDamagedAura(customMechanic, line, mlc));
                 break;
             case "gooponthrow":
             case "gonthrow":
             case "onthrowg":
-                event.register(mm52 ? new OnThrowAura(customMechanic, line, mlc) : new OnThrowAura(skillExecutor, line, mlc));
+                event.register(new OnThrowAura(customMechanic, line, mlc));
                 break;
             case "gooponshoot":
             case "gonshoot":
             case "onshootg":
-                event.register(mm52 ? new OnShootAura(customMechanic, line, mlc) : new OnShootAura(skillExecutor, line, mlc));
+                event.register(new OnShootAura(customMechanic, line, mlc));
                 break;
             case "gooponattack":
             case "gonattack":
             case "onattackg":
-                event.register(mm52 ? new OnAttackAura(customMechanic, line, mlc) : new OnAttackAura(skillExecutor, line, mlc));
+                event.register(new OnAttackAura(customMechanic, line, mlc));
                 break;
             case "hideaura":
-                event.register(mm52 ? new HideAura(customMechanic, line, mlc) : new HideAura(skillExecutor, line, mlc));
+                event.register(new HideAura(customMechanic, line, mlc));
                 break;
             case "rebootbreak":
-                event.register(mm52 ? new RebootBreak(customMechanic, line, mlc) : new RebootBreak(skillExecutor, line, mlc));
+                event.register(new RebootBreak(customMechanic, line, mlc));
                 break;
             case "rebootrepair":
-                event.register(mm52 ? new RebootRepair(customMechanic, line, mlc) : new RebootRepair(skillExecutor, line, mlc));
+                event.register(new RebootRepair(customMechanic, line, mlc));
                 break;
             case "goopminion":
-                event.register(mm52 ? new MinionMechanic(customMechanic, line, mlc) : new MinionMechanic(skillExecutor, line, mlc));
+                event.register(new MinionMechanic(customMechanic, line, mlc));
                 break;
             case "copycatequipment":
-                event.register(mm52 ? new CopyCatEquipmentMechanic(customMechanic, line, mlc) : new CopyCatEquipmentMechanic(skillExecutor, line, mlc));
+                event.register(new CopyCatEquipmentMechanic(customMechanic, line, mlc));
                 break;
             case "goopsettrigger":
             case "goopastrigger":
-                event.register(mm52 ? new AsTrigger(customMechanic, line, mlc) : new AsTrigger(skillExecutor, line, mlc));
+                event.register(new AsTrigger(customMechanic, line, mlc));
 
                 break;
             case "goopsetorigin":
             case "goopasorigin":
-                event.register(mm52 ? new AsOrigin(customMechanic, line, mlc) : new AsOrigin(skillExecutor, line, mlc));
+                event.register(new AsOrigin(customMechanic, line, mlc));
                 break;
             case "goopdeferred":
-                event.register(mm52 ? new Deferred(customMechanic, line, mlc) : new Deferred(skillExecutor, line, mlc));
+                event.register(new Deferred(customMechanic, line, mlc));
                 break;
             case "goopsummonminion":
             case "goopsummonminions":
-                event.register(mm52 ? new SummonMinionMechanic(customMechanic, line, mlc) : new SummonMinionMechanic(skillExecutor, line, mlc));
+                event.register(new SummonMinionMechanic(customMechanic, line, mlc));
                 break;
             case "goopreleaseminion":
             case "goopreleaseminions":
-                event.register(mm52 ? new MinionEmancipation(customMechanic, line, mlc) : new MinionEmancipation(skillExecutor, line, mlc));
+                event.register(new MinionEmancipation(customMechanic, line, mlc));
                 break;
             case "goopsudoowner":
-                event.register(mm52 ? new SudoOwnerMechanic(customMechanic, line, mlc) : new SudoOwnerMechanic(skillExecutor, line, mlc));
+                event.register(new SudoOwnerMechanic(customMechanic, line, mlc));
                 break;
             case "gooprally":
             case "rallyall":
-                event.register(mm52 ? new RallyAll(customMechanic, line, mlc) : new RallyAll(skillExecutor, line, mlc));
+                event.register(new RallyAll(customMechanic, line, mlc));
                 break;
             case "goopsudominions":
             case "goopsudominion":
-                event.register(mm52 ? new SudoMinionsMechanic(customMechanic, line, mlc) : new SudoMinionsMechanic(skillExecutor, line, mlc));
+                event.register(new SudoMinionsMechanic(customMechanic, line, mlc));
                 break;
             default: break;
         }
@@ -708,7 +707,7 @@ public class GooPMythicMobs implements Listener {
         if (!hasMythicItem.isPresent()) { return null; }
 
         // Yeah just that I guess
-        return ((BukkitItemStack)((MythicItem)hasMythicItem.get()).generateItemStack(1)).build();
+        return ((BukkitItemStack)((MythicItem)hasMythicItem.get()).generateItemStack(1)).getItemStack();
     }
     @NotNull public static final String MYTHIC_TYPE = "MYTHIC_TYPE";
     public static boolean isMythicItem(@Nullable ItemStack stack) {

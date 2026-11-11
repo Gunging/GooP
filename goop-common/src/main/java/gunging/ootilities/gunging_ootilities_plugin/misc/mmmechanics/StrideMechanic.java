@@ -24,10 +24,6 @@ public class StrideMechanic extends SkillMechanic implements ITargetedEntitySkil
         super(manager.getManager(), manager.getFile(), line, mlc);
         construct(mlc);
     }
-    public StrideMechanic(SkillExecutor manager, String line, MythicLineConfig mlc) {
-        super(manager, line, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         velocity = mlc.getPlaceholderDouble(new String[]{"velocity", "v"}, 5);

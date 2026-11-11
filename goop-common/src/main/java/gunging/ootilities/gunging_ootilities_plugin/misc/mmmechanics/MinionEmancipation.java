@@ -27,10 +27,6 @@ public class MinionEmancipation extends SkillMechanic implements ITargetedEntity
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public MinionEmancipation(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         setAsyncSafe(false);

@@ -34,10 +34,6 @@ public class UCMSilentTeleport extends SkillMechanic implements ITargetedEntityS
         super(manager.getManager(), manager.getFile(), line, mlc);
         construct(mlc);
     }
-    public UCMSilentTeleport(SkillExecutor manager, String line, MythicLineConfig mlc) {
-        super(manager, line, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         setAsyncSafe(false);

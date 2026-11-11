@@ -59,7 +59,7 @@ public class RallyAll extends SkillMechanic implements ITargetedEntitySkill {
         if (!(cas instanceof LivingEntity)) { return SkillResult.SUCCESS; }
 
         // The target of the target is now the caster
-        MythicBukkit.inst().getVolatileCodeHandler().getAIHandler().setTarget((LivingEntity) ent, (LivingEntity) cas);
+        if (ent instanceof org.bukkit.entity.Mob) { ((org.bukkit.entity.Mob) ent).setTarget((LivingEntity) cas); }
 
         // That's it
         return SkillResult.SUCCESS;

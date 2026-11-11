@@ -23,10 +23,6 @@ public class RebootBreak extends SkillMechanic implements ITargetedLocationSkill
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public RebootBreak(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         rebootKey = mlc.getPlaceholderString(new String[]{"rebootKey", "rk"}, null);

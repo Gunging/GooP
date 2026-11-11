@@ -43,10 +43,6 @@ public class Deferred extends SkillMechanic implements IMetaSkill {
         construct(mlc);
     }
 
-    public Deferred(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         ticks = mlc.getPlaceholderDouble(new String[]{"ticks", "t", "interval", "i"}, 1);

@@ -35,10 +35,6 @@ public class HideAura extends Aura implements ITargetedEntitySkill {
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public HideAura(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         hideFromMonsters = mlc.getBoolean(new String[] { "hideFromMonsters", "hfm" }, true);

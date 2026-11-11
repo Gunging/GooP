@@ -37,10 +37,6 @@ public class SudoMinionsMechanic extends SkillMechanic implements IMetaSkill {
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public SudoMinionsMechanic(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         casterAsTrigger = mlc.getBoolean(new String[]{"setcasterastrigger", "cat"}, false);

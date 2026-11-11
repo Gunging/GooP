@@ -47,10 +47,6 @@ public class UCMRecipeUnlock extends SkillMechanic implements ITargetedEntitySki
         construct(mlc);
     }
 
-    public UCMRecipeUnlock(SkillExecutor manager, String line, MythicLineConfig mlc) {
-        super(manager, line, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         setAsyncSafe(false);

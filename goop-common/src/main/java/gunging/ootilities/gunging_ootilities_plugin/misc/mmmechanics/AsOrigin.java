@@ -22,10 +22,6 @@ public class AsOrigin extends SkillMechanic implements ITargetedEntitySkill, ITa
         super(manager.getManager(), manager.getFile(), skill, mlc);
         construct(mlc);
     }
-    public AsOrigin(SkillExecutor manager, String skill, MythicLineConfig mlc) {
-        super(manager, skill, mlc);
-        construct(mlc);
-    }
 
     void construct(MythicLineConfig mlc) {
         targetArmorStands = mlc.getBoolean(new String[]{"targetarmorstands", "ta"}, false);
