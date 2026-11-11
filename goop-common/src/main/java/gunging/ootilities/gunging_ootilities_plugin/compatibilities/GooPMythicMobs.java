@@ -642,7 +642,11 @@ public class GooPMythicMobs implements Listener {
             // Get From Caster
             switch (arg) {
                 case "name": return tPlayer.getName();
-                case "distance": return String.valueOf(tPlayer.getLocation().distance(metadata.getCaster().getEntity().getBukkitEntity().getLocation()));
+                case "distance": {
+                    // Players in another world have no distance to the caster; Location#distance would throw
+                    Location casterLoc = metadata.getCaster().getEntity().getBukkitEntity().getLocation();
+                    if (!java.util.Objects.equals(casterLoc.getWorld(), tPlayer.getWorld())) { return "-1"; }
+                    return String.valueOf(tPlayer.getLocation().distance(casterLoc)); }
                 case "x": return String.valueOf(tPlayer.getLocation().getX());
                 case "y": return String.valueOf(tPlayer.getLocation().getY());
                 case "z": return String.valueOf(tPlayer.getLocation().getZ());
