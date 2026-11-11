@@ -958,77 +958,27 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     @Nullable public static Enchantment replacementEnchantment = null;
     //endregion
 
-    public boolean savingTheseTicks;
     public HashMap<String, FileConfigPair> l8st = new HashMap<>();
-    public ArrayList<FileConfigPair> pairs2save = new ArrayList<>();
+    @Nullable private gunging.ootilities.gunging_ootilities_plugin.misc.YamlSaveQueue saveQueue;
+    @NotNull private synchronized gunging.ootilities.gunging_ootilities_plugin.misc.YamlSaveQueue getSaveQueue() {
+        if (saveQueue == null) { saveQueue = new gunging.ootilities.gunging_ootilities_plugin.misc.YamlSaveQueue(this); }
+        return saveQueue;
+    }
+
+    /**
+     * Saves this file shortly, off the main thread. Several saves of the same file in quick
+     * succession are written once, with the latest contents.
+     */
     public void SaveFile(@NotNull FileConfigPair csPair) {
         // Assuming it is ALWAYS the latest or a modification of the latest
-        //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a77 Saving \u00a7e" + csPair.getFile().getPath()));
-
-        // Update the latest
         l8st.put(csPair.getFile().getPath(), csPair);
-
-        //region Make sure it is marked to be saved
-        if (pairs2save == null) { pairs2save = new ArrayList<>(); }
-
-        //endregion
-        pairs2save.add(csPair);
-        //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a77 Queue Size \u00a7e" + pairs2save.size()));
-
-        // Save the file half a second from now with all its changes
-        if (!Gunging_Ootilities_Plugin.theMain.savingTheseTicks && !Gunging_Ootilities_Plugin.theMain.shutDown) {
-            Gunging_Ootilities_Plugin.theMain.savingTheseTicks = true;
-            //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 Queue Registered"));
-
-            (new BukkitRunnable() {
-                public void run() {
-                    //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 --- Queue Run ---"));
-
-                    // Allow to save again
-                    Gunging_Ootilities_Plugin.theMain.savingTheseTicks = false;
-
-                    // Basically Save
-                    Gunging_Ootilities_Plugin.theMain.FileSaveExecution();
-
-                }
-
-            }).runTaskLaterAsynchronously(Gunging_Ootilities_Plugin.theMain, 10L);
-        }
+        getSaveQueue().queue(csPair);
     }
+
+    /** Writes every queued file now and stops the background writer. Used when disabling. */
     public void FileSaveExecution() {
-
-        while (pairs2save.size() > 0) {
-
-            FileConfigPair fl = pairs2save.get(0);
-            
-            // Skip if null
-            if (fl == null) { pairs2save.remove(0); continue; }
-            
-            //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a77 Saving file\u00a7b " + fl.getFile().getPath()));
-
-            // Basically Saves it
-            try {
-
-                // Save all files
-                fl.getStorage().save(fl.getFile());
-                //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7a Saved!"));
-
-            } catch (Exception ignored) {
-
-                //CLI//if (ignored instanceof IOException) {
- 
-                    //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7c IOException!!! " + ignored.getMessage()));
-                    //CLI//} else {
-
-                    //CLI//OotilityCeption.Log(OotilityCeption.LogFormat("\u00a76 SVE \u00a7c Exception!!!\u00a7e " + ignored.getClass().getName() + " \u00a77-\u00a7c " + ignored.getMessage()));
-                    //CLI//}
-
-                //CLI//ignored.printStackTrace();
-            }
-
-            // Remove
-            pairs2save.remove(0);
-        }
+        getSaveQueue().close();
+        saveQueue = null;
     }
     @NotNull public FileConfigPair GetLatest(@NotNull FileConfigPair csPair) {
 
