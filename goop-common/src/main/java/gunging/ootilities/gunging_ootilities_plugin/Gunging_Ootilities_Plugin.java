@@ -435,19 +435,35 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         return plugin.isEnabled();
     }
 
+    /**
+     * Whether an integration found while loading is usable now that GooP is enabling.
+     * A plugin that is installed but not enabled yet either failed to start or is ordered
+     * after GooP (usually a softdepend cycle between several plugins); GooP then runs without
+     * that integration, which used to show only as "not found". Say so explicitly.
+     */
+    boolean hookStillEnabled(@NotNull String name) {
+        Plugin plugin = getServer().getPluginManager().getPlugin(name);
+        if (plugin == null) { return false; }
+        if (plugin.isEnabled()) { return true; }
+        getLogger().warning(name + " is installed but was not enabled before GooP, so GooP's " + name
+                + " features are off. Either " + name + " failed to start (see its errors above), or plugin load order"
+                + " put it after GooP (a softdepend cycle between plugins). Check /plugins and the startup log.");
+        return false;
+    }
+
     @Override public void onEnable() {
 
         enabling = true;
 
         //region Re-enable or Re-disable plugins in case they crashed in their OnEnable
-        if (foundWorldGuard) { foundWorldGuard = isPluginEnabled("WorldGuard"); }
-        if (foundMythicMobs) { foundMythicMobs = isPluginEnabled("MythicMobs"); }
-        if (foundMCMMO) { foundMCMMO = isPluginEnabled("mcMMO"); }
-        if (foundMMOItems) { foundMMOItems = isPluginEnabled("MMOItems"); }
-        if (foundMMOCore) { foundMMOCore = isPluginEnabled("MMOCore"); }
-        if (foundMythicCrucible) { foundMythicCrucible = isPluginEnabled("MythicCrucible"); }
-        if (foundPlaceholderAPI) { foundPlaceholderAPI = isPluginEnabled("PlaceholderAPI"); }
-        if (foundGraveyards) { foundGraveyards = isPluginEnabled("Graveyards"); }
+        if (foundWorldGuard) { foundWorldGuard = hookStillEnabled("WorldGuard"); }
+        if (foundMythicMobs) { foundMythicMobs = hookStillEnabled("MythicMobs"); }
+        if (foundMCMMO) { foundMCMMO = hookStillEnabled("mcMMO"); }
+        if (foundMMOItems) { foundMMOItems = hookStillEnabled("MMOItems"); }
+        if (foundMMOCore) { foundMMOCore = hookStillEnabled("MMOCore"); }
+        if (foundMythicCrucible) { foundMythicCrucible = hookStillEnabled("MythicCrucible"); }
+        if (foundPlaceholderAPI) { foundPlaceholderAPI = hookStillEnabled("PlaceholderAPI"); }
+        if (foundGraveyards) { foundGraveyards = hookStillEnabled("Graveyards"); }
         if (foundVault) {
             try {
                 // Sweet, it is there
@@ -462,8 +478,8 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 foundVault = false;
             }
         }
-        if (foundCMI) {  foundCMI = isPluginEnabled("CMI"); }
-        if (foundEssentials) {  foundEssentials = isPluginEnabled("Essentials"); }
+        if (foundCMI) { foundCMI = hookStillEnabled("CMI"); }
+        if (foundEssentials) { foundEssentials = hookStillEnabled("Essentials"); }
         if (!asPaperSpigot) { setupTickCounter(); }
         //endregion
 
