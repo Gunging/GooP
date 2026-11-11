@@ -7066,7 +7066,7 @@ public class OotilityCeption {
                 if (Gunging_Ootilities_Plugin.foundMMOItems) { if (GooPMMOItems.IsMMOItem(tItemStack)) { return false; } }
 
                 // Return whether or not the type matches.
-                return wildcardMatches(tItemStack.getType().toString(), nbtFilter.getDataPrime().split("\\*"), true);
+                return wildcardMatches(tItemStack.getType().toString(), nbtFilter.getDataPrime(), true);
             case "i":
                 // Get Ingredient of Data Prime
                 GooPIngredient ing = GooPIngredient.Get(nbtFilter.getDataPrime());
@@ -7075,41 +7075,19 @@ public class OotilityCeption {
                 // Found?
                 return ing.Matches(tItemStack);
             case "mm":
-                if (Gunging_Ootilities_Plugin.foundMythicMobs && GooPMythicMobs.isMythicItem(tItemStack)) { return wildcardMatches(GooPMythicMobs.getMythicType(tItemStack), nbtFilter.getDataPrime().split("\\*"), true); } else return false;
+                if (Gunging_Ootilities_Plugin.foundMythicMobs && GooPMythicMobs.isMythicItem(tItemStack)) { return wildcardMatches(GooPMythicMobs.getMythicType(tItemStack), nbtFilter.getDataPrime(), true); } else return false;
             default: return false;
         }
     }
     
     /**
-     * @param target Target string to mtch
-     * @param spitArgument The wildcard-containing string, split by the wildcard of choice, for example <code>DARK_OAK_*</code>
-     * @return If this material name matches the argument
+     * @param target Target string to match, such as a material name or MMOItem ID
+     * @param wildcarded The pattern, for example <code>DARK_OAK_*</code>; without <code>*</code> it must match exactly
+     * @return If the target matches the pattern
+     * @see gunging.ootilities.goop.core.GlobMatcher
      */
-    public static boolean wildcardMatches(@NotNull String target, @NotNull String wildcarded, boolean ignoreCase) {return wildcardMatches(target, wildcarded.split("\\*"), ignoreCase);}
-
-    /**
-     * @param target Target string to mtch
-     * @param spitArgument The wildcard-containing string, split by the wildcard of choice, for example <code>DARK_OAK_*</code>
-     * @return If this material name matches the argument
-     */
-    public static boolean wildcardMatches(@NotNull String target, @NotNull String[] spitArgument, boolean ignoreCase) {
-
-        String mat = ignoreCase ? target.toUpperCase() : target;
-        for (String matcher : spitArgument) {
-            String cher = ignoreCase ? matcher.toUpperCase() : matcher;
-            int m = mat.indexOf(cher);
-
-            // Accepted wildcard
-            if (m >= 0) {
-
-                // Prepare for next iteration
-                mat = mat.substring(m);
-
-            // Did not start with this, it is a failure
-            } else {  return false; }
-        }
-
-        return true;
+    public static boolean wildcardMatches(@NotNull String target, @NotNull String wildcarded, boolean ignoreCase) {
+        return gunging.ootilities.goop.core.GlobMatcher.matches(target, wildcarded, ignoreCase);
     }
 
     /**

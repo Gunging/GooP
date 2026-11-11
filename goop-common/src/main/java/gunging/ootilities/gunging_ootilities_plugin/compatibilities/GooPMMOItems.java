@@ -3947,7 +3947,7 @@ public class GooPMMOItems {
             if (type.equalsIgnoreCase(tNBT.getString("MMOITEMS_ITEM_TYPE"))) {
 
                 // Vro are they named the same?
-                return OotilityCeption.wildcardMatches(tNBT.getString("MMOITEMS_ITEM_ID"), idName.split("\\*"), true);
+                return OotilityCeption.wildcardMatches(tNBT.getString("MMOITEMS_ITEM_ID"), idName, true);
             }
         }
 
