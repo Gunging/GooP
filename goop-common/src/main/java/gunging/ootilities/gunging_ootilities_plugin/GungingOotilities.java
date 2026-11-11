@@ -8814,7 +8814,7 @@ public class GungingOotilities implements CommandExecutor {
                         argsMinLength = 5;
                         argsMaxLength = 6;
                         usage = "/goop nbt " + subsonic + " <player> <slot> [±][value][%] [objective]";
-                        subcommand = OotilityCeption.TitleCaseConversion(attribute.toString());
+                        subcommand = OotilityCeption.TitleCaseConversion(GooP_MinecraftVersions.GetAttributeName(attribute));
                         subsection = "NBT - " + subcommand;
 
                         // Help form?
