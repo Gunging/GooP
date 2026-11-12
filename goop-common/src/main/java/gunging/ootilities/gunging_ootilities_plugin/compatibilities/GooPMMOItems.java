@@ -256,8 +256,16 @@ public class GooPMMOItems {
             reforgeOptionsBuild = new ReforgeOptions(dummySectionReal);
         }
 
-        // Proc
-        /*CURRENT-MMOITEMS*/if (!mod.reforge(reforgeOptionsBuild)) {
+        // Proc. MMOItems' reforger itself can fail on some server versions (6.10.1 calls
+        // ItemMeta#hasFood, which does not exist before 1.20.5); report it instead of crashing the command.
+        boolean reforged;
+        try {
+            reforged = mod.reforge(reforgeOptionsBuild);
+        } catch (LinkageError | RuntimeException e) {
+            OotilityCeption.Log4Success(logAddition, !Gunging_Ootilities_Plugin.blockImportantErrorFeedback, "MMOItems could not reforge " + OotilityCeption.GetItemName(item) + "§7 on this server: §c" + e);
+            return null;
+        }
+        /*CURRENT-MMOITEMS*/if (!reforged) {
         /*CURRENT-MMOITEMS*/    OotilityCeption.Log4Success(logAddition, Gunging_Ootilities_Plugin.sendGooPFailFeedback, "Item " + OotilityCeption.GetItemName(item) + "\u00a77 could \u00a7cnot\u00a77 be reforged. ");
         /*CURRENT-MMOITEMS*/    return null; }
 

@@ -23,6 +23,9 @@
 - The `distance` player placeholder returns -1 instead of throwing when the player is in
   another world.
 - Player head textures use Paper's profile API.
+- A plugin GooP hooks into that fails to load (for example MMOItems on an unsupported server
+  version) no longer stops GooP from loading; only that integration is turned off.
+- `/goop mmoitems regenerate` reports MMOItems' own reforge errors instead of throwing.
 
 ### Changed
 - Item name filters without `*` must match exactly. Write `*ICE*` where the old

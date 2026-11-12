@@ -99,14 +99,26 @@ def load(jar):
                     pass
     return classes
 
+OBJECT_METHODS = {("equals", "(Ljava/lang/Object;)Z"), ("hashCode", "()I"), ("toString", "()Ljava/lang/String;"),
+                  ("getClass", "()Ljava/lang/Class;"), ("clone", "()Ljava/lang/Object;"), ("notify", "()V"),
+                  ("notifyAll", "()V"), ("wait", "()V"), ("wait", "(J)V"), ("finalize", "()V"),
+                  # java.lang.Enum, for enums in the API
+                  ("name", "()Ljava/lang/String;"), ("ordinal", "()I"), ("compareTo", "(Ljava/lang/Enum;)I"),
+                  ("getDeclaringClass", "()Ljava/lang/Class;")}
+
 def find_member(api, owner, name, desc, is_field, seen=None):
+    top = seen is None
     seen = seen or set()
     if owner in seen: return None
     seen.add(owner)
     c = api.get(owner)
     if c is None:
-        # JDK types are not in the API jar: assume their members exist
-        return True if owner.startswith("java/") else None
+        # JDK types are not in the jars. A direct reference to one is assumed fine; reaching one as a
+        # superclass only counts for Object's own methods, so a member missing from the API class
+        # above it is still reported.
+        if not owner.startswith("java/"): return None
+        if top: return True
+        return True if (not is_field and (name, desc) in OBJECT_METHODS) else None
     pool = c.fields if is_field else c.methods
     if (name, desc) in pool: return True
     # signature-polymorphic and inherited lookups
@@ -119,6 +131,20 @@ def main():
     api = {}
     for j in apis: api.update(load(j))
     problems = defaultdict(set)
+    own = load(plugin)          # the plugin's own classes, for members inherited from API classes
+    merged = dict(api); merged.update(own)
+
+    def reaches_api(owner):
+        """If the owner's superclass chain runs into a checked API class, with every class on the
+        way known (a class from a jar that was not supplied makes the result unknowable: False)"""
+        hit = False
+        while owner and not owner.startswith("java/"):
+            if owner.startswith(API_PREFIXES): hit = True
+            c = merged.get(owner)
+            if c is None: return False
+            owner = c.super
+        return hit
+
     with zipfile.ZipFile(plugin) as z:
         for n in z.namelist():
             if not n.endswith(".class"): continue
@@ -127,6 +153,11 @@ def main():
             except Exception:
                 continue
             for kind, owner, name, desc in refs:
+                if owner in own and not owner.startswith(API_PREFIXES):
+                    # Call on a plugin class: only interesting when the member is inherited from the API
+                    if reaches_api(owner) and not find_member(merged, owner, name, desc, kind == "field"):
+                        problems["missing inherited %s %s.%s %s" % ("field" if kind == "field" else "method", owner, name, desc)].add(info.name)
+                    continue
                 if not owner.startswith(API_PREFIXES): continue
                 c = api.get(owner)
                 where = info.name

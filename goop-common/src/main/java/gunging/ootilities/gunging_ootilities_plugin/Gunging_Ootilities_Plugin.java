@@ -164,7 +164,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 GooPWorldGuard.LoadNRegisterFlags();
                 foundWorldGuard = true;
 
-            } catch (NoClassDefFoundError e) {
+            } catch (Exception | LinkageError e) {
                 // Vr0
                 foundWorldGuard = false;
             }
@@ -251,7 +251,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 foundMythicMobs = true;
                 GooPMythicMobs.identifyVersion();
 
-            } catch (NoClassDefFoundError e) {
+            } catch (Exception | LinkageError e) {
                 // Vr0
                 foundMythicMobs = false;
             }
@@ -272,7 +272,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 mcmmoCheck.CompatibilityCheck();
                 foundMCMMO = true;
 
-            } catch (NoClassDefFoundError e) {
+            } catch (Exception | LinkageError e) {
                 // Vr0
                 foundMCMMO = false;
             }
@@ -298,7 +298,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 // Welp
                 foundMMOItems = mmoitemsCheck.CompatibilityCheck();
 
-            } catch (NoClassDefFoundError e) {
+            } catch (Exception | LinkageError e) {
 
                 // Vr0
                 foundMMOItems = false;
@@ -324,7 +324,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             // Well
             foundMythicLib = GooPMMOLib.CompatibilityCheck();
 
-        } catch (NoClassDefFoundError e) {
+        } catch (Exception | LinkageError e) {
             // Vr0
             foundMythicLib = false;
         }
@@ -336,7 +336,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             // Well
             foundMythicCrucible = GooPMythicCrucible.CompatibilityCheck();
 
-        } catch (NoClassDefFoundError e) {
+        } catch (Exception | LinkageError e) {
             // Vr0
             foundMythicCrucible = false;
         }
@@ -356,7 +356,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 mmocoreCheck.CompatibilityCheck();
                 foundMMOCore = true;
 
-            } catch (NoClassDefFoundError e) {
+            } catch (Exception | LinkageError e) {
                 // Vr0
                 foundMMOCore = false;
             }
@@ -377,7 +377,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 papiCheck.CompatibilityCheck();
                 foundPlaceholderAPI = true;
 
-            } catch (NoClassDefFoundError e) {
+            } catch (Exception | LinkageError e) {
                 // Vr0
                 foundPlaceholderAPI = false;
             }
@@ -406,7 +406,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
             GooPVault.CompatibilityCheck();
             foundVault = true;
 
-        } catch (NoClassDefFoundError e) {
+        } catch (Exception | LinkageError e) {
             // Vr0
             foundVault = false;
 
@@ -474,7 +474,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
                 // Well
                 foundVault = vaultCheck.SetupEconomy(getServer());
 
-            } catch (NoClassDefFoundError e) {
+            } catch (Exception | LinkageError e) {
 
                 // Vr0
                 foundVault = false;

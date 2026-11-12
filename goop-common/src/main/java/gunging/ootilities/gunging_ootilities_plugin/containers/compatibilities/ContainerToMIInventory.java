@@ -77,15 +77,23 @@ public class ContainerToMIInventory implements InventorySupplier {
 
                     String key = name + "#" + slot.getKey();
                     seenSlots.add(key);
-                    callIfNotNull(update(key, item, slot.getKey(), containerId), callback);
+                    notify(update(key, item, slot.getKey(), containerId), callback);
                 }
             }
 
             // Slots that disappeared (container unloaded, slot no longer equipment) unequip
             for (String key : new HashSet<>(equipped.keySet())) {
                 if (seenSlots.contains(key)) { continue; }
-                callIfNotNull(update(key, null, 0, 0), callback);
+                notify(update(key, null, 0, 0), callback);
             }
+        }
+
+        /**
+         * Hands a change to MMOItems. Not InventoryWatcher#callIfNotNull: older 6.10.1 snapshot
+         * builds only have callbackIfNotNull, so neither name can be relied on.
+         */
+        static void notify(@Nullable ItemUpdate update, @NotNull Consumer<ItemUpdate> callback) {
+            if (update != null) { callback.accept(update); }
         }
 
         /** @return The change at this slot, or null when nothing changed */

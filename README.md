@@ -21,6 +21,10 @@ Two jars are built from the same source. Pick the one for your server version.
 Both editions are built against MythicLib 1.7.1, MMOItems 6.10.1 and MMOCore 1.13.1.
 Spigot and Folia are not supported.
 
+Known limits of the plugins themselves, not GooP: MMOItems 6.10.1 reforging (`/goop mmoitems
+regenerate`) fails on Paper 1.20.1 – 1.20.4 because MMOItems calls an API added in 1.20.5, and
+MythicMobs 5.10+ does not start on Paper 1.20.1 – 1.20.4.
+
 Optional integrations, enabled when the plugin is installed: MythicMobs, MythicLib, MMOItems,
 MMOCore, MythicCrucible, WorldGuard, PlaceholderAPI, Vault, mcMMO 2.x, Towny, GriefPrevention,
 DiscordSRV, CMI, Essentials, Graveyards.
