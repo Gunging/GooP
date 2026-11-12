@@ -26,8 +26,15 @@
 - A plugin GooP hooks into that fails to load (for example MMOItems on an unsupported server
   version) no longer stops GooP from loading; only that integration is turned off.
 - `/goop mmoitems regenerate` reports MMOItems' own reforge errors instead of throwing.
+- The MMOItems converter generates items from a matching template (for example a `VANILLA`
+  item in the `SWORD` type) instead of ignoring it.
 
 ### Changed
+- World names in GooP locations and custom structures may also be written as namespaced keys
+  (`minecraft:the_nether`). Stored world names keep working on 26.x, where the default worlds
+  keep their names.
+- Internal: every `/goop` subcommand lives in its own `GooPCmd*` class; command syntax and
+  output are unchanged.
 - Item name filters without `*` must match exactly. Write `*ICE*` where the old
   "contains" behaviour was intended, or set `LegacyWildcardMatching: true` in config.yml to
   keep GooP 1.x matching for existing configs.
