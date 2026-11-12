@@ -15,7 +15,12 @@ import java.util.HashMap;
  */
 public class ChunkMap<T> {
 
-    @NotNull final HashMap<World, HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>>> chunky = new HashMap<>();
+    /**
+     * Keyed by world UID rather than the World object: a World key kept every world that ever held
+     * a container reachable after it was unloaded (temporary dungeon worlds), with all its chunks.
+     * Locations only hold their world weakly, so UIDs let unloaded worlds be collected.
+     */
+    @NotNull final HashMap<java.util.UUID, HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>>> chunky = new HashMap<>();
 
     public ChunkMap() {}
     public ChunkMap(@Nullable HashMap<Location, T> transcribe) {
@@ -44,7 +49,7 @@ public class ChunkMap<T> {
         ArrayList<T> ret = new ArrayList<>();
 
         // Through every world
-        for (World w : chunky.keySet()) {
+        for (java.util.UUID w : chunky.keySet()) {
             HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.get(w);
 
             // Through every major chunk
@@ -68,7 +73,7 @@ public class ChunkMap<T> {
     public void forEach(@NotNull ChunkForEach<T> operation) {
 
         // Through every world
-        for (World w : chunky.keySet()) {
+        for (java.util.UUID w : chunky.keySet()) {
             HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.get(w);
 
             // Through every major chunk
@@ -89,7 +94,7 @@ public class ChunkMap<T> {
     public void forEachExisting(@NotNull ChunkForEachNotNull<T> operation) {
 
         // Through every world
-        for (World w : chunky.keySet()) {
+        for (java.util.UUID w : chunky.keySet()) {
             HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.get(w);
 
             // Through every major chunk
@@ -126,7 +131,7 @@ public class ChunkMap<T> {
         ArrayList<ChunkMapEntry<T>> ret = new ArrayList<>();
 
         // Through every world
-        for (World w : chunky.keySet()) {
+        for (java.util.UUID w : chunky.keySet()) {
             HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.get(w);
 
             // Through every major chunk
@@ -164,7 +169,7 @@ public class ChunkMap<T> {
         CKS_Minor minor = CKS_Minor.GetFrom(loc);
 
         // Generate maps and get the correct arrays
-        HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.computeIfAbsent(world, k -> new HashMap<>());
+        HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.computeIfAbsent(world.getUID(), k -> new HashMap<>());
         HashMap<CKS_Minor, HashMap<Location, T>> majorMap = worldMap.computeIfAbsent(major, k -> new HashMap<>());
         HashMap<Location, T> minorMap = majorMap.computeIfAbsent(minor, k -> new HashMap<>());
 
@@ -202,7 +207,7 @@ public class ChunkMap<T> {
         CKS_Minor minor = CKS_Minor.GetFrom(loc);
 
         // Generate maps and get the correct arrays
-        HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.computeIfAbsent(world, k -> new HashMap<>());
+        HashMap<CKS_Major, HashMap<CKS_Minor, HashMap<Location, T>>> worldMap = chunky.computeIfAbsent(world.getUID(), k -> new HashMap<>());
         HashMap<CKS_Minor, HashMap<Location, T>> majorMap = worldMap.computeIfAbsent(major, k -> new HashMap<>());
         HashMap<Location, T> minorMap = majorMap.computeIfAbsent(minor, k -> new HashMap<>());
 
