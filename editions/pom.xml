@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Shared build for every edition jar. Each child only pins its Paper API, its MythicMobs
+  version and its bytecode level; the source comes from ../goop-common plus the child's own
+  src/edition/java (the VersionBridge implementation for that API generation).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>gunging.ootilities</groupId>
+        <artifactId>goop-parent</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>goop-editions</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>legacy</module>
+        <module>modern</module>
+    </modules>
+
+    <properties>
+        <!-- Overridden by each edition -->
+        <goop.release>21</goop.release>
+        <goop.apiVersion>1.21</goop.apiVersion>
+        <goop.edition>modern</goop.edition>
+        <paper.version>1.21.1-R0.1-SNAPSHOT</paper.version>
+        <mythicmobs.version>5.14.0</mythicmobs.version>
+
+        <goop.common.dir>${project.basedir}/../../goop-common</goop.common.dir>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>gunging.ootilities</groupId>
+            <artifactId>goop-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.objecthunter</groupId>
+            <artifactId>exp4j</artifactId>
+            <version>${exp4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
+
+        <!-- Server API -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>${paper.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MMO family (Phoenix Development) -->
+        <dependency>
+            <groupId>io.lumine</groupId>
+            <artifactId>MythicLib-dist</artifactId>
+            <version>${mythiclib.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.Indyuce</groupId>
+            <artifactId>MMOItems-API</artifactId>
+            <version>${mmoitems.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.Indyuce</groupId>
+            <artifactId>MMOCore-API</artifactId>
+            <version>${mmocore.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+
+        <!-- Mythic family (Lumine) -->
+        <dependency>
+            <groupId>io.lumine</groupId>
+            <artifactId>Mythic-Dist</artifactId>
+            <version>${mythicmobs.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.lumine</groupId>
+            <artifactId>MythicCrucible-Dist</artifactId>
+            <version>${crucible.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+
+        <!-- Optional hooks -->
+        <dependency>
+            <groupId>com.sk89q.worldguard</groupId>
+            <artifactId>worldguard-bukkit</artifactId>
+            <version>${worldguard.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion><groupId>org.bukkit</groupId><artifactId>*</artifactId></exclusion>
+                <exclusion><groupId>org.spigotmc</groupId><artifactId>*</artifactId></exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.sk89q.worldedit</groupId>
+            <artifactId>worldedit-bukkit</artifactId>
+            <version>${worldedit.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion><groupId>org.bukkit</groupId><artifactId>*</artifactId></exclusion>
+                <exclusion><groupId>org.spigotmc</groupId><artifactId>*</artifactId></exclusion>
+                <exclusion><groupId>io.papermc.paper</groupId><artifactId>*</artifactId></exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>${placeholderapi.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.MilkBowl</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>${vault.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.discordsrv</groupId>
+            <artifactId>discordsrv</artifactId>
+            <version>${discordsrv.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.essentialsx</groupId>
+            <artifactId>EssentialsX</artifactId>
+            <version>${essentials.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.TechFortress</groupId>
+            <artifactId>GriefPrevention</artifactId>
+            <version>${griefprevention.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.gmail.nossr50.mcMMO</groupId>
+            <artifactId>mcMMO</artifactId>
+            <version>${mcmmo.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.Zrips</groupId>
+            <artifactId>CMILib</artifactId>
+            <version>${cmilib.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.Zrips</groupId>
+            <artifactId>CMI-API</artifactId>
+            <version>${cmi.version}</version>
+            <scope>provided</scope>
+            <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>Gunging_Ootilities_Plugin-${project.version}-${goop.edition}</finalName>
+        <resources>
+            <!-- plugin.yml gets the version and api-version of this edition -->
+            <resource>
+                <directory>${goop.common.dir}/src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes><include>plugin.yml</include></includes>
+            </resource>
+            <resource>
+                <directory>${goop.common.dir}/src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes><exclude>plugin.yml</exclude></excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-shared-source</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>add-source</goal></goals>
+                        <configuration>
+                            <sources>
+                                <source>${goop.common.dir}/src/main/java</source>
+                                <source>${project.basedir}/src/edition/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>add-shared-test-source</id>
+                        <phase>generate-test-sources</phase>
+                        <goals><goal>add-test-source</goal></goals>
+                        <configuration>
+                            <sources><source>${goop.common.dir}/src/test/java</source></sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${goop.release}</release>
+                    <compilerArgs><arg>-Xmaxerrs</arg><arg>5000</arg></compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <!-- Both edition jars land in <root>/dist for easy pickup -->
+                            <outputFile>${project.basedir}/../../dist/${project.build.finalName}.jar</outputFile>
+                            <artifactSet>
+                                <includes>
+                                    <include>gunging.ootilities:goop-core</include>
+                                    <include>net.objecthunter:exp4j</include>
+                                </includes>
+                            </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>net.objecthunter.exp4j</pattern>
+                                    <shadedPattern>gunging.ootilities.gunging_ootilities_plugin.libs.exp4j</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

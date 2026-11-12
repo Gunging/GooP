@@ -1,0 +1,92 @@
+
+# Default Gamerule Values
+AnvilRename: false
+#NameExclusionMin: -0.5
+#NameExclusionMax: 0.5
+#NameNumberDecimals: 2
+SendSuccessFeedback: false
+SendFailFeedback: false
+BlockErrorFeedback: false
+SaveGameruleChanges: true
+GriefBedrockCommand: false
+ConverterUsesDefense: false
+#VaultLowBalance: "&cYou need $%charge% to use this"
+SummonLeashKillDistance: 60
+
+#
+# How item name filters (/goop consumeitem, testinventory, 'v'/'m'/'mm' item filters,
+# container slot whitelists...) treat names without a * wildcard.
+#
+#   false - The whole name must match: 'ICE' matches only ICE. Use '*ICE*' for "contains".
+#   true  - GooP 1.x behaviour: 'ICE' also matches MELON_SLICE and PACKED_ICE.
+#           Only for servers whose existing configs rely on it.
+#
+LegacyWildcardMatching: false
+
+#
+# Makes "/goop mythicmobs runSkillAs" replace "__" for spaces instead of replacing "-"
+#
+GooPMythicMobsRunSkillAsDoubleUnderscoreSpaces: true
+
+CustomStructures:
+
+  #
+  #   Detect the pressure plates as structure triggers?
+  #
+  #   It has been reported to impact performance on large servers after
+  #   several hours of running, as such the option to enable/disable it
+  #   was added. I suppose if you don't use its better to just disable
+  #   it anyway.
+  #
+  PlayerPressurePlates: false
+
+
+JSONFurnitureSpamPunchingBreak: true
+
+#---------------------------------------------
+# Some MMOItems stuff, for the TAB complete
+SuggestedGemstoneColours:
+  - "Blue"
+  - "Red"
+  - "Green"
+  - "Yellow"
+  - "Uncolored"
+
+#---------------------------------------------
+# Number of numeric MMOItems Misc Stats
+MiscStatAmount: 3
+
+# Number of text MMOItems Misc Stats
+MiscStrStatAmount: 1
+
+# Number of restriction MMOItems Misc Stats
+MiscRstStatAmount:
+  - '0..10'   # To allow using this item, the value must be between 0 and 10
+  - '4..'     # To allow using this item, the value must be greater than four
+  - '20'      # To allow using this item, the value must be exactly 20
+
+  #
+  #
+  #
+  #- '%mmocore_mana% 0..10'
+  #- '%mmocore_mana% %player_y% 0..10'
+
+#---------------------------------------------
+#   The Stat History of MMOItems tracks all changes to a stat value.
+#   GooP commands make it very easy to change stat values, leading to huge
+#   NBT stacks as the 'External Data' [EXSH] of the Stat History fills up.
+#
+#   This is how many entries of NBT before the EXSH consolidates, freeing
+#   up memory: +2 +5 -2 +8 -3 => consolidate => +10
+#   Essentially, bundles up all information into a single entry.
+#
+StatHistories:
+
+  # Numeric Stats
+  DoubleStat: 0
+
+  # Text Stats
+  StringStat: 0
+
+  # List Stats
+  StringListStat: 0
