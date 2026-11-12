@@ -5461,7 +5461,7 @@ public class OotilityCeption {
         if (wrdl == null) {
 
             // Attempt to get by name
-            wrdl = Bukkit.getWorld(worldName);
+            wrdl = gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions.GetWorld(worldName);
 
             if (wrdl == null) {
                 // World failure

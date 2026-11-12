@@ -519,7 +519,7 @@ public class CSManager implements Listener {
                         for (String world : rawWorldBlacklist) {
 
                             // Log unknown
-                            if (Bukkit.getWorld(world) == null && !Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                            if (gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions.GetWorld(world) == null && !Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
                                 oots.CPLog("Warning when loading custom structure \u00a73" + tName + "\u00a77: Unknown world to blacklist\u00a7b " + world + "\u00a77, added to the blacklist list anyway. ");
                             }
 
@@ -531,7 +531,7 @@ public class CSManager implements Listener {
                         for (String world : rawWorldWhitelist) {
 
                             // Log unknown
-                            if (Bukkit.getWorld(world) == null && !Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
+                            if (gunging.ootilities.gunging_ootilities_plugin.compatibilities.versions.GooP_MinecraftVersions.GetWorld(world) == null && !Gunging_Ootilities_Plugin.blockImportantErrorFeedback) {
                                     oots.CPLog("Warning when loading custom structure \u00a73" + tName + "\u00a77: Unknown world to whitelist\u00a7b" + world + "\u00a77, added to the whitelist list anyway. ");
                             }
 

@@ -476,6 +476,22 @@ public class GooP_MinecraftVersions {
     public static PotionEffectType GetVersionPotionEffect(GooPVersionPotionEffects ench) { return versionPotionEffects.get(ench); }
     //endregion
 
+    /**
+     * A loaded world by name, or by namespaced key such as {@code minecraft:the_nether}.
+     * <p>
+     * GooP stores world names. Paper 26.x moved dimension folders and is moving its API from
+     * names to keys, but on 26.1 - 26.3 the default worlds keep their old names (world,
+     * world_nether, world_the_end), so stored data still resolves; the key form is accepted
+     * as well so configs can use it.
+     */
+    @Nullable public static org.bukkit.World GetWorld(@Nullable String nameOrKey) {
+        if (nameOrKey == null) { return null; }
+        org.bukkit.World byName = Bukkit.getWorld(nameOrKey);
+        if (byName != null || nameOrKey.indexOf(':') < 0) { return byName; }
+        NamespacedKey key = NamespacedKey.fromString(nameOrKey.toLowerCase(Locale.ROOT));
+        return key == null ? null : Bukkit.getWorld(key);
+    }
+
     /** Characters allowed in a namespaced key path */
     private static final Pattern KEY_PATH = Pattern.compile("[a-z0-9_./-]+");
 
