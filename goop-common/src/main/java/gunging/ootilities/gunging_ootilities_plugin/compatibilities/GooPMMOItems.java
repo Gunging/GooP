@@ -1665,6 +1665,22 @@ public class GooPMMOItems {
     @NotNull public static ItemStack ConvertVanillaToMMOItem(@NotNull ItemStack base) {
         return ConvertVanillaToMMOItem(base, null, null, false);
     }
+    /**
+     * @return The item generated from the MMOItems template matching the converted type and ID,
+     *         keeping the original amount and enchantments; null when no such template exists.
+     */
+    @Nullable static ItemStack FromConverterTemplate(@NotNull NBTItem converted, int amount, @NotNull Map<Enchantment, Integer> enchantments) {
+        Type type = MMOItems.plugin.getTypes().get(converted.getString("MMOITEMS_ITEM_TYPE"));
+        String id = converted.getString("MMOITEMS_ITEM_ID");
+        if (type == null || id == null || id.isEmpty() || !MMOItems.plugin.getTemplates().hasTemplate(type, id)) { return null; }
+
+        ItemStack generated = MMOItems.plugin.getItem(type, id);
+        if (generated == null) { return null; }
+        generated.setAmount(Math.max(1, amount));
+        if (!enchantments.isEmpty()) { generated.addUnsafeEnchantments(enchantments); }
+        return generated;
+    }
+
     @NotNull public static ItemStack ConvertVanillaToMMOItem(@NotNull ItemStack base, @Nullable String forcedTypePrefix, @Nullable String forcedIDFormat, boolean forcedType) {
 
         // Store important nbt data
@@ -1677,6 +1693,13 @@ public class GooPMMOItems {
 
         // Convert it as NBT and then Build it
         NBTItem asNBT = GooPMMOItems.ConvertVanillaToMMOItemAsNBT(base, forcedTypePrefix, forcedIDFormat, forcedType);
+
+        // An MMOItems template with this type and ID (such as SWORD VANILLA) defines what converted
+        // items should be: generate from it. GooP 1.x always copied the vanilla stats instead,
+        // ignoring the template, which users reported as "converter does not use my VANILLA item".
+        ItemStack fromTemplate = FromConverterTemplate(asNBT, oCount, oEnchantments);
+        if (fromTemplate != null) { return fromTemplate; }
+
         MMOItem mmoitem = LiveFromNBT(asNBT);
         if (mmoitem == null) { return base; }
 
