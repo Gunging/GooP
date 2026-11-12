@@ -14,6 +14,16 @@ ConverterUsesDefense: false
 SummonLeashKillDistance: 60
 
 #
+# How item name filters (/goop consumeitem, testinventory, 'v'/'m'/'mm' item filters,
+# container slot whitelists...) treat names without a * wildcard.
+#
+#   false - The whole name must match: 'ICE' matches only ICE. Use '*ICE*' for "contains".
+#   true  - GooP 1.x behaviour: 'ICE' also matches MELON_SLICE and PACKED_ICE.
+#           Only for servers whose existing configs rely on it.
+#
+LegacyWildcardMatching: false
+
+#
 # Makes "/goop mythicmobs runSkillAs" replace "__" for spaces instead of replacing "-"
 #
 GooPMythicMobsRunSkillAsDoubleUnderscoreSpaces: true

@@ -38,4 +38,15 @@ class GlobMatcherTest {
         assertTrue(GlobMatcher.matches("ABAB", "AB*AB", true));
         assertTrue(GlobMatcher.matches("SWORD_10", "SWORD_1*", true));
     }
+
+    @Test
+    void looseMatchingKeepsGooP1Behaviour() {
+        assertTrue(GlobMatcher.matchesLoosely("MELON_SLICE", "ICE", true));
+        assertTrue(GlobMatcher.matchesLoosely("SWORD_10", "SWORD_1", true));
+        assertTrue(GlobMatcher.matchesLoosely("STRIPPED_DARK_OAK_LOG", "DARK_OAK_*", true));
+        assertTrue(GlobMatcher.matchesLoosely("ANYTHING", "*", true));
+        assertFalse(GlobMatcher.matchesLoosely("DIAMOND_SWORD", "AXE", true));
+        // Original quirk: the next piece may reuse the characters of the previous one
+        assertTrue(GlobMatcher.matchesLoosely("AB", "AB*AB", true));
+    }
 }

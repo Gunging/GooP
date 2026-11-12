@@ -26,7 +26,8 @@
 
 ### Changed
 - Item name filters without `*` must match exactly. Write `*ICE*` where the old
-  "contains" behaviour was intended.
+  "contains" behaviour was intended, or set `LegacyWildcardMatching: true` in config.yml to
+  keep GooP 1.x matching for existing configs.
 - MythicMobs older than 5.9.5 is no longer supported (custom mechanics use the 5.2+ API only).
 - mcMMO placeholders require mcMMO 2.x.
 - MMOItem Shrubs, Graveyards and Towny are reached without compile-time dependencies; if a

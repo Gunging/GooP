@@ -45,6 +45,8 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
     public static Boolean anvilRenameEnabled = false;
     public static boolean spamPunchingJSON = false;
     public static boolean useMMOLibDefenseConvert = false;
+    /** If item name filters use GooP 1.x "contains" matching, see config.yml LegacyWildcardMatching */
+    public static boolean legacyWildcardMatching = false;
     public static boolean csPressurePlates = false;
     public static boolean gMyMoRuSkAsDoUnSp = false; // goopMythicMobsRunSkillAsDoubleUnderscoreSpaces
     public static Boolean devLogging = false;
@@ -694,6 +696,7 @@ public final class Gunging_Ootilities_Plugin extends JavaPlugin implements Liste
         ///String sFirstValue = getConfig().getStringList("SampleTArray").get(0);
         String nameRangeExclusionMinRaw = null, nameRangeExclusionMaxRaw = null, placeholderReadablenessRaw = null;
         useMMOLibDefenseConvert = getConfig().getBoolean("ConverterUsesDefense", false);
+        legacyWildcardMatching = getConfig().getBoolean("LegacyWildcardMatching", false);
         spamPunchingJSON = getConfig().getBoolean("JSONFurnitureSpamPunchingBreak", true);
         csPressurePlates = getConfig().getBoolean("CustomStructures.PlayerPressurePlates", false);
         gMyMoRuSkAsDoUnSp = getConfig().getBoolean("GooPMythicMobsRunSkillAsDoubleUnderscoreSpaces", false);

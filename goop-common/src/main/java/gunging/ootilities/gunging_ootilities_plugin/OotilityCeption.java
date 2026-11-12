@@ -7087,6 +7087,8 @@ public class OotilityCeption {
      * @see gunging.ootilities.goop.core.GlobMatcher
      */
     public static boolean wildcardMatches(@NotNull String target, @NotNull String wildcarded, boolean ignoreCase) {
+        if (Gunging_Ootilities_Plugin.legacyWildcardMatching) {
+            return gunging.ootilities.goop.core.GlobMatcher.matchesLoosely(target, wildcarded, ignoreCase); }
         return gunging.ootilities.goop.core.GlobMatcher.matches(target, wildcarded, ignoreCase);
     }
 

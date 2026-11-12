@@ -51,4 +51,22 @@ public final class GlobMatcher {
         }
         return true;
     }
+
+    /**
+     * GooP 1.x matching, kept for servers whose configs were written around it
+     * ({@code LegacyWildcardMatching: true} in config.yml). Each piece between {@code *} only
+     * has to appear somewhere in the target, in order, so {@code ICE} matches
+     * {@code MELON_SLICE}. Reproduces the original algorithm exactly, including that the
+     * search for a piece resumes at the start of the previous match rather than after it.
+     */
+    public static boolean matchesLoosely(@NotNull String target, @NotNull String pattern, boolean ignoreCase) {
+        String mat = ignoreCase ? target.toUpperCase(Locale.ROOT) : target;
+        for (String matcher : pattern.split("\\*")) {
+            String cher = ignoreCase ? matcher.toUpperCase(Locale.ROOT) : matcher;
+            int m = mat.indexOf(cher);
+            if (m < 0) { return false; }
+            mat = mat.substring(m);
+        }
+        return true;
+    }
 }
